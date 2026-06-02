@@ -82,46 +82,49 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
-    supabase.auth.getUser().then(async ({ data }) => {
-      if (!data.user) return;
-      setAdminId(data.user.id);
+    const verificar = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { router.push('/login'); return; }
+
+      setAdminId(user.id);
       const { data: jugador } = await supabase
         .from('quiniela_jugadores')
         .select('rol')
-        .eq('id', data.user.id)
+        .eq('id', user.id)
         .maybeSingle();
-      
-      if (!jugador || jugador.rol !== 'admin') {
+
+      if (jugador?.rol !== 'admin') {
         router.push('/');
         return;
       }
 
-      if (jugador.rol === 'admin') {
-        setIsAdmin(true);
-        const [{ data: ps }, { data: js }] = await Promise.all([
-          supabase.from('quiniela_partidos').select('*').order('fecha_hora'),
-          supabase.from('quiniela_jugadores').select('*').order('nombre'),
-        ]);
-        setPartidos((ps as Partido[]) ?? []);
-        const jugadoresList = (js as Jugador[]) ?? [];
-        setJugadores(jugadoresList);
+      setIsAdmin(true);
 
-        const nombresMap: Record<string, string> = {};
-        jugadoresList.forEach(j => { nombresMap[j.id] = j.nombre; });
+      const [{ data: ps }, { data: js }] = await Promise.all([
+        supabase.from('quiniela_partidos').select('*').order('fecha_hora'),
+        supabase.from('quiniela_jugadores').select('*').order('nombre'),
+      ]);
+      setPartidos((ps as Partido[]) ?? []);
+      const jugadoresList = (js as Jugador[]) ?? [];
+      setJugadores(jugadoresList);
 
-        const { data: pagosData } = await supabase
-          .from('quiniela_pagos').select('*').order('created_at', { ascending: false }).limit(50);
-        const pagosEnriquecidos: PagoConNombre[] = ((pagosData as Pago[]) ?? []).map(p => ({
-          ...p,
-          jugadorNombre: nombresMap[p.user_id] ?? p.user_id.slice(0, 8),
-          adminNombre:   p.activado_por ? (nombresMap[p.activado_por] ?? p.activado_por.slice(0, 8)) : '—',
-        }));
-        setPagos(pagosEnriquecidos);
+      const nombresMap: Record<string, string> = {};
+      jugadoresList.forEach(j => { nombresMap[j.id] = j.nombre; });
 
-        await cargarPozos(jugadoresList);
-      }
+      const { data: pagosData } = await supabase
+        .from('quiniela_pagos').select('*').order('created_at', { ascending: false }).limit(50);
+      const pagosEnriquecidos: PagoConNombre[] = ((pagosData as Pago[]) ?? []).map(p => ({
+        ...p,
+        jugadorNombre: nombresMap[p.user_id] ?? p.user_id.slice(0, 8),
+        adminNombre:   p.activado_por ? (nombresMap[p.activado_por] ?? p.activado_por.slice(0, 8)) : '—',
+      }));
+      setPagos(pagosEnriquecidos);
+
+      await cargarPozos(jugadoresList);
       setLoading(false);
-    });
+    };
+
+    verificar();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
