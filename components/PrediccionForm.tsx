@@ -13,9 +13,35 @@ interface Props {
   onCancelar: () => void;
 }
 
+function Contador({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  return (
+    <div className="flex items-center gap-4">
+      <button
+        type="button"
+        onClick={() => onChange(Math.max(0, value - 1))}
+        className="w-12 h-12 rounded-full font-bold text-xl transition-all active:scale-90 min-h-[48px]"
+        style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+      >
+        −
+      </button>
+      <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '3.5rem', color: 'var(--text-primary)', lineHeight: 1, minWidth: '2.5rem', textAlign: 'center' }}>
+        {value}
+      </span>
+      <button
+        type="button"
+        onClick={() => onChange(value + 1)}
+        className="w-12 h-12 rounded-full font-bold text-xl transition-all active:scale-90 min-h-[48px]"
+        style={{ background: 'var(--accent-gold)', color: '#000' }}
+      >
+        +
+      </button>
+    </div>
+  );
+}
+
 export default function PrediccionForm({ partido, userId, prediccionExistente, onGuardado, onCancelar }: Props) {
-  const [local, setLocal]    = useState(prediccionExistente?.goles_local_pred ?? 0);
-  const [visita, setVisita]  = useState(prediccionExistente?.goles_visitante_pred ?? 0);
+  const [local,   setLocal]   = useState(prediccionExistente?.goles_local_pred ?? 0);
+  const [visita,  setVisita]  = useState(prediccionExistente?.goles_visitante_pred ?? 0);
   const [loading, setLoading] = useState(false);
 
   const handleGuardar = async () => {
@@ -29,54 +55,63 @@ export default function PrediccionForm({ partido, userId, prediccionExistente, o
     }, { onConflict: 'user_id,partido_id' });
 
     setLoading(false);
-    if (error) {
-      toast.error('Error al guardar predicción');
-    } else {
-      toast.success('¡Predicción guardada!');
-      onGuardado();
-    }
+    if (error) toast.error('Error al guardar predicción');
+    else { toast.success('¡Predicción guardada! ⚽'); onGuardado(); }
   };
 
-  const Contador = ({ value, onChange }: { value: number; onChange: (v: number) => void }) => (
-    <div className="flex items-center gap-3">
-      <button onClick={() => onChange(Math.max(0, value - 1))}
-        className="w-10 h-10 rounded-full bg-zinc-700 text-white font-bold text-lg hover:bg-zinc-600">−</button>
-      <span className="text-3xl font-black text-white w-8 text-center">{value}</span>
-      <button onClick={() => onChange(value + 1)}
-        className="w-10 h-10 rounded-full bg-amber-500 text-black font-bold text-lg hover:bg-amber-400">+</button>
-    </div>
-  );
-
   return (
-    <div className="fixed inset-0 z-50 flex items-end bg-black/70" onClick={onCancelar}>
-      <div className="w-full bg-zinc-900 rounded-t-3xl p-6 space-y-6" onClick={e => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 z-50 flex items-end"
+      style={{ background: 'rgba(0,0,0,0.8)' }}
+      onClick={onCancelar}
+    >
+      <div
+        className="w-full rounded-t-3xl px-6 pt-6 pb-8 space-y-6"
+        style={{ background: 'rgba(10,10,15,0.98)', borderTop: '1px solid var(--border)', animation: 'slideUp 0.3s ease-out' }}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Handle bar */}
+        <div className="w-10 h-1 rounded-full mx-auto" style={{ background: 'var(--border)' }} />
+
         <div className="text-center space-y-1">
-          <p className="text-xs text-zinc-400 uppercase tracking-widest">Tu predicción</p>
-          <p className="text-lg font-bold text-white">
+          <p className="text-xs uppercase tracking-widest font-semibold" style={{ color: 'var(--text-secondary)' }}>Tu predicción</p>
+          <p className="font-semibold" style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--text-primary)' }}>
             {partido.bandera_local} {partido.equipo_local} vs {partido.equipo_visitante} {partido.bandera_visitante}
+          </p>
+          <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+            Grupo {partido.grupo} · Jornada {partido.jornada}
           </p>
         </div>
 
-        <div className="flex items-center justify-around">
-          <div className="text-center space-y-2">
-            <p className="text-sm text-zinc-400">{partido.equipo_local}</p>
+        <div className="flex items-center justify-around py-2">
+          <div className="flex flex-col items-center gap-3">
+            <span className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>{partido.equipo_local}</span>
             <Contador value={local} onChange={setLocal} />
           </div>
-          <span className="text-2xl font-black text-zinc-500">–</span>
-          <div className="text-center space-y-2">
-            <p className="text-sm text-zinc-400">{partido.equipo_visitante}</p>
+          <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '2rem', color: 'var(--border)' }}>–</span>
+          <div className="flex flex-col items-center gap-3">
+            <span className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>{partido.equipo_visitante}</span>
             <Contador value={visita} onChange={setVisita} />
           </div>
         </div>
 
         <div className="flex gap-3">
-          <button onClick={onCancelar}
-            className="flex-1 py-3 rounded-2xl border border-zinc-600 text-zinc-400 font-semibold">
+          <button
+            type="button"
+            onClick={onCancelar}
+            className="flex-1 py-3 rounded-2xl font-semibold min-h-[48px] transition-all active:scale-95"
+            style={{ border: '1px solid var(--border)', color: 'var(--text-secondary)' }}
+          >
             Cancelar
           </button>
-          <button onClick={handleGuardar} disabled={loading}
-            className="flex-1 py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-black font-bold disabled:opacity-60">
-            {loading ? 'Guardando…' : 'Guardar'}
+          <button
+            type="button"
+            onClick={handleGuardar}
+            disabled={loading}
+            className="flex-1 py-3 rounded-2xl font-bold min-h-[48px] transition-all active:scale-95 disabled:opacity-50"
+            style={{ background: 'var(--accent-gold)', color: '#000', fontFamily: 'var(--font-rajdhani)' }}
+          >
+            {loading ? 'Guardando…' : 'Guardar predicción'}
           </button>
         </div>
       </div>

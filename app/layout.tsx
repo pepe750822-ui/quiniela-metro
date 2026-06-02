@@ -1,10 +1,20 @@
 import type { Metadata } from 'next';
-import { Geist } from 'next/font/google';
+import { Bebas_Neue, Rajdhani } from 'next/font/google';
 import './globals.css';
 import Navbar from '@/components/Navbar';
 import { Toaster } from 'sonner';
 
-const geist = Geist({ subsets: ['latin'] });
+const bebasNeue = Bebas_Neue({
+  weight: '400',
+  subsets: ['latin'],
+  variable: '--font-bebas',
+});
+
+const rajdhani = Rajdhani({
+  weight: ['400', '600', '700'],
+  subsets: ['latin'],
+  variable: '--font-rajdhani',
+});
 
 export const metadata: Metadata = {
   title: 'Quiniela Metro — Mundial 2026',
@@ -21,10 +31,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <link rel="manifest" href="/manifest.json" />
       </head>
-      <body className={`${geist.className} bg-zinc-950 text-white min-h-screen pb-16`}>
+      <body
+        className={`${bebasNeue.variable} ${rajdhani.variable} min-h-screen pb-[calc(4rem+env(safe-area-inset-bottom))]`}
+        style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)', fontFamily: 'var(--font-rajdhani), sans-serif' }}
+      >
         {children}
         <Navbar />
-        <Toaster position="top-center" richColors />
+        <Toaster position="top-center" richColors theme="dark" />
       </body>
     </html>
   );
