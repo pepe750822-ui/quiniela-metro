@@ -259,62 +259,6 @@ export default function AdminPage() {
     <main className="max-w-lg mx-auto px-4 pb-24 space-y-8"
       style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1.5rem)' }}>
 
-      {/* ── RESULTADOS ── */}
-      <section className="space-y-4">
-        <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.75rem', color: 'var(--accent-gold)', letterSpacing: '0.05em' }}>
-          🛠️ RESULTADOS
-        </h1>
-        <div className="space-y-3">
-          {partidos.map(partido => {
-            const vals = editando[partido.id];
-            return (
-              <div key={partido.id} className="rounded-2xl p-4 space-y-3"
-                style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-                <div className="flex items-center justify-between text-xs" style={{ color: 'var(--text-secondary)' }}>
-                  <span>Grupo {partido.grupo} · J{partido.jornada}</span>
-                  <span className="px-2 py-0.5 rounded-full font-bold uppercase text-[10px]"
-                    style={{
-                      background: partido.estado === 'finalizado' ? 'rgba(100,116,139,0.15)' : 'rgba(234,88,12,0.15)',
-                      color:      partido.estado === 'finalizado' ? '#64748b' : 'var(--accent-gold)',
-                    }}>
-                    {partido.estado}
-                  </span>
-                </div>
-                <p className="text-sm font-bold text-center flex items-center justify-center gap-1.5 flex-wrap" style={{ color: 'var(--text-primary)' }}>
-                  <Bandera emoji={partido.bandera_local} nombre={partido.equipo_local} size="sm" />
-                  {partido.equipo_local} vs {partido.equipo_visitante}
-                  <Bandera emoji={partido.bandera_visitante} nombre={partido.equipo_visitante} size="sm" />
-                </p>
-                {partido.estado !== 'finalizado' && (
-                  <div className="flex items-center gap-2">
-                    <input type="number" min="0" placeholder="0" value={vals?.local ?? ''}
-                      onChange={e => setEditando(prev => ({ ...prev, [partido.id]: { local: e.target.value, visita: prev[partido.id]?.visita ?? '' } }))}
-                      className="flex-1 rounded-xl px-3 py-2 text-center text-lg font-bold"
-                      style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)' }} />
-                    <span style={{ color: 'var(--border)', fontWeight: 'bold' }}>–</span>
-                    <input type="number" min="0" placeholder="0" value={vals?.visita ?? ''}
-                      onChange={e => setEditando(prev => ({ ...prev, [partido.id]: { local: prev[partido.id]?.local ?? '', visita: e.target.value } }))}
-                      className="flex-1 rounded-xl px-3 py-2 text-center text-lg font-bold"
-                      style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)' }} />
-                    <button onClick={() => handleGuardar(partido)}
-                      disabled={!vals?.local || !vals?.visita || guardando === partido.id}
-                      className="px-4 py-2 rounded-xl font-bold text-sm disabled:opacity-40 transition-all active:scale-95"
-                      style={{ background: '#10b981', color: '#000' }}>
-                      {guardando === partido.id ? '…' : '✓'}
-                    </button>
-                  </div>
-                )}
-                {partido.estado === 'finalizado' && (
-                  <p className="text-center font-bold text-lg" style={{ fontFamily: 'var(--font-bebas)', color: 'var(--accent-gold)' }}>
-                    {partido.goles_local} – {partido.goles_visitante}
-                  </p>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
       {/* ── POZOS ── */}
       <section className="space-y-4">
         <h2 style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.75rem', color: 'var(--accent-gold)', letterSpacing: '0.05em' }}>
@@ -532,6 +476,62 @@ export default function AdminPage() {
             </div>
           </div>
         )}
+      </section>
+
+      {/* ── RESULTADOS ── */}
+      <section className="space-y-4">
+        <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.75rem', color: 'var(--accent-gold)', letterSpacing: '0.05em' }}>
+          🛠️ RESULTADOS
+        </h1>
+        <div className="space-y-3">
+          {partidos.map(partido => {
+            const vals = editando[partido.id];
+            return (
+              <div key={partido.id} className="rounded-2xl p-4 space-y-3"
+                style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                <div className="flex items-center justify-between text-xs" style={{ color: 'var(--text-secondary)' }}>
+                  <span>Grupo {partido.grupo} · J{partido.jornada}</span>
+                  <span className="px-2 py-0.5 rounded-full font-bold uppercase text-[10px]"
+                    style={{
+                      background: partido.estado === 'finalizado' ? 'rgba(100,116,139,0.15)' : 'rgba(234,88,12,0.15)',
+                      color:      partido.estado === 'finalizado' ? '#64748b' : 'var(--accent-gold)',
+                    }}>
+                    {partido.estado}
+                  </span>
+                </div>
+                <p className="text-sm font-bold text-center flex items-center justify-center gap-1.5 flex-wrap" style={{ color: 'var(--text-primary)' }}>
+                  <Bandera emoji={partido.bandera_local} nombre={partido.equipo_local} size="sm" />
+                  {partido.equipo_local} vs {partido.equipo_visitante}
+                  <Bandera emoji={partido.bandera_visitante} nombre={partido.equipo_visitante} size="sm" />
+                </p>
+                {partido.estado !== 'finalizado' && (
+                  <div className="flex items-center gap-2">
+                    <input type="number" min="0" placeholder="0" value={vals?.local ?? ''}
+                      onChange={e => setEditando(prev => ({ ...prev, [partido.id]: { local: e.target.value, visita: prev[partido.id]?.visita ?? '' } }))}
+                      className="flex-1 rounded-xl px-3 py-2 text-center text-lg font-bold"
+                      style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)' }} />
+                    <span style={{ color: 'var(--border)', fontWeight: 'bold' }}>–</span>
+                    <input type="number" min="0" placeholder="0" value={vals?.visita ?? ''}
+                      onChange={e => setEditando(prev => ({ ...prev, [partido.id]: { local: prev[partido.id]?.local ?? '', visita: e.target.value } }))}
+                      className="flex-1 rounded-xl px-3 py-2 text-center text-lg font-bold"
+                      style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)' }} />
+                    <button onClick={() => handleGuardar(partido)}
+                      disabled={!vals?.local || !vals?.visita || guardando === partido.id}
+                      className="px-4 py-2 rounded-xl font-bold text-sm disabled:opacity-40 transition-all active:scale-95"
+                      style={{ background: '#10b981', color: '#000' }}>
+                      {guardando === partido.id ? '…' : '✓'}
+                    </button>
+                  </div>
+                )}
+                {partido.estado === 'finalizado' && (
+                  <p className="text-center font-bold text-lg" style={{ fontFamily: 'var(--font-bebas)', color: 'var(--accent-gold)' }}>
+                    {partido.goles_local} – {partido.goles_visitante}
+                  </p>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </section>
     </main>
   );
