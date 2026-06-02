@@ -48,26 +48,26 @@ export default function PrediccionForm({ partido, userId, prediccionExistente, o
   const handleGuardar = async () => {
     setLoading(true);
 
-    // Primera predicción de la jornada: crear participación pendiente si no existe
-    if (!prediccionExistente) {
-      const { data: participacion } = await supabase
-        .from('quiniela_participaciones')
-        .select('pagado')
-        .eq('user_id', userId)
-        .eq('jornada', partido.jornada)
-        .single();
+    // Pago de $50 MXN es UNA VEZ por jornada completa (no por partido)
+    // Siempre verificar si ya existe participación para esta jornada
+    const { data: participacion } = await supabase
+      .from('quiniela_participaciones')
+      .select('pagado')
+      .eq('user_id', userId)
+      .eq('jornada', partido.jornada)
+      .single();
 
-      if (!participacion) {
-        await supabase.from('quiniela_participaciones').insert({
-          user_id: userId,
-          jornada: partido.jornada,
-          pagado:  false,
-          monto:   50,
-        });
-      }
+    // Si no tiene participación → crear una pendiente (solo la primera vez en la jornada)
+    if (!participacion) {
+      await supabase.from('quiniela_participaciones').insert({
+        user_id: userId,
+        jornada: partido.jornada,
+        pagado:  false,
+        monto:   50,
+      });
     }
 
-    // Guardar predicción siempre (pagada o pendiente)
+    // Guardar predicción
     const { error } = await supabase.from('quiniela_predicciones').upsert({
       user_id:              userId,
       partido_id:           partido.id,
@@ -76,12 +76,44 @@ export default function PrediccionForm({ partido, userId, prediccionExistente, o
       updated_at:           new Date().toISOString(),
     }, { onConflict: 'user_id,partido_id' });
 
-    setLoading(false);
-    if (error) toast.error('Error al guardar predicción');
-    else {
-      toast.success(prediccionExistente ? '¡Predicción actualizada! ⚽' : '¡Predicción guardada! ⚽');
-      onGuardado();
+    if (error) {
+      setLoading(false);
+      toast.error('Error al guardar predicción');
+      return;
     }
+
+    // Verificar si completó todos los partidos de la jornada
+    const { data: partidosJornada } = await supabase
+      .from('quiniela_partidos')
+      .select('id')
+      .eq('jornada', partido.jornada);
+
+    const idsJornada = (partidosJornada ?? []).map((p: { id: string }) => p.id);
+
+    const { count: totalPredichas } = await supabase
+      .from('quiniela_predicciones')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .in('partido_id', idsJornada);
+
+    const completo = idsJornada.length > 0 && !!totalPredichas && totalPredichas >= idsJornada.length;
+
+    if (completo) {
+      await supabase
+        .from('quiniela_participaciones')
+        .update({ predicciones_completas: true })
+        .eq('user_id', userId)
+        .eq('jornada', partido.jornada);
+    }
+
+    setLoading(false);
+
+    if (completo) {
+      toast.success('🎉 ¡Completaste todas tus predicciones! Ya pueden verlas los demás participantes.');
+    } else {
+      toast.success(prediccionExistente ? '¡Predicción actualizada! ⚽' : '¡Predicción guardada! ⚽');
+    }
+    onGuardado();
   };
 
   return (

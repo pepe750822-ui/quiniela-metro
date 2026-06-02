@@ -83,6 +83,12 @@ export default function PrediccionesPage() {
     if (userId) cargarPozoYParticipacion(userId, jornada);
   };
 
+  // Progreso de predicciones en la jornada actual
+  const predichasEnJornada = partidos.filter(p => predicciones[p.id]).length;
+  const totalEnJornada = partidos.length;
+  const porcentaje = totalEnJornada > 0 ? Math.round((predichasEnJornada / totalEnJornada) * 100) : 0;
+  const jornadaCompleta = predichasEnJornada >= totalEnJornada && totalEnJornada > 0;
+
   return (
     <main
       className="max-w-lg mx-auto px-4 pb-24 space-y-4"
@@ -157,6 +163,45 @@ export default function PrediccionesPage() {
           </button>
         ))}
       </div>
+
+      {/* Barra de progreso */}
+      {!loading && totalEnJornada > 0 && (
+        <div
+          className="rounded-2xl px-4 py-3 space-y-2"
+          style={{
+            background: jornadaCompleta ? 'rgba(16,185,129,0.08)' : 'var(--bg-card)',
+            border: `1px solid ${jornadaCompleta ? 'rgba(16,185,129,0.3)' : 'var(--border)'}`,
+            animation: 'fadeInUp 0.4s ease-out 0.18s both',
+          }}
+        >
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold" style={{ fontFamily: 'var(--font-rajdhani)', color: jornadaCompleta ? '#10b981' : 'var(--text-primary)' }}>
+              {jornadaCompleta
+                ? `✅ ¡Jornada ${jornada} completa!`
+                : `Jornada ${jornada}: ${predichasEnJornada}/${totalEnJornada} partidos predichos`}
+            </p>
+            <span className="text-sm font-bold" style={{ fontFamily: 'var(--font-bebas)', color: jornadaCompleta ? '#10b981' : 'var(--accent-gold)' }}>
+              {porcentaje}%
+            </span>
+          </div>
+          <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+            <div
+              className="h-2 rounded-full transition-all duration-500"
+              style={{
+                width: `${porcentaje}%`,
+                background: jornadaCompleta
+                  ? 'linear-gradient(90deg, #10b981, #34d399)'
+                  : 'linear-gradient(90deg, #ea580c, #f97316)',
+              }}
+            />
+          </div>
+          {jornadaCompleta && (
+            <p className="text-xs" style={{ color: '#10b981' }}>
+              Tus predicciones ya son visibles para todos los participantes
+            </p>
+          )}
+        </div>
+      )}
 
       {loading ? (
         <div className="flex justify-center py-12">
