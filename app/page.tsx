@@ -121,12 +121,30 @@ export default function RankingPage() {
     supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id));
 
     supabase
-      .from('quiniela_ranking')
-      .select('*, jugador:quiniela_jugadores(*)')
-      .is('jornada', null)
-      .order('puntos_total', { ascending: false })
-      .then(({ data }) => {
-        setRanking((data as RankingConJugador[]) ?? []);
+      .rpc('get_ranking_general')
+      .then(({ data, error }) => {
+        if (!error && data) {
+          setRanking(
+            (data as { user_id: string; nombre: string; email: string; avatar_url: string | null; puntos_total: number; exactos: number }[])
+              .map(r => ({
+                id:           r.user_id,
+                user_id:      r.user_id,
+                jornada:      null,
+                puntos_total: Number(r.puntos_total),
+                exactos:      Number(r.exactos),
+                updated_at:   '',
+                jugador: {
+                  id:         r.user_id,
+                  nombre:     r.nombre,
+                  email:      r.email ?? '',
+                  rol:        'jugador' as const,
+                  avatar_url: r.avatar_url ?? null,
+                  creditos:   0,
+                  created_at: '',
+                },
+              }))
+          );
+        }
         setLoading(false);
       });
 
