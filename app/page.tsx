@@ -35,12 +35,12 @@ function CountdownUnit({ value, label }: { value: number; label: string }) {
 }
 
 const estadoBorderColor: Record<string, string> = {
-  abierto:  'rgba(245,158,11,0.5)',
+  abierto:  'rgba(234,88,12,0.5)',
   cerrado:  'rgba(100,116,139,0.4)',
   pagado:   'rgba(16,185,129,0.5)',
 };
 const estadoBg: Record<string, string> = {
-  abierto:  'rgba(245,158,11,0.06)',
+  abierto:  'rgba(234,88,12,0.06)',
   cerrado:  'rgba(100,116,139,0.06)',
   pagado:   'rgba(16,185,129,0.06)',
 };

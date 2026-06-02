@@ -28,7 +28,7 @@ export default function JornadaPage() {
       <h1 className="text-xl font-black">📅 Jornada {id}</h1>
       {loading ? (
         <div className="flex justify-center py-12">
-          <div className="h-8 w-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+          <div className="h-8 w-8 border-2 border-orange-600 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : (
         <div className="space-y-3">

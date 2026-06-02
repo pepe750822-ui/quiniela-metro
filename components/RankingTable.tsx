@@ -16,7 +16,7 @@ function Iniciales({ nombre }: { nombre: string }) {
   return (
     <div
       className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-black shrink-0"
-      style={{ background: 'linear-gradient(135deg, #f59e0b, #ea580c)' }}
+      style={{ background: 'linear-gradient(135deg, #ea580c, #ea580c)' }}
     >
       {ini.toUpperCase()}
     </div>
@@ -47,7 +47,7 @@ export default function RankingTable({ ranking, userId, pendienteIds }: Props) {
           {[top3[1], top3[0], top3[2]].filter(Boolean).map((entry, visualIdx) => {
             const realIdx = entry === top3[0] ? 0 : entry === top3[1] ? 1 : 2;
             const heights = ['h-28', 'h-36', 'h-24'];
-            const glows   = ['rgba(192,192,192,0.15)', 'rgba(245,158,11,0.15)', 'rgba(180,120,60,0.1)'];
+            const glows   = ['rgba(192,192,192,0.15)', 'rgba(234,88,12,0.15)', 'rgba(180,120,60,0.1)'];
             return (
               <div key={entry.user_id}
                 className="flex-1 flex flex-col items-center gap-2 rounded-2xl py-3 px-2"
@@ -78,9 +78,9 @@ export default function RankingTable({ ranking, userId, pendienteIds }: Props) {
               <div key={entry.user_id}
                 className="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all"
                 style={{
-                  background: esYo ? 'rgba(245,158,11,0.08)' : 'var(--bg-card)',
-                  border: `1px solid ${esYo ? 'rgba(245,158,11,0.4)' : 'var(--border)'}`,
-                  outline: esYo ? '1px solid rgba(245,158,11,0.3)' : 'none',
+                  background: esYo ? 'rgba(234,88,12,0.08)' : 'var(--bg-card)',
+                  border: `1px solid ${esYo ? 'rgba(234,88,12,0.4)' : 'var(--border)'}`,
+                  outline: esYo ? '1px solid rgba(234,88,12,0.3)' : 'none',
                   animation: `fadeInUp 0.4s ease-out ${i * 50}ms both`,
                 }}
               >
@@ -89,12 +89,12 @@ export default function RankingTable({ ranking, userId, pendienteIds }: Props) {
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-sm truncate flex items-center gap-1.5 flex-wrap" style={{ color: esYo ? 'var(--accent-gold)' : 'var(--text-primary)' }}>
                     {entry.jugador?.nombre ?? 'Jugador'}
-                    {esYo && <span className="text-[9px] bg-amber-500 text-black px-1.5 py-0.5 rounded-full font-black">TÚ</span>}
-                    {pendienteIds?.includes(entry.user_id) && <span className="text-[10px] text-amber-400">⏳</span>}
+                    {esYo && <span className="text-[9px] bg-orange-600 text-black px-1.5 py-0.5 rounded-full font-black">TÚ</span>}
+                    {pendienteIds?.includes(entry.user_id) && <span className="text-[10px] text-orange-500">⏳</span>}
                   </p>
                   <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                     {entry.exactos} exactos ✅
-                    {pendienteIds?.includes(entry.user_id) && <span className="ml-1 text-amber-400">· Pago pendiente</span>}
+                    {pendienteIds?.includes(entry.user_id) && <span className="ml-1 text-orange-500">· Pago pendiente</span>}
                   </p>
                 </div>
                 <div className="text-right">
@@ -118,8 +118,8 @@ export default function RankingTable({ ranking, userId, pendienteIds }: Props) {
               <div key={entry.user_id}
                 className="flex items-center gap-3 px-4 py-3 rounded-2xl"
                 style={{
-                  background: esYo ? 'rgba(245,158,11,0.08)' : 'var(--bg-card)',
-                  border: `1px solid ${esYo ? 'rgba(245,158,11,0.4)' : 'var(--border)'}`,
+                  background: esYo ? 'rgba(234,88,12,0.08)' : 'var(--bg-card)',
+                  border: `1px solid ${esYo ? 'rgba(234,88,12,0.4)' : 'var(--border)'}`,
                   animation: `fadeInUp 0.4s ease-out ${i * 50}ms both`,
                 }}
               >
@@ -128,12 +128,12 @@ export default function RankingTable({ ranking, userId, pendienteIds }: Props) {
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-sm truncate flex items-center gap-1.5 flex-wrap" style={{ color: esYo ? 'var(--accent-gold)' : 'var(--text-primary)' }}>
                     {entry.jugador?.nombre ?? 'Jugador'}
-                    {esYo && <span className="text-[9px] bg-amber-500 text-black px-1.5 py-0.5 rounded-full font-black">TÚ</span>}
-                    {pendienteIds?.includes(entry.user_id) && <span className="text-[10px] text-amber-400">⏳</span>}
+                    {esYo && <span className="text-[9px] bg-orange-600 text-black px-1.5 py-0.5 rounded-full font-black">TÚ</span>}
+                    {pendienteIds?.includes(entry.user_id) && <span className="text-[10px] text-orange-500">⏳</span>}
                   </p>
                   <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                     {entry.exactos} exactos ✅
-                    {pendienteIds?.includes(entry.user_id) && <span className="ml-1 text-amber-400">· Pago pendiente</span>}
+                    {pendienteIds?.includes(entry.user_id) && <span className="ml-1 text-orange-500">· Pago pendiente</span>}
                   </p>
                 </div>
                 <div className="text-right">

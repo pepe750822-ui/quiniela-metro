@@ -24,9 +24,9 @@ export default function LoginPage() {
       <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.04 }} xmlns="http://www.w3.org/2000/svg">
         <defs>
           <pattern id="hex" x="0" y="0" width="56" height="100" patternUnits="userSpaceOnUse">
-            <polygon points="28,2 54,16 54,44 28,58 2,44 2,16" fill="none" stroke="#f59e0b" strokeWidth="1"/>
-            <polygon points="28,52 54,66 54,94 28,108 2,94 2,66" fill="none" stroke="#f59e0b" strokeWidth="1"/>
-            <polygon points="0,27 0,71 28,85 56,71 56,27 28,13" fill="none" stroke="#f59e0b" strokeWidth="0.5" transform="translate(28,0)"/>
+            <polygon points="28,2 54,16 54,44 28,58 2,44 2,16" fill="none" stroke="#ea580c" strokeWidth="1"/>
+            <polygon points="28,52 54,66 54,94 28,108 2,94 2,66" fill="none" stroke="#ea580c" strokeWidth="1"/>
+            <polygon points="0,27 0,71 28,85 56,71 56,27 28,13" fill="none" stroke="#ea580c" strokeWidth="0.5" transform="translate(28,0)"/>
           </pattern>
         </defs>
         <rect width="100%" height="100%" fill="url(#hex)"/>
@@ -34,7 +34,7 @@ export default function LoginPage() {
 
       {/* Glow ambiental */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-80 h-80 rounded-full pointer-events-none"
-        style={{ background: 'radial-gradient(circle, rgba(245,158,11,0.08) 0%, transparent 70%)' }} />
+        style={{ background: 'radial-gradient(circle, rgba(234,88,12,0.08) 0%, transparent 70%)' }} />
 
       <div className="relative z-10 w-full max-w-sm space-y-10 text-center">
         <div style={{ animation: 'fadeInUp 0.6s ease-out' }}>

@@ -263,7 +263,7 @@ export default function AdminPage() {
                   <span>Grupo {partido.grupo} · J{partido.jornada}</span>
                   <span className="px-2 py-0.5 rounded-full font-bold uppercase text-[10px]"
                     style={{
-                      background: partido.estado === 'finalizado' ? 'rgba(100,116,139,0.15)' : 'rgba(245,158,11,0.15)',
+                      background: partido.estado === 'finalizado' ? 'rgba(100,116,139,0.15)' : 'rgba(234,88,12,0.15)',
                       color:      partido.estado === 'finalizado' ? '#64748b' : 'var(--accent-gold)',
                     }}>
                     {partido.estado}
@@ -333,7 +333,7 @@ export default function AdminPage() {
                     <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full"
                       style={{
                         background: pozo.estado === 'abierto'
-                          ? 'rgba(245,158,11,0.15)' : pozo.estado === 'cerrado'
+                          ? 'rgba(234,88,12,0.15)' : pozo.estado === 'cerrado'
                           ? 'rgba(100,116,139,0.15)' : 'rgba(16,185,129,0.15)',
                         color: pozo.estado === 'abierto'
                           ? 'var(--accent-gold)' : pozo.estado === 'cerrado'
@@ -346,7 +346,7 @@ export default function AdminPage() {
                         onClick={() => handleDeclararGanador(pozo.jornada)}
                         disabled={declarando === pozo.jornada}
                         className="text-xs px-2 py-1 rounded-lg font-bold disabled:opacity-50 transition-all active:scale-95"
-                        style={{ background: 'rgba(245,158,11,0.2)', color: 'var(--accent-gold)', border: '1px solid rgba(245,158,11,0.3)' }}>
+                        style={{ background: 'rgba(234,88,12,0.2)', color: 'var(--accent-gold)', border: '1px solid rgba(234,88,12,0.3)' }}>
                         {declarando === pozo.jornada ? '…' : '🏆 Declarar ganador'}
                       </button>
                     )}
@@ -364,20 +364,20 @@ export default function AdminPage() {
                 {/* Pagos pendientes */}
                 {pendientes.length > 0 && (
                   <div className="px-4 py-3 space-y-2">
-                    <p className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: '#f59e0b' }}>
+                    <p className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: '#ea580c' }}>
                       ⏳ Pendientes de pago ({pendientes.length})
                     </p>
                     {pendientes.map(p => (
                       <div key={p.id}
                         className="flex items-center justify-between gap-2 rounded-xl px-3 py-2.5"
-                        style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.3)' }}>
+                        style={{ background: 'rgba(234,88,12,0.08)', border: '1px solid rgba(234,88,12,0.3)' }}>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
                               {p.jugadorNombre}
                             </p>
                             <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold"
-                              style={{ background: 'rgba(245,158,11,0.2)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.4)' }}>
+                              style={{ background: 'rgba(234,88,12,0.2)', color: '#ea580c', border: '1px solid rgba(234,88,12,0.4)' }}>
                               ⏳ Pendiente de pago
                             </span>
                           </div>
@@ -443,8 +443,8 @@ export default function AdminPage() {
                   </div>
                   <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full shrink-0"
                     style={{
-                      background: (jugador.creditos ?? 0) > 0 ? 'rgba(245,158,11,0.12)' : 'rgba(100,116,139,0.12)',
-                      border: `1px solid ${(jugador.creditos ?? 0) > 0 ? 'rgba(245,158,11,0.3)' : 'var(--border)'}`,
+                      background: (jugador.creditos ?? 0) > 0 ? 'rgba(234,88,12,0.12)' : 'rgba(100,116,139,0.12)',
+                      border: `1px solid ${(jugador.creditos ?? 0) > 0 ? 'rgba(234,88,12,0.3)' : 'var(--border)'}`,
                     }}>
                     <span className="text-xs">💳</span>
                     <span className="text-sm font-bold"

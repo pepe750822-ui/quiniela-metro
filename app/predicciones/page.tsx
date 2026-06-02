@@ -99,9 +99,9 @@ export default function PrediccionesPage() {
       {participando === false && (
         <div
           className="rounded-xl p-4 space-y-2"
-          style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.4)', animation: 'fadeInUp 0.4s ease-out 0.05s both' }}
+          style={{ background: 'rgba(234,88,12,0.1)', border: '1px solid rgba(234,88,12,0.4)', animation: 'fadeInUp 0.4s ease-out 0.05s both' }}
         >
-          <p className="font-bold" style={{ fontFamily: 'var(--font-rajdhani)', color: '#f59e0b', fontSize: '1rem' }}>
+          <p className="font-bold" style={{ fontFamily: 'var(--font-rajdhani)', color: '#ea580c', fontSize: '1rem' }}>
             ⚠️ Tienes predicciones sin pagar en esta jornada
           </p>
           <p className="text-sm" style={{ color: '#94a3b8' }}>
@@ -118,8 +118,8 @@ export default function PrediccionesPage() {
         <div
           className="rounded-2xl px-4 py-3 space-y-1"
           style={{
-            background: participando === true ? 'rgba(16,185,129,0.08)' : 'rgba(245,158,11,0.06)',
-            border: `1px solid ${participando === true ? 'rgba(16,185,129,0.3)' : 'rgba(245,158,11,0.2)'}`,
+            background: participando === true ? 'rgba(16,185,129,0.08)' : 'rgba(234,88,12,0.06)',
+            border: `1px solid ${participando === true ? 'rgba(16,185,129,0.3)' : 'rgba(234,88,12,0.2)'}`,
             animation: 'fadeInUp 0.4s ease-out 0.1s both',
           }}
         >

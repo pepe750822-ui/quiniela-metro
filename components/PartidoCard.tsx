@@ -11,13 +11,13 @@ interface Props {
 }
 
 const borderColor: Record<string, string> = {
-  pendiente:  '#f59e0b',
+  pendiente:  '#ea580c',
   en_curso:   '#10b981',
   finalizado: '#334155',
 };
 
 const estadoBadge: Record<string, { bg: string; text: string; label: string }> = {
-  pendiente:  { bg: 'rgba(245,158,11,0.15)',  text: '#f59e0b',  label: 'Pendiente' },
+  pendiente:  { bg: 'rgba(234,88,12,0.15)',  text: '#ea580c',  label: 'Pendiente' },
   en_curso:   { bg: 'rgba(16,185,129,0.15)',  text: '#10b981',  label: '● En curso' },
   finalizado: { bg: 'rgba(100,116,139,0.15)', text: '#64748b',  label: 'Final' },
 };
@@ -31,7 +31,7 @@ export default function PartidoCard({ partido, prediccion, participacionPagada, 
 
   const puntosColor = prediccion
     ? prediccion.puntos_ganados === 3 ? '#10b981'
-    : prediccion.puntos_ganados === 1 ? '#f59e0b'
+    : prediccion.puntos_ganados === 1 ? '#ea580c'
     : '#ef4444'
     : '';
 
@@ -100,7 +100,7 @@ export default function PartidoCard({ partido, prediccion, participacionPagada, 
             )}
           </div>
           {participacionPagada === false && (
-            <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/40">
+            <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-orange-600/20 text-orange-500 border border-orange-600/40">
               ⏳ Pago pendiente
             </span>
           )}
