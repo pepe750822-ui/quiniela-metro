@@ -56,19 +56,17 @@ export default function PartidoCard({ partido, prediccion, onPredicir }: Props) 
         </span>
       </div>
 
-      <div className="px-4 py-3 flex items-center justify-between gap-2">
+      <div className="px-4 py-3 flex items-center justify-between gap-4">
         <div className="flex-1 flex flex-col items-center gap-1">
-          <span style={{ fontSize: '2.5rem', lineHeight: 1 }}>{partido.bandera_local}</span>
+          <span className="text-4xl mb-1">{partido.bandera_local}</span>
           <span className="text-center text-sm font-bold leading-tight" style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--text-primary)' }}>
             {partido.equipo_local}
           </span>
         </div>
 
-        <div className="flex flex-col items-center px-2 min-w-[80px]">
+        <div className="flex flex-col items-center px-2 min-w-[72px]">
           {partido.estado === 'finalizado' || partido.estado === 'en_curso' ? (
-            <span
-              style={{ fontFamily: 'var(--font-bebas)', fontSize: '3rem', color: 'var(--accent-gold)', lineHeight: 1 }}
-            >
+            <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '3rem', color: 'var(--accent-gold)', lineHeight: 1 }}>
               {partido.goles_local ?? '-'}&nbsp;–&nbsp;{partido.goles_visitante ?? '-'}
             </span>
           ) : (
@@ -80,7 +78,7 @@ export default function PartidoCard({ partido, prediccion, onPredicir }: Props) 
         </div>
 
         <div className="flex-1 flex flex-col items-center gap-1">
-          <span style={{ fontSize: '2.5rem', lineHeight: 1 }}>{partido.bandera_visitante}</span>
+          <span className="text-4xl mb-1">{partido.bandera_visitante}</span>
           <span className="text-center text-sm font-bold leading-tight" style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--text-primary)' }}>
             {partido.equipo_visitante}
           </span>

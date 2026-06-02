@@ -192,13 +192,13 @@ export default function PrediccionForm({ partido, userId, prediccionExistente, o
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end"
-      style={{ background: 'rgba(0,0,0,0.8)' }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)' }}
       onClick={showModalPago ? undefined : onCancelar}
     >
       <div
-        className="w-full rounded-t-3xl px-6 pt-6 pb-8 space-y-6"
-        style={{ background: 'rgba(10,10,15,0.98)', borderTop: '1px solid var(--border)', animation: 'slideUp 0.3s ease-out' }}
+        className="w-full max-w-sm rounded-2xl px-6 pt-6 pb-8 space-y-6"
+        style={{ background: '#12121a', border: '1px solid rgba(245,158,11,0.3)', animation: 'fadeIn 0.2s ease-out' }}
         onClick={e => e.stopPropagation()}
       >
         <div className="w-10 h-1 rounded-full mx-auto" style={{ background: 'var(--border)' }} />
