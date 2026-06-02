@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Partido } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -39,45 +39,60 @@ function Contador({ value, onChange }: { value: number; onChange: (v: number) =>
   );
 }
 
-const OPCIONES_CREDITOS = [
-  { cantidad: 1, precio: 50 },
-  { cantidad: 2, precio: 100 },
-  { cantidad: 3, precio: 150 },
-];
+const DATOS_PAGO = [
+  ['Banco',   'Santander'],
+  ['Nombre',  'JOSE LUIS GONZALEZ PEREZ'],
+  ['CLABE',   '014180565546539842'],
+  ['Cuenta',  '56554653984'],
+  ['Tarjeta', '5579 1004 9245 3954'],
+] as const;
 
-function ModalPago({ onCerrar }: { onCerrar: () => void }) {
-  const [seleccionado, setSeleccionado] = useState(1);
+function ModalPagoJornada({ jornada, onCerrar }: { jornada: number; onCerrar: () => void }) {
+  const [pozo, setPozo] = useState<{ total_mxn: number; participantes: number } | null>(null);
+
+  useEffect(() => {
+    supabase
+      .from('quiniela_pozo')
+      .select('total_mxn, participantes')
+      .eq('jornada', jornada)
+      .single()
+      .then(({ data }) => { if (data) setPozo(data); });
+  }, [jornada]);
+
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 overflow-y-auto max-h-[80vh]">
+      {/* Título */}
       <div className="text-center">
-        <p className="text-3xl mb-2">🔒</p>
+        <p className="text-3xl mb-2">⚽</p>
         <h2 style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.75rem', color: 'var(--accent-gold)', lineHeight: 1 }}>
-          Necesitas créditos
+          Participa en la Jornada {jornada}
         </h2>
-        <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
-          Cada predicción cuesta <strong style={{ color: 'var(--text-primary)' }}>$50 MXN</strong>
+        <p className="text-sm mt-2 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+          Para hacer predicciones en esta jornada<br />
+          necesitas pagar <strong style={{ color: 'var(--text-primary)' }}>$50 MXN</strong>.<br />
+          Con un solo pago puedes predecir<br />
+          <strong style={{ color: 'var(--text-primary)' }}>todos los partidos de la jornada</strong>.
         </p>
       </div>
 
-      {/* Selector de cantidad */}
-      <div className="flex gap-2">
-        {OPCIONES_CREDITOS.map(op => (
-          <button
-            key={op.cantidad}
-            type="button"
-            onClick={() => setSeleccionado(op.cantidad)}
-            className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95"
-            style={{
-              background: seleccionado === op.cantidad ? 'var(--accent-gold)' : 'var(--bg-card-hover)',
-              color: seleccionado === op.cantidad ? '#000' : 'var(--text-secondary)',
-              border: `1px solid ${seleccionado === op.cantidad ? 'var(--accent-gold)' : 'var(--border)'}`,
-              fontFamily: 'var(--font-rajdhani)',
-            }}
-          >
-            {op.cantidad} pred.<br />
-            <span style={{ fontSize: '0.9rem' }}>${op.precio}</span>
-          </button>
-        ))}
+      {/* Pozo actual */}
+      <div
+        className="rounded-2xl p-4 text-center space-y-1"
+        style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.25)' }}
+      >
+        <p className="text-xs uppercase tracking-widest font-semibold" style={{ color: 'var(--text-secondary)' }}>
+          Pozo Jornada {jornada}
+        </p>
+        <p style={{ fontFamily: 'var(--font-bebas)', fontSize: '2.5rem', color: 'var(--accent-gold)', lineHeight: 1 }}>
+          {pozo != null ? `$${pozo.total_mxn}` : '…'} <span style={{ fontSize: '1.2rem' }}>MXN</span>
+        </p>
+        <p className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>
+          👥 {pozo?.participantes ?? '…'} participante{(pozo?.participantes ?? 0) !== 1 ? 's' : ''}
+        </p>
+        <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
+          Si acumulas más puntos en esta jornada,<br />
+          <strong style={{ color: '#10b981' }}>¡te llevas todo el pozo!</strong>
+        </p>
       </div>
 
       {/* Datos de pago */}
@@ -85,19 +100,10 @@ function ModalPago({ onCerrar }: { onCerrar: () => void }) {
         <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: 'var(--accent-gold)' }}>
           💳 Transferencia SPEI / CoDi
         </p>
-        {[
-          ['Banco',   'Santander'],
-          ['Nombre',  'JOSE LUIS GONZALEZ PEREZ'],
-          ['CLABE',   '014180565546539842'],
-          ['Cuenta',  '56554653984'],
-          ['Tarjeta', '5579 1004 9245 3954'],
-        ].map(([label, val]) => (
+        {DATOS_PAGO.map(([label, val]) => (
           <div key={label} className="flex justify-between items-center gap-2">
             <span className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>{label}</span>
-            <span
-              className="text-[11px] font-mono font-bold text-right"
-              style={{ color: 'var(--text-primary)', wordBreak: 'break-all' }}
-            >
+            <span className="text-[11px] font-mono font-bold text-right" style={{ color: 'var(--text-primary)', wordBreak: 'break-all' }}>
               {val}
             </span>
           </div>
@@ -105,11 +111,12 @@ function ModalPago({ onCerrar }: { onCerrar: () => void }) {
       </div>
 
       {/* Instrucción */}
-      <div className="rounded-2xl p-3 text-center text-xs space-y-1" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)' }}>
-        <p style={{ color: 'var(--text-secondary)' }}>Envía tu comprobante por WhatsApp al:</p>
+      <div className="rounded-2xl p-3 text-center text-xs space-y-1"
+        style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)' }}>
+        <p style={{ color: 'var(--text-secondary)' }}>Envía tu comprobante por WhatsApp:</p>
         <p className="font-bold text-base" style={{ color: 'var(--accent-gold)' }}>📱 55 2326 9241</p>
         <p style={{ color: 'var(--text-secondary)' }}>
-          Tu predicción quedará activa en cuanto<br />confirmemos tu pago ✅
+          Tu participación quedará activa en cuanto<br />confirmemos tu pago ✅
         </p>
       </div>
 
@@ -126,28 +133,16 @@ function ModalPago({ onCerrar }: { onCerrar: () => void }) {
 }
 
 export default function PrediccionForm({ partido, userId, prediccionExistente, onGuardado, onCancelar }: Props) {
-  const [local,          setLocal]          = useState(prediccionExistente?.goles_local_pred ?? 0);
-  const [visita,         setVisita]         = useState(prediccionExistente?.goles_visitante_pred ?? 0);
-  const [loading,        setLoading]        = useState(false);
-  const [showModalPago,  setShowModalPago]  = useState(false);
+  const [local,         setLocal]         = useState(prediccionExistente?.goles_local_pred ?? 0);
+  const [visita,        setVisita]        = useState(prediccionExistente?.goles_visitante_pred ?? 0);
+  const [loading,       setLoading]       = useState(false);
+  const [showModalPago, setShowModalPago] = useState(false);
 
   const handleGuardar = async () => {
     setLoading(true);
 
-    // Solo cobrar crédito en predicciones nuevas
-    if (!prediccionExistente) {
-      const { data: jugador } = await supabase
-        .from('quiniela_jugadores')
-        .select('creditos')
-        .eq('id', userId)
-        .single();
-
-      if (!jugador || jugador.creditos <= 0) {
-        setLoading(false);
-        setShowModalPago(true);
-        return;
-      }
-
+    // Editar predicción existente — sin verificar participación
+    if (prediccionExistente) {
       const { error } = await supabase.from('quiniela_predicciones').upsert({
         user_id:              userId,
         partido_id:           partido.id,
@@ -155,34 +150,44 @@ export default function PrediccionForm({ partido, userId, prediccionExistente, o
         goles_visitante_pred: visita,
         updated_at:           new Date().toISOString(),
       }, { onConflict: 'user_id,partido_id' });
-
-      if (error) {
-        setLoading(false);
-        toast.error('Error al guardar predicción');
-        return;
-      }
-
-      await supabase.from('quiniela_jugadores')
-        .update({ creditos: jugador.creditos - 1 })
-        .eq('id', userId);
-
-      setLoading(false);
-      toast.success('¡Predicción guardada! ⚽');
-      onGuardado();
-    } else {
-      // Editar predicción existente — sin costo
-      const { error } = await supabase.from('quiniela_predicciones').upsert({
-        user_id:              userId,
-        partido_id:           partido.id,
-        goles_local_pred:     local,
-        goles_visitante_pred: visita,
-        updated_at:           new Date().toISOString(),
-      }, { onConflict: 'user_id,partido_id' });
-
       setLoading(false);
       if (error) toast.error('Error al guardar predicción');
       else { toast.success('¡Predicción actualizada! ⚽'); onGuardado(); }
+      return;
     }
+
+    // Predicción nueva — verificar participación en la jornada
+    const { data: participacion } = await supabase
+      .from('quiniela_participaciones')
+      .select('pagado')
+      .eq('user_id', userId)
+      .eq('jornada', partido.jornada)
+      .single();
+
+    if (!participacion || !participacion.pagado) {
+      // Registrar participación pendiente para que admin la vea
+      await supabase.from('quiniela_participaciones')
+        .upsert(
+          { user_id: userId, jornada: partido.jornada, pagado: false, monto: 50 },
+          { onConflict: 'user_id,jornada', ignoreDuplicates: true }
+        );
+      setLoading(false);
+      setShowModalPago(true);
+      return;
+    }
+
+    // Participación confirmada — guardar predicción
+    const { error } = await supabase.from('quiniela_predicciones').upsert({
+      user_id:              userId,
+      partido_id:           partido.id,
+      goles_local_pred:     local,
+      goles_visitante_pred: visita,
+      updated_at:           new Date().toISOString(),
+    }, { onConflict: 'user_id,partido_id' });
+
+    setLoading(false);
+    if (error) toast.error('Error al guardar predicción');
+    else { toast.success('¡Predicción guardada! ⚽'); onGuardado(); }
   };
 
   return (
@@ -196,15 +201,16 @@ export default function PrediccionForm({ partido, userId, prediccionExistente, o
         style={{ background: 'rgba(10,10,15,0.98)', borderTop: '1px solid var(--border)', animation: 'slideUp 0.3s ease-out' }}
         onClick={e => e.stopPropagation()}
       >
-        {/* Handle bar */}
         <div className="w-10 h-1 rounded-full mx-auto" style={{ background: 'var(--border)' }} />
 
         {showModalPago ? (
-          <ModalPago onCerrar={onCancelar} />
+          <ModalPagoJornada jornada={partido.jornada} onCerrar={onCancelar} />
         ) : (
           <>
             <div className="text-center space-y-1">
-              <p className="text-xs uppercase tracking-widest font-semibold" style={{ color: 'var(--text-secondary)' }}>Tu predicción</p>
+              <p className="text-xs uppercase tracking-widest font-semibold" style={{ color: 'var(--text-secondary)' }}>
+                Tu predicción
+              </p>
               <p className="font-semibold" style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--text-primary)' }}>
                 {partido.bandera_local} {partido.equipo_local} vs {partido.equipo_visitante} {partido.bandera_visitante}
               </p>
@@ -241,7 +247,7 @@ export default function PrediccionForm({ partido, userId, prediccionExistente, o
                 className="flex-1 py-3 rounded-2xl font-bold min-h-[48px] transition-all active:scale-95 disabled:opacity-50"
                 style={{ background: 'var(--accent-gold)', color: '#000', fontFamily: 'var(--font-rajdhani)' }}
               >
-                {loading ? 'Guardando…' : prediccionExistente ? 'Actualizar' : 'Guardar predicción'}
+                {loading ? 'Verificando…' : prediccionExistente ? 'Actualizar' : 'Guardar predicción'}
               </button>
             </div>
           </>

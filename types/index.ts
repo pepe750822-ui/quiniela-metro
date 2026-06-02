@@ -57,6 +57,27 @@ export interface Ranking {
   jugador?: Jugador;
 }
 
+export interface Pozo {
+  id: string;
+  jornada: number;
+  total_mxn: number;
+  participantes: number;
+  ganador_id: string | null;
+  ganador_nombre: string | null;
+  estado: 'abierto' | 'cerrado' | 'pagado';
+  created_at: string;
+}
+
+export interface Participacion {
+  id: string;
+  user_id: string;
+  jornada: number;
+  pagado: boolean;
+  monto: number;
+  created_at: string;
+  jugador?: Jugador;
+}
+
 export interface PrediccionConPartido extends Prediccion {
   partido: Partido;
 }

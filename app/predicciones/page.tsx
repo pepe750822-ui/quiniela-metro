@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Partido, Prediccion } from '@/types';
+import { Partido, Prediccion, Pozo } from '@/types';
 import PartidoCard from '@/components/PartidoCard';
 import PrediccionForm from '@/components/PrediccionForm';
 
@@ -16,7 +16,8 @@ export default function PrediccionesPage() {
   const [loading, setLoading]             = useState(true);
   const [jornada, setJornada]             = useState(1);
   const [jornadas, setJornadas]           = useState<number[]>([]);
-  const [creditos, setCreditos]           = useState<number | null>(null);
+  const [pozo, setPozo]                   = useState<Pozo | null>(null);
+  const [participando, setParticipando]   = useState<boolean | null>(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -34,13 +35,17 @@ export default function PrediccionesPage() {
       });
   }, [router]);
 
-  const cargarCreditos = useCallback(async (uid: string) => {
-    const { data } = await supabase
-      .from('quiniela_jugadores')
-      .select('creditos')
-      .eq('id', uid)
-      .single();
-    if (data) setCreditos(data.creditos);
+  const cargarPozoYParticipacion = useCallback(async (uid: string, j: number) => {
+    const [{ data: pz }, { data: part }] = await Promise.all([
+      supabase.from('quiniela_pozo').select('*').eq('jornada', j).single(),
+      supabase.from('quiniela_participaciones')
+        .select('pagado')
+        .eq('user_id', uid)
+        .eq('jornada', j)
+        .single(),
+    ]);
+    setPozo(pz as Pozo ?? null);
+    setParticipando(part?.pagado ?? null);
   }, []);
 
   const cargarPartidos = useCallback(async () => {
@@ -68,14 +73,14 @@ export default function PrediccionesPage() {
   useEffect(() => {
     if (userId) {
       cargarPredicciones();
-      cargarCreditos(userId);
+      cargarPozoYParticipacion(userId, jornada);
     }
-  }, [userId, cargarPredicciones, cargarCreditos]);
+  }, [userId, jornada, cargarPredicciones, cargarPozoYParticipacion]);
 
   const handleGuardado = () => {
     setPartidoActivo(null);
     cargarPredicciones();
-    if (userId) cargarCreditos(userId);
+    if (userId) cargarPozoYParticipacion(userId, jornada);
   };
 
   return (
@@ -84,44 +89,49 @@ export default function PrediccionesPage() {
       style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1.5rem)' }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between" style={{ animation: 'fadeInUp 0.4s ease-out' }}>
+      <div style={{ animation: 'fadeInUp 0.4s ease-out' }}>
         <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: '2rem', color: 'var(--accent-gold)', lineHeight: 1, letterSpacing: '0.05em' }}>
           PREDICCIONES
         </h1>
-        {creditos !== null && (
-          <div
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
-            style={{
-              background: creditos > 0 ? 'rgba(245,158,11,0.12)' : 'rgba(239,68,68,0.12)',
-              border: `1px solid ${creditos > 0 ? 'rgba(245,158,11,0.3)' : 'rgba(239,68,68,0.3)'}`,
-            }}
-          >
-            <span className="text-sm">💳</span>
-            <span
-              className={`text-sm font-bold ${creditos <= 0 ? 'animate-pulse' : ''}`}
-              style={{ color: creditos > 0 ? 'var(--accent-gold)' : '#ef4444', fontFamily: 'var(--font-rajdhani)' }}
-            >
-              {creditos} crédito{creditos !== 1 ? 's' : ''}
-            </span>
-          </div>
-        )}
       </div>
 
-      {/* Banner créditos */}
-      {creditos !== null && (
+      {/* Banner pozo / participación */}
+      {pozo && (
         <div
-          className="rounded-2xl px-4 py-3 text-sm font-semibold"
+          className="rounded-2xl px-4 py-3 space-y-1"
           style={{
-            background: creditos > 0 ? 'rgba(245,158,11,0.08)' : 'rgba(239,68,68,0.08)',
-            border: `1px solid ${creditos > 0 ? 'rgba(245,158,11,0.25)' : 'rgba(239,68,68,0.25)'}`,
-            color: creditos > 0 ? 'var(--accent-gold)' : '#ef4444',
-            fontFamily: 'var(--font-rajdhani)',
+            background: participando
+              ? 'rgba(16,185,129,0.08)'
+              : 'rgba(245,158,11,0.08)',
+            border: `1px solid ${participando ? 'rgba(16,185,129,0.3)' : 'rgba(245,158,11,0.25)'}`,
             animation: 'fadeInUp 0.4s ease-out 0.1s both',
           }}
         >
-          {creditos > 0
-            ? `💳 Tienes ${creditos} crédito${creditos !== 1 ? 's' : ''} disponible${creditos !== 1 ? 's' : ''}`
-            : '⚠️ Sin créditos — cada predicción cuesta $50 MXN'}
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold" style={{ color: participando ? '#10b981' : 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
+                {participando === true
+                  ? `✅ Participando en Jornada ${jornada}`
+                  : participando === false
+                    ? `⏳ Pago pendiente — Jornada ${jornada}`
+                    : `⚽ Participa en Jornada ${jornada} · $50 MXN`}
+              </p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                👥 {pozo.participantes} participante{pozo.participantes !== 1 ? 's' : ''}
+              </p>
+            </div>
+            <div className="text-right">
+              <p style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.5rem', color: 'var(--accent-gold)', lineHeight: 1 }}>
+                ${pozo.total_mxn}
+              </p>
+              <p className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>pozo</p>
+            </div>
+          </div>
+          {pozo.estado !== 'abierto' && pozo.ganador_nombre && (
+            <p className="text-xs font-bold mt-1" style={{ color: '#10b981' }}>
+              🥇 Ganador: {pozo.ganador_nombre}
+            </p>
+          )}
         </div>
       )}
 
