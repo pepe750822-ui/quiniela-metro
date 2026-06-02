@@ -9,16 +9,23 @@ import Link from 'next/link';
 const INAUGURAL = new Date('2026-06-11T20:00:00Z'); // 15:00 CDMX = 20:00 UTC
 
 function useCountdown(target: Date) {
-  const [diff, setDiff] = useState(() => Math.max(0, target.getTime() - Date.now()));
+  // Inicializar en 0 en el servidor — nunca usar Date.now() en el estado inicial
+  const [diff, setDiff]       = useState(0);
+  const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
-    const id = setInterval(() => setDiff(Math.max(0, target.getTime() - Date.now())), 1000);
+    setMounted(true);
+    const tick = () => setDiff(Math.max(0, target.getTime() - Date.now()));
+    tick();
+    const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, [target]);
+
   const d = Math.floor(diff / 86400000);
   const h = Math.floor((diff % 86400000) / 3600000);
   const m = Math.floor((diff % 3600000) / 60000);
   const s = Math.floor((diff % 60000) / 1000);
-  return { d, h, m, s, started: diff === 0 };
+  return { d, h, m, s, started: mounted && diff === 0, mounted };
 }
 
 function CountdownUnit({ value, label }: { value: number; label: string }) {
@@ -115,7 +122,7 @@ export default function RankingPage() {
   const [loading, setLoading]         = useState(true);
   const [pozos, setPozos]             = useState<Pozo[]>([]);
   const [pendienteIds, setPendienteIds] = useState<string[]>([]);
-  const { d, h, m, s, started } = useCountdown(INAUGURAL);
+  const { d, h, m, s, started, mounted: countdownReady } = useCountdown(INAUGURAL);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id));
@@ -185,7 +192,9 @@ export default function RankingPage() {
         className="rounded-2xl px-4 py-4 text-center space-y-2"
         style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', animation: 'fadeInUp 0.5s ease-out 0.1s both' }}
       >
-        {started ? (
+        {!countdownReady ? (
+          <div className="h-14 rounded-xl animate-pulse" style={{ background: 'var(--border)' }} />
+        ) : started ? (
           <p className="font-bold text-sm" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
             🎉 ¡El Mundial ha comenzado!
           </p>

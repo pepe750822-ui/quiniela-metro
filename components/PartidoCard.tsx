@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { Partido } from '@/types';
 import { Bandera } from '@/components/Bandera';
 
@@ -23,9 +24,13 @@ const estadoBadge: Record<string, { bg: string; text: string; label: string }> =
 };
 
 export default function PartidoCard({ partido, prediccion, participacionPagada, onPredicir }: Props) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   const fechaHora = new Date(partido.fecha_hora);
-  const fechaStr  = fechaHora.toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short' });
-  const horaStr   = fechaHora.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+  // Solo se evalúan en el cliente (mounted=true) para evitar mismatch servidor/cliente por timezone
+  const fechaStr  = mounted ? fechaHora.toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short' }) : '';
+  const horaStr   = mounted ? fechaHora.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) : '--:--';
   const badge     = estadoBadge[partido.estado];
   const puedePredicir = partido.estado === 'pendiente' && !!onPredicir;
 
