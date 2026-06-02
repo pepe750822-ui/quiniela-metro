@@ -33,6 +33,7 @@ export default function JornadaPage() {
   const [participantes, setParticipantes] = useState<ParticipanteVista[]>([]);
   const [userId, setUserId]               = useState<string | null>(null);
   const [loading, setLoading]             = useState(true);
+  const [expandido, setExpandido]         = useState<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -95,6 +96,7 @@ export default function JornadaPage() {
       });
 
       setParticipantes(lista);
+      setExpandido(userId); // El usuario actual empieza expandido
       setLoading(false);
     };
 
@@ -127,8 +129,9 @@ export default function JornadaPage() {
       ) : (
         <div className="space-y-3" style={{ animation: 'fadeInUp 0.4s ease-out 0.1s both' }}>
           {participantes.map((p, i) => {
-            const esYo = p.user_id === userId;
-            const tienePreds = Object.keys(p.predicciones).length > 0;
+            const esYo      = p.user_id === userId;
+            const abierto   = expandido === p.user_id;
+            const toggle    = () => setExpandido(abierto ? null : p.user_id);
             return (
               <div
                 key={p.user_id}
@@ -139,76 +142,74 @@ export default function JornadaPage() {
                   animation: `fadeInUp 0.4s ease-out ${i * 60}ms both`,
                 }}
               >
-                {/* Header del participante */}
+                {/* Header — siempre visible, clickeable */}
                 <div
-                  className="px-4 py-3 flex items-center justify-between"
-                  style={{ borderBottom: tienePreds || !p.publicado ? '1px solid var(--border)' : undefined }}
+                  className="px-4 py-3 flex items-center justify-between cursor-pointer select-none active:opacity-70 transition-opacity"
+                  style={{ borderBottom: abierto ? '1px solid var(--border)' : undefined }}
+                  onClick={toggle}
                 >
                   <div className="flex items-center gap-2">
                     <Inicial nombre={p.nombre} />
-                    <div>
-                      <p className="font-semibold text-sm flex items-center gap-1.5"
-                        style={{ color: esYo ? 'var(--accent-gold)' : 'var(--text-primary)' }}>
-                        {p.nombre.split(' ')[0]}
-                        {esYo && (
-                          <span className="text-[9px] bg-orange-600 text-black px-1.5 py-0.5 rounded-full font-black">TÚ</span>
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                  {p.publicado ? (
-                    <span
-                      className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                      style={{ background: 'rgba(16,185,129,0.15)', color: '#10b981' }}
-                    >
-                      ✅ Publicado
-                    </span>
-                  ) : (
-                    <span
-                      className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                      style={{ background: 'rgba(234,88,12,0.1)', color: '#ea580c' }}
-                    >
-                      🔒 Sin publicar
-                    </span>
-                  )}
-                </div>
-
-                {/* Predicciones o mensaje bloqueado */}
-                {!p.publicado ? (
-                  <div className="px-4 py-3">
-                    <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                      🔒 {esYo ? 'Tus predicciones aún no están publicadas' : `${p.nombre.split(' ')[0]} aún no ha publicado sus predicciones`}
+                    <p className="font-semibold text-sm flex items-center gap-1.5"
+                      style={{ color: esYo ? 'var(--accent-gold)' : 'var(--text-primary)' }}>
+                      {p.nombre.split(' ')[0]}
+                      {esYo && (
+                        <span className="text-[9px] bg-orange-600 text-black px-1.5 py-0.5 rounded-full font-black">TÚ</span>
+                      )}
                     </p>
                   </div>
-                ) : (
-                  <div>
-                    {partidos.map((partido, pi) => {
-                      const pred = p.predicciones[partido.id];
-                      return (
-                        <div
-                          key={partido.id}
-                          className="px-4 py-2 flex items-center justify-between"
-                          style={{
-                            borderTop: pi > 0 ? '1px solid var(--border)' : undefined,
-                          }}
-                        >
-                          <span className="text-xs flex-1 pr-3 truncate" style={{ color: 'var(--text-secondary)' }}>
-                            {partido.equipo_local} vs {partido.equipo_visitante}
-                          </span>
-                          {pred ? (
-                            <span
-                              className="shrink-0 font-bold"
-                              style={{ fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: 'var(--text-primary)' }}
-                            >
-                              {pred.goles_local_pred} – {pred.goles_visitante_pred}
-                            </span>
-                          ) : (
-                            <span className="text-xs shrink-0" style={{ color: 'var(--text-secondary)' }}>–</span>
-                          )}
-                        </div>
-                      );
-                    })}
+                  <div className="flex items-center gap-2">
+                    {p.publicado ? (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                        style={{ background: 'rgba(16,185,129,0.15)', color: '#10b981' }}>
+                        ✅ Publicado
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                        style={{ background: 'rgba(234,88,12,0.1)', color: '#ea580c' }}>
+                        🔒 Sin publicar
+                      </span>
+                    )}
+                    <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                      {abierto ? '▲' : '▼'}
+                    </span>
                   </div>
+                </div>
+
+                {/* Contenido — solo visible si expandido */}
+                {abierto && (
+                  !p.publicado ? (
+                    <div className="px-4 py-3">
+                      <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                        🔒 {esYo ? 'Tus predicciones aún no están publicadas' : `${p.nombre.split(' ')[0]} aún no ha publicado sus predicciones`}
+                      </p>
+                    </div>
+                  ) : (
+                    <div>
+                      {partidos.map((partido, pi) => {
+                        const pred = p.predicciones[partido.id];
+                        return (
+                          <div
+                            key={partido.id}
+                            className="px-4 py-2 flex items-center justify-between"
+                            style={{ borderTop: pi > 0 ? '1px solid var(--border)' : undefined }}
+                          >
+                            <span className="text-xs flex-1 pr-3 truncate" style={{ color: 'var(--text-secondary)' }}>
+                              {partido.equipo_local} vs {partido.equipo_visitante}
+                            </span>
+                            {pred ? (
+                              <span className="shrink-0 font-bold"
+                                style={{ fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: 'var(--text-primary)' }}>
+                                {pred.goles_local_pred} – {pred.goles_visitante_pred}
+                              </span>
+                            ) : (
+                              <span className="text-xs shrink-0" style={{ color: 'var(--text-secondary)' }}>–</span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )
                 )}
               </div>
             );
