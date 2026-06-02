@@ -95,15 +95,13 @@ function PozoCard({ pozo }: { pozo: Pozo }) {
             👥 {pozo.participantes} participante{pozo.participantes !== 1 ? 's' : ''}
           </p>
         </div>
-        {!ganoAlguien && (
-          <Link
-            href="/predicciones"
-            className="px-4 py-2 rounded-xl font-bold text-sm transition-all active:scale-95"
-            style={{ background: estadoBorderColor[pozo.estado], color: pozo.estado === 'abierto' ? '#000' : 'var(--text-primary)', fontFamily: 'var(--font-rajdhani)' }}
-          >
-            Ver predicciones
-          </Link>
-        )}
+        <Link
+          href={`/jornada/${pozo.jornada}`}
+          className="block w-full text-center py-2 rounded-xl text-sm font-semibold transition-all active:scale-95"
+          style={{ background: 'rgba(234,88,12,0.15)', color: '#ea580c', border: '1px solid rgba(234,88,12,0.3)', fontFamily: 'var(--font-rajdhani)' }}
+        >
+          👁️ Ver predicciones de todos
+        </Link>
       </div>
 
       {ganoAlguien && (
