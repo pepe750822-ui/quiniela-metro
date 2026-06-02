@@ -13,18 +13,22 @@ const links = [
 export default function Navbar() {
   const pathname = usePathname();
   const [creditos, setCreditos] = useState<number | null>(null);
+  const [esAdmin,  setEsAdmin]  = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) return;
       const { data: jugador } = await supabase
         .from('quiniela_jugadores')
-        .select('creditos')
+        .select('creditos, rol')
         .eq('id', data.user.id)
         .maybeSingle();
-      if (jugador) setCreditos(jugador.creditos);
+      if (jugador) {
+        setCreditos(jugador.creditos);
+        setEsAdmin(jugador.rol === 'admin');
+      }
     });
-  }, [pathname]); // Re-fetch when navigation happens (after saving a prediction)
+  }, [pathname]);
 
   return (
     <nav
@@ -65,6 +69,23 @@ export default function Navbar() {
             {creditos}
           </span>
         </div>
+      )}
+
+      {/* Enlace admin — solo visible para rol=admin */}
+      {esAdmin && (
+        <Link href="/admin"
+          className="flex flex-col items-center justify-center py-3 gap-0.5 px-4 min-h-[48px] transition-all"
+        >
+          <span className="text-xl leading-none" style={pathname === '/admin' ? {
+            filter: 'drop-shadow(0 0 8px rgba(234,88,12,0.8))',
+          } : {}}>
+            ⚙️
+          </span>
+          <span className="text-[10px] font-semibold uppercase tracking-widest"
+            style={{ color: pathname === '/admin' ? 'var(--accent-gold)' : '#64748b' }}>
+            Admin
+          </span>
+        </Link>
       )}
     </nav>
   );
