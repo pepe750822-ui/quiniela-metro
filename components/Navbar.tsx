@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase';
 
 const links = [
   { href: '/',             label: 'Ranking',      emoji: '🏆' },
@@ -10,6 +12,20 @@ const links = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const [creditos, setCreditos] = useState<number | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (!data.user) return;
+      const { data: jugador } = await supabase
+        .from('quiniela_jugadores')
+        .select('creditos')
+        .eq('id', data.user.id)
+        .single();
+      if (jugador) setCreditos(jugador.creditos);
+    });
+  }, [pathname]); // Re-fetch when navigation happens (after saving a prediction)
+
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-50 flex backdrop-blur-xl border-t"
@@ -37,6 +53,19 @@ export default function Navbar() {
           </Link>
         );
       })}
+
+      {/* Créditos del usuario */}
+      {creditos !== null && (
+        <div className="flex flex-col items-center justify-center py-3 gap-0.5 px-4">
+          <span className="text-xl leading-none">💳</span>
+          <span
+            className={`text-[10px] font-bold uppercase tracking-widest ${creditos <= 0 ? 'animate-pulse' : ''}`}
+            style={{ color: creditos > 0 ? 'var(--accent-gold)' : '#ef4444' }}
+          >
+            {creditos}
+          </span>
+        </div>
+      )}
     </nav>
   );
 }
