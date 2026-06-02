@@ -1,6 +1,7 @@
 'use client';
 
 import { Partido } from '@/types';
+import { Bandera } from '@/components/Bandera';
 
 interface Props {
   partido: Partido;
@@ -58,8 +59,8 @@ export default function PartidoCard({ partido, prediccion, onPredicir }: Props) 
 
       <div className="px-4 py-3 flex items-center justify-between gap-4">
         <div className="flex-1 flex flex-col items-center gap-1">
-          <span className="text-4xl mb-1">{partido.bandera_local}</span>
-          <span className="text-center text-sm font-bold leading-tight" style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--text-primary)' }}>
+          <Bandera emoji={partido.bandera_local} nombre={partido.equipo_local} size="lg" />
+          <span className="text-center text-sm font-bold leading-tight mt-1" style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--text-primary)' }}>
             {partido.equipo_local}
           </span>
         </div>
@@ -78,8 +79,8 @@ export default function PartidoCard({ partido, prediccion, onPredicir }: Props) 
         </div>
 
         <div className="flex-1 flex flex-col items-center gap-1">
-          <span className="text-4xl mb-1">{partido.bandera_visitante}</span>
-          <span className="text-center text-sm font-bold leading-tight" style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--text-primary)' }}>
+          <Bandera emoji={partido.bandera_visitante} nombre={partido.equipo_visitante} size="lg" />
+          <span className="text-center text-sm font-bold leading-tight mt-1" style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--text-primary)' }}>
             {partido.equipo_visitante}
           </span>
         </div>

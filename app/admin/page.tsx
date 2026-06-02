@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Partido, Jugador, Pago, Pozo, Participacion } from '@/types';
 import { toast } from 'sonner';
+import { Bandera } from '@/components/Bandera';
 
 interface PagoConNombre extends Pago {
   jugadorNombre?: string;
@@ -268,8 +269,10 @@ export default function AdminPage() {
                     {partido.estado}
                   </span>
                 </div>
-                <p className="text-sm font-bold text-center" style={{ color: 'var(--text-primary)' }}>
-                  {partido.bandera_local} {partido.equipo_local} vs {partido.equipo_visitante} {partido.bandera_visitante}
+                <p className="text-sm font-bold text-center flex items-center justify-center gap-1.5 flex-wrap" style={{ color: 'var(--text-primary)' }}>
+                  <Bandera emoji={partido.bandera_local} nombre={partido.equipo_local} size="sm" />
+                  {partido.equipo_local} vs {partido.equipo_visitante}
+                  <Bandera emoji={partido.bandera_visitante} nombre={partido.equipo_visitante} size="sm" />
                 </p>
                 {partido.estado !== 'finalizado' && (
                   <div className="flex items-center gap-2">

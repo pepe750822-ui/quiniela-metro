@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Partido } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { Bandera } from '@/components/Bandera';
 
 interface Props {
   partido: Partido;
@@ -211,8 +212,10 @@ export default function PrediccionForm({ partido, userId, prediccionExistente, o
               <p className="text-xs uppercase tracking-widest font-semibold" style={{ color: 'var(--text-secondary)' }}>
                 Tu predicción
               </p>
-              <p className="font-semibold" style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--text-primary)' }}>
-                {partido.bandera_local} {partido.equipo_local} vs {partido.equipo_visitante} {partido.bandera_visitante}
+              <p className="font-semibold flex items-center justify-center gap-1.5 flex-wrap" style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--text-primary)' }}>
+                <Bandera emoji={partido.bandera_local} nombre={partido.equipo_local} size="sm" />
+                {partido.equipo_local} vs {partido.equipo_visitante}
+                <Bandera emoji={partido.bandera_visitante} nombre={partido.equipo_visitante} size="sm" />
               </p>
               <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                 Grupo {partido.grupo} · Jornada {partido.jornada}
