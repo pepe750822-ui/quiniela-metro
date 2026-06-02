@@ -15,12 +15,22 @@ export default function PrediccionesPage() {
   const [partidoActivo, setPartidoActivo] = useState<Partido | null>(null);
   const [loading, setLoading]         = useState(true);
   const [jornada, setJornada]         = useState(1);
+  const [jornadas, setJornadas]       = useState<number[]>([]);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (!data.user) { router.push('/login'); return; }
       setUserId(data.user.id);
     });
+
+    supabase
+      .from('quiniela_partidos')
+      .select('jornada')
+      .order('jornada')
+      .then(({ data }) => {
+        const unicas = [...new Set((data ?? []).map((p: { jornada: number }) => p.jornada))];
+        setJornadas(unicas);
+      });
   }, [router]);
 
   const cargarPartidos = useCallback(async () => {
@@ -52,7 +62,7 @@ export default function PrediccionesPage() {
       <h1 className="text-xl font-black">⚽ Predicciones</h1>
 
       <div className="flex gap-2 overflow-x-auto pb-1">
-        {[1, 2].map(j => (
+        {jornadas.map(j => (
           <button key={j} onClick={() => setJornada(j)}
             className={`px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap transition-colors
               ${jornada === j ? 'bg-amber-500 text-black' : 'bg-zinc-800 text-zinc-400'}`}>
