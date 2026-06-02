@@ -75,6 +75,7 @@ export interface Participacion {
   pagado: boolean;
   monto: number;
   predicciones_completas: boolean;
+  publicado: boolean;
   created_at: string;
   jugador?: Jugador;
 }

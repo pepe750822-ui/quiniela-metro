@@ -109,7 +109,7 @@ export default function PrediccionForm({ partido, userId, prediccionExistente, o
     setLoading(false);
 
     if (completo) {
-      toast.success('🎉 ¡Completaste todas tus predicciones! Ya pueden verlas los demás participantes.');
+      toast.success('🎉 ¡Completaste tus predicciones! Ya puedes publicarlas desde la pantalla principal.');
     } else {
       toast.success(prediccionExistente ? '¡Predicción actualizada! ⚽' : '¡Predicción guardada! ⚽');
     }

@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { Partido, Prediccion, Pozo } from '@/types';
 import PartidoCard from '@/components/PartidoCard';
 import PrediccionForm from '@/components/PrediccionForm';
+import { toast } from 'sonner';
 
 export default function PrediccionesPage() {
   const router = useRouter();
@@ -18,6 +19,8 @@ export default function PrediccionesPage() {
   const [jornadas, setJornadas]           = useState<number[]>([]);
   const [pozo, setPozo]                   = useState<Pozo | null>(null);
   const [participando, setParticipando]   = useState<boolean | null>(null);
+  const [publicado, setPublicado]         = useState<boolean>(false);
+  const [publicando, setPublicando]       = useState<boolean>(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -39,13 +42,14 @@ export default function PrediccionesPage() {
     const [{ data: pz }, { data: part }] = await Promise.all([
       supabase.from('quiniela_pozo').select('*').eq('jornada', j).single(),
       supabase.from('quiniela_participaciones')
-        .select('pagado')
+        .select('pagado, publicado')
         .eq('user_id', uid)
         .eq('jornada', j)
         .single(),
     ]);
     setPozo(pz as Pozo ?? null);
     setParticipando(part?.pagado ?? null);
+    setPublicado(part?.publicado ?? false);
   }, []);
 
   const cargarPartidos = useCallback(async () => {
@@ -81,6 +85,24 @@ export default function PrediccionesPage() {
     setPartidoActivo(null);
     cargarPredicciones();
     if (userId) cargarPozoYParticipacion(userId, jornada);
+  };
+
+  const handlePublicar = async () => {
+    if (!userId) return;
+    setPublicando(true);
+    const { error } = await supabase
+      .from('quiniela_participaciones')
+      .update({ publicado: true })
+      .eq('user_id', userId)
+      .eq('jornada', jornada);
+
+    setPublicando(false);
+    if (error) {
+      toast.error('Error al publicar predicciones');
+    } else {
+      setPublicado(true);
+      toast.success('📢 ¡Jornada publicada exitosamente!');
+    }
   };
 
   // Progreso de predicciones en la jornada actual
@@ -177,7 +199,7 @@ export default function PrediccionesPage() {
           <div className="flex items-center justify-between">
             <p className="text-sm font-semibold" style={{ fontFamily: 'var(--font-rajdhani)', color: jornadaCompleta ? '#10b981' : 'var(--text-primary)' }}>
               {jornadaCompleta
-                ? `✅ ¡Jornada ${jornada} completa!`
+                ? (publicado ? `✅ ¡Jornada ${jornada} completa y publicada!` : `✅ ¡Jornada ${jornada} completa!`)
                 : `Jornada ${jornada}: ${predichasEnJornada}/${totalEnJornada} partidos predichos`}
             </p>
             <span className="text-sm font-bold" style={{ fontFamily: 'var(--font-bebas)', color: jornadaCompleta ? '#10b981' : 'var(--accent-gold)' }}>
@@ -195,8 +217,23 @@ export default function PrediccionesPage() {
               }}
             />
           </div>
-          {jornadaCompleta && (
-            <p className="text-xs" style={{ color: '#10b981' }}>
+          {jornadaCompleta && !publicado && (
+            <div className="pt-2">
+              <button
+                onClick={handlePublicar}
+                disabled={publicando}
+                className="w-full py-2.5 rounded-xl font-bold transition-all active:scale-95 disabled:opacity-50"
+                style={{ background: '#10b981', color: '#000', fontFamily: 'var(--font-rajdhani)' }}
+              >
+                {publicando ? 'Publicando...' : '📢 Publicar jornada'}
+              </button>
+              <p className="text-xs text-center mt-2" style={{ color: 'var(--text-secondary)' }}>
+                Tus predicciones no serán visibles para los demás hasta que las publiques.
+              </p>
+            </div>
+          )}
+          {jornadaCompleta && publicado && (
+            <p className="text-xs mt-1" style={{ color: '#10b981' }}>
               Tus predicciones ya son visibles para todos los participantes
             </p>
           )}

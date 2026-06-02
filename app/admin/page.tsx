@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Partido, Jugador, Pago, Pozo, Participacion } from '@/types';
 import { toast } from 'sonner';
@@ -17,6 +18,7 @@ interface ParticipacionConNombre extends Participacion {
 }
 
 export default function AdminPage() {
+  const router = useRouter();
   const [partidos, setPartidos]   = useState<Partido[]>([]);
   const [loading, setLoading]     = useState(true);
   const [isAdmin, setIsAdmin]     = useState(false);
@@ -87,8 +89,14 @@ export default function AdminPage() {
         .from('quiniela_jugadores')
         .select('rol')
         .eq('id', data.user.id)
-        .single();
-      if (jugador?.rol === 'admin') {
+        .maybeSingle();
+      
+      if (!jugador || jugador.rol !== 'admin') {
+        router.push('/');
+        return;
+      }
+
+      if (jugador.rol === 'admin') {
         setIsAdmin(true);
         const [{ data: ps }, { data: js }] = await Promise.all([
           supabase.from('quiniela_partidos').select('*').order('fecha_hora'),

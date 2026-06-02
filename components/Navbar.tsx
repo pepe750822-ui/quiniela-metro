@@ -21,7 +21,7 @@ export default function Navbar() {
         .from('quiniela_jugadores')
         .select('creditos')
         .eq('id', data.user.id)
-        .single();
+        .maybeSingle();
       if (jugador) setCreditos(jugador.creditos);
     });
   }, [pathname]); // Re-fetch when navigation happens (after saving a prediction)
