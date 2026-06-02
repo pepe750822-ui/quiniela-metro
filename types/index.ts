@@ -30,6 +30,7 @@ export interface Prediccion {
 export interface Jugador {
   id: string;
   nombre: string;
+  apodo: string | null;
   email: string;
   rol: RolJugador;
   avatar_url: string | null;

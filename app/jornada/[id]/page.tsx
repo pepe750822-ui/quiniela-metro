@@ -8,19 +8,21 @@ import { Partido, Prediccion } from '@/types';
 interface ParticipanteVista {
   user_id: string;
   nombre: string;
+  apodo: string | null;
   publicado: boolean;
   predicciones: Record<string, Prediccion>;
 }
 
-function Inicial({ nombre }: { nombre: string }) {
-  const parts = nombre.trim().split(' ');
-  const ini = parts.length >= 2 ? parts[0][0] + parts[1][0] : nombre.slice(0, 2);
+const mostrarNombre = (p: ParticipanteVista) => p.apodo ?? p.nombre.split(' ')[0];
+const iniciales     = (p: ParticipanteVista) => (p.apodo ?? p.nombre).slice(0, 2).toUpperCase();
+
+function Inicial({ p }: { p: ParticipanteVista }) {
   return (
     <div
       className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
       style={{ background: 'rgba(234,88,12,0.2)', color: 'var(--accent-gold)' }}
     >
-      {ini.toUpperCase()}
+      {iniciales(p)}
     </div>
   );
 }
@@ -64,10 +66,12 @@ export default function JornadaPage() {
       const userIds = partcData.map((p: { user_id: string }) => p.user_id);
       const { data: jugData } = await supabase
         .from('quiniela_jugadores')
-        .select('id, nombre')
+        .select('id, nombre, apodo')
         .in('id', userIds);
-      const jugMap: Record<string, string> = {};
-      (jugData ?? []).forEach((j: { id: string; nombre: string }) => { jugMap[j.id] = j.nombre; });
+      const jugMap: Record<string, { nombre: string; apodo: string | null }> = {};
+      (jugData ?? []).forEach((j: { id: string; nombre: string; apodo: string | null }) => {
+        jugMap[j.id] = { nombre: j.nombre, apodo: j.apodo };
+      });
 
       const partidoIds = listaPartidos.map(p => p.id);
       const predsByUser: Record<string, Record<string, Prediccion>> = {};
@@ -84,7 +88,8 @@ export default function JornadaPage() {
 
       const lista: ParticipanteVista[] = partcData.map((p: { user_id: string; publicado: boolean }) => ({
         user_id: p.user_id,
-        nombre: jugMap[p.user_id] ?? 'Jugador',
+        nombre:  jugMap[p.user_id]?.nombre ?? 'Jugador',
+        apodo:   jugMap[p.user_id]?.apodo  ?? null,
         publicado: p.publicado ?? false,
         predicciones: predsByUser[p.user_id] ?? {},
       }));
@@ -149,10 +154,10 @@ export default function JornadaPage() {
                   onClick={toggle}
                 >
                   <div className="flex items-center gap-2">
-                    <Inicial nombre={p.nombre} />
+                    <Inicial p={p} />
                     <p className="font-semibold text-sm flex items-center gap-1.5"
                       style={{ color: esYo ? 'var(--accent-gold)' : 'var(--text-primary)' }}>
-                      {p.nombre.split(' ')[0]}
+                      {mostrarNombre(p)}
                       {esYo && (
                         <span className="text-[9px] bg-orange-600 text-black px-1.5 py-0.5 rounded-full font-black">TÚ</span>
                       )}
@@ -181,7 +186,7 @@ export default function JornadaPage() {
                   !p.publicado ? (
                     <div className="px-4 py-3">
                       <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                        🔒 {esYo ? 'Tus predicciones aún no están publicadas' : `${p.nombre.split(' ')[0]} aún no ha publicado sus predicciones`}
+                        🔒 {esYo ? 'Tus predicciones aún no están publicadas' : `${mostrarNombre(p)} aún no ha publicado sus predicciones`}
                       </p>
                     </div>
                   ) : (

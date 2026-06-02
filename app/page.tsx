@@ -130,7 +130,7 @@ export default function RankingPage() {
       .then(({ data, error }) => {
         if (!error && data) {
           setRanking(
-            (data as { user_id: string; nombre: string; email: string; avatar_url: string | null; puntos_total: number; exactos: number }[])
+            (data as { user_id: string; nombre: string; apodo: string | null; email: string; avatar_url: string | null; puntos_total: number; exactos: number }[])
               .map(r => ({
                 id:           r.user_id,
                 user_id:      r.user_id,
@@ -141,6 +141,7 @@ export default function RankingPage() {
                 jugador: {
                   id:         r.user_id,
                   nombre:     r.nombre,
+                  apodo:      r.apodo ?? null,
                   email:      r.email ?? '',
                   rol:        'jugador' as const,
                   avatar_url: r.avatar_url ?? null,

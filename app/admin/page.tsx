@@ -449,7 +449,15 @@ export default function AdminPage() {
                 style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm truncate" style={{ color: 'var(--text-primary)' }}>{jugador.nombre}</p>
+                    <p className="font-semibold text-sm truncate" style={{ color: 'var(--text-primary)' }}>
+                      {jugador.nombre}
+                      {jugador.apodo && (
+                        <span className="ml-1.5 text-[10px] font-normal px-1.5 py-0.5 rounded-full"
+                          style={{ background: 'rgba(234,88,12,0.15)', color: 'var(--accent-gold)' }}>
+                          {jugador.apodo}
+                        </span>
+                      )}
+                    </p>
                     <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{jugador.email}</p>
                   </div>
                   <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full shrink-0"
@@ -463,6 +471,24 @@ export default function AdminPage() {
                       {jugador.creditos ?? 0}
                     </span>
                   </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    placeholder="Apodo (ej: El Suavecito)"
+                    defaultValue={jugador.apodo ?? ''}
+                    onBlur={async (e) => {
+                      const val = e.target.value.trim();
+                      await supabase
+                        .from('quiniela_jugadores')
+                        .update({ apodo: val || null })
+                        .eq('id', jugador.id);
+                      toast.success(val ? `Apodo: ${val}` : 'Apodo eliminado');
+                    }}
+                    className="flex-1 rounded-xl px-3 py-2 text-sm"
+                    style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)', outline: 'none' }}
+                  />
+                  <span className="text-xs shrink-0" style={{ color: 'var(--text-secondary)' }}>apodo</span>
                 </div>
                 <div className="flex gap-2">
                   <input type="number" min="1" max="10" placeholder="1–10"

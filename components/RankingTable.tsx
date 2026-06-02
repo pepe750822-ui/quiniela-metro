@@ -1,6 +1,6 @@
 'use client';
 
-import { RankingConJugador } from '@/types';
+import { Jugador, RankingConJugador } from '@/types';
 
 interface Props {
   ranking: RankingConJugador[];
@@ -8,22 +8,25 @@ interface Props {
   pendienteIds?: string[];
 }
 
-function Iniciales({ nombre }: { nombre: string }) {
-  const parts = nombre.trim().split(' ');
-  const ini = parts.length >= 2
-    ? parts[0][0] + parts[1][0]
-    : nombre.slice(0, 2);
+const mostrarNombre = (j?: Jugador | null) =>
+  j?.apodo ?? j?.nombre?.split(' ')[0] ?? 'Jugador';
+
+const iniciales = (j?: Jugador | null) => {
+  const texto = j?.apodo ?? j?.nombre ?? '?';
+  return texto.slice(0, 2).toUpperCase();
+};
+
+function Iniciales({ jugador }: { jugador?: Jugador | null }) {
   return (
     <div
       className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-black shrink-0"
-      style={{ background: 'linear-gradient(135deg, #ea580c, #ea580c)' }}
+      style={{ background: 'linear-gradient(135deg, #ea580c, #f97316)' }}
     >
-      {ini.toUpperCase()}
+      {iniciales(jugador)}
     </div>
   );
 }
 
-const podiumH: Record<number, string> = { 0: 'h-16', 1: 'h-12', 2: 'h-8' };
 const podiumMedal = ['🥇', '🥈', '🥉'];
 
 export default function RankingTable({ ranking, userId, pendienteIds }: Props) {
@@ -35,8 +38,8 @@ export default function RankingTable({ ranking, userId, pendienteIds }: Props) {
     );
   }
 
-  const top3    = ranking.slice(0, 3);
-  const resto   = ranking.slice(3);
+  const top3  = ranking.slice(0, 3);
+  const resto = ranking.slice(3);
 
   return (
     <div className="space-y-6">
@@ -46,7 +49,6 @@ export default function RankingTable({ ranking, userId, pendienteIds }: Props) {
         <div className="flex items-end justify-center gap-3 pt-4">
           {[top3[1], top3[0], top3[2]].filter(Boolean).map((entry, visualIdx) => {
             const realIdx = entry === top3[0] ? 0 : entry === top3[1] ? 1 : 2;
-            const heights = ['h-28', 'h-36', 'h-24'];
             const glows   = ['rgba(192,192,192,0.15)', 'rgba(234,88,12,0.15)', 'rgba(180,120,60,0.1)'];
             return (
               <div key={entry.user_id}
@@ -54,9 +56,9 @@ export default function RankingTable({ ranking, userId, pendienteIds }: Props) {
                 style={{ background: glows[visualIdx], animation: `fadeInUp 0.5s ease-out ${visualIdx * 100}ms both` }}
               >
                 <span className="text-2xl">{podiumMedal[realIdx]}</span>
-                <Iniciales nombre={entry.jugador?.nombre ?? '?'} />
+                <Iniciales jugador={entry.jugador} />
                 <p className="text-xs font-semibold text-center leading-tight" style={{ color: 'var(--text-primary)' }}>
-                  {entry.jugador?.nombre?.split(' ')[0] ?? 'Jugador'}
+                  {mostrarNombre(entry.jugador)}
                 </p>
                 <p style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.75rem', color: 'var(--accent-gold)', lineHeight: 1 }}>
                   {entry.puntos_total}
@@ -68,7 +70,7 @@ export default function RankingTable({ ranking, userId, pendienteIds }: Props) {
         </div>
       )}
 
-      {/* Lista resto */}
+      {/* Lista resto (posición 4+) */}
       {resto.length > 0 && (
         <div className="space-y-2">
           {resto.map((entry, i) => {
@@ -85,10 +87,11 @@ export default function RankingTable({ ranking, userId, pendienteIds }: Props) {
                 }}
               >
                 <span className="w-6 text-center text-sm font-bold" style={{ color: 'var(--text-secondary)' }}>{pos}</span>
-                <Iniciales nombre={entry.jugador?.nombre ?? '?'} />
+                <Iniciales jugador={entry.jugador} />
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm truncate flex items-center gap-1.5 flex-wrap" style={{ color: esYo ? 'var(--accent-gold)' : 'var(--text-primary)' }}>
-                    {entry.jugador?.nombre ?? 'Jugador'}
+                  <p className="font-semibold text-sm truncate flex items-center gap-1.5 flex-wrap"
+                    style={{ color: esYo ? 'var(--accent-gold)' : 'var(--text-primary)' }}>
+                    {mostrarNombre(entry.jugador)}
                     {esYo && <span className="text-[9px] bg-orange-600 text-black px-1.5 py-0.5 rounded-full font-black">TÚ</span>}
                     {pendienteIds?.includes(entry.user_id) && <span className="text-[10px] text-orange-500">⏳</span>}
                   </p>
@@ -109,7 +112,7 @@ export default function RankingTable({ ranking, userId, pendienteIds }: Props) {
         </div>
       )}
 
-      {/* Si solo hay top3, mostrarlos también en lista */}
+      {/* Si solo hay ≤3, mostrarlos en lista también */}
       {resto.length === 0 && ranking.length > 0 && (
         <div className="space-y-2">
           {ranking.map((entry, i) => {
@@ -124,10 +127,11 @@ export default function RankingTable({ ranking, userId, pendienteIds }: Props) {
                 }}
               >
                 <span className="text-xl w-8 text-center">{podiumMedal[i] ?? `${i + 1}.`}</span>
-                <Iniciales nombre={entry.jugador?.nombre ?? '?'} />
+                <Iniciales jugador={entry.jugador} />
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm truncate flex items-center gap-1.5 flex-wrap" style={{ color: esYo ? 'var(--accent-gold)' : 'var(--text-primary)' }}>
-                    {entry.jugador?.nombre ?? 'Jugador'}
+                  <p className="font-semibold text-sm truncate flex items-center gap-1.5 flex-wrap"
+                    style={{ color: esYo ? 'var(--accent-gold)' : 'var(--text-primary)' }}>
+                    {mostrarNombre(entry.jugador)}
                     {esYo && <span className="text-[9px] bg-orange-600 text-black px-1.5 py-0.5 rounded-full font-black">TÚ</span>}
                     {pendienteIds?.includes(entry.user_id) && <span className="text-[10px] text-orange-500">⏳</span>}
                   </p>
