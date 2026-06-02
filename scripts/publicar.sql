@@ -1,12 +1,14 @@
--- Paso A: Agregar columna predicciones_completas
+-- Paso A: Agregar columnas a quiniela_participaciones
 ALTER TABLE quiniela_participaciones
 ADD COLUMN IF NOT EXISTS predicciones_completas BOOLEAN DEFAULT false;
 
--- Paso C: Política RLS para predicciones visibles a otros
--- Condiciones para ver la predicción de otro usuario:
---   1. Es tu propia predicción
+ALTER TABLE quiniela_participaciones
+ADD COLUMN IF NOT EXISTS publicado BOOLEAN DEFAULT false;
+
+-- Paso C: Política RLS — predicciones visibles si:
+--   1. Son tuyas
 --   2. El partido ya inició (estado != 'pendiente')
---   3. El usuario completó TODAS sus predicciones de la jornada
+--   3. El usuario publicó explícitamente su jornada (publicado = true)
 DROP POLICY IF EXISTS "ver_predicciones" ON quiniela_predicciones;
 
 CREATE POLICY "ver_predicciones"
@@ -27,6 +29,6 @@ USING (
       SELECT jornada FROM quiniela_partidos
       WHERE id = quiniela_predicciones.partido_id
     )
-    AND part.predicciones_completas = true
+    AND part.publicado = true
   )
 );
