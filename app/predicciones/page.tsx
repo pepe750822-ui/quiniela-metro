@@ -95,43 +95,50 @@ export default function PrediccionesPage() {
         </h1>
       </div>
 
-      {/* Banner pozo / participación */}
+      {/* Banner: pago pendiente */}
+      {participando === false && (
+        <div
+          className="rounded-xl p-4 space-y-2"
+          style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.4)', animation: 'fadeInUp 0.4s ease-out 0.05s both' }}
+        >
+          <p className="font-bold" style={{ fontFamily: 'var(--font-rajdhani)', color: '#f59e0b', fontSize: '1rem' }}>
+            ⚠️ Tienes predicciones sin pagar en esta jornada
+          </p>
+          <p className="text-sm" style={{ color: '#94a3b8' }}>
+            Para que tu participación sea válida y entres al pozo, transfiere <strong style={{ color: '#e2e8f0' }}>$50 MXN</strong> y envía tu comprobante por WhatsApp al <strong style={{ color: '#e2e8f0' }}>55 2326 9241</strong>
+          </p>
+          <p className="text-sm font-mono" style={{ color: '#cbd5e1' }}>
+            💳 CLABE: 014180565546539842
+          </p>
+        </div>
+      )}
+
+      {/* Banner: pozo + estado confirmado */}
       {pozo && (
         <div
           className="rounded-2xl px-4 py-3 space-y-1"
           style={{
-            background: participando
-              ? 'rgba(16,185,129,0.08)'
-              : 'rgba(245,158,11,0.08)',
-            border: `1px solid ${participando ? 'rgba(16,185,129,0.3)' : 'rgba(245,158,11,0.25)'}`,
+            background: participando === true ? 'rgba(16,185,129,0.08)' : 'rgba(245,158,11,0.06)',
+            border: `1px solid ${participando === true ? 'rgba(16,185,129,0.3)' : 'rgba(245,158,11,0.2)'}`,
             animation: 'fadeInUp 0.4s ease-out 0.1s both',
           }}
         >
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-semibold" style={{ color: participando ? '#10b981' : 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
-                {participando === true
-                  ? `✅ Participando en Jornada ${jornada}`
-                  : participando === false
-                    ? `⏳ Pago pendiente — Jornada ${jornada}`
-                    : `⚽ Participa en Jornada ${jornada} · $50 MXN`}
-              </p>
-              <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-                👥 {pozo.participantes} participante{pozo.participantes !== 1 ? 's' : ''}
-              </p>
-            </div>
+            <p className="text-xs font-semibold" style={{ color: participando === true ? '#10b981' : 'var(--text-secondary)', fontFamily: 'var(--font-rajdhani)' }}>
+              {participando === true
+                ? `✅ Participando en Jornada ${jornada}`
+                : `🏆 Pozo Jornada ${jornada}`}
+            </p>
             <div className="text-right">
-              <p style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.5rem', color: 'var(--accent-gold)', lineHeight: 1 }}>
-                ${pozo.total_mxn}
+              <p style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.4rem', color: 'var(--accent-gold)', lineHeight: 1 }}>
+                ${pozo.total_mxn} <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>MXN</span>
               </p>
-              <p className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>pozo</p>
             </div>
           </div>
-          {pozo.estado !== 'abierto' && pozo.ganador_nombre && (
-            <p className="text-xs font-bold mt-1" style={{ color: '#10b981' }}>
-              🥇 Ganador: {pozo.ganador_nombre}
-            </p>
-          )}
+          <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+            👥 {pozo.participantes} participante{pozo.participantes !== 1 ? 's' : ''}
+            {pozo.estado !== 'abierto' && pozo.ganador_nombre && ` · 🥇 ${pozo.ganador_nombre}`}
+          </p>
         </div>
       )}
 
@@ -163,6 +170,7 @@ export default function PrediccionesPage() {
               key={partido.id}
               partido={partido}
               prediccion={predicciones[partido.id] ?? null}
+              participacionPagada={predicciones[partido.id] ? participando : undefined}
               onPredicir={setPartidoActivo}
             />
           ))}

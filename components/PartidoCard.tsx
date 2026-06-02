@@ -6,6 +6,7 @@ import { Bandera } from '@/components/Bandera';
 interface Props {
   partido: Partido;
   prediccion?: { goles_local_pred: number; goles_visitante_pred: number; puntos_ganados: number } | null;
+  participacionPagada?: boolean | null;
   onPredicir?: (partido: Partido) => void;
 }
 
@@ -21,7 +22,7 @@ const estadoBadge: Record<string, { bg: string; text: string; label: string }> =
   finalizado: { bg: 'rgba(100,116,139,0.15)', text: '#64748b',  label: 'Final' },
 };
 
-export default function PartidoCard({ partido, prediccion, onPredicir }: Props) {
+export default function PartidoCard({ partido, prediccion, participacionPagada, onPredicir }: Props) {
   const fechaHora = new Date(partido.fecha_hora);
   const fechaStr  = fechaHora.toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short' });
   const horaStr   = fechaHora.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
@@ -87,13 +88,25 @@ export default function PartidoCard({ partido, prediccion, onPredicir }: Props) 
       </div>
 
       {prediccion && (
-        <div className="px-4 pb-2 pt-1 flex items-center justify-between border-t" style={{ borderColor: 'var(--border)' }}>
-          <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-            Tu pred: <strong style={{ color: 'var(--text-primary)' }}>{prediccion.goles_local_pred} – {prediccion.goles_visitante_pred}</strong>
-          </span>
-          {partido.estado === 'finalizado' && (
-            <span className="text-xs font-bold" style={{ color: puntosColor }}>
-              {prediccion.puntos_ganados === 3 ? '✅ +3 pts' : prediccion.puntos_ganados === 1 ? '〰️ +1 pt' : '❌ 0 pts'}
+        <div className="px-4 pb-3 pt-1 border-t space-y-1.5" style={{ borderColor: 'var(--border)' }}>
+          <div className="flex items-center justify-between">
+            <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+              Tu pred: <strong style={{ color: 'var(--text-primary)' }}>{prediccion.goles_local_pred} – {prediccion.goles_visitante_pred}</strong>
+            </span>
+            {partido.estado === 'finalizado' && (
+              <span className="text-xs font-bold" style={{ color: puntosColor }}>
+                {prediccion.puntos_ganados === 3 ? '✅ +3 pts' : prediccion.puntos_ganados === 1 ? '〰️ +1 pt' : '❌ 0 pts'}
+              </span>
+            )}
+          </div>
+          {participacionPagada === false && (
+            <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/40">
+              ⏳ Pago pendiente
+            </span>
+          )}
+          {participacionPagada === true && (
+            <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
+              ✅ Participación confirmada
             </span>
           )}
         </div>

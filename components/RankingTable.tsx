@@ -5,6 +5,7 @@ import { RankingConJugador } from '@/types';
 interface Props {
   ranking: RankingConJugador[];
   userId?: string;
+  pendienteIds?: string[];
 }
 
 function Iniciales({ nombre }: { nombre: string }) {
@@ -25,7 +26,7 @@ function Iniciales({ nombre }: { nombre: string }) {
 const podiumH: Record<number, string> = { 0: 'h-16', 1: 'h-12', 2: 'h-8' };
 const podiumMedal = ['🥇', '🥈', '🥉'];
 
-export default function RankingTable({ ranking, userId }: Props) {
+export default function RankingTable({ ranking, userId, pendienteIds }: Props) {
   if (ranking.length === 0) {
     return (
       <p className="text-center py-12 text-sm" style={{ color: 'var(--text-secondary)' }}>
@@ -86,11 +87,15 @@ export default function RankingTable({ ranking, userId }: Props) {
                 <span className="w-6 text-center text-sm font-bold" style={{ color: 'var(--text-secondary)' }}>{pos}</span>
                 <Iniciales nombre={entry.jugador?.nombre ?? '?'} />
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm truncate" style={{ color: esYo ? 'var(--accent-gold)' : 'var(--text-primary)' }}>
+                  <p className="font-semibold text-sm truncate flex items-center gap-1.5 flex-wrap" style={{ color: esYo ? 'var(--accent-gold)' : 'var(--text-primary)' }}>
                     {entry.jugador?.nombre ?? 'Jugador'}
-                    {esYo && <span className="ml-2 text-[9px] bg-amber-500 text-black px-1.5 py-0.5 rounded-full font-black">TÚ</span>}
+                    {esYo && <span className="text-[9px] bg-amber-500 text-black px-1.5 py-0.5 rounded-full font-black">TÚ</span>}
+                    {pendienteIds?.includes(entry.user_id) && <span className="text-[10px] text-amber-400">⏳</span>}
                   </p>
-                  <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{entry.exactos} exactos ✅</p>
+                  <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                    {entry.exactos} exactos ✅
+                    {pendienteIds?.includes(entry.user_id) && <span className="ml-1 text-amber-400">· Pago pendiente</span>}
+                  </p>
                 </div>
                 <div className="text-right">
                   <p style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.5rem', color: 'var(--text-primary)', lineHeight: 1 }}>
@@ -121,11 +126,15 @@ export default function RankingTable({ ranking, userId }: Props) {
                 <span className="text-xl w-8 text-center">{podiumMedal[i] ?? `${i + 1}.`}</span>
                 <Iniciales nombre={entry.jugador?.nombre ?? '?'} />
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm truncate" style={{ color: esYo ? 'var(--accent-gold)' : 'var(--text-primary)' }}>
+                  <p className="font-semibold text-sm truncate flex items-center gap-1.5 flex-wrap" style={{ color: esYo ? 'var(--accent-gold)' : 'var(--text-primary)' }}>
                     {entry.jugador?.nombre ?? 'Jugador'}
-                    {esYo && <span className="ml-2 text-[9px] bg-amber-500 text-black px-1.5 py-0.5 rounded-full font-black">TÚ</span>}
+                    {esYo && <span className="text-[9px] bg-amber-500 text-black px-1.5 py-0.5 rounded-full font-black">TÚ</span>}
+                    {pendienteIds?.includes(entry.user_id) && <span className="text-[10px] text-amber-400">⏳</span>}
                   </p>
-                  <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{entry.exactos} exactos ✅</p>
+                  <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                    {entry.exactos} exactos ✅
+                    {pendienteIds?.includes(entry.user_id) && <span className="ml-1 text-amber-400">· Pago pendiente</span>}
+                  </p>
                 </div>
                 <div className="text-right">
                   <p style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.5rem', color: 'var(--text-primary)', lineHeight: 1 }}>

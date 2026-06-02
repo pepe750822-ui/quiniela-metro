@@ -110,10 +110,11 @@ function PozoCard({ pozo }: { pozo: Pozo }) {
 }
 
 export default function RankingPage() {
-  const [ranking, setRanking] = useState<RankingConJugador[]>([]);
-  const [userId, setUserId]   = useState<string | undefined>();
-  const [loading, setLoading] = useState(true);
-  const [pozos, setPozos]     = useState<Pozo[]>([]);
+  const [ranking, setRanking]         = useState<RankingConJugador[]>([]);
+  const [userId, setUserId]           = useState<string | undefined>();
+  const [loading, setLoading]         = useState(true);
+  const [pozos, setPozos]             = useState<Pozo[]>([]);
+  const [pendienteIds, setPendienteIds] = useState<string[]>([]);
   const { d, h, m, s, started } = useCountdown(INAUGURAL);
 
   useEffect(() => {
@@ -134,6 +135,15 @@ export default function RankingPage() {
       .select('*')
       .order('jornada')
       .then(({ data }) => setPozos((data as Pozo[]) ?? []));
+
+    supabase
+      .from('quiniela_participaciones')
+      .select('user_id')
+      .eq('pagado', false)
+      .then(({ data }) => {
+        const ids = [...new Set((data ?? []).map((p: { user_id: string }) => p.user_id))];
+        setPendienteIds(ids);
+      });
   }, []);
 
   return (
@@ -211,7 +221,7 @@ export default function RankingPage() {
               style={{ borderColor: 'var(--accent-gold)', borderTopColor: 'transparent' }} />
           </div>
         ) : (
-          <RankingTable ranking={ranking} userId={userId} />
+          <RankingTable ranking={ranking} userId={userId} pendienteIds={pendienteIds} />
         )}
       </div>
     </main>

@@ -364,23 +364,31 @@ export default function AdminPage() {
                 {/* Pagos pendientes */}
                 {pendientes.length > 0 && (
                   <div className="px-4 py-3 space-y-2">
-                    <p className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: '#f87171' }}>
-                      ⏳ Pendientes ({pendientes.length})
+                    <p className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: '#f59e0b' }}>
+                      ⏳ Pendientes de pago ({pendientes.length})
                     </p>
                     {pendientes.map(p => (
-                      <div key={p.id} className="flex items-center justify-between gap-2">
+                      <div key={p.id}
+                        className="flex items-center justify-between gap-2 rounded-xl px-3 py-2.5"
+                        style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.3)' }}>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
-                            {p.jugadorNombre}
-                          </p>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                              {p.jugadorNombre}
+                            </p>
+                            <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold"
+                              style={{ background: 'rgba(245,158,11,0.2)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.4)' }}>
+                              ⏳ Pendiente de pago
+                            </span>
+                          </div>
                           <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{p.jugadorEmail}</p>
                         </div>
                         <button
                           onClick={() => handleConfirmarPago(p)}
                           disabled={confirmando === p.id}
-                          className="text-xs px-3 py-1.5 rounded-xl font-bold disabled:opacity-50 transition-all active:scale-95 whitespace-nowrap"
+                          className="text-xs px-3 py-2 rounded-xl font-bold disabled:opacity-50 transition-all active:scale-95 whitespace-nowrap"
                           style={{ background: '#10b981', color: '#000' }}>
-                          {confirmando === p.id ? '…' : '✅ Confirmar'}
+                          {confirmando === p.id ? '…' : '✅ Confirmar pago'}
                         </button>
                       </div>
                     ))}
