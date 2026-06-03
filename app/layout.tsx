@@ -34,11 +34,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" href="/favicon-32.png" type="image/png" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
-        <script
-          type="module"
-          crossOrigin="anonymous"
-          src="https://widgets.api-sports.io/3.1.0/widgets.js"
-        />
       </head>
       <body
         className={`${bebasNeue.variable} ${rajdhani.variable} min-h-screen pb-[calc(4rem+env(safe-area-inset-bottom))]`}
