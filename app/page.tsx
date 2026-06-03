@@ -6,6 +6,12 @@ import { RankingConJugador, Pozo } from '@/types';
 import RankingTable from '@/components/RankingTable';
 import Link from 'next/link';
 import { emailCorto } from '@/lib/utils';
+import dynamic from 'next/dynamic';
+
+const JugadorAnimado = dynamic(
+  () => import('@/components/JugadorAnimado'),
+  { ssr: false }
+);
 
 const INAUGURAL = new Date('2026-06-11T20:00:00Z'); // 15:00 CDMX = 20:00 UTC
 
@@ -250,6 +256,7 @@ export default function RankingPage() {
         <p className="text-sm font-semibold" style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--text-secondary)' }}>
           Mundial 2026 🏆 · STC Metro CDMX
         </p>
+        <JugadorAnimado />
       </div>
 
       {/* Countdown */}
