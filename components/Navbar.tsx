@@ -9,6 +9,7 @@ const links = [
   { href: '/',             label: 'Ranking',      emoji: '🏆' },
   { href: '/predicciones', label: 'Predicciones', emoji: '⚽' },
   { href: '/calendario',   label: 'Calendario',   emoji: '📅' },
+  { href: '/mundial',      label: 'Mundial',      emoji: '🌍' },
   { href: '/perfil',       label: 'Perfil',       emoji: '👤' },
 ];
 
