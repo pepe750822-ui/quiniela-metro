@@ -23,7 +23,7 @@ export async function GET(request: Request) {
     // const data = await response.json();
 
     // Simulación: vamos a suponer que parseamos los datos y tenemos actualizaciones
-    const actualizaciones_mock = [
+    const actualizaciones_mock: any[] = [
       // { equipo_local: 'México', goles_local: 2, goles_visitante: 1, estado: 'finalizado' }
     ];
 
