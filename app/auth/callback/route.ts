@@ -3,19 +3,21 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
-  const code = searchParams.get('code');
+  const requestUrl = new URL(request.url);
+  const code = requestUrl.searchParams.get('code');
+  const origin = requestUrl.origin;
 
-  console.log('Callback recibido, code:', code ? 'existe' : 'no existe', '| origin:', origin);
+  console.log('Callback URL completa:', request.url);
+  console.log('Code:', code ? 'existe' : 'NO EXISTE');
 
   if (code) {
     const cookieStore = await cookies();
     const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL    || 'https://placeholder.supabase.co',
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key',
+      process.env.NEXT_PUBLIC_SUPABASE_URL    || '',
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
       {
         cookies: {
-          getAll() { return cookieStore.getAll(); },
+          getAll()                  { return cookieStore.getAll(); },
           setAll(cookiesToSet) {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
@@ -25,42 +27,25 @@ export async function GET(request: Request) {
       }
     );
 
-    const { data: sessionData, error: sessionError } = await supabase.auth.exchangeCodeForSession(code);
-    console.log('Exchange result:', sessionData?.user?.email ?? 'sin usuario', sessionError?.message ?? 'sin error');
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
-    const { data: { user } } = await supabase.auth.getUser();
-    console.log('Usuario autenticado:', user?.id ?? 'null', user?.email ?? 'null');
+    console.log('Exchange:', data?.user?.email ?? 'sin usuario', error?.message ?? 'sin error');
 
-    if (user) {
-      // Solo crear jugador si el callback llega desde quiniela-metro,
-      // no desde otros proyectos que compartan Supabase (ej: cyberedumx).
-      const referer = request.headers.get('referer') ?? '';
-      const appUrl  = process.env.NEXT_PUBLIC_APP_URL ?? '';
-      const isQuiniela =
-        origin.includes('quiniela-metro') ||
-        referer.includes('quiniela-metro') ||
-        appUrl.includes('quiniela-metro');
+    if (!error && data.user) {
+      const { error: upsertError } = await supabase
+        .from('quiniela_jugadores')
+        .upsert({
+          id:        data.user.id,
+          nombre:    data.user.user_metadata?.full_name ?? data.user.email?.split('@')[0] ?? 'Jugador',
+          email:     data.user.email!,
+          rol:       'jugador',
+          creditos:  1,
+          last_seen: new Date().toISOString(),
+        }, { onConflict: 'id', ignoreDuplicates: false });
 
-      console.log('isQuiniela:', isQuiniela, '| referer:', referer, '| appUrl:', appUrl);
-
-      if (isQuiniela) {
-        const { error: upsertError } = await supabase.from('quiniela_jugadores').upsert({
-          id:       user.id,
-          nombre:   user.user_metadata?.full_name ?? user.email?.split('@')[0] ?? 'Jugador',
-          email:    user.email ?? '',
-          rol:      'jugador',
-          creditos: 1,
-        }, { onConflict: 'id', ignoreDuplicates: true });
-
-        if (upsertError) console.error('Error upsert jugador:', upsertError.message);
-
-        await supabase
-          .from('quiniela_jugadores')
-          .update({ last_seen: new Date().toISOString() })
-          .eq('id', user.id);
-      }
+      if (upsertError) console.error('Error upsert jugador:', upsertError.message);
     }
   }
 
-  return NextResponse.redirect(new URL('/', request.url));
+  return NextResponse.redirect(`${origin}/`);
 }
