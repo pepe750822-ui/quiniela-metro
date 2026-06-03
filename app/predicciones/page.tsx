@@ -127,18 +127,32 @@ export default function PrediccionesPage() {
       {/* Banner: pago pendiente */}
       {participando === false && (
         <div
-          className="rounded-xl p-4 space-y-2"
-          style={{ background: 'rgba(234,88,12,0.1)', border: '1px solid rgba(234,88,12,0.4)', animation: 'fadeInUp 0.4s ease-out 0.05s both' }}
+          className="rounded-xl p-4 space-y-3"
+          style={{ background: 'rgba(234,88,12,0.08)', border: '1px solid rgba(234,88,12,0.4)', animation: 'fadeInUp 0.4s ease-out 0.05s both' }}
         >
           <p className="font-bold" style={{ fontFamily: 'var(--font-rajdhani)', color: '#ea580c', fontSize: '1rem' }}>
             ⚠️ Tienes predicciones sin pagar en esta jornada
           </p>
-          <p className="text-sm" style={{ color: '#94a3b8' }}>
-            Para que tu participación sea válida y entres al pozo, transfiere <strong style={{ color: '#e2e8f0' }}>$50 MXN</strong> y envía tu comprobante por WhatsApp al <strong style={{ color: '#e2e8f0' }}>55 2326 9241</strong>
-          </p>
+
           <p className="text-sm font-mono" style={{ color: '#cbd5e1' }}>
-            💳 CLABE: 014180565546539842
+            💳 CLABE: <strong>014180565546539842</strong>
+            <br />
+            <span style={{ color: '#94a3b8' }}>Monto: </span><strong style={{ color: '#e2e8f0' }}>$50 MXN</strong>
           </p>
+
+          <div className="rounded-xl p-3 space-y-2" style={{ background: 'rgba(234,88,12,0.1)', border: '1px solid rgba(234,88,12,0.25)' }}>
+            <p className="font-bold text-sm" style={{ fontFamily: 'var(--font-rajdhani)', color: '#f97316' }}>
+              📱 Envía por WhatsApp al 55 2326 9241:
+            </p>
+            <ol className="text-sm space-y-1 list-decimal list-inside" style={{ color: '#cbd5e1' }}>
+              <li>Captura del comprobante de pago</li>
+              <li>Tu correo de Google con el que entraste</li>
+              <li>Tu nombre o apodo para el ranking</li>
+            </ol>
+            <p className="text-xs" style={{ color: '#64748b', marginTop: '0.5rem' }}>
+              Tu participación se activará en cuanto confirmemos tu pago ✅
+            </p>
+          </div>
         </div>
       )}
 
