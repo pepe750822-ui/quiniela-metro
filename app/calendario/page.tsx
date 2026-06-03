@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Bandera } from '@/components/Bandera';
-import { formatearDiaCDMX, formatearHoraCDMX } from '@/lib/utils';
+import { formatearDiaCDMX, formatearHoraCDMX, getFechaCDMX } from '@/lib/utils';
 
 interface Partido {
   id: string;
@@ -66,11 +66,11 @@ export default function CalendarioPage() {
     };
   }, []);
 
-  // Agrupar por fecha
+  // Agrupar por fecha CDMX (clave numérica estable: "10/06/2025")
   const partidosPorFecha = partidos.reduce((acc, partido) => {
-    const fecha = formatearDiaCDMX(partido.fecha_hora);
-    if (!acc[fecha]) acc[fecha] = [];
-    acc[fecha].push(partido);
+    const key = getFechaCDMX(partido.fecha_hora);
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(partido);
     return acc;
   }, {} as Record<string, Partido[]>);
 
@@ -97,11 +97,11 @@ export default function CalendarioPage() {
         </p>
 
         <div className="space-y-12">
-          {Object.entries(partidosPorFecha).map(([fecha, lista]) => (
-            <div key={fecha} className="space-y-4" style={{ animation: 'fadeInUp 0.6s ease-out' }}>
+          {Object.entries(partidosPorFecha).map(([key, lista]) => (
+            <div key={key} className="space-y-4" style={{ animation: 'fadeInUp 0.6s ease-out' }}>
               <div className="sticky top-0 z-20 backdrop-blur-md bg-[#1a1c23]/80 py-3 px-4 rounded-xl border border-white/5 shadow-lg">
                 <h2 className="text-xl font-bold text-orange-400 capitalize" style={{ fontFamily: 'var(--font-rajdhani)' }}>
-                  {fecha}
+                  {formatearDiaCDMX(lista[0].fecha_hora)}
                 </h2>
               </div>
 

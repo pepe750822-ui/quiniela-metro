@@ -32,3 +32,12 @@ export const formatearDiaCDMX = (fechaHora: string) => {
     month: 'long'
   });
 };
+
+export const getFechaCDMX = (fechaHora: string) => {
+  return new Date(fechaHora).toLocaleDateString('es-MX', {
+    timeZone: 'America/Mexico_City',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+};
