@@ -10,7 +10,10 @@ export default function LoginPage() {
     setLoading(true);
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: 'https://quiniela-metro.vercel.app/auth/callback' },
+      options: {
+        redirectTo: 'https://quiniela-metro.vercel.app/auth/callback',
+        queryParams: { prompt: 'select_account' },
+      },
     });
     setLoading(false);
   };
@@ -38,12 +41,16 @@ export default function LoginPage() {
 
       <div className="relative z-10 w-full max-w-sm space-y-10 text-center">
         <div style={{ animation: 'fadeInUp 0.6s ease-out' }}>
-          <p className="text-5xl mb-4">🏟️</p>
+          <img
+            src="/icons/icon-192.png"
+            alt="Quiniela Metro"
+            className="w-24 h-24 rounded-2xl mx-auto mb-4 shadow-lg shadow-orange-500/30"
+          />
           <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: '3.5rem', color: 'var(--accent-gold)', lineHeight: 1, letterSpacing: '0.05em' }}>
             QUINIELA METRO
           </h1>
-          <p className="mt-2 font-semibold" style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--text-secondary)' }}>
-            Mundial 2026 🏆 · STC Metro CDMX
+          <p className="mt-1 font-semibold" style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--text-secondary)' }}>
+            Mundial 2026 🏆
           </p>
         </div>
 
@@ -66,8 +73,8 @@ export default function LoginPage() {
             )}
             {loading ? 'Redirigiendo…' : 'Entrar con Google'}
           </button>
-          <p className="mt-4 text-xs" style={{ color: 'var(--text-secondary)' }}>
-            Solo para compañeros del STC Metro CDMX
+          <p className="mt-4 text-sm font-semibold" style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--text-secondary)' }}>
+            ¡Predice, compite y gana! 🏆
           </p>
         </div>
       </div>
