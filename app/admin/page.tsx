@@ -35,6 +35,11 @@ export default function AdminPage() {
   const [confirmando, setConfirmando]       = useState<string | null>(null);
   const [declarando, setDeclarando]         = useState<number | null>(null);
 
+  // Registrar pago manual
+  const [pagoJugadorId, setPagoJugadorId] = useState('');
+  const [pagoJornada, setPagoJornada]     = useState<number>(1);
+  const [registrando, setRegistrando]     = useState(false);
+
   // ── Loaders ──────────────────────────────────────────
 
   const cargarPozos = async () => {
@@ -236,6 +241,53 @@ export default function AdminPage() {
     }
   };
 
+  const registrarPago = async () => {
+    if (!pagoJugadorId || !pagoJornada) return;
+    setRegistrando(true);
+
+    const jugador = jugadores.find(j => j.id === pagoJugadorId);
+
+    const { data: partExistente } = await supabase
+      .from('quiniela_participaciones')
+      .select('id, pagado')
+      .eq('user_id', pagoJugadorId)
+      .eq('jornada', pagoJornada)
+      .maybeSingle();
+
+    if (partExistente) {
+      if (partExistente.pagado) {
+        toast.error(`${mostrarNombre(jugador ?? { nombre: 'Jugador', apodo: null })} ya tiene pago confirmado en J${pagoJornada}`);
+        setRegistrando(false);
+        return;
+      }
+      const { error } = await supabase
+        .from('quiniela_participaciones')
+        .update({ pagado: true })
+        .eq('id', partExistente.id);
+      if (error) { toast.error('Error al actualizar participación'); setRegistrando(false); return; }
+    } else {
+      const { error } = await supabase
+        .from('quiniela_participaciones')
+        .insert({ user_id: pagoJugadorId, jornada: pagoJornada, pagado: true, monto: 50 });
+      if (error) { toast.error('Error al crear participación'); setRegistrando(false); return; }
+    }
+
+    const pozo = pozos.find(pz => pz.jornada === pagoJornada);
+    await supabase
+      .from('quiniela_pozo')
+      .update({
+        total_mxn:     (pozo?.total_mxn ?? 0) + 50,
+        participantes: (pozo?.participantes ?? 0) + 1,
+      })
+      .eq('jornada', pagoJornada);
+
+    const nombre = jugador ? mostrarNombre(jugador) : 'Jugador';
+    toast.success(`✅ Pago de ${nombre} registrado en Jornada ${pagoJornada}`);
+    setPagoJugadorId('');
+    setRegistrando(false);
+    cargarPozos();
+  };
+
   // ── Guards ───────────────────────────────────────────
 
   if (loading) return (
@@ -257,6 +309,69 @@ export default function AdminPage() {
   return (
     <main className="max-w-lg mx-auto px-4 pb-24 space-y-8"
       style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1.5rem)' }}>
+
+      {/* ── REGISTRAR PAGO ── */}
+      <section className="space-y-4">
+        <h2 style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.75rem', color: 'var(--accent-gold)', letterSpacing: '0.05em' }}>
+          💰 REGISTRAR PAGO
+        </h2>
+        <div className="space-y-3 rounded-2xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+
+          {/* Selector jugador */}
+          <div>
+            <label className="text-xs uppercase tracking-widest font-semibold block mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+              Jugador
+            </label>
+            <select
+              id="pago-jugador"
+              value={pagoJugadorId}
+              onChange={e => setPagoJugadorId(e.target.value)}
+              className="w-full rounded-xl px-3 py-2.5 text-sm outline-none"
+              style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: pagoJugadorId ? 'var(--text-primary)' : 'var(--text-secondary)', fontFamily: 'var(--font-rajdhani)' }}
+            >
+              <option value="">Seleccionar jugador...</option>
+              {jugadores.map(j => (
+                <option key={j.id} value={j.id}>
+                  {mostrarNombre(j)} — {emailCorto(j.email)}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Selector jornada */}
+          <div>
+            <label className="text-xs uppercase tracking-widest font-semibold block mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+              Jornada
+            </label>
+            <div className="flex gap-2">
+              {[1, 2, 3].map(j => (
+                <button
+                  key={j}
+                  onClick={() => setPagoJornada(j)}
+                  className="flex-1 py-2 rounded-xl text-sm font-bold transition-all active:scale-95"
+                  style={{
+                    background: pagoJornada === j ? '#ea580c' : 'var(--bg-card-hover)',
+                    color: pagoJornada === j ? '#fff' : 'var(--text-secondary)',
+                    border: `1px solid ${pagoJornada === j ? '#ea580c' : 'var(--border)'}`,
+                    fontFamily: 'var(--font-rajdhani)',
+                  }}
+                >
+                  J{j}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button
+            onClick={registrarPago}
+            disabled={!pagoJugadorId || registrando}
+            className="w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-40"
+            style={{ background: '#10b981', color: '#000', fontFamily: 'var(--font-rajdhani)' }}
+          >
+            {registrando ? '…' : '✅ Confirmar pago $50 MXN'}
+          </button>
+        </div>
+      </section>
 
       {/* ── POZOS ── */}
       <section className="space-y-4">
