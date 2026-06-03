@@ -137,9 +137,11 @@ export default function RankingPage() {
   const [participantesJornada, setParticipantesJornada] = useState<ParticipanteItem[]>([]);
   const { d, h, m, s, started, mounted: countdownReady } = useCountdown(INAUGURAL);
 
-  const cargarRanking = useCallback(async (j: number) => {
+  const cargarRanking = useCallback(async () => {
     setLoading(true);
-    const [{ data: rankData, error }, { data: partsData }] = await Promise.all([
+    const j = Number(jornadaSeleccionada);
+
+    const [{ data: rankData, error }, { data: participantes, error: errorPart }] = await Promise.all([
       supabase
         .from('quiniela_ranking')
         .select('*, jugador:quiniela_jugadores(nombre, email, apodo, avatar_url)')
@@ -147,10 +149,13 @@ export default function RankingPage() {
         .order('puntos_total', { ascending: false }),
       supabase
         .from('quiniela_participaciones')
-        .select('id, user_id, pagado, jugador:quiniela_jugadores(nombre, email, apodo)')
+        .select('*, jugador:quiniela_jugadores(nombre, email, apodo)')
         .eq('jornada', j)
         .order('created_at', { ascending: true }),
     ]);
+
+    console.log('Participantes jornada', j, participantes, errorPart);
+
     if (!error && rankData) {
       setRanking(
         (rankData as any[]).map(r => ({
@@ -173,9 +178,10 @@ export default function RankingPage() {
         }))
       );
     }
-    setParticipantesJornada((partsData ?? []) as unknown as ParticipanteItem[]);
+    setParticipantesJornada((participantes ?? []) as unknown as ParticipanteItem[]);
     setLoading(false);
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jornadaSeleccionada]);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id));
@@ -196,7 +202,8 @@ export default function RankingPage() {
       });
   }, []);
 
-  useEffect(() => { cargarRanking(jornadaSeleccionada); }, [jornadaSeleccionada, cargarRanking]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { cargarRanking(); }, [jornadaSeleccionada]);
 
   const jornadasDisponibles = pozos.length > 0 ? pozos.map(p => p.jornada) : [1];
 
