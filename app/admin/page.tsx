@@ -62,6 +62,9 @@ export default function AdminPage() {
 
   // Edición de apodos
   const [editandoApodo, setEditandoApodo] = useState<string | null>(null);
+
+  // Actualización automática de resultados
+  const [actualizando, setActualizando] = useState(false);
   const [apodoTemp, setApodoTemp]         = useState('');
 
   // ── Loaders ──────────────────────────────────────────
@@ -331,6 +334,25 @@ export default function AdminPage() {
     cargarPozos();
   };
 
+  const actualizarResultados = async () => {
+    setActualizando(true);
+    try {
+      const res = await fetch(
+        `/api/cron/update-matches?secret=${process.env.NEXT_PUBLIC_CRON_SECRET || 'quiniela-metro-cleanup-2026'}`
+      );
+      const data = await res.json();
+      if (data.actualizados > 0) {
+        toast.success(`✅ ${data.actualizados} partidos actualizados`);
+      } else {
+        toast.info(`ℹ️ ${data.message || 'Sin cambios'}`);
+      }
+      cargarPozos();
+    } catch {
+      toast.error('Error al actualizar');
+    }
+    setActualizando(false);
+  };
+
   // ── Guards ───────────────────────────────────────────
 
   if (loading) return (
@@ -352,6 +374,17 @@ export default function AdminPage() {
   return (
     <main className="max-w-lg mx-auto px-4 pb-24 space-y-8"
       style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1.5rem)' }}>
+
+      {/* ── ACTUALIZAR RESULTADOS ── */}
+      <div className="flex justify-end">
+        <button
+          onClick={actualizarResultados}
+          disabled={actualizando}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-50"
+          style={{ background: '#ea580c', color: '#fff', fontFamily: 'var(--font-rajdhani)' }}>
+          {actualizando ? '⏳ Actualizando...' : '🔄 Actualizar resultados'}
+        </button>
+      </div>
 
       {/* ── REGISTRAR PAGO ── */}
       <section className="space-y-4">
