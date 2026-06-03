@@ -177,7 +177,11 @@ export default function RankingPage() {
     >
       {/* Header */}
       <div className="text-center space-y-1" style={{ animation: 'fadeInUp 0.5s ease-out' }}>
-        <p className="text-4xl mb-1">🏟️</p>
+        <img
+          src="/icons/icon-192.png"
+          alt="Quiniela Metro"
+          className="w-20 h-20 rounded-2xl mx-auto mb-2 shadow-lg shadow-orange-500/20"
+        />
         <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: '3rem', color: 'var(--accent-gold)', lineHeight: 1, letterSpacing: '0.05em' }}>
           QUINIELA METRO
         </h1>

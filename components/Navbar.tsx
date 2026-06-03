@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 
@@ -12,8 +12,14 @@ const links = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router   = useRouter();
   const [creditos, setCreditos] = useState<number | null>(null);
   const [esAdmin,  setEsAdmin]  = useState(false);
+
+  const cerrarSesion = async () => {
+    await supabase.auth.signOut();
+    router.push('/login');
+  };
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -87,6 +93,15 @@ export default function Navbar() {
           </span>
         </Link>
       )}
+
+      {/* Cerrar sesión */}
+      <button
+        onClick={cerrarSesion}
+        className="flex flex-col items-center justify-center py-3 gap-0.5 px-4 min-h-[48px] transition-colors text-slate-500 hover:text-red-400"
+      >
+        <span className="text-lg leading-none">🚪</span>
+        <span className="text-[10px] font-semibold uppercase tracking-widest">Salir</span>
+      </button>
     </nav>
   );
 }
