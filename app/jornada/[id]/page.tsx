@@ -10,6 +10,7 @@ interface ParticipanteVista {
   nombre: string;
   apodo: string | null;
   publicado: boolean;
+  pagado: boolean;
   predicciones: Record<string, Prediccion>;
 }
 
@@ -58,7 +59,7 @@ export default function JornadaPage() {
 
       const { data: partcData } = await supabase
         .from('quiniela_participaciones')
-        .select('user_id, publicado')
+        .select('user_id, publicado, pagado')
         .eq('jornada', jornada);
 
       if (!partcData?.length) { setLoading(false); return; }
@@ -86,18 +87,20 @@ export default function JornadaPage() {
         });
       }
 
-      const lista: ParticipanteVista[] = partcData.map((p: { user_id: string; publicado: boolean }) => ({
+      const lista: ParticipanteVista[] = partcData.map((p: { user_id: string; publicado: boolean; pagado: boolean }) => ({
         user_id: p.user_id,
         nombre:  jugMap[p.user_id]?.nombre ?? 'Jugador',
         apodo:   jugMap[p.user_id]?.apodo  ?? null,
         publicado: p.publicado ?? false,
+        pagado:    p.pagado    ?? false,
         predicciones: predsByUser[p.user_id] ?? {},
       }));
 
+      const score = (p: ParticipanteVista) => (p.publicado && p.pagado ? 2 : p.publicado ? 1 : 0);
       lista.sort((a, b) => {
         if (a.user_id === userId) return -1;
         if (b.user_id === userId) return 1;
-        return (b.publicado ? 1 : 0) - (a.publicado ? 1 : 0);
+        return score(b) - score(a);
       });
 
       setParticipantes(lista);
@@ -119,6 +122,9 @@ export default function JornadaPage() {
         </h1>
         <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
           Predicciones de los participantes
+        </p>
+        <p className="text-[10px] mt-2 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+          ✅ <strong style={{ color: '#10b981' }}>Válido</strong> = publicado y pago confirmado · ⏳ <strong style={{ color: '#f59e0b' }}>Pago pendiente</strong> = publicado, esperando confirmación
         </p>
       </div>
 
@@ -164,14 +170,19 @@ export default function JornadaPage() {
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    {p.publicado ? (
+                    {p.publicado && p.pagado ? (
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
                         style={{ background: 'rgba(16,185,129,0.15)', color: '#10b981' }}>
-                        ✅ Publicado
+                        ✅ Válido
+                      </span>
+                    ) : p.publicado ? (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                        style={{ background: 'rgba(234,170,12,0.15)', color: '#f59e0b' }}>
+                        ⏳ Pago pendiente
                       </span>
                     ) : (
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                        style={{ background: 'rgba(234,88,12,0.1)', color: '#ea580c' }}>
+                        style={{ background: 'rgba(100,116,139,0.15)', color: '#64748b' }}>
                         🔒 Sin publicar
                       </span>
                     )}
