@@ -182,6 +182,7 @@ export default function RankingPage() {
     setRanking(
       (rankData ?? []).map(r => {
         const jug = (rankJugadores ?? []).find(j => j.id === r.user_id);
+        console.log('Jugador con apodo:', jug?.apodo, jug?.nombre);
         return {
           id:           r.id,
           user_id:      r.user_id,
