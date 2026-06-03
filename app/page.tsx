@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { RankingConJugador, Pozo } from '@/types';
 import RankingTable from '@/components/RankingTable';
@@ -9,7 +9,6 @@ import Link from 'next/link';
 const INAUGURAL = new Date('2026-06-11T20:00:00Z'); // 15:00 CDMX = 20:00 UTC
 
 function useCountdown(target: Date) {
-  // Inicializar en 0 en el servidor — nunca usar Date.now() en el estado inicial
   const [diff, setDiff]       = useState(0);
   const [mounted, setMounted] = useState(false);
 
@@ -115,44 +114,48 @@ function PozoCard({ pozo }: { pozo: Pozo }) {
 }
 
 export default function RankingPage() {
-  const [ranking, setRanking]         = useState<RankingConJugador[]>([]);
-  const [userId, setUserId]           = useState<string | undefined>();
-  const [loading, setLoading]         = useState(true);
-  const [pozos, setPozos]             = useState<Pozo[]>([]);
+  const [ranking, setRanking]           = useState<RankingConJugador[]>([]);
+  const [userId, setUserId]             = useState<string | undefined>();
+  const [loading, setLoading]           = useState(true);
+  const [pozos, setPozos]               = useState<Pozo[]>([]);
   const [pendienteIds, setPendienteIds] = useState<string[]>([]);
+  const [jornadaSeleccionada, setJornadaSeleccionada] = useState<number>(1);
   const { d, h, m, s, started, mounted: countdownReady } = useCountdown(INAUGURAL);
+
+  const cargarRanking = useCallback(async (j: number) => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('quiniela_ranking')
+      .select('*, jugador:quiniela_jugadores(nombre, email, apodo, avatar_url)')
+      .eq('jornada', j)
+      .order('puntos_total', { ascending: false });
+    if (!error && data) {
+      setRanking(
+        (data as any[]).map(r => ({
+          id:           r.id,
+          user_id:      r.user_id,
+          jornada:      r.jornada,
+          puntos_total: Number(r.puntos_total),
+          exactos:      Number(r.exactos),
+          updated_at:   r.updated_at ?? '',
+          jugador: {
+            id:         r.user_id,
+            nombre:     r.jugador?.nombre ?? '',
+            apodo:      r.jugador?.apodo ?? null,
+            email:      r.jugador?.email ?? '',
+            rol:        'jugador' as const,
+            avatar_url: r.jugador?.avatar_url ?? null,
+            creditos:   0,
+            created_at: '',
+          },
+        }))
+      );
+    }
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id));
-
-    supabase
-      .rpc('get_ranking_general')
-      .then(({ data, error }) => {
-        if (!error && data) {
-          setRanking(
-            (data as { user_id: string; nombre: string; apodo: string | null; email: string; avatar_url: string | null; puntos_total: number; exactos: number }[])
-              .map(r => ({
-                id:           r.user_id,
-                user_id:      r.user_id,
-                jornada:      null,
-                puntos_total: Number(r.puntos_total),
-                exactos:      Number(r.exactos),
-                updated_at:   '',
-                jugador: {
-                  id:         r.user_id,
-                  nombre:     r.nombre,
-                  apodo:      r.apodo ?? null,
-                  email:      r.email ?? '',
-                  rol:        'jugador' as const,
-                  avatar_url: r.avatar_url ?? null,
-                  creditos:   0,
-                  created_at: '',
-                },
-              }))
-          );
-        }
-        setLoading(false);
-      });
 
     supabase
       .from('quiniela_pozo')
@@ -169,6 +172,10 @@ export default function RankingPage() {
         setPendienteIds(ids);
       });
   }, []);
+
+  useEffect(() => { cargarRanking(jornadaSeleccionada); }, [jornadaSeleccionada, cargarRanking]);
+
+  const jornadasDisponibles = pozos.length > 0 ? pozos.map(p => p.jornada) : [1];
 
   return (
     <main
@@ -240,11 +247,31 @@ export default function RankingPage() {
         </div>
       )}
 
-      {/* Ranking general */}
+      {/* Ranking por jornada */}
       <div style={{ animation: 'fadeInUp 0.5s ease-out 0.3s both' }}>
-        <p className="text-[10px] uppercase tracking-widest font-semibold mb-3" style={{ color: 'var(--text-secondary)' }}>
-          Clasificación general
-        </p>
+        <h2 className="font-bebas text-2xl mb-3" style={{ color: '#ea580c' }}>
+          Clasificación Jornada {jornadaSeleccionada}
+        </h2>
+
+        {/* Selector de jornada */}
+        <div className="flex gap-2 mb-4">
+          {jornadasDisponibles.map(j => (
+            <button
+              key={j}
+              onClick={() => setJornadaSeleccionada(j)}
+              className="px-4 py-1.5 rounded-full text-sm font-bold transition-all active:scale-95 min-h-[36px]"
+              style={{
+                background: jornadaSeleccionada === j ? 'var(--accent-gold)' : 'var(--bg-card)',
+                color: jornadaSeleccionada === j ? '#000' : 'var(--text-secondary)',
+                border: `1px solid ${jornadaSeleccionada === j ? 'var(--accent-gold)' : 'var(--border)'}`,
+                fontFamily: 'var(--font-rajdhani)',
+              }}
+            >
+              J{j}
+            </button>
+          ))}
+        </div>
+
         {loading ? (
           <div className="flex justify-center py-12">
             <div className="h-8 w-8 border-2 border-t-transparent rounded-full animate-spin"
