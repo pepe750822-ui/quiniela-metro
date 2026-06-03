@@ -87,39 +87,6 @@ export default function PrediccionesPage() {
     if (userId) cargarPozoYParticipacion(userId, jornada);
   };
 
-  const borrarPrediccionesJornada = async (j: number) => {
-    if (!confirm(
-      '¿Borrar todas tus predicciones de esta jornada?\n' +
-      'También se eliminará tu participación.'
-    )) return;
-
-    if (!partidos.length) return;
-    const horasRest = (new Date(partidos[0].fecha_hora).getTime() - Date.now()) / (1000 * 60 * 60);
-    if (horasRest < 24) {
-      toast.error('Ya no puedes borrar tus predicciones. El partido inicia en menos de 24 horas.');
-      return;
-    }
-
-    const partidoIds = partidos.map(p => p.id);
-    await supabase
-      .from('quiniela_predicciones')
-      .delete()
-      .eq('user_id', userId!)
-      .in('partido_id', partidoIds);
-
-    await supabase
-      .from('quiniela_participaciones')
-      .delete()
-      .eq('user_id', userId!)
-      .eq('jornada', j);
-
-    toast.success('Predicciones eliminadas');
-    setParticipando(null);
-    setPublicado(false);
-    cargarPredicciones();
-    cargarPozoYParticipacion(userId!, j);
-  };
-
   const handlePublicar = async () => {
     if (!userId) return;
     setPublicando(true);
@@ -143,10 +110,6 @@ export default function PrediccionesPage() {
   const totalEnJornada = partidos.length;
   const porcentaje = totalEnJornada > 0 ? Math.round((predichasEnJornada / totalEnJornada) * 100) : 0;
   const jornadaCompleta = predichasEnJornada >= totalEnJornada && totalEnJornada > 0;
-  const tieneParticipacion = participando !== null;
-  const horasRestantes = partidos.length > 0
-    ? (new Date(partidos[0].fecha_hora).getTime() - Date.now()) / (1000 * 60 * 60)
-    : Infinity;
 
   return (
     <main
@@ -274,19 +237,6 @@ export default function PrediccionesPage() {
               Tus predicciones ya son visibles para todos los participantes
             </p>
           )}
-        </div>
-      )}
-
-      {/* Botón borrar — solo si tiene participación y faltan +24h */}
-      {tieneParticipacion && horasRestantes > 24 && (
-        <div className="flex justify-end" style={{ animation: 'fadeInUp 0.4s ease-out 0.19s both' }}>
-          <button
-            onClick={() => borrarPrediccionesJornada(jornada)}
-            className="text-xs px-3 py-1.5 rounded-lg transition-all active:scale-95"
-            style={{ background: 'rgba(239,68,68,0.12)', color: '#f87171', border: '1px solid rgba(239,68,68,0.25)' }}
-          >
-            🗑️ Borrar mis predicciones de esta jornada
-          </button>
         </div>
       )}
 
