@@ -15,7 +15,11 @@ interface PagoConNombre extends Pago {
 interface ParticipacionConNombre extends Participacion {
   jugadorNombre: string;
   jugadorEmail: string;
+  jugadorApodo: string | null;
 }
+
+const mostrarNombreParticipante = (p: ParticipacionConNombre) =>
+  p.jugadorApodo || p.jugadorNombre.split(' ')[0] || 'Sin nombre';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -62,21 +66,20 @@ export default function AdminPage() {
     setLoadingCreditos(false);
   };
 
-  const cargarPozos = async (jugadoresList?: Jugador[]) => {
-    const jList = jugadoresList ?? jugadores;
+  const cargarPozos = async () => {
     const [{ data: pz }, { data: pt }] = await Promise.all([
       supabase.from('quiniela_pozo').select('*').order('jornada'),
-      supabase.from('quiniela_participaciones').select('*').order('created_at'),
+      supabase.from('quiniela_participaciones')
+        .select('*, jugador:quiniela_jugadores(nombre, email, apodo)')
+        .order('created_at'),
     ]);
     setPozos((pz as Pozo[]) ?? []);
 
-    const nombresMap: Record<string, { nombre: string; email: string }> = {};
-    jList.forEach(j => { nombresMap[j.id] = { nombre: j.nombre, email: j.email }; });
-
-    const enriquecidas: ParticipacionConNombre[] = ((pt as Participacion[]) ?? []).map(p => ({
+    const enriquecidas: ParticipacionConNombre[] = ((pt ?? []) as any[]).map(p => ({
       ...p,
-      jugadorNombre: nombresMap[p.user_id]?.nombre ?? p.user_id.slice(0, 8),
-      jugadorEmail:  nombresMap[p.user_id]?.email  ?? '',
+      jugadorNombre: p.jugador?.nombre ?? p.user_id.slice(0, 8),
+      jugadorEmail:  p.jugador?.email  ?? '',
+      jugadorApodo:  p.jugador?.apodo  ?? null,
     }));
     setParticipaciones(enriquecidas);
   };
@@ -120,7 +123,7 @@ export default function AdminPage() {
       }));
       setPagos(pagosEnriquecidos);
 
-      await cargarPozos(jugadoresList);
+      await cargarPozos();
       setLoading(false);
     };
 
@@ -368,7 +371,12 @@ export default function AdminPage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-                              {p.jugadorNombre}
+                              {mostrarNombreParticipante(p)}
+                              {p.jugadorApodo && (
+                                <span className="ml-1 text-xs font-normal" style={{ color: 'var(--text-secondary)' }}>
+                                  ({p.jugadorNombre.split(' ')[0]})
+                                </span>
+                              )}
                             </p>
                             <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold"
                               style={{ background: 'rgba(234,88,12,0.2)', color: '#ea580c', border: '1px solid rgba(234,88,12,0.4)' }}>
@@ -405,9 +413,16 @@ export default function AdminPage() {
                     </p>
                     {confirmadas.map(p => (
                       <div key={p.id} className="flex items-center justify-between">
-                        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                          {p.jugadorNombre}
-                        </p>
+                        <div>
+                          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                            {mostrarNombreParticipante(p)}
+                          </p>
+                          {p.jugadorEmail && (
+                            <p className="text-xs" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+                              {p.jugadorEmail}
+                            </p>
+                          )}
+                        </div>
                         <button
                           onClick={() => handleEliminarParticipacion(p)}
                           className="text-xs px-2 py-1 rounded-lg transition-all active:scale-95"
