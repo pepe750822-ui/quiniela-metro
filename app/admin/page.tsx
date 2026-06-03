@@ -48,7 +48,7 @@ export default function AdminPage() {
   const cargarJugadoresYPagos = async () => {
     setLoadingCreditos(true);
     const [{ data: js }, { data: ps }] = await Promise.all([
-      supabase.from('quiniela_jugadores').select('*').order('nombre'),
+      supabase.from('quiniela_jugadores').select('*').order('created_at', { ascending: true }),
       supabase.from('quiniela_pagos').select('*').order('created_at', { ascending: false }).limit(50),
     ]);
     const jugadoresList = (js as Jugador[]) ?? [];
@@ -67,19 +67,37 @@ export default function AdminPage() {
   };
 
   const cargarPozos = async () => {
-    const [{ data: pz }, { data: pt }] = await Promise.all([
+    // Query 1: pozos y participaciones (sin join para evitar fallos silenciosos de RLS)
+    const [{ data: pz }, { data: pt, error: ptError }] = await Promise.all([
       supabase.from('quiniela_pozo').select('*').order('jornada'),
-      supabase.from('quiniela_participaciones')
-        .select('*, jugador:quiniela_jugadores(nombre, email, apodo)')
-        .order('created_at'),
+      supabase.from('quiniela_participaciones').select('id, user_id, jornada, pagado, monto, publicado, created_at').order('created_at'),
     ]);
+
+    if (ptError) console.error('Error cargando participaciones:', ptError);
     setPozos((pz as Pozo[]) ?? []);
 
-    const enriquecidas: ParticipacionConNombre[] = ((pt ?? []) as any[]).map(p => ({
+    const lista = (pt ?? []) as Participacion[];
+    if (!lista.length) { setParticipaciones([]); return; }
+
+    // Query 2: nombres por user_id (query separada, más robusta que join)
+    const userIds = [...new Set(lista.map(p => p.user_id))];
+    const { data: jugs, error: jugsError } = await supabase
+      .from('quiniela_jugadores')
+      .select('id, nombre, email, apodo')
+      .in('id', userIds);
+
+    if (jugsError) console.error('Error cargando jugadores para pozos:', jugsError);
+
+    const jugMap: Record<string, { nombre: string; email: string; apodo: string | null }> = {};
+    (jugs ?? []).forEach((j: { id: string; nombre: string; email: string; apodo: string | null }) => {
+      jugMap[j.id] = { nombre: j.nombre, email: j.email, apodo: j.apodo };
+    });
+
+    const enriquecidas: ParticipacionConNombre[] = lista.map(p => ({
       ...p,
-      jugadorNombre: p.jugador?.nombre ?? p.user_id.slice(0, 8),
-      jugadorEmail:  p.jugador?.email  ?? '',
-      jugadorApodo:  p.jugador?.apodo  ?? null,
+      jugadorNombre: jugMap[p.user_id]?.nombre ?? p.user_id.slice(0, 8),
+      jugadorEmail:  jugMap[p.user_id]?.email  ?? '',
+      jugadorApodo:  jugMap[p.user_id]?.apodo  ?? null,
     }));
     setParticipaciones(enriquecidas);
   };
@@ -105,7 +123,7 @@ export default function AdminPage() {
 
       const [{ data: ps }, { data: js }] = await Promise.all([
         supabase.from('quiniela_partidos').select('*').order('fecha_hora'),
-        supabase.from('quiniela_jugadores').select('*').order('nombre'),
+        supabase.from('quiniela_jugadores').select('*').order('created_at', { ascending: true }),
       ]);
       setPartidos((ps as Partido[]) ?? []);
       const jugadoresList = (js as Jugador[]) ?? [];
