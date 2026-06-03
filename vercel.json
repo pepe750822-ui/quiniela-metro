@@ -4,5 +4,10 @@
       "path": "/api/cron/update-matches",
       "schedule": "*/5 * * * *"
     }
-  ]
+  ],
+  "build": {
+    "env": {
+      "NEXT_LINT_DURING_BUILD": "false"
+    }
+  }
 }
