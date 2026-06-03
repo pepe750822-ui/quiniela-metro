@@ -99,6 +99,11 @@ export default function RankingTable({ ranking, userId, pendienteIds }: Props) {
                     {entry.exactos} exactos ✅
                     {pendienteIds?.includes(entry.user_id) && <span className="ml-1 text-orange-500">· Pago pendiente</span>}
                   </p>
+                  {entry.jugador?.email && (
+                    <p className="text-[10px] truncate" style={{ color: '#334155' }}>
+                      {entry.jugador.email.split('@')[0]}
+                    </p>
+                  )}
                 </div>
                 <div className="text-right">
                   <p style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.5rem', color: 'var(--text-primary)', lineHeight: 1 }}>
@@ -139,6 +144,11 @@ export default function RankingTable({ ranking, userId, pendienteIds }: Props) {
                     {entry.exactos} exactos ✅
                     {pendienteIds?.includes(entry.user_id) && <span className="ml-1 text-orange-500">· Pago pendiente</span>}
                   </p>
+                  {entry.jugador?.email && (
+                    <p className="text-[10px] truncate" style={{ color: '#334155' }}>
+                      {entry.jugador.email.split('@')[0]}
+                    </p>
+                  )}
                 </div>
                 <div className="text-right">
                   <p style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.5rem', color: 'var(--text-primary)', lineHeight: 1 }}>

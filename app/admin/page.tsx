@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Partido, Pozo, Participacion } from '@/types';
+import { Partido, Jugador, Pozo, Participacion } from '@/types';
 import { toast } from 'sonner';
 import { Bandera } from '@/components/Bandera';
 
@@ -24,6 +24,9 @@ export default function AdminPage() {
   const [adminId, setAdminId]     = useState<string | null>(null);
   const [editando, setEditando]   = useState<Record<string, { local: string; visita: string }>>({});
   const [guardando, setGuardando] = useState<string | null>(null);
+
+  // Apodos
+  const [jugadores, setJugadores] = useState<Jugador[]>([]);
 
   // Pozos
   const [pozos, setPozos]                   = useState<Pozo[]>([]);
@@ -88,8 +91,12 @@ export default function AdminPage() {
 
       setIsAdmin(true);
 
-      const { data: ps } = await supabase.from('quiniela_partidos').select('*').order('fecha_hora');
+      const [{ data: ps }, { data: js }] = await Promise.all([
+        supabase.from('quiniela_partidos').select('*').order('fecha_hora'),
+        supabase.from('quiniela_jugadores').select('*').order('created_at', { ascending: true }),
+      ]);
       setPartidos((ps as Partido[]) ?? []);
+      setJugadores((js as Jugador[]) ?? []);
 
       await cargarPozos();
       setLoading(false);
@@ -390,6 +397,42 @@ export default function AdminPage() {
               </div>
             );
           })}
+        </div>
+      </section>
+
+      {/* ── APODOS ── */}
+      <section className="space-y-4">
+        <h2 style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.75rem', color: 'var(--accent-gold)', letterSpacing: '0.05em' }}>
+          👤 APODOS
+        </h2>
+        <div className="space-y-3">
+          {jugadores.map(jugador => (
+            <div key={jugador.id}
+              className="flex items-center gap-4 rounded-xl px-4 py-3"
+              style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-sm truncate" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-rajdhani)' }}>
+                  {jugador.nombre.split(' ')[0]}
+                </p>
+                <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{jugador.email}</p>
+              </div>
+              <input
+                type="text"
+                placeholder="Apodo (ej: El Suavecito)"
+                defaultValue={jugador.apodo ?? ''}
+                onBlur={async (e) => {
+                  const val = e.target.value.trim();
+                  await supabase
+                    .from('quiniela_jugadores')
+                    .update({ apodo: val || null })
+                    .eq('id', jugador.id);
+                  toast.success(val ? `Apodo: ${val}` : 'Apodo eliminado');
+                }}
+                className="flex-1 rounded-xl px-3 py-2 text-sm outline-none"
+                style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)', maxWidth: '160px' }}
+              />
+            </div>
+          ))}
         </div>
       </section>
 
