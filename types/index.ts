@@ -38,6 +38,7 @@ export interface Jugador {
   creditos: number;
   created_at: string;
   last_seen?: string | null;
+  quiniela_nombre?: string | null;
 }
 
 export interface Pago {

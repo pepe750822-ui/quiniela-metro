@@ -131,6 +131,7 @@ interface ParticipanteItem {
   user_id: string;
   pagado: boolean;
   jugador: { nombre: string; email: string; apodo: string | null } | null;
+  quinielaNombre: string | null;
 }
 
 export default function RankingPage() {
@@ -150,7 +151,7 @@ export default function RankingPage() {
     // ── Participaciones ──────────────────────────────────
     const { data: participaciones } = await supabase
       .from('quiniela_participaciones')
-      .select('id, user_id, jornada, pagado, publicado')
+      .select('id, user_id, jornada, pagado, publicado, quiniela_extra_id')
       .eq('jornada', j)
       .order('created_at', { ascending: true });
 
@@ -162,11 +163,26 @@ export default function RankingPage() {
           .in('id', partUserIds)
       : { data: [] };
 
+    const quinielaIds = [...new Set(
+      (participaciones ?? []).map(p => p.quiniela_extra_id).filter(Boolean)
+    )] as string[];
+    const quinielaMap: Record<string, string> = {};
+    if (quinielaIds.length) {
+      const { data: quinielasData } = await supabase
+        .from('quiniela_extra')
+        .select('id, nombre')
+        .in('id', quinielaIds);
+      (quinielasData ?? []).forEach((q: { id: string; nombre: string }) => {
+        quinielaMap[q.id] = q.nombre;
+      });
+    }
+
     const participantesConNombre: ParticipanteItem[] = (participaciones ?? []).map(p => ({
-      id:      p.id,
-      user_id: p.user_id,
-      pagado:  p.pagado,
-      jugador: (partJugadores ?? []).find(j => j.id === p.user_id) ?? null,
+      id:             p.id,
+      user_id:        p.user_id,
+      pagado:         p.pagado,
+      jugador:        (partJugadores ?? []).find(j => j.id === p.user_id) ?? null,
+      quinielaNombre: p.quiniela_extra_id ? (quinielaMap[p.quiniela_extra_id] ?? null) : null,
     }));
     setParticipantesJornada(participantesConNombre);
 
@@ -369,6 +385,9 @@ export default function RankingPage() {
                       <p className="font-semibold text-sm" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-rajdhani)' }}>
                         {nomParticipante(p.jugador)}
                       </p>
+                      {p.quinielaNombre && (
+                        <p className="text-xs" style={{ color: '#ea580c' }}>🎫 {p.quinielaNombre}</p>
+                      )}
                       <p className="text-xs truncate" style={{ color: '#64748b' }}>
                         {emailCorto(p.jugador?.email || '')}
                         {p.pagado ? ' · ✅ Confirmado' : ' · ⏳ Pago pendiente'}

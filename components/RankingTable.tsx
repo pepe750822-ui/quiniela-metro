@@ -61,6 +61,11 @@ export default function RankingTable({ ranking, userId, pendienteIds }: Props) {
                 <p className="text-xs font-semibold text-center leading-tight" style={{ color: 'var(--text-primary)' }}>
                   {mostrarNombre(entry.jugador)}
                 </p>
+                {entry.jugador?.quiniela_nombre && (
+                  <span className="text-[9px] text-center block" style={{ color: '#ea580c' }}>
+                    🎫 {entry.jugador.quiniela_nombre}
+                  </span>
+                )}
                 <p style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.75rem', color: 'var(--accent-gold)', lineHeight: 1 }}>
                   {entry.puntos_total}
                 </p>
@@ -96,6 +101,11 @@ export default function RankingTable({ ranking, userId, pendienteIds }: Props) {
                     {esYo && <span className="text-[9px] bg-orange-600 text-black px-1.5 py-0.5 rounded-full font-black">TÚ</span>}
                     {pendienteIds?.includes(entry.user_id) && <span className="text-[10px] text-orange-500">⏳</span>}
                   </p>
+                  {entry.jugador?.quiniela_nombre && (
+                    <span className="text-xs block" style={{ color: '#ea580c' }}>
+                      🎫 {entry.jugador.quiniela_nombre}
+                    </span>
+                  )}
                   <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                     {entry.exactos} exactos ✅
                     {pendienteIds?.includes(entry.user_id) && <span className="ml-1 text-orange-500">· Pago pendiente</span>}
@@ -141,6 +151,11 @@ export default function RankingTable({ ranking, userId, pendienteIds }: Props) {
                     {esYo && <span className="text-[9px] bg-orange-600 text-black px-1.5 py-0.5 rounded-full font-black">TÚ</span>}
                     {pendienteIds?.includes(entry.user_id) && <span className="text-[10px] text-orange-500">⏳</span>}
                   </p>
+                  {entry.jugador?.quiniela_nombre && (
+                    <span className="text-xs block" style={{ color: '#ea580c' }}>
+                      🎫 {entry.jugador.quiniela_nombre}
+                    </span>
+                  )}
                   <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                     {entry.exactos} exactos ✅
                     {pendienteIds?.includes(entry.user_id) && <span className="ml-1 text-orange-500">· Pago pendiente</span>}
