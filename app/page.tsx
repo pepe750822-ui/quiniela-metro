@@ -141,24 +141,48 @@ export default function RankingPage() {
     setLoading(true);
     const j = Number(jornadaSeleccionada);
 
-    const [{ data: rankData, error }, { data: participantes, error: errorPart }] = await Promise.all([
-      supabase
-        .from('quiniela_ranking')
-        .select('*, jugador:quiniela_jugadores(nombre, email, apodo, avatar_url)')
-        .eq('jornada', j)
-        .order('puntos_total', { ascending: false }),
-      supabase
-        .from('quiniela_participaciones')
-        .select('*, jugador:quiniela_jugadores(nombre, email, apodo)')
-        .eq('jornada', j)
-        .order('created_at', { ascending: true }),
-    ]);
+    // ── Participaciones ──────────────────────────────────
+    const { data: participaciones } = await supabase
+      .from('quiniela_participaciones')
+      .select('id, user_id, jornada, pagado, publicado')
+      .eq('jornada', j)
+      .order('created_at', { ascending: true });
 
-    console.log('Participantes jornada', j, participantes, errorPart);
+    const partUserIds = participaciones?.map(p => p.user_id) ?? [];
+    const { data: partJugadores } = partUserIds.length
+      ? await supabase
+          .from('quiniela_jugadores')
+          .select('id, nombre, email, apodo')
+          .in('id', partUserIds)
+      : { data: [] };
 
-    if (!error && rankData) {
-      setRanking(
-        (rankData as any[]).map(r => ({
+    const participantesConNombre: ParticipanteItem[] = (participaciones ?? []).map(p => ({
+      id:      p.id,
+      user_id: p.user_id,
+      pagado:  p.pagado,
+      jugador: (partJugadores ?? []).find(j => j.id === p.user_id) ?? null,
+    }));
+    setParticipantesJornada(participantesConNombre);
+
+    // ── Ranking ──────────────────────────────────────────
+    const { data: rankData } = await supabase
+      .from('quiniela_ranking')
+      .select('id, user_id, jornada, puntos_total, exactos, updated_at')
+      .eq('jornada', j)
+      .order('puntos_total', { ascending: false });
+
+    const rankUserIds = rankData?.map(r => r.user_id) ?? [];
+    const { data: rankJugadores } = rankUserIds.length
+      ? await supabase
+          .from('quiniela_jugadores')
+          .select('id, nombre, email, apodo, avatar_url')
+          .in('id', rankUserIds)
+      : { data: [] };
+
+    setRanking(
+      (rankData ?? []).map(r => {
+        const jug = (rankJugadores ?? []).find(j => j.id === r.user_id);
+        return {
           id:           r.id,
           user_id:      r.user_id,
           jornada:      r.jornada,
@@ -167,18 +191,18 @@ export default function RankingPage() {
           updated_at:   r.updated_at ?? '',
           jugador: {
             id:         r.user_id,
-            nombre:     r.jugador?.nombre ?? '',
-            apodo:      r.jugador?.apodo ?? null,
-            email:      r.jugador?.email ?? '',
+            nombre:     jug?.nombre     ?? '',
+            apodo:      jug?.apodo      ?? null,
+            email:      jug?.email      ?? '',
             rol:        'jugador' as const,
-            avatar_url: r.jugador?.avatar_url ?? null,
+            avatar_url: jug?.avatar_url ?? null,
             creditos:   0,
             created_at: '',
           },
-        }))
-      );
-    }
-    setParticipantesJornada((participantes ?? []) as unknown as ParticipanteItem[]);
+        };
+      })
+    );
+
     setLoading(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jornadaSeleccionada]);
