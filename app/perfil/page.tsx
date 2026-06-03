@@ -81,40 +81,56 @@ export default function PerfilPage() {
             </button>
           </div>
         ) : (
-          <div className="flex gap-2">
-            <input
-              id="apodo"
-              name="apodo"
-              type="text"
-              value={apodoTemp}
-              onChange={e => setApodoTemp(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter') guardarApodo();
-                if (e.key === 'Escape' && apodoActual) setEditando(false);
-              }}
-              placeholder="Ej: El Suavecito, Mago, Toro..."
-              maxLength={20}
-              autoFocus={editando}
-              className="flex-1 rounded-lg px-3 py-2 text-white text-sm outline-none"
-              style={{ background: '#0a0a0a', border: '1px solid #ea580c' }}
-            />
-            <button
-              onClick={guardarApodo}
-              disabled={guardando}
-              className="px-4 py-2 rounded-lg text-sm font-bold transition-all active:scale-95 disabled:opacity-50"
-              style={{ background: '#ea580c', color: '#fff', fontFamily: 'var(--font-rajdhani)' }}
-            >
-              {guardando ? '...' : 'Guardar'}
-            </button>
-            {apodoActual && (
+          <div>
+            <div className="flex gap-2">
+              <input
+                id="apodo"
+                name="apodo"
+                type="text"
+                value={apodoTemp}
+                onChange={e => setApodoTemp(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') guardarApodo();
+                  if (e.key === 'Escape' && apodoActual) setEditando(false);
+                }}
+                placeholder="Ej: Capibara, El Panda, Suavecito..."
+                maxLength={20}
+                autoFocus={editando}
+                className="flex-1 rounded-lg px-3 py-2 text-white text-sm outline-none"
+                style={{ background: '#0a0a0a', border: '1px solid #ea580c' }}
+              />
               <button
-                onClick={() => setEditando(false)}
-                className="px-2 text-sm transition-colors"
-                style={{ color: '#64748b' }}
+                onClick={guardarApodo}
+                disabled={guardando}
+                className="px-4 py-2 rounded-lg text-sm font-bold transition-all active:scale-95 disabled:opacity-50"
+                style={{ background: '#ea580c', color: '#fff', fontFamily: 'var(--font-rajdhani)' }}
               >
-                ✕
+                {guardando ? '...' : 'Guardar'}
               </button>
-            )}
+              {apodoActual && (
+                <button
+                  onClick={() => setEditando(false)}
+                  className="px-2 text-sm transition-colors"
+                  style={{ color: '#64748b' }}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {['Capibara', 'El Panda', 'Gordo', 'Suavecito', 'El Mago',
+                'Toro', 'El Pulpo', 'Tiburón', 'El Lobo', 'Jaguar'].map(s => (
+                <button
+                  key={s}
+                  onClick={() => setApodoTemp(s)}
+                  className="text-xs px-2 py-1 rounded-full transition-all active:scale-95"
+                  style={{ background: 'rgba(234,88,12,0.15)', color: '#ea580c', border: '1px solid rgba(234,88,12,0.3)' }}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs mt-1" style={{ color: '#334155' }}>O escribe el tuyo 👆</p>
           </div>
         )}
 
