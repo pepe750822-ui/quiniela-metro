@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Partido, Jugador, Pozo, Participacion } from '@/types';
+import { emailCorto } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Bandera } from '@/components/Bandera';
 
@@ -338,7 +339,7 @@ export default function AdminPage() {
                               ⏳ Pendiente de pago
                             </span>
                           </div>
-                          <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{p.jugadorEmail}</p>
+                          <p className="text-xs text-slate-500 truncate">{p.jugadorEmail ? emailCorto(p.jugadorEmail) : ''}</p>
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">
                           <button
@@ -373,9 +374,7 @@ export default function AdminPage() {
                             {mostrarNombreParticipante(p)}
                           </p>
                           {p.jugadorEmail && (
-                            <p className="text-xs" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
-                              {p.jugadorEmail}
-                            </p>
+                            <p className="text-xs text-slate-500">{emailCorto(p.jugadorEmail)}</p>
                           )}
                         </div>
                         <button

@@ -4,11 +4,13 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Partido, Prediccion } from '@/types';
+import { emailCorto } from '@/lib/utils';
 
 interface ParticipanteVista {
   user_id: string;
   nombre: string;
   apodo: string | null;
+  email: string;
   publicado: boolean;
   pagado: boolean;
   predicciones: Record<string, Prediccion>;
@@ -67,11 +69,11 @@ export default function JornadaPage() {
       const userIds = partcData.map((p: { user_id: string }) => p.user_id);
       const { data: jugData } = await supabase
         .from('quiniela_jugadores')
-        .select('id, nombre, apodo')
+        .select('id, nombre, apodo, email')
         .in('id', userIds);
-      const jugMap: Record<string, { nombre: string; apodo: string | null }> = {};
-      (jugData ?? []).forEach((j: { id: string; nombre: string; apodo: string | null }) => {
-        jugMap[j.id] = { nombre: j.nombre, apodo: j.apodo };
+      const jugMap: Record<string, { nombre: string; apodo: string | null; email: string }> = {};
+      (jugData ?? []).forEach((j: { id: string; nombre: string; apodo: string | null; email: string }) => {
+        jugMap[j.id] = { nombre: j.nombre, apodo: j.apodo, email: j.email };
       });
 
       const partidoIds = listaPartidos.map(p => p.id);
@@ -91,6 +93,7 @@ export default function JornadaPage() {
         user_id: p.user_id,
         nombre:  jugMap[p.user_id]?.nombre ?? 'Jugador',
         apodo:   jugMap[p.user_id]?.apodo  ?? null,
+        email:   jugMap[p.user_id]?.email  ?? '',
         publicado: p.publicado ?? false,
         pagado:    p.pagado    ?? false,
         predicciones: predsByUser[p.user_id] ?? {},
@@ -161,13 +164,18 @@ export default function JornadaPage() {
                 >
                   <div className="flex items-center gap-2">
                     <Inicial p={p} />
-                    <p className="font-semibold text-sm flex items-center gap-1.5"
-                      style={{ color: esYo ? 'var(--accent-gold)' : 'var(--text-primary)' }}>
-                      {mostrarNombre(p)}
-                      {esYo && (
-                        <span className="text-[9px] bg-orange-600 text-black px-1.5 py-0.5 rounded-full font-black">TÚ</span>
+                    <div>
+                      <p className="font-semibold text-sm flex items-center gap-1.5"
+                        style={{ color: esYo ? 'var(--accent-gold)' : 'var(--text-primary)' }}>
+                        {mostrarNombre(p)}
+                        {esYo && (
+                          <span className="text-[9px] bg-orange-600 text-black px-1.5 py-0.5 rounded-full font-black">TÚ</span>
+                        )}
+                      </p>
+                      {p.email && (
+                        <p className="text-xs text-slate-500">{emailCorto(p.email)}</p>
                       )}
-                    </p>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     {p.publicado && p.pagado ? (

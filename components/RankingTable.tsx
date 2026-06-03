@@ -1,6 +1,7 @@
 'use client';
 
 import { Jugador, RankingConJugador } from '@/types';
+import { emailCorto } from '@/lib/utils';
 
 interface Props {
   ranking: RankingConJugador[];
@@ -101,7 +102,7 @@ export default function RankingTable({ ranking, userId, pendienteIds }: Props) {
                   </p>
                   {entry.jugador?.email && (
                     <p className="text-[10px] truncate" style={{ color: '#334155' }}>
-                      {entry.jugador.email.split('@')[0]}
+                      {emailCorto(entry.jugador.email)}
                     </p>
                   )}
                 </div>
@@ -146,7 +147,7 @@ export default function RankingTable({ ranking, userId, pendienteIds }: Props) {
                   </p>
                   {entry.jugador?.email && (
                     <p className="text-[10px] truncate" style={{ color: '#334155' }}>
-                      {entry.jugador.email.split('@')[0]}
+                      {emailCorto(entry.jugador.email)}
                     </p>
                   )}
                 </div>
