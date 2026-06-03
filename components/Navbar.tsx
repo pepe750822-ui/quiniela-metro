@@ -102,8 +102,8 @@ export default function Navbar() {
         onClick={cerrarSesion}
         className="flex flex-col items-center justify-center py-3 gap-0.5 px-4 min-h-[48px] transition-colors text-slate-500 hover:text-red-400"
       >
-        <span className="text-lg leading-none">🚪</span>
-        <span className="text-[10px] font-semibold uppercase tracking-widest">Salir</span>
+        <span className="text-lg leading-none">🔓</span>
+        <span className="text-[10px] font-semibold uppercase tracking-widest">Sesión</span>
       </button>
       </div>
     </nav>
