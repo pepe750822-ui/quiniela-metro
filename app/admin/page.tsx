@@ -420,19 +420,19 @@ export default function AdminPage() {
                   <Bandera emoji={partido.bandera_visitante} nombre={partido.equipo_visitante} size="sm" />
                 </p>
                 {partido.estado !== 'finalizado' && (
-                  <div className="flex items-center gap-2">
-                    <input type="number" min="0" placeholder="0" value={vals?.local ?? ''}
+                  <div className="flex items-center justify-center gap-3 mt-1">
+                    <input type="number" min="0" max="20" placeholder="0" value={vals?.local ?? ''}
                       onChange={e => setEditando(prev => ({ ...prev, [partido.id]: { local: e.target.value, visita: prev[partido.id]?.visita ?? '' } }))}
-                      className="flex-1 rounded-xl px-3 py-2 text-center text-lg font-bold"
-                      style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)' }} />
-                    <span style={{ color: 'var(--border)', fontWeight: 'bold' }}>–</span>
-                    <input type="number" min="0" placeholder="0" value={vals?.visita ?? ''}
+                      className="w-14 h-12 text-center text-xl font-bold rounded-xl outline-none"
+                      style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontFamily: 'var(--font-bebas)' }} />
+                    <span className="text-xl font-bold" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-bebas)' }}>–</span>
+                    <input type="number" min="0" max="20" placeholder="0" value={vals?.visita ?? ''}
                       onChange={e => setEditando(prev => ({ ...prev, [partido.id]: { local: prev[partido.id]?.local ?? '', visita: e.target.value } }))}
-                      className="flex-1 rounded-xl px-3 py-2 text-center text-lg font-bold"
-                      style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)' }} />
+                      className="w-14 h-12 text-center text-xl font-bold rounded-xl outline-none"
+                      style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontFamily: 'var(--font-bebas)' }} />
                     <button onClick={() => handleGuardar(partido)}
                       disabled={!vals?.local || !vals?.visita || guardando === partido.id}
-                      className="px-4 py-2 rounded-xl font-bold text-sm disabled:opacity-40 transition-all active:scale-95"
+                      className="h-12 px-4 rounded-xl font-bold text-sm disabled:opacity-40 transition-all active:scale-95"
                       style={{ background: '#10b981', color: '#000' }}>
                       {guardando === partido.id ? '…' : '✓'}
                     </button>
