@@ -60,6 +60,10 @@ export default function AdminPage() {
   const [pagoJornada, setPagoJornada]     = useState<number>(1);
   const [registrando, setRegistrando]     = useState(false);
 
+  // Edición de apodos
+  const [editandoApodo, setEditandoApodo] = useState<string | null>(null);
+  const [apodoTemp, setApodoTemp]         = useState('');
+
   // ── Loaders ──────────────────────────────────────────
 
   const cargarJugadores = async () => {
@@ -562,31 +566,71 @@ export default function AdminPage() {
         <div className="space-y-3">
           {jugadores.map(jugador => (
             <div key={jugador.id}
-              className="flex items-center gap-4 rounded-xl px-4 py-3"
+              className="rounded-xl px-4 py-3"
               style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-              <div className="min-w-0 flex-1">
-                <p className="font-semibold text-sm truncate" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-rajdhani)' }}>
-                  {mostrarNombre(jugador)}
-                </p>
-                <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{emailCorto(jugador.email)}</p>
-              </div>
-              <input
-                id={`apodo-${jugador.id}`}
-                name={`apodo-${jugador.id}`}
-                type="text"
-                placeholder="Apodo (ej: El Suavecito)"
-                defaultValue={jugador.apodo ?? ''}
-                onBlur={async (e) => {
-                  const val = e.target.value.trim();
-                  await supabase
-                    .from('quiniela_jugadores')
-                    .update({ apodo: val || null })
-                    .eq('id', jugador.id);
-                  toast.success(val ? `Apodo: ${val}` : 'Apodo eliminado');
-                }}
-                className="flex-1 rounded-xl px-3 py-2 text-sm outline-none"
-                style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)', maxWidth: '160px' }}
-              />
+              <p className="font-semibold text-sm truncate" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-rajdhani)' }}>
+                {jugador.nombre.split(' ')[0]}
+              </p>
+              <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{emailCorto(jugador.email)}</p>
+
+              {editandoApodo === jugador.id ? (
+                <div className="flex gap-2 mt-2">
+                  <input
+                    id={`apodo-${jugador.id}`}
+                    name={`apodo-${jugador.id}`}
+                    type="text"
+                    value={apodoTemp}
+                    onChange={e => setApodoTemp(e.target.value)}
+                    onKeyDown={async e => {
+                      if (e.key === 'Enter') e.currentTarget.closest('div')?.querySelector<HTMLButtonElement>('button')?.click();
+                      if (e.key === 'Escape') setEditandoApodo(null);
+                    }}
+                    placeholder="Apodo..."
+                    maxLength={20}
+                    autoFocus
+                    className="flex-1 rounded-lg px-3 py-1.5 text-sm text-white outline-none"
+                    style={{ background: '#0a0a0a', border: '1px solid #ea580c' }}
+                  />
+                  <button
+                    onClick={async () => {
+                      const { error } = await supabase
+                        .from('quiniela_jugadores')
+                        .update({ apodo: apodoTemp.trim() || null })
+                        .eq('id', jugador.id);
+                      if (!error) {
+                        toast.success('Apodo actualizado ✅');
+                        setEditandoApodo(null);
+                        cargarJugadores();
+                      } else {
+                        toast.error('Error al actualizar apodo');
+                      }
+                    }}
+                    className="px-3 py-1.5 rounded-lg text-sm font-bold transition-all active:scale-95"
+                    style={{ background: '#ea580c', color: '#fff' }}>
+                    ✓
+                  </button>
+                  <button
+                    onClick={() => setEditandoApodo(null)}
+                    className="px-2 text-sm transition-colors"
+                    style={{ color: '#64748b' }}>
+                    ✕
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 mt-1">
+                  {jugador.apodo ? (
+                    <span className="text-sm" style={{ color: '#ea580c' }}>🏷️ {jugador.apodo}</span>
+                  ) : (
+                    <span className="text-sm" style={{ color: '#334155' }}>Sin apodo</span>
+                  )}
+                  <button
+                    onClick={() => { setEditandoApodo(jugador.id); setApodoTemp(jugador.apodo ?? ''); }}
+                    className="text-xs transition-colors"
+                    style={{ color: '#475569' }}>
+                    ✏️ Editar
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>
