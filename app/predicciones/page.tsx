@@ -98,6 +98,7 @@ export default function PrediccionesPage() {
 
     setPublicando(false);
     if (error) {
+      console.error('Error publicando:', error);
       toast.error('Error al publicar predicciones');
     } else {
       setPublicado(true);
