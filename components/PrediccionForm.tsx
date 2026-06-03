@@ -16,22 +16,22 @@ interface Props {
 
 function Contador({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-2">
       <button
         type="button"
         onClick={() => onChange(Math.max(0, value - 1))}
-        className="w-12 h-12 rounded-full font-bold text-xl transition-all active:scale-90 min-h-[48px]"
+        className="w-10 h-10 rounded-full font-bold text-xl transition-all active:scale-90 min-h-[44px] min-w-[44px]"
         style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
       >
         −
       </button>
-      <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '3.5rem', color: 'var(--text-primary)', lineHeight: 1, minWidth: '2.5rem', textAlign: 'center' }}>
+      <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '3rem', color: 'var(--text-primary)', lineHeight: 1, minWidth: '2rem', textAlign: 'center' }}>
         {value}
       </span>
       <button
         type="button"
         onClick={() => onChange(value + 1)}
-        className="w-12 h-12 rounded-full font-bold text-xl transition-all active:scale-90 min-h-[48px]"
+        className="w-10 h-10 rounded-full font-bold text-xl transition-all active:scale-90 min-h-[44px] min-w-[44px]"
         style={{ background: 'var(--accent-gold)', color: '#000' }}
       >
         +
@@ -123,7 +123,7 @@ export default function PrediccionForm({ partido, userId, prediccionExistente, o
       onClick={onCancelar}
     >
       <div
-        className="w-full max-w-sm rounded-2xl px-6 pt-6 pb-8 space-y-6"
+        className="w-full max-w-sm rounded-2xl px-4 pt-6 pb-8 space-y-6"
         style={{ background: '#12121a', border: '1px solid rgba(234,88,12,0.3)', animation: 'fadeIn 0.2s ease-out' }}
         onClick={e => e.stopPropagation()}
       >
