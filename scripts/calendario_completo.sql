@@ -1,6 +1,7 @@
 -- Calendario completo Mundial 2026
 -- Ejecutar en Supabase SQL Editor
 
+DELETE FROM quiniela_predicciones;
 DELETE FROM quiniela_partidos;
 
 INSERT INTO quiniela_partidos (jornada, grupo, equipo_local, equipo_visitante, bandera_local, bandera_visitante, fecha_hora) VALUES
