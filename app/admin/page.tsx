@@ -17,6 +17,12 @@ interface ParticipacionConNombre extends Participacion {
 const mostrarNombreParticipante = (p: ParticipacionConNombre) =>
   p.jugadorApodo || p.jugadorNombre.split(' ')[0] || 'Sin nombre';
 
+const formatPagadoAt = (ts?: string | null) => {
+  if (!ts) return null;
+  const d = new Date(ts);
+  return d.toLocaleString('es-MX', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false });
+};
+
 export default function AdminPage() {
   const router = useRouter();
   const [partidos, setPartidos]   = useState<Partido[]>([]);
@@ -46,7 +52,7 @@ export default function AdminPage() {
     // Query 1: pozos y participaciones (sin join para evitar fallos silenciosos de RLS)
     const [{ data: pz }, { data: pt, error: ptError }] = await Promise.all([
       supabase.from('quiniela_pozo').select('*').order('jornada'),
-      supabase.from('quiniela_participaciones').select('id, user_id, jornada, pagado, monto, publicado, created_at').order('created_at'),
+      supabase.from('quiniela_participaciones').select('id, user_id, jornada, pagado, monto, publicado, created_at, pagado_at').order('created_at'),
     ]);
 
     if (ptError) console.error('Error cargando participaciones:', ptError);
@@ -144,7 +150,7 @@ export default function AdminPage() {
     // Marcar como pagado
     const { error: e1 } = await supabase
       .from('quiniela_participaciones')
-      .update({ pagado: true })
+      .update({ pagado: true, pagado_at: new Date().toISOString() })
       .eq('id', p.id);
 
     if (e1) { toast.error('Error al confirmar pago'); setConfirmando(null); return; }
@@ -262,13 +268,13 @@ export default function AdminPage() {
       }
       const { error } = await supabase
         .from('quiniela_participaciones')
-        .update({ pagado: true })
+        .update({ pagado: true, pagado_at: new Date().toISOString() })
         .eq('id', partExistente.id);
       if (error) { toast.error('Error al actualizar participación'); setRegistrando(false); return; }
     } else {
       const { error } = await supabase
         .from('quiniela_participaciones')
-        .insert({ user_id: pagoJugadorId, jornada: pagoJornada, pagado: true, monto: 50 });
+        .insert({ user_id: pagoJugadorId, jornada: pagoJornada, pagado: true, monto: 50, pagado_at: new Date().toISOString() });
       if (error) { toast.error('Error al crear participación'); setRegistrando(false); return; }
     }
 
@@ -486,6 +492,11 @@ export default function AdminPage() {
                           </p>
                           {p.jugadorEmail && (
                             <p className="text-xs text-slate-500">{emailCorto(p.jugadorEmail)}</p>
+                          )}
+                          {formatPagadoAt(p.pagado_at) && (
+                            <p className="text-[10px]" style={{ color: '#475569' }}>
+                              📅 {formatPagadoAt(p.pagado_at)}
+                            </p>
                           )}
                         </div>
                         <button
