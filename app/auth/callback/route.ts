@@ -29,9 +29,10 @@ export async function GET(request: Request) {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       await supabase.from('quiniela_jugadores').upsert({
-        id:       user.id,
-        nombre:   user.user_metadata?.full_name ?? user.email ?? 'Jugador',
-        email:    user.email ?? '',
+        id:      user.id,
+        nombre:  user.user_metadata?.full_name ?? user.email?.split('@')[0] ?? 'Jugador',
+        email:   user.email ?? '',
+        rol:     'jugador',
         creditos: 1,
       }, { onConflict: 'id', ignoreDuplicates: true });
     }
