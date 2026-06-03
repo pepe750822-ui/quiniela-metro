@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Partido, Jugador, Pozo, Participacion } from '@/types';
-import { emailCorto } from '@/lib/utils';
+import { emailCorto, mostrarNombre } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Bandera } from '@/components/Bandera';
 
@@ -158,13 +158,13 @@ export default function AdminPage() {
     if (e2) {
       toast.error('Participación confirmada pero error al actualizar pozo');
     } else {
-      toast.success(`✅ Pago de ${p.jugadorNombre.split(' ')[0]} confirmado (+$50 al pozo J${p.jornada})`);
+      toast.success(`✅ Pago de ${mostrarNombreParticipante(p)} confirmado (+$50 al pozo J${p.jornada})`);
       cargarPozos();
     }
   };
 
   const handleEliminarParticipacion = async (p: ParticipacionConNombre) => {
-    if (!confirm(`¿Eliminar participación de ${p.jugadorNombre} en Jornada ${p.jornada}?`)) return;
+    if (!confirm(`¿Eliminar participación de ${mostrarNombreParticipante(p)} en Jornada ${p.jornada}?`)) return;
 
     const { data: partidos } = await supabase
       .from('quiniela_partidos')
@@ -198,7 +198,7 @@ export default function AdminPage() {
       }
     }
 
-    toast.success(`🗑️ Participación de ${p.jugadorNombre.split(' ')[0]} eliminada`);
+    toast.success(`🗑️ Participación de ${mostrarNombreParticipante(p)} eliminada`);
     cargarPozos();
   };
 
@@ -207,7 +207,7 @@ export default function AdminPage() {
 
     const { data, error } = await supabase
       .from('quiniela_ranking')
-      .select('*, jugador:quiniela_jugadores(nombre)')
+      .select('*, jugador:quiniela_jugadores(nombre, apodo)')
       .eq('jornada', jornada)
       .order('puntos_total', { ascending: false })
       .limit(1)
@@ -219,7 +219,8 @@ export default function AdminPage() {
       return;
     }
 
-    const ganadorNombre = (data as { jugador?: { nombre: string } }).jugador?.nombre ?? 'Desconocido';
+    const jugGanador = (data as { jugador?: { nombre: string; apodo: string | null } }).jugador;
+    const ganadorNombre = mostrarNombre({ nombre: jugGanador?.nombre ?? 'Desconocido', apodo: jugGanador?.apodo ?? null });
 
     const { error: e2 } = await supabase
       .from('quiniela_pozo')
@@ -328,11 +329,6 @@ export default function AdminPage() {
                           <div className="flex items-center gap-2 flex-wrap">
                             <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
                               {mostrarNombreParticipante(p)}
-                              {p.jugadorApodo && (
-                                <span className="ml-1 text-xs font-normal" style={{ color: 'var(--text-secondary)' }}>
-                                  ({p.jugadorNombre.split(' ')[0]})
-                                </span>
-                              )}
                             </p>
                             <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold"
                               style={{ background: 'rgba(234,88,12,0.2)', color: '#ea580c', border: '1px solid rgba(234,88,12,0.4)' }}>
@@ -411,9 +407,9 @@ export default function AdminPage() {
               style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
               <div className="min-w-0 flex-1">
                 <p className="font-semibold text-sm truncate" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-rajdhani)' }}>
-                  {jugador.nombre.split(' ')[0]}
+                  {mostrarNombre(jugador)}
                 </p>
-                <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{jugador.email}</p>
+                <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{emailCorto(jugador.email)}</p>
               </div>
               <input
                 type="text"

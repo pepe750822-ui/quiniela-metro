@@ -5,8 +5,15 @@ import { supabase } from '@/lib/supabase';
 import { RankingConJugador, Pozo } from '@/types';
 import RankingTable from '@/components/RankingTable';
 import Link from 'next/link';
+import { emailCorto } from '@/lib/utils';
 
 const INAUGURAL = new Date('2026-06-11T20:00:00Z'); // 15:00 CDMX = 20:00 UTC
+
+const nomParticipante = (j: { nombre: string; email: string; apodo: string | null } | null) =>
+  j?.apodo || j?.nombre?.split(' ')[0] || 'Jugador';
+
+const iniParticipante = (j: { nombre: string; apodo: string | null } | null) =>
+  (j?.apodo || j?.nombre || 'J').substring(0, 2).toUpperCase();
 
 function useCountdown(target: Date) {
   const [diff, setDiff]       = useState(0);
@@ -113,25 +120,40 @@ function PozoCard({ pozo }: { pozo: Pozo }) {
   );
 }
 
+interface ParticipanteItem {
+  id: string;
+  user_id: string;
+  pagado: boolean;
+  jugador: { nombre: string; email: string; apodo: string | null } | null;
+}
+
 export default function RankingPage() {
-  const [ranking, setRanking]           = useState<RankingConJugador[]>([]);
-  const [userId, setUserId]             = useState<string | undefined>();
-  const [loading, setLoading]           = useState(true);
-  const [pozos, setPozos]               = useState<Pozo[]>([]);
-  const [pendienteIds, setPendienteIds] = useState<string[]>([]);
+  const [ranking, setRanking]                   = useState<RankingConJugador[]>([]);
+  const [userId, setUserId]                     = useState<string | undefined>();
+  const [loading, setLoading]                   = useState(true);
+  const [pozos, setPozos]                       = useState<Pozo[]>([]);
+  const [pendienteIds, setPendienteIds]         = useState<string[]>([]);
   const [jornadaSeleccionada, setJornadaSeleccionada] = useState<number>(1);
+  const [participantesJornada, setParticipantesJornada] = useState<ParticipanteItem[]>([]);
   const { d, h, m, s, started, mounted: countdownReady } = useCountdown(INAUGURAL);
 
   const cargarRanking = useCallback(async (j: number) => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('quiniela_ranking')
-      .select('*, jugador:quiniela_jugadores(nombre, email, apodo, avatar_url)')
-      .eq('jornada', j)
-      .order('puntos_total', { ascending: false });
-    if (!error && data) {
+    const [{ data: rankData, error }, { data: partsData }] = await Promise.all([
+      supabase
+        .from('quiniela_ranking')
+        .select('*, jugador:quiniela_jugadores(nombre, email, apodo, avatar_url)')
+        .eq('jornada', j)
+        .order('puntos_total', { ascending: false }),
+      supabase
+        .from('quiniela_participaciones')
+        .select('id, user_id, pagado, jugador:quiniela_jugadores(nombre, email, apodo)')
+        .eq('jornada', j)
+        .order('created_at', { ascending: true }),
+    ]);
+    if (!error && rankData) {
       setRanking(
-        (data as any[]).map(r => ({
+        (rankData as any[]).map(r => ({
           id:           r.id,
           user_id:      r.user_id,
           jornada:      r.jornada,
@@ -151,6 +173,7 @@ export default function RankingPage() {
         }))
       );
     }
+    setParticipantesJornada((partsData ?? []) as unknown as ParticipanteItem[]);
     setLoading(false);
   }, []);
 
@@ -277,8 +300,46 @@ export default function RankingPage() {
             <div className="h-8 w-8 border-2 border-t-transparent rounded-full animate-spin"
               style={{ borderColor: 'var(--accent-gold)', borderTopColor: 'transparent' }} />
           </div>
-        ) : (
+        ) : ranking.length > 0 ? (
           <RankingTable ranking={ranking} userId={userId} pendienteIds={pendienteIds} />
+        ) : (
+          <div>
+            <p className="text-sm text-center mb-4" style={{ color: '#64748b' }}>
+              ⏳ El ranking se actualizará cuando inicien los partidos
+            </p>
+            {participantesJornada.length === 0 ? (
+              <p className="text-sm text-center" style={{ color: '#475569' }}>
+                Aún no hay participantes en esta jornada
+              </p>
+            ) : (
+              <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid var(--border)', background: 'var(--bg-card)' }}>
+                {participantesJornada.map((p, i) => (
+                  <div
+                    key={p.id}
+                    className="flex items-center gap-3 px-4 py-3"
+                    style={{ borderTop: i > 0 ? '1px solid #1e1e2e' : undefined }}
+                  >
+                    <span className="text-sm w-6 text-center" style={{ color: '#64748b' }}>{i + 1}</span>
+                    <div
+                      className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                      style={{ background: 'linear-gradient(135deg, #ea580c, #c2410c)' }}
+                    >
+                      {iniParticipante(p.jugador)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-rajdhani)' }}>
+                        {nomParticipante(p.jugador)}
+                      </p>
+                      <p className="text-xs truncate" style={{ color: '#64748b' }}>
+                        {emailCorto(p.jugador?.email || '')}
+                        {p.pagado ? ' · ✅ Confirmado' : ' · ⏳ Pago pendiente'}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         )}
       </div>
     </main>
