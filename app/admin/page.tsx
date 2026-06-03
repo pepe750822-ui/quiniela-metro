@@ -3,14 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Partido, Jugador, Pago, Pozo, Participacion } from '@/types';
+import { Partido, Pozo, Participacion } from '@/types';
 import { toast } from 'sonner';
 import { Bandera } from '@/components/Bandera';
-
-interface PagoConNombre extends Pago {
-  jugadorNombre?: string;
-  adminNombre?: string;
-}
 
 interface ParticipacionConNombre extends Participacion {
   jugadorNombre: string;
@@ -30,13 +25,6 @@ export default function AdminPage() {
   const [editando, setEditando]   = useState<Record<string, { local: string; visita: string }>>({});
   const [guardando, setGuardando] = useState<string | null>(null);
 
-  // Créditos
-  const [jugadores, setJugadores]       = useState<Jugador[]>([]);
-  const [cantidades, setCantidades]     = useState<Record<string, string>>({});
-  const [agregando, setAgregando]       = useState<string | null>(null);
-  const [pagos, setPagos]               = useState<PagoConNombre[]>([]);
-  const [loadingCreditos, setLoadingCreditos] = useState(false);
-
   // Pozos
   const [pozos, setPozos]                   = useState<Pozo[]>([]);
   const [participaciones, setParticipaciones] = useState<ParticipacionConNombre[]>([]);
@@ -44,27 +32,6 @@ export default function AdminPage() {
   const [declarando, setDeclarando]         = useState<number | null>(null);
 
   // ── Loaders ──────────────────────────────────────────
-
-  const cargarJugadoresYPagos = async () => {
-    setLoadingCreditos(true);
-    const [{ data: js }, { data: ps }] = await Promise.all([
-      supabase.from('quiniela_jugadores').select('*').order('created_at', { ascending: true }),
-      supabase.from('quiniela_pagos').select('*').order('created_at', { ascending: false }).limit(50),
-    ]);
-    const jugadoresList = (js as Jugador[]) ?? [];
-    setJugadores(jugadoresList);
-
-    const nombresMap: Record<string, string> = {};
-    jugadoresList.forEach(j => { nombresMap[j.id] = j.nombre; });
-
-    const pagosEnriquecidos: PagoConNombre[] = ((ps as Pago[]) ?? []).map(p => ({
-      ...p,
-      jugadorNombre: nombresMap[p.user_id] ?? p.user_id.slice(0, 8),
-      adminNombre:   p.activado_por ? (nombresMap[p.activado_por] ?? p.activado_por.slice(0, 8)) : '—',
-    }));
-    setPagos(pagosEnriquecidos);
-    setLoadingCreditos(false);
-  };
 
   const cargarPozos = async () => {
     // Query 1: pozos y participaciones (sin join para evitar fallos silenciosos de RLS)
@@ -121,25 +88,8 @@ export default function AdminPage() {
 
       setIsAdmin(true);
 
-      const [{ data: ps }, { data: js }] = await Promise.all([
-        supabase.from('quiniela_partidos').select('*').order('fecha_hora'),
-        supabase.from('quiniela_jugadores').select('*').order('created_at', { ascending: true }),
-      ]);
+      const { data: ps } = await supabase.from('quiniela_partidos').select('*').order('fecha_hora');
       setPartidos((ps as Partido[]) ?? []);
-      const jugadoresList = (js as Jugador[]) ?? [];
-      setJugadores(jugadoresList);
-
-      const nombresMap: Record<string, string> = {};
-      jugadoresList.forEach(j => { nombresMap[j.id] = j.nombre; });
-
-      const { data: pagosData } = await supabase
-        .from('quiniela_pagos').select('*').order('created_at', { ascending: false }).limit(50);
-      const pagosEnriquecidos: PagoConNombre[] = ((pagosData as Pago[]) ?? []).map(p => ({
-        ...p,
-        jugadorNombre: nombresMap[p.user_id] ?? p.user_id.slice(0, 8),
-        adminNombre:   p.activado_por ? (nombresMap[p.activado_por] ?? p.activado_por.slice(0, 8)) : '—',
-      }));
-      setPagos(pagosEnriquecidos);
 
       await cargarPozos();
       setLoading(false);
@@ -170,26 +120,6 @@ export default function AdminPage() {
           ? { ...p, goles_local: parseInt(vals.local), goles_visitante: parseInt(vals.visita), estado: 'finalizado' }
           : p
       ));
-    }
-  };
-
-  // ── Handlers créditos ────────────────────────────────
-
-  const handleAgregarCreditos = async (jugador: Jugador) => {
-    const cant = parseInt(cantidades[jugador.id] ?? '');
-    if (!cant || cant < 1 || cant > 10 || !adminId) return;
-    setAgregando(jugador.id);
-    const [{ error: e1 }, { error: e2 }] = await Promise.all([
-      supabase.from('quiniela_jugadores').update({ creditos: (jugador.creditos ?? 0) + cant }).eq('id', jugador.id),
-      supabase.from('quiniela_pagos').insert({ user_id: jugador.id, creditos: cant, monto: cant * 50, concepto: 'Pago manual', activado_por: adminId }),
-    ]);
-    setAgregando(null);
-    if (e1 || e2) {
-      toast.error('Error al agregar créditos');
-    } else {
-      toast.success(`+${cant} crédito${cant !== 1 ? 's' : ''} a ${jugador.nombre.split(' ')[0]}`);
-      setCantidades(prev => ({ ...prev, [jugador.id]: '' }));
-      cargarJugadoresYPagos();
     }
   };
 
@@ -461,109 +391,6 @@ export default function AdminPage() {
             );
           })}
         </div>
-      </section>
-
-      {/* ── CRÉDITOS ── */}
-      <section className="space-y-4">
-        <h2 style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.75rem', color: 'var(--accent-gold)', letterSpacing: '0.05em' }}>
-          💳 GESTIÓN DE CRÉDITOS
-        </h2>
-
-        {loadingCreditos ? (
-          <div className="flex justify-center py-8">
-            <div className="h-6 w-6 border-2 border-t-transparent rounded-full animate-spin"
-              style={{ borderColor: 'var(--accent-gold)', borderTopColor: 'transparent' }} />
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {jugadores.map(jugador => (
-              <div key={jugador.id} className="rounded-2xl px-4 py-3 space-y-2"
-                style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm truncate" style={{ color: 'var(--text-primary)' }}>
-                      {jugador.nombre}
-                      {jugador.apodo && (
-                        <span className="ml-1.5 text-[10px] font-normal px-1.5 py-0.5 rounded-full"
-                          style={{ background: 'rgba(234,88,12,0.15)', color: 'var(--accent-gold)' }}>
-                          {jugador.apodo}
-                        </span>
-                      )}
-                    </p>
-                    <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{jugador.email}</p>
-                  </div>
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full shrink-0"
-                    style={{
-                      background: (jugador.creditos ?? 0) > 0 ? 'rgba(234,88,12,0.12)' : 'rgba(100,116,139,0.12)',
-                      border: `1px solid ${(jugador.creditos ?? 0) > 0 ? 'rgba(234,88,12,0.3)' : 'var(--border)'}`,
-                    }}>
-                    <span className="text-xs">💳</span>
-                    <span className="text-sm font-bold"
-                      style={{ color: (jugador.creditos ?? 0) > 0 ? 'var(--accent-gold)' : 'var(--text-secondary)', fontFamily: 'var(--font-bebas)' }}>
-                      {jugador.creditos ?? 0}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    placeholder="Apodo (ej: El Suavecito)"
-                    defaultValue={jugador.apodo ?? ''}
-                    onBlur={async (e) => {
-                      const val = e.target.value.trim();
-                      await supabase
-                        .from('quiniela_jugadores')
-                        .update({ apodo: val || null })
-                        .eq('id', jugador.id);
-                      toast.success(val ? `Apodo: ${val}` : 'Apodo eliminado');
-                    }}
-                    className="flex-1 rounded-xl px-3 py-2 text-sm"
-                    style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)', outline: 'none' }}
-                  />
-                  <span className="text-xs shrink-0" style={{ color: 'var(--text-secondary)' }}>apodo</span>
-                </div>
-                <div className="flex gap-2">
-                  <input type="number" min="1" max="10" placeholder="1–10"
-                    value={cantidades[jugador.id] ?? ''}
-                    onChange={e => setCantidades(prev => ({ ...prev, [jugador.id]: e.target.value }))}
-                    className="flex-1 rounded-xl px-3 py-2 text-sm font-semibold text-center"
-                    style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)' }} />
-                  <button onClick={() => handleAgregarCreditos(jugador)}
-                    disabled={!cantidades[jugador.id] || agregando === jugador.id}
-                    className="px-4 py-2 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-40 whitespace-nowrap"
-                    style={{ background: 'var(--accent-gold)', color: '#000', fontFamily: 'var(--font-rajdhani)' }}>
-                    {agregando === jugador.id ? '…' : '➕ Agregar'}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {pagos.length > 0 && (
-          <div className="space-y-2">
-            <p className="text-[10px] uppercase tracking-widest font-semibold pt-2" style={{ color: 'var(--text-secondary)' }}>
-              Historial de pagos activados
-            </p>
-            <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid var(--border)' }}>
-              {pagos.map((pago, i) => (
-                <div key={pago.id} className="flex items-center gap-3 px-4 py-2.5 text-xs"
-                  style={{ background: i % 2 === 0 ? 'var(--bg-card)' : 'var(--bg-card-hover)', borderBottom: i < pagos.length - 1 ? '1px solid var(--border)' : 'none' }}>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold truncate" style={{ color: 'var(--text-primary)' }}>{pago.jugadorNombre}</p>
-                    <p style={{ color: 'var(--text-secondary)' }}>
-                      {new Date(pago.created_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                  </div>
-                  <div className="text-center shrink-0">
-                    <p className="font-bold" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-bebas)', fontSize: '1.1rem' }}>+{pago.creditos}</p>
-                    <p style={{ color: 'var(--text-secondary)' }}>${pago.monto}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </section>
 
       {/* ── RESULTADOS ── */}

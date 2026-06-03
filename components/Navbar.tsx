@@ -13,8 +13,7 @@ const links = [
 export default function Navbar() {
   const pathname = usePathname();
   const router   = useRouter();
-  const [creditos, setCreditos] = useState<number | null>(null);
-  const [esAdmin,  setEsAdmin]  = useState(false);
+  const [esAdmin, setEsAdmin] = useState(false);
 
   const cerrarSesion = async () => {
     await supabase.auth.signOut();
@@ -26,11 +25,10 @@ export default function Navbar() {
       if (!data.user) return;
       const { data: jugador } = await supabase
         .from('quiniela_jugadores')
-        .select('creditos, rol')
+        .select('rol')
         .eq('id', data.user.id)
         .maybeSingle();
       if (jugador) {
-        setCreditos(jugador.creditos);
         setEsAdmin(jugador.rol === 'admin');
       }
     });
@@ -63,19 +61,6 @@ export default function Navbar() {
           </Link>
         );
       })}
-
-      {/* Créditos del usuario */}
-      {creditos !== null && (
-        <div className="flex flex-col items-center justify-center py-3 gap-0.5 px-4">
-          <span className="text-xl leading-none">💳</span>
-          <span
-            className={`text-[10px] font-bold uppercase tracking-widest ${creditos <= 0 ? 'animate-pulse' : ''}`}
-            style={{ color: creditos > 0 ? 'var(--accent-gold)' : '#ef4444' }}
-          >
-            {creditos}
-          </span>
-        </div>
-      )}
 
       {/* Enlace admin — solo visible para rol=admin */}
       {esAdmin && (
