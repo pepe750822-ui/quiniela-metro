@@ -1,56 +1,54 @@
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
-import { NextResponse } from 'next/server';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
+import { NextResponse } from 'next/server'
 
 export async function GET(request: Request) {
-  const requestUrl = new URL(request.url);
-  const code = requestUrl.searchParams.get('code');
-  const origin = requestUrl.origin;
+  const requestUrl = new URL(request.url)
+  const code = requestUrl.searchParams.get('code')
+  const error = requestUrl.searchParams.get('error')
+  const error_description = requestUrl.searchParams.get('error_description')
 
-  console.log('=== CALLBACK DEBUG ===');
-  console.log('Full URL:', request.url);
-  console.log('Search params:', requestUrl.searchParams.toString());
-  console.log('Code:', requestUrl.searchParams.get('code'));
-  console.log('Error:', requestUrl.searchParams.get('error'));
-  console.log('Error description:', requestUrl.searchParams.get('error_description'));
-  console.log('===================');
+  console.log('=== AUTH CALLBACK ===')
+  console.log('code:', code ? 'EXISTE' : 'NO EXISTE')
+  console.log('error:', error)
+  console.log('error_description:', error_description)
+  console.log('full URL:', request.url)
+  console.log('====================')
+
+  if (error) {
+    return NextResponse.redirect(
+      new URL(`/login?error=${error}`, requestUrl.origin)
+    )
+  }
 
   if (code) {
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL    || '',
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
-      {
-        cookies: {
-          getAll()                  { return cookieStore.getAll(); },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          },
-        },
-      }
-    );
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ 
+      cookies: () => cookieStore 
+    })
+    
+    const { data, error: exchangeError } = await supabase.auth
+      .exchangeCodeForSession(code)
+    
+    console.log('Exchange error:', exchangeError?.message)
+    console.log('User:', data?.user?.email)
 
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-
-    console.log('Exchange:', data?.user?.email ?? 'sin usuario', error?.message ?? 'sin error');
-
-    if (!error && data.user) {
-      const { error: upsertError } = await supabase
+    if (!exchangeError && data?.user) {
+      await supabase
         .from('quiniela_jugadores')
         .upsert({
-          id:        data.user.id,
-          nombre:    data.user.user_metadata?.full_name ?? data.user.email?.split('@')[0] ?? 'Jugador',
-          email:     data.user.email!,
-          rol:       'jugador',
-          creditos:  1,
-          last_seen: new Date().toISOString(),
-        }, { onConflict: 'id', ignoreDuplicates: false });
-
-      if (upsertError) console.error('Error upsert jugador:', upsertError.message);
+          id: data.user.id,
+          nombre: data.user.user_metadata?.full_name || 
+                  data.user.email?.split('@')[0] || 'Jugador',
+          email: data.user.email!,
+          rol: 'jugador',
+          last_seen: new Date().toISOString()
+        }, { 
+          onConflict: 'id',
+          ignoreDuplicates: false
+        })
     }
   }
 
-  return NextResponse.redirect(`${origin}/`);
+  return NextResponse.redirect(new URL('/', requestUrl.origin))
 }

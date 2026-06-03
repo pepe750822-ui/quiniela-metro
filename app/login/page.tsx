@@ -11,8 +11,8 @@ export default function LoginPage() {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-        queryParams: { prompt: 'select_account' },
+        redirectTo: 'https://quiniela-metro.vercel.app/auth/callback',
+        queryParams: { prompt: 'select_account', access_type: 'offline' },
       },
     });
     setLoading(false);
