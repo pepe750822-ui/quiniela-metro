@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'flagcdn.com' },
     ],
   },
+  // @ts-ignore
   eslint: {
     ignoreDuringBuilds: true,
   },
