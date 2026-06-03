@@ -412,6 +412,8 @@ export default function AdminPage() {
                 <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{emailCorto(jugador.email)}</p>
               </div>
               <input
+                id={`apodo-${jugador.id}`}
+                name={`apodo-${jugador.id}`}
                 type="text"
                 placeholder="Apodo (ej: El Suavecito)"
                 defaultValue={jugador.apodo ?? ''}
@@ -459,12 +461,14 @@ export default function AdminPage() {
                 </p>
                 {partido.estado !== 'finalizado' && (
                   <div className="flex items-center justify-center gap-3 mt-1">
-                    <input type="number" min="0" max="20" placeholder="0" value={vals?.local ?? ''}
+                    <input id={`local-${partido.id}`} name={`local-${partido.id}`}
+                      type="number" min="0" max="20" placeholder="0" value={vals?.local ?? ''}
                       onChange={e => setEditando(prev => ({ ...prev, [partido.id]: { local: e.target.value, visita: prev[partido.id]?.visita ?? '' } }))}
                       className="w-14 h-12 text-center text-xl font-bold rounded-xl outline-none"
                       style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontFamily: 'var(--font-bebas)' }} />
                     <span className="text-xl font-bold" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-bebas)' }}>–</span>
-                    <input type="number" min="0" max="20" placeholder="0" value={vals?.visita ?? ''}
+                    <input id={`visita-${partido.id}`} name={`visita-${partido.id}`}
+                      type="number" min="0" max="20" placeholder="0" value={vals?.visita ?? ''}
                       onChange={e => setEditando(prev => ({ ...prev, [partido.id]: { local: prev[partido.id]?.local ?? '', visita: e.target.value } }))}
                       className="w-14 h-12 text-center text-xl font-bold rounded-xl outline-none"
                       style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontFamily: 'var(--font-bebas)' }} />

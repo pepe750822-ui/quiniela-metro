@@ -33,7 +33,8 @@ export default function PerfilPage() {
       .eq('id', userId);
     setGuardando(false);
     if (error) {
-      toast.error('Error al guardar apodo');
+      console.error('Error guardando apodo:', error);
+      toast.error('Error al guardar');
     } else {
       toast.success('¡Apodo actualizado!');
     }
@@ -62,6 +63,8 @@ export default function PerfilPage() {
         </h3>
         <div className="flex gap-2">
           <input
+            id="apodo"
+            name="apodo"
             type="text"
             value={apodo}
             onChange={(e) => setApodo(e.target.value)}
