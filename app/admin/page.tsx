@@ -12,10 +12,13 @@ interface ParticipacionConNombre extends Participacion {
   jugadorNombre: string;
   jugadorEmail: string;
   jugadorApodo: string | null;
+  quinielaNombre: string | null;
 }
 
-const mostrarNombreParticipante = (p: ParticipacionConNombre) =>
-  p.jugadorApodo || p.jugadorNombre.split(' ')[0] || 'Sin nombre';
+const mostrarNombreParticipante = (p: ParticipacionConNombre) => {
+  const base = p.jugadorApodo || p.jugadorNombre.split(' ')[0] || 'Sin nombre';
+  return p.quinielaNombre ? `${base} — 🎫 ${p.quinielaNombre}` : base;
+};
 
 const formatPagadoAt = (ts?: string | null) => {
   if (!ts) return null;
@@ -81,7 +84,7 @@ export default function AdminPage() {
     // Query 1: pozos y participaciones (sin join para evitar fallos silenciosos de RLS)
     const [{ data: pz }, { data: pt, error: ptError }] = await Promise.all([
       supabase.from('quiniela_pozo').select('*').order('jornada'),
-      supabase.from('quiniela_participaciones').select('id, user_id, jornada, pagado, monto, publicado, created_at, pagado_at').order('created_at'),
+      supabase.from('quiniela_participaciones').select('id, user_id, jornada, pagado, monto, publicado, created_at, pagado_at, quiniela_extra_id').order('created_at'),
     ]);
 
     if (ptError) console.error('Error cargando participaciones:', ptError);
@@ -104,11 +107,25 @@ export default function AdminPage() {
       jugMap[j.id] = { nombre: j.nombre, email: j.email, apodo: j.apodo };
     });
 
+    // Query 3: nombres de quinielas extra
+    const quinielaIds = [...new Set(lista.map(p => p.quiniela_extra_id).filter(Boolean))] as string[];
+    const quinielaMap: Record<string, string> = {};
+    if (quinielaIds.length) {
+      const { data: quinielasData } = await supabase
+        .from('quiniela_extra')
+        .select('id, nombre')
+        .in('id', quinielaIds);
+      (quinielasData ?? []).forEach((q: { id: string; nombre: string }) => {
+        quinielaMap[q.id] = q.nombre;
+      });
+    }
+
     const enriquecidas: ParticipacionConNombre[] = lista.map(p => ({
       ...p,
-      jugadorNombre: jugMap[p.user_id]?.nombre ?? p.user_id.slice(0, 8),
-      jugadorEmail:  jugMap[p.user_id]?.email  ?? '',
-      jugadorApodo:  jugMap[p.user_id]?.apodo  ?? null,
+      jugadorNombre:  jugMap[p.user_id]?.nombre ?? p.user_id.slice(0, 8),
+      jugadorEmail:   jugMap[p.user_id]?.email  ?? '',
+      jugadorApodo:   jugMap[p.user_id]?.apodo  ?? null,
+      quinielaNombre: p.quiniela_extra_id ? (quinielaMap[p.quiniela_extra_id] ?? null) : null,
     }));
     setParticipaciones(enriquecidas);
   };
@@ -224,11 +241,14 @@ export default function AdminPage() {
 
     const partidoIds = partidos?.map(pt => pt.id) ?? [];
     if (partidoIds.length) {
-      await supabase
+      const baseDeleteQuery = supabase
         .from('quiniela_predicciones')
         .delete()
         .eq('user_id', p.user_id)
         .in('partido_id', partidoIds);
+      await (p.quiniela_extra_id
+        ? baseDeleteQuery.eq('quiniela_extra_id', p.quiniela_extra_id)
+        : baseDeleteQuery.is('quiniela_extra_id', null));
     }
 
     await supabase

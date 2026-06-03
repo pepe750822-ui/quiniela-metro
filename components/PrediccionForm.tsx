@@ -9,6 +9,7 @@ import { Bandera } from '@/components/Bandera';
 interface Props {
   partido: Partido;
   userId: string;
+  quinielaExtraId: string | null;
   prediccionExistente?: { goles_local_pred: number; goles_visitante_pred: number } | null;
   onGuardado: () => void;
   onCancelar: () => void;
@@ -40,7 +41,7 @@ function Contador({ value, onChange }: { value: number; onChange: (v: number) =>
   );
 }
 
-export default function PrediccionForm({ partido, userId, prediccionExistente, onGuardado, onCancelar }: Props) {
+export default function PrediccionForm({ partido, userId, quinielaExtraId, prediccionExistente, onGuardado, onCancelar }: Props) {
   const [local,   setLocal]   = useState(prediccionExistente?.goles_local_pred ?? 0);
   const [visita,  setVisita]  = useState(prediccionExistente?.goles_visitante_pred ?? 0);
   const [loading, setLoading] = useState(false);
@@ -48,22 +49,25 @@ export default function PrediccionForm({ partido, userId, prediccionExistente, o
   const handleGuardar = async () => {
     setLoading(true);
 
-    // Pago de $50 MXN es UNA VEZ por jornada completa (no por partido)
-    // Siempre verificar si ya existe participación para esta jornada
-    const { data: participacion } = await supabase
+    // Verificar si ya existe participación para esta jornada + quiniela
+    const basePartQuery = supabase
       .from('quiniela_participaciones')
       .select('pagado')
       .eq('user_id', userId)
-      .eq('jornada', partido.jornada)
-      .single();
+      .eq('jornada', partido.jornada);
+
+    const { data: participacion } = await (quinielaExtraId === null
+      ? basePartQuery.is('quiniela_extra_id', null).maybeSingle()
+      : basePartQuery.eq('quiniela_extra_id', quinielaExtraId).maybeSingle());
 
     // Si no tiene participación → crear una pendiente (solo la primera vez en la jornada)
     if (!participacion) {
       await supabase.from('quiniela_participaciones').insert({
-        user_id: userId,
-        jornada: partido.jornada,
-        pagado:  false,
-        monto:   50,
+        user_id:           userId,
+        jornada:           partido.jornada,
+        pagado:            false,
+        monto:             50,
+        quiniela_extra_id: quinielaExtraId,
       });
     }
 
@@ -73,8 +77,9 @@ export default function PrediccionForm({ partido, userId, prediccionExistente, o
       partido_id:           partido.id,
       goles_local_pred:     local,
       goles_visitante_pred: visita,
+      quiniela_extra_id:    quinielaExtraId,
       updated_at:           new Date().toISOString(),
-    }, { onConflict: 'user_id,partido_id' });
+    }, { onConflict: 'user_id,partido_id,quiniela_extra_id' });
 
     if (error) {
       setLoading(false);
@@ -90,20 +95,28 @@ export default function PrediccionForm({ partido, userId, prediccionExistente, o
 
     const idsJornada = (partidosJornada ?? []).map((p: { id: string }) => p.id);
 
-    const { count: totalPredichas } = await supabase
+    const baseCountQuery = supabase
       .from('quiniela_predicciones')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId)
       .in('partido_id', idsJornada);
 
+    const { count: totalPredichas } = await (quinielaExtraId === null
+      ? baseCountQuery.is('quiniela_extra_id', null)
+      : baseCountQuery.eq('quiniela_extra_id', quinielaExtraId));
+
     const completo = idsJornada.length > 0 && !!totalPredichas && totalPredichas >= idsJornada.length;
 
     if (completo) {
-      await supabase
+      const baseCompleteQuery = supabase
         .from('quiniela_participaciones')
         .update({ predicciones_completas: true })
         .eq('user_id', userId)
         .eq('jornada', partido.jornada);
+
+      await (quinielaExtraId === null
+        ? baseCompleteQuery.is('quiniela_extra_id', null)
+        : baseCompleteQuery.eq('quiniela_extra_id', quinielaExtraId));
     }
 
     setLoading(false);

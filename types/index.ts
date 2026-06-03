@@ -22,6 +22,7 @@ export interface Prediccion {
   goles_local_pred: number;
   goles_visitante_pred: number;
   puntos_ganados: number;
+  quiniela_extra_id?: string | null;
   created_at: string;
   updated_at: string;
   partido?: Partido;
@@ -78,6 +79,7 @@ export interface Participacion {
   monto: number;
   predicciones_completas: boolean;
   publicado: boolean;
+  quiniela_extra_id?: string | null;
   created_at: string;
   pagado_at?: string | null;
   jugador?: Jugador;

@@ -22,6 +22,13 @@ export default function PrediccionesPage() {
   const [publicado, setPublicado]         = useState<boolean>(false);
   const [publicando, setPublicando]       = useState<boolean>(false);
 
+  // Múltiples quinielas
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [quinielasExtra, setQuinielasExtra]             = useState<any[]>([]);
+  const [quinielaSeleccionada, setQuinielaSeleccionada] = useState<string | null>(null);
+  const [showNuevaQuiniela, setShowNuevaQuiniela]       = useState(false);
+  const [nombreNuevaQuiniela, setNombreNuevaQuiniela]   = useState('');
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (!data.user) { router.push('/login'); return; }
@@ -39,19 +46,35 @@ export default function PrediccionesPage() {
       });
   }, [router]);
 
+  const cargarQuinielas = useCallback(async (uid: string) => {
+    const { data } = await supabase
+      .from('quiniela_extra')
+      .select('*')
+      .eq('user_id', uid)
+      .eq('activa', true)
+      .order('created_at');
+    setQuinielasExtra(data || []);
+  }, []);
+
   const cargarPozoYParticipacion = useCallback(async (uid: string, j: number) => {
+    const basePartQuery = supabase
+      .from('quiniela_participaciones')
+      .select('pagado, publicado')
+      .eq('user_id', uid)
+      .eq('jornada', j);
+
+    const partPromise = quinielaSeleccionada === null
+      ? basePartQuery.is('quiniela_extra_id', null).maybeSingle()
+      : basePartQuery.eq('quiniela_extra_id', quinielaSeleccionada).maybeSingle();
+
     const [{ data: pz }, { data: part }] = await Promise.all([
       supabase.from('quiniela_pozo').select('*').eq('jornada', j).single(),
-      supabase.from('quiniela_participaciones')
-        .select('pagado, publicado')
-        .eq('user_id', uid)
-        .eq('jornada', j)
-        .single(),
+      partPromise,
     ]);
     setPozo(pz as Pozo ?? null);
     setParticipando(part?.pagado ?? null);
     setPublicado(part?.publicado ?? false);
-  }, []);
+  }, [quinielaSeleccionada]);
 
   const cargarPartidos = useCallback(async () => {
     const { data } = await supabase
@@ -65,23 +88,29 @@ export default function PrediccionesPage() {
 
   const cargarPredicciones = useCallback(async () => {
     if (!userId) return;
-    const { data } = await supabase
+    const baseQuery = supabase
       .from('quiniela_predicciones')
       .select('*')
       .eq('user_id', userId);
+
+    const { data } = await (quinielaSeleccionada === null
+      ? baseQuery.is('quiniela_extra_id', null)
+      : baseQuery.eq('quiniela_extra_id', quinielaSeleccionada));
+
     const map: Record<string, Prediccion> = {};
     (data as Prediccion[] ?? []).forEach(p => { map[p.partido_id] = p; });
     setPredicciones(map);
     setLoading(false);
-  }, [userId]);
+  }, [userId, quinielaSeleccionada]);
 
   useEffect(() => { cargarPartidos(); }, [cargarPartidos]);
   useEffect(() => {
     if (userId) {
+      cargarQuinielas(userId);
       cargarPredicciones();
       cargarPozoYParticipacion(userId, jornada);
     }
-  }, [userId, jornada, cargarPredicciones, cargarPozoYParticipacion]);
+  }, [userId, jornada, cargarQuinielas, cargarPredicciones, cargarPozoYParticipacion]);
 
   const handleGuardado = () => {
     setPartidoActivo(null);
@@ -92,11 +121,16 @@ export default function PrediccionesPage() {
   const handlePublicar = async () => {
     if (!userId) return;
     setPublicando(true);
-    const { error } = await supabase
+
+    const baseUpdate = supabase
       .from('quiniela_participaciones')
       .update({ publicado: true })
       .eq('user_id', userId)
       .eq('jornada', jornada);
+
+    const { error } = await (quinielaSeleccionada === null
+      ? baseUpdate.is('quiniela_extra_id', null)
+      : baseUpdate.eq('quiniela_extra_id', quinielaSeleccionada));
 
     setPublicando(false);
     if (error) {
@@ -105,6 +139,23 @@ export default function PrediccionesPage() {
     } else {
       setPublicado(true);
       toast.success('📢 ¡Jornada publicada exitosamente!');
+    }
+  };
+
+  const crearQuiniela = async () => {
+    if (!nombreNuevaQuiniela.trim() || !userId) return;
+    const { data, error } = await supabase
+      .from('quiniela_extra')
+      .insert({ user_id: userId, nombre: nombreNuevaQuiniela.trim() })
+      .select()
+      .single();
+    if (!error && data) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setQuinielasExtra((prev: any[]) => [...prev, data]);
+      setQuinielaSeleccionada(data.id);
+      setNombreNuevaQuiniela('');
+      setShowNuevaQuiniela(false);
+      toast.success(`🎫 Quiniela "${data.nombre}" creada`);
     }
   };
 
@@ -186,6 +237,46 @@ export default function PrediccionesPage() {
           </p>
         </div>
       )}
+
+      {/* Selector quiniela */}
+      <div className="flex gap-2 overflow-x-auto pb-2" style={{ animation: 'fadeInUp 0.4s ease-out 0.12s both' }}>
+        <button
+          onClick={() => setQuinielaSeleccionada(null)}
+          className="flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-semibold transition-all"
+          style={{
+            fontFamily: 'var(--font-rajdhani)',
+            background: quinielaSeleccionada === null ? '#ea580c' : 'var(--bg-card)',
+            color: quinielaSeleccionada === null ? '#fff' : 'var(--text-secondary)',
+            border: `1px solid ${quinielaSeleccionada === null ? '#ea580c' : 'var(--border)'}`,
+          }}>
+          👤 Mi quiniela
+        </button>
+        {quinielasExtra.map(q => (
+          <button
+            key={q.id}
+            onClick={() => setQuinielaSeleccionada(q.id)}
+            className="flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-semibold transition-all"
+            style={{
+              fontFamily: 'var(--font-rajdhani)',
+              background: quinielaSeleccionada === q.id ? '#ea580c' : 'var(--bg-card)',
+              color: quinielaSeleccionada === q.id ? '#fff' : 'var(--text-secondary)',
+              border: `1px solid ${quinielaSeleccionada === q.id ? '#ea580c' : 'var(--border)'}`,
+            }}>
+            🎫 {q.nombre}
+          </button>
+        ))}
+        <button
+          onClick={() => setShowNuevaQuiniela(true)}
+          className="flex-shrink-0 px-3 py-1.5 rounded-full text-sm transition-all"
+          style={{
+            fontFamily: 'var(--font-rajdhani)',
+            background: 'var(--bg-card)',
+            border: '1px dashed rgba(234,88,12,0.4)',
+            color: '#ea580c',
+          }}>
+          + Nueva
+        </button>
+      </div>
 
       {/* Selector jornada */}
       <div className="flex gap-2 overflow-x-auto pb-1" style={{ animation: 'fadeInUp 0.4s ease-out 0.15s both' }}>
@@ -280,10 +371,59 @@ export default function PrediccionesPage() {
         <PrediccionForm
           partido={partidoActivo}
           userId={userId}
+          quinielaExtraId={quinielaSeleccionada}
           prediccionExistente={predicciones[partidoActivo.id] ?? null}
           onGuardado={handleGuardado}
           onCancelar={() => setPartidoActivo(null)}
         />
+      )}
+
+      {/* Modal nueva quiniela */}
+      {showNuevaQuiniela && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.8)' }}
+          onClick={() => setShowNuevaQuiniela(false)}
+        >
+          <div
+            className="rounded-2xl p-6 w-full max-w-sm"
+            style={{ background: '#12121a', border: '1px solid #1e1e2e' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.25rem', color: '#ea580c', marginBottom: '1rem' }}>
+              🎫 Nueva Quiniela
+            </h3>
+            <input
+              type="text"
+              placeholder="Ej: Esposa, Hija, Compadre..."
+              maxLength={20}
+              value={nombreNuevaQuiniela}
+              onChange={e => setNombreNuevaQuiniela(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') crearQuiniela();
+                if (e.key === 'Escape') setShowNuevaQuiniela(false);
+              }}
+              autoFocus
+              className="w-full rounded-lg px-3 py-2 text-white mb-4 outline-none"
+              style={{ background: '#0a0a0a', border: '1px solid #1e1e2e' }}
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={crearQuiniela}
+                disabled={!nombreNuevaQuiniela.trim()}
+                className="flex-1 py-2 rounded-lg font-bold disabled:opacity-40"
+                style={{ background: '#ea580c', color: '#fff', fontFamily: 'var(--font-rajdhani)' }}>
+                Crear
+              </button>
+              <button
+                onClick={() => setShowNuevaQuiniela(false)}
+                className="px-4 py-2"
+                style={{ color: '#64748b' }}>
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </main>
   );

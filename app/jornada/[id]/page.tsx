@@ -7,7 +7,10 @@ import { Partido, Prediccion } from '@/types';
 import { emailCorto } from '@/lib/utils';
 
 interface ParticipanteVista {
+  key: string;
   user_id: string;
+  quinielaExtraId: string | null;
+  quinielaNombre: string | null;
   nombre: string;
   apodo: string | null;
   email: string;
@@ -61,12 +64,12 @@ export default function JornadaPage() {
 
       const { data: partcData } = await supabase
         .from('quiniela_participaciones')
-        .select('user_id, publicado, pagado')
+        .select('user_id, publicado, pagado, quiniela_extra_id')
         .eq('jornada', jornada);
 
       if (!partcData?.length) { setLoading(false); return; }
 
-      const userIds = partcData.map((p: { user_id: string }) => p.user_id);
+      const userIds = [...new Set(partcData.map((p: { user_id: string }) => p.user_id))];
       const { data: jugData } = await supabase
         .from('quiniela_jugadores')
         .select('id, nombre, apodo, email')
@@ -76,38 +79,67 @@ export default function JornadaPage() {
         jugMap[j.id] = { nombre: j.nombre, apodo: j.apodo, email: j.email };
       });
 
+      // Cargar nombres de quinielas extra
+      const quinielaIds = [...new Set(
+        partcData.map((p: { quiniela_extra_id: string | null }) => p.quiniela_extra_id).filter(Boolean)
+      )] as string[];
+      const quinielaMap: Record<string, string> = {};
+      if (quinielaIds.length) {
+        const { data: quinielasData } = await supabase
+          .from('quiniela_extra')
+          .select('id, nombre')
+          .in('id', quinielaIds);
+        (quinielasData ?? []).forEach((q: { id: string; nombre: string }) => {
+          quinielaMap[q.id] = q.nombre;
+        });
+      }
+
       const partidoIds = listaPartidos.map(p => p.id);
-      const predsByUser: Record<string, Record<string, Prediccion>> = {};
+      const predsByKey: Record<string, Record<string, Prediccion>> = {};
       if (partidoIds.length) {
         const { data: predsData } = await supabase
           .from('quiniela_predicciones')
           .select('*')
           .in('partido_id', partidoIds);
         (predsData as Prediccion[] ?? []).forEach(pred => {
-          if (!predsByUser[pred.user_id]) predsByUser[pred.user_id] = {};
-          predsByUser[pred.user_id][pred.partido_id] = pred;
+          const key = `${pred.user_id}__${pred.quiniela_extra_id ?? ''}`;
+          if (!predsByKey[key]) predsByKey[key] = {};
+          predsByKey[key][pred.partido_id] = pred;
         });
       }
 
-      const lista: ParticipanteVista[] = partcData.map((p: { user_id: string; publicado: boolean; pagado: boolean }) => ({
-        user_id: p.user_id,
-        nombre:  jugMap[p.user_id]?.nombre ?? 'Jugador',
-        apodo:   jugMap[p.user_id]?.apodo  ?? null,
-        email:   jugMap[p.user_id]?.email  ?? '',
-        publicado: p.publicado ?? false,
-        pagado:    p.pagado    ?? false,
-        predicciones: predsByUser[p.user_id] ?? {},
-      }));
+      const lista: ParticipanteVista[] = partcData.map((p: {
+        user_id: string;
+        publicado: boolean;
+        pagado: boolean;
+        quiniela_extra_id: string | null;
+      }) => {
+        const key = `${p.user_id}__${p.quiniela_extra_id ?? ''}`;
+        return {
+          key,
+          user_id:         p.user_id,
+          quinielaExtraId: p.quiniela_extra_id ?? null,
+          quinielaNombre:  p.quiniela_extra_id ? (quinielaMap[p.quiniela_extra_id] ?? null) : null,
+          nombre:          jugMap[p.user_id]?.nombre ?? 'Jugador',
+          apodo:           jugMap[p.user_id]?.apodo  ?? null,
+          email:           jugMap[p.user_id]?.email  ?? '',
+          publicado:       p.publicado ?? false,
+          pagado:          p.pagado    ?? false,
+          predicciones:    predsByKey[key] ?? {},
+        };
+      });
 
       const score = (p: ParticipanteVista) => (p.publicado && p.pagado ? 2 : p.publicado ? 1 : 0);
       lista.sort((a, b) => {
+        if (a.user_id === userId && !a.quinielaExtraId) return -1;
+        if (b.user_id === userId && !b.quinielaExtraId) return 1;
         if (a.user_id === userId) return -1;
         if (b.user_id === userId) return 1;
         return score(b) - score(a);
       });
 
       setParticipantes(lista);
-      setExpandido(userId); // El usuario actual empieza expandido
+      setExpandido(`${userId}__`); // expandir quiniela principal del usuario actual
       setLoading(false);
     };
 
@@ -143,12 +175,12 @@ export default function JornadaPage() {
       ) : (
         <div className="space-y-3" style={{ animation: 'fadeInUp 0.4s ease-out 0.1s both' }}>
           {participantes.map((p, i) => {
-            const esYo      = p.user_id === userId;
-            const abierto   = expandido === p.user_id;
-            const toggle    = () => setExpandido(abierto ? null : p.user_id);
+            const esYo    = p.user_id === userId;
+            const abierto = expandido === p.key;
+            const toggle  = () => setExpandido(abierto ? null : p.key);
             return (
               <div
-                key={p.user_id}
+                key={p.key}
                 className="rounded-2xl overflow-hidden"
                 style={{
                   background: 'var(--bg-card)',
@@ -165,9 +197,14 @@ export default function JornadaPage() {
                   <div className="flex items-center gap-2">
                     <Inicial p={p} />
                     <div>
-                      <p className="font-semibold text-sm flex items-center gap-1.5"
+                      <p className="font-semibold text-sm flex items-center gap-1.5 flex-wrap"
                         style={{ color: esYo ? 'var(--accent-gold)' : 'var(--text-primary)' }}>
                         {mostrarNombre(p)}
+                        {p.quinielaNombre && (
+                          <span className="text-[10px] font-normal" style={{ color: '#ea580c' }}>
+                            🎫 {p.quinielaNombre}
+                          </span>
+                        )}
                         {esYo && (
                           <span className="text-[9px] bg-orange-600 text-black px-1.5 py-0.5 rounded-full font-black">TÚ</span>
                         )}
