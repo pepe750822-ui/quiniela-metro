@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Bebas_Neue, Rajdhani } from 'next/font/google';
 import './globals.css';
 import Navbar from '@/components/Navbar';
+import InstallBanner from '@/components/InstallBanner';
 import { Toaster } from 'sonner';
 
 const bebasNeue = Bebas_Neue({
@@ -31,11 +32,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <link rel="manifest" href="/manifest.json" />
+        <link rel="icon" href="/favicon-32.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
       <body
         className={`${bebasNeue.variable} ${rajdhani.variable} min-h-screen pb-[calc(4rem+env(safe-area-inset-bottom))]`}
         style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)', fontFamily: 'var(--font-rajdhani), sans-serif' }}
       >
+        <InstallBanner />
         {children}
         <Navbar />
         <Toaster position="top-center" richColors theme="dark" />

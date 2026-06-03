@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+
+  <!-- Fondo negro -->
+  <rect width="192" height="192" rx="32" fill="#0a0a0a"/>
+
+  <!-- Balón de fútbol -->
+  <circle cx="96" cy="96" r="75" fill="white" stroke="#222" stroke-width="2"/>
+
+  <!-- Hexágonos del balón -->
+  <polygon points="96,40 116,52 116,76 96,88 76,76 76,52" fill="#1a1a1a"/>
+  <polygon points="96,104 116,116 116,140 96,152 76,140 76,116" fill="#1a1a1a"/>
+  <polygon points="40,68 60,56 76,68 76,92 56,104 36,92" fill="#1a1a1a"/>
+  <polygon points="152,68 172,80 172,104 152,116 132,104 132,80" fill="#1a1a1a" opacity="0.6"/>
+  <polygon points="40,124 60,112 76,124 76,148 56,160 36,148" fill="#1a1a1a" opacity="0.4"/>
+
+  <!-- Círculo naranja central (Metro) -->
+  <circle cx="96" cy="96" r="28" fill="#ea580c"/>
+
+  <!-- Letra M del Metro CDMX -->
+  <text x="96" y="106"
+    font-family="Arial Black, sans-serif"
+    font-weight="900"
+    font-size="32"
+    fill="white"
+    text-anchor="middle">M</text>
+
+</svg>
