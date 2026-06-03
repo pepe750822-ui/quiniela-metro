@@ -36,6 +36,7 @@ export interface Jugador {
   avatar_url: string | null;
   creditos: number;
   created_at: string;
+  last_seen?: string | null;
 }
 
 export interface Pago {

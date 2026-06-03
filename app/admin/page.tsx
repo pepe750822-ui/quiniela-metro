@@ -23,6 +23,20 @@ const formatPagadoAt = (ts?: string | null) => {
   return d.toLocaleString('es-MX', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false });
 };
 
+const timeAgo = (date: string) => {
+  const diff = Date.now() - new Date(date).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'hace un momento';
+  if (mins < 60) return `hace ${mins} min`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `hace ${hrs}h`;
+  const days = Math.floor(hrs / 24);
+  return `hace ${days}d`;
+};
+
+const inicialesJugador = (j: { nombre: string; apodo?: string | null }) =>
+  (j.apodo || j.nombre || 'J').substring(0, 2).toUpperCase();
+
 export default function AdminPage() {
   const router = useRouter();
   const [partidos, setPartidos]   = useState<Partido[]>([]);
@@ -47,6 +61,14 @@ export default function AdminPage() {
   const [registrando, setRegistrando]     = useState(false);
 
   // ── Loaders ──────────────────────────────────────────
+
+  const cargarJugadores = async () => {
+    const { data } = await supabase
+      .from('quiniela_jugadores')
+      .select('*')
+      .order('created_at', { ascending: true });
+    setJugadores((data as Jugador[]) ?? []);
+  };
 
   const cargarPozos = async () => {
     // Query 1: pozos y participaciones (sin join para evitar fallos silenciosos de RLS)
@@ -103,12 +125,11 @@ export default function AdminPage() {
 
       setIsAdmin(true);
 
-      const [{ data: ps }, { data: js }] = await Promise.all([
+      const [{ data: ps }] = await Promise.all([
         supabase.from('quiniela_partidos').select('*').order('fecha_hora'),
-        supabase.from('quiniela_jugadores').select('*').order('created_at', { ascending: true }),
+        cargarJugadores(),
       ]);
       setPartidos((ps as Partido[]) ?? []);
-      setJugadores((js as Jugador[]) ?? []);
 
       await cargarPozos();
       setLoading(false);
@@ -117,6 +138,18 @@ export default function AdminPage() {
     verificar();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Realtime: recargar jugadores cuando cambia la tabla
+  useEffect(() => {
+    if (!isAdmin) return;
+    const channel = supabase
+      .channel('jugadores-cambios')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'quiniela_jugadores' },
+        () => { cargarJugadores(); })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin]);
 
   // ── Handlers resultados ───────────────────────────────
 
@@ -556,6 +589,50 @@ export default function AdminPage() {
               />
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* ── USUARIOS ── */}
+      <section className="space-y-4">
+        <h2 style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.75rem', color: 'var(--accent-gold)', letterSpacing: '0.05em' }}>
+          👥 USUARIOS ({jugadores.length})
+        </h2>
+        <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          {[...jugadores]
+            .sort((a, b) => {
+              if (!a.last_seen && !b.last_seen) return 0;
+              if (!a.last_seen) return 1;
+              if (!b.last_seen) return -1;
+              return new Date(b.last_seen).getTime() - new Date(a.last_seen).getTime();
+            })
+            .map((jugador, i) => (
+              <div key={jugador.id}
+                className="flex items-center justify-between px-4 py-3"
+                style={{ borderTop: i > 0 ? '1px solid var(--border)' : undefined }}>
+                <div className="flex items-center gap-3 min-w-0">
+                  <div
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+                    style={{ background: 'linear-gradient(135deg, #ea580c, #c2410c)' }}
+                  >
+                    {inicialesJugador(jugador)}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold flex items-center gap-1"
+                      style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-rajdhani)' }}>
+                      {mostrarNombre(jugador)}
+                      {jugador.rol === 'admin' && <span style={{ color: '#ea580c' }}>⚙️</span>}
+                    </p>
+                    <p className="text-xs truncate" style={{ color: '#64748b' }}>{jugador.email}</p>
+                    {jugador.apodo && (
+                      <p className="text-xs" style={{ color: '#ea580c' }}>🏷️ {jugador.apodo}</p>
+                    )}
+                  </div>
+                </div>
+                <p className="text-xs shrink-0 ml-3" style={{ color: '#475569' }}>
+                  {jugador.last_seen ? timeAgo(jugador.last_seen) : 'Sin actividad'}
+                </p>
+              </div>
+            ))}
         </div>
       </section>
 

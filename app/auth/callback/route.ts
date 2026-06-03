@@ -44,6 +44,11 @@ export async function GET(request: Request) {
           rol:      'jugador',
           creditos: 1,
         }, { onConflict: 'id', ignoreDuplicates: true });
+
+        await supabase
+          .from('quiniela_jugadores')
+          .update({ last_seen: new Date().toISOString() })
+          .eq('id', user.id);
       }
     }
   }
