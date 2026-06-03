@@ -204,6 +204,45 @@ export default function AdminPage() {
     }
   };
 
+  const handleEliminarParticipacion = async (p: ParticipacionConNombre) => {
+    if (!confirm(`¿Eliminar participación de ${p.jugadorNombre} en Jornada ${p.jornada}?`)) return;
+
+    const { data: partidos } = await supabase
+      .from('quiniela_partidos')
+      .select('id')
+      .eq('jornada', p.jornada);
+
+    const partidoIds = partidos?.map(pt => pt.id) ?? [];
+    if (partidoIds.length) {
+      await supabase
+        .from('quiniela_predicciones')
+        .delete()
+        .eq('user_id', p.user_id)
+        .in('partido_id', partidoIds);
+    }
+
+    await supabase
+      .from('quiniela_participaciones')
+      .delete()
+      .eq('id', p.id);
+
+    if (p.pagado) {
+      const pozo = pozos.find(pz => pz.jornada === p.jornada);
+      if (pozo) {
+        await supabase
+          .from('quiniela_pozo')
+          .update({
+            total_mxn:     Math.max(0, (pozo.total_mxn ?? 0) - 50),
+            participantes: Math.max(0, (pozo.participantes ?? 0) - 1),
+          })
+          .eq('jornada', p.jornada);
+      }
+    }
+
+    toast.success(`🗑️ Participación de ${p.jugadorNombre.split(' ')[0]} eliminada`);
+    cargarPozos();
+  };
+
   const handleDeclararGanador = async (jornada: number) => {
     setDeclarando(jornada);
 
@@ -338,13 +377,21 @@ export default function AdminPage() {
                           </div>
                           <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{p.jugadorEmail}</p>
                         </div>
-                        <button
-                          onClick={() => handleConfirmarPago(p)}
-                          disabled={confirmando === p.id}
-                          className="text-xs px-3 py-2 rounded-xl font-bold disabled:opacity-50 transition-all active:scale-95 whitespace-nowrap"
-                          style={{ background: '#10b981', color: '#000' }}>
-                          {confirmando === p.id ? '…' : '✅ Confirmar pago'}
-                        </button>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <button
+                            onClick={() => handleConfirmarPago(p)}
+                            disabled={confirmando === p.id}
+                            className="text-xs px-3 py-2 rounded-xl font-bold disabled:opacity-50 transition-all active:scale-95 whitespace-nowrap"
+                            style={{ background: '#10b981', color: '#000' }}>
+                            {confirmando === p.id ? '…' : '✅ Confirmar pago'}
+                          </button>
+                          <button
+                            onClick={() => handleEliminarParticipacion(p)}
+                            className="text-xs px-2 py-2 rounded-xl font-bold transition-all active:scale-95"
+                            style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)' }}>
+                            🗑️
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -357,9 +404,17 @@ export default function AdminPage() {
                       ✅ Confirmados ({confirmadas.length})
                     </p>
                     {confirmadas.map(p => (
-                      <p key={p.id} className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                        {p.jugadorNombre}
-                      </p>
+                      <div key={p.id} className="flex items-center justify-between">
+                        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                          {p.jugadorNombre}
+                        </p>
+                        <button
+                          onClick={() => handleEliminarParticipacion(p)}
+                          className="text-xs px-2 py-1 rounded-lg transition-all active:scale-95"
+                          style={{ background: 'rgba(239,68,68,0.12)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}>
+                          🗑️
+                        </button>
+                      </div>
                     ))}
                   </div>
                 )}
