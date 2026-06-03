@@ -31,6 +31,7 @@ export default function PrediccionesPage() {
     supabase
       .from('quiniela_partidos')
       .select('jornada')
+      .lte('jornada', 3)
       .order('jornada')
       .then(({ data }) => {
         const unicas = [...new Set((data ?? []).map((p: { jornada: number }) => p.jornada))];
@@ -57,6 +58,7 @@ export default function PrediccionesPage() {
       .from('quiniela_partidos')
       .select('*')
       .eq('jornada', jornada)
+      .lte('jornada', 3)
       .order('fecha_hora');
     setPartidos((data as Partido[]) ?? []);
   }, [jornada]);

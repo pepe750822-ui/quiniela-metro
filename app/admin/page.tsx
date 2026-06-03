@@ -130,7 +130,7 @@ export default function AdminPage() {
       setIsAdmin(true);
 
       const [{ data: ps }] = await Promise.all([
-        supabase.from('quiniela_partidos').select('*').order('fecha_hora'),
+        supabase.from('quiniela_partidos').select('*').not('equipo_local', 'eq', 'A definir').order('fecha_hora'),
         cargarJugadores(),
       ]);
       setPartidos((ps as Partido[]) ?? []);

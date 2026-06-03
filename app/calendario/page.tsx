@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Bandera } from '@/components/Bandera';
-import { formatearDiaCDMX, formatearHoraCDMX, getFechaCDMX } from '@/lib/utils';
+import { formatearFechaCDMX, formatearDiaCDMX, formatearHoraCDMX, getFechaCDMX } from '@/lib/utils';
 
 interface Partido {
   id: string;
@@ -66,8 +66,10 @@ export default function CalendarioPage() {
     };
   }, []);
 
-  // Agrupar por fecha CDMX (clave numérica estable: "10/06/2025")
-  const partidosPorFecha = partidos.reduce((acc, partido) => {
+  // Agrupar por fecha CDMX: definidos primero, "A definir" al final
+  const definidos = partidos.filter(p => p.equipo_local && p.equipo_local !== 'A definir');
+  const porDefinir = partidos.filter(p => !p.equipo_local || p.equipo_local === 'A definir');
+  const partidosPorFecha = [...definidos, ...porDefinir].reduce((acc, partido) => {
     const key = getFechaCDMX(partido.fecha_hora);
     if (!acc[key]) acc[key] = [];
     acc[key].push(partido);
@@ -106,7 +108,12 @@ export default function CalendarioPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {lista.map(partido => (
+                {lista.map(partido => partido.equipo_local === 'A definir' || !partido.equipo_local ? (
+                  <div key={partido.id} className="opacity-40 text-slate-500 text-xs rounded-2xl p-3 border border-white/5 bg-white/[0.02] flex items-center justify-between">
+                    <span>Por definir</span>
+                    <span>{formatearFechaCDMX(partido.fecha_hora)}</span>
+                  </div>
+                ) : (
                   <div key={partido.id} className="relative bg-white/5 backdrop-blur-md rounded-2xl p-5 border border-white/10 hover:border-orange-500/50 transition-all duration-300">
                     
                     {partido.estado === 'en_curso' && (
