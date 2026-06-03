@@ -7,8 +7,13 @@ export async function GET(request: Request) {
   const code = requestUrl.searchParams.get('code');
   const origin = requestUrl.origin;
 
-  console.log('Callback URL completa:', request.url);
-  console.log('Code:', code ? 'existe' : 'NO EXISTE');
+  console.log('=== CALLBACK DEBUG ===');
+  console.log('Full URL:', request.url);
+  console.log('Search params:', requestUrl.searchParams.toString());
+  console.log('Code:', requestUrl.searchParams.get('code'));
+  console.log('Error:', requestUrl.searchParams.get('error'));
+  console.log('Error description:', requestUrl.searchParams.get('error_description'));
+  console.log('===================');
 
   if (code) {
     const cookieStore = await cookies();
