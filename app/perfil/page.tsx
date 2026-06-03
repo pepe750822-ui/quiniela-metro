@@ -37,15 +37,15 @@ export default function PerfilPage() {
       .from('quiniela_jugadores')
       .update({ apodo: apodoTemp.trim() || null })
       .eq('id', userId);
-    setGuardando(false);
     if (error) {
       console.error('Error guardando apodo:', error);
-      toast.error('Error al guardar');
+      toast.error('Error al guardar: ' + error.message);
     } else {
       setApodoActual(apodoTemp.trim());
       setEditando(false);
-      toast.success('¡Apodo actualizado!');
+      toast.success('¡Apodo actualizado! 🏷️');
     }
+    setGuardando(false);
   };
 
   return (
@@ -117,20 +117,6 @@ export default function PerfilPage() {
                 </button>
               )}
             </div>
-            <div className="flex flex-wrap gap-2 mt-2">
-              {['Capibara', 'El Panda', 'Gordo', 'Suavecito', 'El Mago',
-                'Toro', 'El Pulpo', 'Tiburón', 'El Lobo', 'Jaguar'].map(s => (
-                <button
-                  key={s}
-                  onClick={() => setApodoTemp(s)}
-                  className="text-xs px-2 py-1 rounded-full transition-all active:scale-95"
-                  style={{ background: 'rgba(234,88,12,0.15)', color: '#ea580c', border: '1px solid rgba(234,88,12,0.3)' }}
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
-            <p className="text-xs mt-1" style={{ color: '#334155' }}>O escribe el tuyo 👆</p>
           </div>
         )}
 
