@@ -13,7 +13,9 @@ const links = [
 export default function Navbar() {
   const pathname = usePathname();
   const router   = useRouter();
-  const [esAdmin, setEsAdmin] = useState(false);
+  const [esAdmin,     setEsAdmin]     = useState(false);
+  const [nombreCorto, setNombreCorto] = useState('');
+  const [emailCorto,  setEmailCorto]  = useState('');
 
   const cerrarSesion = async () => {
     await supabase.auth.signOut();
@@ -23,26 +25,41 @@ export default function Navbar() {
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) return;
+      const emailPrefijo = data.user.email?.split('@')[0] ?? '';
+      setEmailCorto(emailPrefijo);
       const { data: jugador } = await supabase
         .from('quiniela_jugadores')
-        .select('rol')
+        .select('rol, nombre, apodo')
         .eq('id', data.user.id)
         .maybeSingle();
       if (jugador) {
         setEsAdmin(jugador.rol === 'admin');
+        setNombreCorto(jugador.apodo || jugador.nombre?.split(' ')[0] || emailPrefijo);
+      } else {
+        setNombreCorto(emailPrefijo);
       }
     });
   }, [pathname]);
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 flex backdrop-blur-xl border-t"
-      style={{
-        background: 'rgba(10,10,15,0.95)',
-        borderColor: 'rgba(234,88,12,0.2)',
-        paddingBottom: 'env(safe-area-inset-bottom)',
-      }}
+      className="fixed bottom-0 left-0 right-0 z-50 flex flex-col backdrop-blur-xl border-t"
+      style={{ background: 'rgba(10,10,15,0.95)', borderColor: 'rgba(234,88,12,0.2)' }}
     >
+      {/* Chip de identidad */}
+      {nombreCorto && (
+        <div className="flex items-center justify-center gap-1.5 py-1 text-[10px]"
+          style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', color: '#475569' }}>
+          <span>👤</span>
+          <span style={{ color: '#64748b' }}>{nombreCorto}</span>
+          {emailCorto && emailCorto !== nombreCorto && (
+            <span style={{ color: '#334155' }}>· {emailCorto}</span>
+          )}
+        </div>
+      )}
+
+      {/* Links */}
+      <div className="flex" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
       {links.map(({ href, label, emoji }) => {
         const active = pathname === href;
         return (
@@ -87,6 +104,7 @@ export default function Navbar() {
         <span className="text-lg leading-none">🚪</span>
         <span className="text-[10px] font-semibold uppercase tracking-widest">Salir</span>
       </button>
+      </div>
     </nav>
   );
 }
