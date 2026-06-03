@@ -6,6 +6,8 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
 
+  console.log('Callback recibido, code:', code ? 'existe' : 'no existe', '| origin:', origin);
+
   if (code) {
     const cookieStore = await cookies();
     const supabase = createServerClient(
@@ -23,9 +25,12 @@ export async function GET(request: Request) {
       }
     );
 
-    await supabase.auth.exchangeCodeForSession(code);
+    const { data: sessionData, error: sessionError } = await supabase.auth.exchangeCodeForSession(code);
+    console.log('Exchange result:', sessionData?.user?.email ?? 'sin usuario', sessionError?.message ?? 'sin error');
 
     const { data: { user } } = await supabase.auth.getUser();
+    console.log('Usuario autenticado:', user?.id ?? 'null', user?.email ?? 'null');
+
     if (user) {
       // Solo crear jugador si el callback llega desde quiniela-metro,
       // no desde otros proyectos que compartan Supabase (ej: cyberedumx).
@@ -36,14 +41,18 @@ export async function GET(request: Request) {
         referer.includes('quiniela-metro') ||
         appUrl.includes('quiniela-metro');
 
+      console.log('isQuiniela:', isQuiniela, '| referer:', referer, '| appUrl:', appUrl);
+
       if (isQuiniela) {
-        await supabase.from('quiniela_jugadores').upsert({
+        const { error: upsertError } = await supabase.from('quiniela_jugadores').upsert({
           id:       user.id,
           nombre:   user.user_metadata?.full_name ?? user.email?.split('@')[0] ?? 'Jugador',
           email:    user.email ?? '',
           rol:      'jugador',
           creditos: 1,
         }, { onConflict: 'id', ignoreDuplicates: true });
+
+        if (upsertError) console.error('Error upsert jugador:', upsertError.message);
 
         await supabase
           .from('quiniela_jugadores')
