@@ -20,7 +20,7 @@ const mostrarNombreParticipante = (p: ParticipacionConNombre) =>
 const formatPagadoAt = (ts?: string | null) => {
   if (!ts) return null;
   const d = new Date(ts);
-  return d.toLocaleString('es-MX', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false });
+  return d.toLocaleString('es-MX', { timeZone: 'America/Mexico_City', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false });
 };
 
 const timeAgo = (date: string) => {
@@ -702,9 +702,9 @@ export default function AdminPage() {
                   </span>
                 </div>
                 <p className="text-sm font-bold text-center flex items-center justify-center gap-1.5 flex-wrap" style={{ color: 'var(--text-primary)' }}>
-                  <Bandera emoji={partido.bandera_local} nombre={partido.equipo_local} size="sm" />
+                  <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
                   {partido.equipo_local} vs {partido.equipo_visitante}
-                  <Bandera emoji={partido.bandera_visitante} nombre={partido.equipo_visitante} size="sm" />
+                  <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
                 </p>
                 {partido.estado !== 'finalizado' && (
                   <div className="flex items-center justify-center gap-3 mt-1">

@@ -1,50 +1,60 @@
+'use client'
+import { useState } from 'react';
+
 const EMOJI_A_CODIGO: Record<string, string> = {
   '🇲🇽': 'mx', '🇿🇦': 'za', '🇰🇷': 'kr', '🇨🇿': 'cz',
-  '🇨🇦': 'ca', '🇧🇦': 'ba', '🇶🇦': 'qa', '🇨🇭': 'ch',
-  '🇧🇷': 'br', '🇲🇦': 'ma', '🇭🇹': 'ht', '🇺🇸': 'us',
-  '🇵🇾': 'py', '🇦🇺': 'au', '🇹🇷': 'tr', '🇩🇪': 'de',
+  '🇨🇦': 'ca', '🇶🇦': 'qa', '🇨🇭': 'ch', '🇧🇦': 'ba',
+  '🇺🇸': 'us', '🇵🇾': 'py', '🇧🇷': 'br', '🇲🇦': 'ma',
+  '🇭🇹': 'ht', '🇦🇺': 'au', '🇹🇷': 'tr', '🇩🇪': 'de',
   '🇨🇼': 'cw', '🇨🇮': 'ci', '🇪🇨': 'ec', '🇳🇱': 'nl',
-  '🇯🇵': 'jp', '🇸🇪': 'se', '🇹🇳': 'tn', '🇧🇪': 'be',
-  '🇪🇬': 'eg', '🇮🇷': 'ir', '🇳🇿': 'nz', '🇪🇸': 'es',
-  '🇨🇻': 'cv', '🇸🇦': 'sa', '🇺🇾': 'uy', '🇫🇷': 'fr',
-  '🇳🇴': 'no', '🇸🇳': 'sn', '🇮🇶': 'iq', '🇦🇷': 'ar',
+  '🇯🇵': 'jp', '🇸🇪': 'se', '🇹🇳': 'tn', '🇪🇸': 'es',
+  '🇨🇻': 'cv', '🇸🇦': 'sa', '🇺🇾': 'uy', '🇧🇪': 'be',
+  '🇪🇬': 'eg', '🇮🇷': 'ir', '🇳🇿': 'nz', '🇫🇷': 'fr',
+  '🇸🇳': 'sn', '🇮🇶': 'iq', '🇳🇴': 'no', '🇦🇷': 'ar',
   '🇩🇿': 'dz', '🇦🇹': 'at', '🇯🇴': 'jo', '🇵🇹': 'pt',
-  '🇳🇬': 'ng', '🇺🇿': 'uz', '🇨🇴': 'co', '🇵🇦': 'pa',
-  '🇬🇭': 'gh', '🇭🇷': 'hr', '🇩🇰': 'dk', '🇨🇲': 'cm',
-  '🇵🇱': 'pl', '🇸🇮': 'si', '🇬🇧': 'gb', '🇮🇹': 'it',
-  '🇵🇪': 'pe', '🇨🇱': 'cl', '🇧🇴': 'bo', '🇻🇪': 've',
-  '🇵🇭': 'ph', '🇮🇩': 'id', '🇰🇪': 'ke', '🇹🇿': 'tz',
+  '🇨🇩': 'cd', '🇺🇿': 'uz', '🇨🇴': 'co', '🇵🇦': 'pa',
+  '🇬🇭': 'gh', '🇭🇷': 'hr', '🇮🇹': 'it',
   '🏴󠁧󠁢󠁥󠁮󠁧󠁿': 'gb-eng',
   '🏴󠁧󠁢󠁳󠁣󠁴󠁿': 'gb-sct',
 };
 
-const SIZE_PX = { sm: 24, md: 40, lg: 56 } as const;
+const sizeMap = {
+  sm: { w: 24, h: 18 },
+  md: { w: 40, h: 30 },
+  lg: { w: 56, h: 42 },
+};
 
 interface BanderaProps {
-  emoji: string | null;
+  emoji: string;
   nombre: string;
-  size?: keyof typeof SIZE_PX;
+  size?: 'sm' | 'md' | 'lg';
 }
 
 export function Bandera({ emoji, nombre, size = 'md' }: BanderaProps) {
-  if (!emoji) return null;
+  const [error, setError] = useState(false);
   const codigo = EMOJI_A_CODIGO[emoji];
-  const px = SIZE_PX[size];
+  const { w, h } = sizeMap[size];
 
-  if (!codigo) {
-    return <span style={{ fontSize: px * 0.8, lineHeight: 1 }}>{emoji}</span>;
+  if (!codigo || error) {
+    return (
+      <span style={{ fontSize: w * 0.7 }} role="img" aria-label={nombre}>
+        {emoji}
+      </span>
+    );
   }
 
-  const h = Math.round(px * 0.75);
   return (
     <img
-      src={`https://flagcdn.com/${px}x${h}/${codigo}.png`}
-      srcSet={`https://flagcdn.com/${px * 2}x${h * 2}/${codigo}.png 2x`}
-      width={px}
+      src={`https://flagcdn.com/${w}x${h}/${codigo}.png`}
+      srcSet={`https://flagcdn.com/${w*2}x${h*2}/${codigo}.png 2x`}
+      width={w}
       height={h}
       alt={nombre}
-      className="object-cover rounded-sm"
+      className="object-cover rounded-sm inline-block"
       loading="lazy"
+      onError={() => setError(true)}
     />
   );
 }
+
+export default Bandera;

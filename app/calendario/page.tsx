@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { Bandera } from '@/components/Bandera';
+import { formatearDiaCDMX, formatearHoraCDMX } from '@/lib/utils';
 
 interface Partido {
   id: string;
@@ -66,9 +68,7 @@ export default function CalendarioPage() {
 
   // Agrupar por fecha
   const partidosPorFecha = partidos.reduce((acc, partido) => {
-    const fecha = new Date(partido.fecha_hora).toLocaleDateString('es-ES', { 
-      weekday: 'short', month: 'short', day: 'numeric' 
-    });
+    const fecha = formatearDiaCDMX(partido.fecha_hora);
     if (!acc[fecha]) acc[fecha] = [];
     acc[fecha].push(partido);
     return acc;
@@ -128,7 +128,7 @@ export default function CalendarioPage() {
 
                     <div className="flex items-center justify-between mt-2">
                       <div className="flex flex-col items-center gap-2 w-1/3">
-                        <span className="text-4xl">{partido.bandera_local}</span>
+                        <Bandera emoji={partido.bandera_local} nombre={partido.equipo_local} size="md" />
                         <span className="text-sm font-bold text-center">{partido.equipo_local}</span>
                       </div>
 
@@ -141,13 +141,13 @@ export default function CalendarioPage() {
                           </div>
                         ) : (
                           <div className="text-sm font-semibold text-gray-500 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
-                            {new Date(partido.fecha_hora).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                            {formatearHoraCDMX(partido.fecha_hora)}
                           </div>
                         )}
                       </div>
 
                       <div className="flex flex-col items-center gap-2 w-1/3">
-                        <span className="text-4xl">{partido.bandera_visitante}</span>
+                        <Bandera emoji={partido.bandera_visitante} nombre={partido.equipo_visitante} size="md" />
                         <span className="text-sm font-bold text-center">{partido.equipo_visitante}</span>
                       </div>
                     </div>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Partido } from '@/types';
 import { Bandera } from '@/components/Bandera';
+import { formatearHoraCDMX, formatearDiaCDMX } from '@/lib/utils';
 
 interface Props {
   partido: Partido;
@@ -27,10 +28,8 @@ export default function PartidoCard({ partido, prediccion, participacionPagada, 
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const fechaHora = new Date(partido.fecha_hora);
-  // Solo se evalúan en el cliente (mounted=true) para evitar mismatch servidor/cliente por timezone
-  const fechaStr  = mounted ? fechaHora.toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short' }) : '';
-  const horaStr   = mounted ? fechaHora.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+  const fechaStr  = mounted ? formatearDiaCDMX(partido.fecha_hora) : '';
+  const horaStr   = mounted ? formatearHoraCDMX(partido.fecha_hora) : '--:--';
   const badge     = estadoBadge[partido.estado];
   const puedePredicir = partido.estado === 'pendiente' && !!onPredicir;
 
@@ -65,7 +64,7 @@ export default function PartidoCard({ partido, prediccion, participacionPagada, 
 
       <div className="px-4 py-3 flex items-center justify-between gap-4">
         <div className="flex-1 flex flex-col items-center gap-1">
-          <Bandera emoji={partido.bandera_local} nombre={partido.equipo_local} size="lg" />
+          <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="lg" />
           <span className="text-center text-sm font-bold leading-tight mt-1" style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--text-primary)' }}>
             {partido.equipo_local}
           </span>
@@ -85,7 +84,7 @@ export default function PartidoCard({ partido, prediccion, participacionPagada, 
         </div>
 
         <div className="flex-1 flex flex-col items-center gap-1">
-          <Bandera emoji={partido.bandera_visitante} nombre={partido.equipo_visitante} size="lg" />
+          <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="lg" />
           <span className="text-center text-sm font-bold leading-tight mt-1" style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--text-primary)' }}>
             {partido.equipo_visitante}
           </span>
