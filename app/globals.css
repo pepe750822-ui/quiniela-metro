@@ -38,8 +38,8 @@ body {
 
 @media print {
   @page {
-    size: landscape !important;
-    margin: 5mm !important;
+    size: portrait !important;
+    margin: 10mm !important;
   }
 
   body, html {
@@ -57,54 +57,56 @@ body {
   table, tr, td, th {
     background: white !important;
     color: black !important;
-    border: 0.5px solid #666 !important;
+    border: 0.5px solid #999 !important;
   }
 
   td:first-child {
     background: #f0f0f0 !important;
     color: black !important;
-    font-size: 8px !important;
+    font-size: 10px !important;
     font-weight: bold !important;
     text-align: left !important;
-    width: 70px !important;
-    padding: 2px 3px !important;
+    width: 80px !important;
+    padding: 3px 4px !important;
   }
 
   td:first-child div:first-child {
     color: #111 !important;
     font-weight: bold !important;
-    font-size: 8px !important;
+    font-size: 10px !important;
   }
 
   td:first-child div:nth-child(2) {
     color: #c2410c !important;
     font-weight: bold !important;
-    font-size: 7px !important;
+    font-size: 8px !important;
   }
 
   td:not(:first-child):not(:last-child) {
-    font-size: 6px !important;
-    padding: 1px !important;
-    width: 20px !important;
+    font-size: 8px !important;
+    padding: 2px !important;
+    width: 22px !important;
     text-align: center !important;
   }
 
   td:last-child {
     background: #e0e0e0 !important;
     font-weight: bold !important;
-    font-size: 9px !important;
+    font-size: 11px !important;
     color: black !important;
+    width: 30px !important;
   }
 
   h1 {
     color: black !important;
-    font-size: 11px !important;
-    margin: 0 0 3px 0 !important;
+    font-size: 14px !important;
+    margin: 0 0 5px 0 !important;
   }
 
   .leyenda {
-    font-size: 7px !important;
+    font-size: 8px !important;
     color: black !important;
+    margin-top: 5px !important;
   }
 
   * { overflow: visible !important; }
