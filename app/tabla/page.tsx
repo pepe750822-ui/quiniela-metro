@@ -65,9 +65,23 @@ export default function TablaPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0a] pb-24">
       <div className="px-4 pt-6 pb-4">
-        <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: '2rem', color: '#ea580c', letterSpacing: '0.05em' }}>
-          📊 TABLA DE PUNTOS
-        </h1>
+        <div className="flex items-center gap-3">
+          <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: '2rem', color: '#ea580c', letterSpacing: '0.05em' }}>
+            📊 TABLA DE PUNTOS
+          </h1>
+          <button
+            onClick={() => window.print()}
+            className="ml-auto flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-bold transition-all"
+            style={{
+              fontFamily: 'var(--font-rajdhani)',
+              background: '#12121a',
+              border: '1px solid #1e1e2e',
+              color: '#64748b',
+            }}
+          >
+            🖨️ Guardar PDF
+          </button>
+        </div>
 
         {/* Selector jornada */}
         <div className="flex gap-2 mt-3">
