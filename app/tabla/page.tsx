@@ -99,7 +99,7 @@ export default function TablaPage() {
            (!p.quiniela_extra_id && !part.quiniela_extra_id))
         );
         if (!pred) return '–';
-        const marcador = `${pred.goles_local_pred}:${pred.goles_visitante_pred}`;
+        const marcador = `="${pred.goles_local_pred}-${pred.goles_visitante_pred}"`;
         if (partido.estado === 'finalizado') {
           return `${pred.puntos_ganados}pts (${marcador})`;
         }
