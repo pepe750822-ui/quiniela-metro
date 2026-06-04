@@ -40,7 +40,7 @@ export default function InstruccionesPage() {
       numero: 7,
       emoji: '🏆',
       titulo: 'GANA EL POZO',
-      descripcion: 'El que más puntos acumule en la jornada se lleva todo el pozo.\n\n🥇 3 puntos = marcador exacto\n✅ 1 punto = aciertas ganador o empate\n❌ 0 puntos = fallas',
+      descripcion: '🏆 SISTEMA DE PUNTUACIÓN\n\n🥇 3 puntos — Marcador exacto\nEjemplo: predijiste 2-1 y el resultado fue 2-1\n\n✅ 1 punto — Aciertas el resultado general\n• Predijiste que gana el local (cualquier marcador) ✓\n• Predijiste empate (cualquier marcador) ✓\n• Predijiste que gana el visitante (cualquier marcador) ✓\nEjemplo: predijiste 2-0 y ganó el local 1-0 → 1 punto\n\n❌ 0 puntos — Fallas el resultado\nEjemplo: predijiste que ganaba México y ganó Sudáfrica',
     },
     {
       numero: 8,
