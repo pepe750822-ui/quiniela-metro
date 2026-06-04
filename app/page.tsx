@@ -189,14 +189,19 @@ export default function RankingPage() {
     }));
     setParticipantesJornada(participantesConNombre);
 
-    // ── Ranking ──────────────────────────────────────────
-    const { data: rankData } = await supabase
-      .from('quiniela_ranking')
-      .select('id, user_id, jornada, puntos_total, exactos, updated_at')
-      .eq('jornada', j)
-      .order('puntos_total', { ascending: false });
+    // ── Ranking — solo usuarios con pago confirmado ──────
+    const pagadosIds = (parts ?? []).map((p: { user_id: string }) => p.user_id);
 
-    const rankUserIds = rankData?.map(r => r.user_id) ?? [];
+    const { data: rankData } = pagadosIds.length
+      ? await supabase
+          .from('quiniela_ranking')
+          .select('id, user_id, jornada, puntos_total, exactos, updated_at')
+          .eq('jornada', j)
+          .in('user_id', pagadosIds)
+          .order('puntos_total', { ascending: false })
+      : { data: [] };
+
+    const rankUserIds = rankData?.map((r: { user_id: string }) => r.user_id) ?? [];
     const { data: rankJugadores } = rankUserIds.length
       ? await supabase
           .from('quiniela_jugadores')
