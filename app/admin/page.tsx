@@ -181,10 +181,12 @@ export default function AdminPage() {
     const vals = editando[partido.id];
     if (!vals) return;
     setGuardando(partido.id);
+    console.log('Guardando resultado:', partido.id, vals.local, vals.visita);
     const { error } = await supabase
       .from('quiniela_partidos')
       .update({ goles_local: parseInt(vals.local), goles_visitante: parseInt(vals.visita), estado: 'finalizado' })
       .eq('id', partido.id);
+    console.log('Resultado de UPDATE:', error);
     setGuardando(null);
     if (error) {
       toast.error('Error al guardar resultado');
