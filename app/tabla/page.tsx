@@ -76,6 +76,52 @@ export default function TablaPage() {
     return '#f87171';
   };
 
+  const descargarCSV = () => {
+    const encabezado = [
+      'Jugador',
+      'Quiniela',
+      ...partidos.map(p => `${p.equipo_local.substring(0, 3).toUpperCase()}vs${p.equipo_visitante.substring(0, 3).toUpperCase()}`),
+      'PTS',
+    ];
+
+    const filas = participaciones.map(part => {
+      const totalPuntos = predicciones
+        .filter((p: any) =>
+          p.user_id === part.user_id &&
+          (p.quiniela_extra_id === part.quiniela_extra_id ||
+            (!p.quiniela_extra_id && !part.quiniela_extra_id)) &&
+          partidos.find((partido: any) => partido.id === p.partido_id && partido.estado === 'finalizado')
+        )
+        .reduce((sum: number, p: any) => sum + (p.puntos_ganados || 0), 0);
+
+      const celdas = partidos.map(partido => {
+        const pred = getPred(part.user_id, partido.id, part.quiniela_extra_id);
+        if (!pred) return '';
+        const base = `${pred.goles_local_pred}-${pred.goles_visitante_pred}`;
+        return partido.estado === 'finalizado' ? `${base} (${pred.puntos_ganados ?? 0}pts)` : base;
+      });
+
+      return [
+        mostrarNombre(part.user_id),
+        part.quiniela?.nombre ?? '',
+        ...celdas,
+        totalPuntos,
+      ];
+    });
+
+    const csv = [encabezado, ...filas]
+      .map(fila => fila.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `tabla-j${jornada}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] pb-24">
       <div className="px-4 pt-6 pb-4">
@@ -83,18 +129,32 @@ export default function TablaPage() {
           <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: '2rem', color: '#ea580c', letterSpacing: '0.05em' }}>
             📊 TABLA DE PUNTOS
           </h1>
-          <button
-            onClick={() => window.print()}
-            className="ml-auto flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-bold transition-all"
-            style={{
-              fontFamily: 'var(--font-rajdhani)',
-              background: '#12121a',
-              border: '1px solid #1e1e2e',
-              color: '#64748b',
-            }}
-          >
-            🖨️ Guardar PDF
-          </button>
+          <div className="ml-auto flex gap-2">
+            <button
+              onClick={descargarCSV}
+              className="flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-bold transition-all"
+              style={{
+                fontFamily: 'var(--font-rajdhani)',
+                background: '#12121a',
+                border: '1px solid #1e1e2e',
+                color: '#64748b',
+              }}
+            >
+              📥 CSV
+            </button>
+            <button
+              onClick={() => window.print()}
+              className="flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-bold transition-all"
+              style={{
+                fontFamily: 'var(--font-rajdhani)',
+                background: '#12121a',
+                border: '1px solid #1e1e2e',
+                color: '#64748b',
+              }}
+            >
+              🖨️ PDF
+            </button>
+          </div>
         </div>
 
         {/* Selector jornada */}
