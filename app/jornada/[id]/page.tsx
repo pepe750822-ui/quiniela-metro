@@ -12,6 +12,7 @@ interface ParticipanteVista {
   quiniela_extra_id: string | null;
   jugador: { nombre: string; email: string; apodo: string | null } | null;
   quiniela: { nombre: string } | null;
+  publicado: boolean;
   pagado: boolean;
   predicciones: Record<string, Prediccion>;
 }
@@ -65,8 +66,7 @@ export default function JornadaPage() {
       const { data: partcData, error: errorPart } = await supabase
         .from('quiniela_participaciones')
         .select('id, user_id, pagado, publicado, quiniela_extra_id')
-        .eq('jornada', jornada)
-        .eq('publicado', true);
+        .eq('jornada', jornada);
       console.log('Participaciones jornada:', partcData, errorPart);
 
       if (!partcData?.length) { setLoading(false); return; }
@@ -102,7 +102,7 @@ export default function JornadaPage() {
       }
 
       const lista: ParticipanteVista[] = partcData.map((p: {
-        user_id: string; pagado: boolean; quiniela_extra_id: string | null;
+        user_id: string; publicado: boolean; pagado: boolean; quiniela_extra_id: string | null;
       }) => {
         const key = `${p.user_id}__${p.quiniela_extra_id ?? ''}`;
         return {
@@ -113,6 +113,7 @@ export default function JornadaPage() {
           quiniela:          p.quiniela_extra_id
             ? ((quinielasData ?? []) as { id: string; nombre: string }[]).find(q => q.id === p.quiniela_extra_id) ?? null
             : null,
+          publicado:         p.publicado ?? false,
           pagado:            p.pagado ?? false,
           predicciones:      predsByKey[key] ?? {},
         };
@@ -123,7 +124,8 @@ export default function JornadaPage() {
         if (b.user_id === userId && !b.quiniela_extra_id) return 1;
         if (a.user_id === userId) return -1;
         if (b.user_id === userId) return 1;
-        return (b.pagado ? 1 : 0) - (a.pagado ? 1 : 0);
+        const score = (x: ParticipanteVista) => (x.publicado && x.pagado ? 2 : x.publicado ? 1 : 0);
+        return score(b) - score(a);
       });
 
       setParticipantes(lista);
@@ -158,7 +160,7 @@ export default function JornadaPage() {
         </div>
       ) : participantes.length === 0 ? (
         <p className="text-center py-12 text-sm" style={{ color: 'var(--text-secondary)' }}>
-          Aún no hay participantes publicados en esta jornada.
+          Aún no hay participantes en esta jornada.
         </p>
       ) : (
         <div className="space-y-3" style={{ animation: 'fadeInUp 0.4s ease-out 0.1s both' }}>
@@ -203,7 +205,12 @@ export default function JornadaPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    {p.pagado ? (
+                    {!p.publicado ? (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                        style={{ background: 'rgba(100,116,139,0.15)', color: '#64748b' }}>
+                        🔒 Sin publicar
+                      </span>
+                    ) : p.pagado ? (
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
                         style={{ background: 'rgba(16,185,129,0.15)', color: '#10b981' }}>
                         ✅ Válido
@@ -220,32 +227,38 @@ export default function JornadaPage() {
                   </div>
                 </div>
 
-                {/* Predicciones — solo visible si expandido */}
+                {/* Contenido — solo visible si expandido */}
                 {abierto && (
-                  <div>
-                    {partidos.map((partido, pi) => {
-                      const pred = p.predicciones[partido.id];
-                      return (
-                        <div
-                          key={partido.id}
-                          className="px-4 py-2 flex items-center justify-between"
-                          style={{ borderTop: pi > 0 ? '1px solid var(--border)' : undefined }}
-                        >
-                          <span className="text-xs flex-1 pr-3 truncate" style={{ color: 'var(--text-secondary)' }}>
-                            {partido.equipo_local} vs {partido.equipo_visitante}
-                          </span>
-                          {pred ? (
-                            <span className="shrink-0 font-bold"
-                              style={{ fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: 'var(--text-primary)' }}>
-                              {pred.goles_local_pred} – {pred.goles_visitante_pred}
+                  !p.publicado ? (
+                    <div className="px-4 py-3 text-sm" style={{ color: '#64748b' }}>
+                      🔒 Aún no ha publicado sus predicciones
+                    </div>
+                  ) : (
+                    <div>
+                      {partidos.map((partido, pi) => {
+                        const pred = p.predicciones[partido.id];
+                        return (
+                          <div
+                            key={partido.id}
+                            className="px-4 py-2 flex items-center justify-between"
+                            style={{ borderTop: pi > 0 ? '1px solid var(--border)' : undefined }}
+                          >
+                            <span className="text-xs flex-1 pr-3 truncate" style={{ color: 'var(--text-secondary)' }}>
+                              {partido.equipo_local} vs {partido.equipo_visitante}
                             </span>
-                          ) : (
-                            <span className="text-xs shrink-0" style={{ color: 'var(--text-secondary)' }}>–</span>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
+                            {pred ? (
+                              <span className="shrink-0 font-bold"
+                                style={{ fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: 'var(--text-primary)' }}>
+                                {pred.goles_local_pred} – {pred.goles_visitante_pred}
+                              </span>
+                            ) : (
+                              <span className="text-xs shrink-0" style={{ color: 'var(--text-secondary)' }}>–</span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )
                 )}
               </div>
             );
