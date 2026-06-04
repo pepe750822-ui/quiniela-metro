@@ -77,48 +77,60 @@ export default function TablaPage() {
   };
 
   const descargarCSV = () => {
-    const encabezado = [
+    const headers = [
       'Jugador',
       'Quiniela',
-      ...partidos.map(p => `${p.equipo_local.substring(0, 3).toUpperCase()}vs${p.equipo_visitante.substring(0, 3).toUpperCase()}`),
+      ...partidos.map(p =>
+        `${p.equipo_local.substring(0, 3).toUpperCase()}vs${p.equipo_visitante.substring(0, 3).toUpperCase()}`
+      ),
       'PTS',
     ];
 
     const filas = participaciones.map(part => {
-      const totalPuntos = predicciones
+      const jugador = jugadores.find((j: any) => j.id === part.user_id);
+      const nombre = jugador?.apodo || jugador?.nombre?.split(' ')[0] || 'Jugador';
+      const quiniela = part.quiniela?.nombre || '';
+
+      const celdas = partidos.map(partido => {
+        const pred = predicciones.find((p: any) =>
+          p.user_id === part.user_id &&
+          p.partido_id === partido.id &&
+          (p.quiniela_extra_id === part.quiniela_extra_id ||
+           (!p.quiniela_extra_id && !part.quiniela_extra_id))
+        );
+        if (!pred) return '–';
+        const marcador = `${pred.goles_local_pred}:${pred.goles_visitante_pred}`;
+        if (partido.estado === 'finalizado') {
+          return `${pred.puntos_ganados}pts (${marcador})`;
+        }
+        return marcador;
+      });
+
+      const total = predicciones
         .filter((p: any) =>
           p.user_id === part.user_id &&
           (p.quiniela_extra_id === part.quiniela_extra_id ||
-            (!p.quiniela_extra_id && !part.quiniela_extra_id)) &&
-          partidos.find((partido: any) => partido.id === p.partido_id && partido.estado === 'finalizado')
+           (!p.quiniela_extra_id && !part.quiniela_extra_id)) &&
+          partidos.find((partido: any) =>
+            partido.id === p.partido_id && partido.estado === 'finalizado'
+          )
         )
         .reduce((sum: number, p: any) => sum + (p.puntos_ganados || 0), 0);
 
-      const celdas = partidos.map(partido => {
-        const pred = getPred(part.user_id, partido.id, part.quiniela_extra_id);
-        if (!pred) return '';
-        const base = `${pred.goles_local_pred}-${pred.goles_visitante_pred}`;
-        return partido.estado === 'finalizado' ? `${base} (${pred.puntos_ganados ?? 0}pts)` : base;
-      });
-
-      return [
-        mostrarNombre(part.user_id),
-        part.quiniela?.nombre ?? '',
-        ...celdas,
-        totalPuntos,
-      ];
+      return [nombre, quiniela, ...celdas, total];
     });
 
-    const csv = [encabezado, ...filas]
-      .map(fila => fila.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
+    const csv = [headers, ...filas]
+      .map(fila => fila.map(v => `"${v}"`).join(','))
       .join('\n');
 
-    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    const BOM = '﻿';
+    const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `tabla-j${jornada}.csv`;
-    a.click();
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `quiniela-jornada-${jornada}.csv`;
+    link.click();
     URL.revokeObjectURL(url);
   };
 
@@ -132,15 +144,10 @@ export default function TablaPage() {
           <div className="ml-auto flex gap-2">
             <button
               onClick={descargarCSV}
-              className="flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-bold transition-all"
-              style={{
-                fontFamily: 'var(--font-rajdhani)',
-                background: '#12121a',
-                border: '1px solid #1e1e2e',
-                color: '#64748b',
-              }}
+              className="flex items-center gap-2 px-4 py-1.5 bg-[#12121a] border border-[#1e1e2e] rounded-lg text-slate-400 text-sm hover:border-orange-500/40 hover:text-orange-400 transition-all"
+              style={{ fontFamily: 'var(--font-rajdhani)', fontWeight: 'bold' }}
             >
-              📥 CSV
+              ⬇️ CSV
             </button>
             <button
               onClick={() => window.print()}
