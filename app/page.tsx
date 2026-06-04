@@ -153,6 +153,7 @@ export default function RankingPage() {
       .from('quiniela_participaciones')
       .select('id, user_id, jornada, pagado, publicado, quiniela_extra_id')
       .eq('jornada', j)
+      .eq('pagado', true)
       .order('created_at', { ascending: true });
     console.log('Participantes query result:', parts, errorPart);
 
@@ -392,7 +393,7 @@ export default function RankingPage() {
                       )}
                       <p className="text-xs truncate" style={{ color: '#64748b' }}>
                         {emailCorto(p.jugador?.email || '')}
-                        {p.pagado ? ' · ✅ Confirmado' : ' · ⏳ Pago pendiente'}
+                        {' · ✅ Confirmado'}
                       </p>
                     </div>
                   </div>
