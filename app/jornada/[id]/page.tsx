@@ -9,18 +9,18 @@ import { emailCorto } from '@/lib/utils';
 interface ParticipanteVista {
   key: string;
   user_id: string;
-  quinielaExtraId: string | null;
-  quinielaNombre: string | null;
-  nombre: string;
-  apodo: string | null;
-  email: string;
-  publicado: boolean;
+  quiniela_extra_id: string | null;
+  jugador: { nombre: string; email: string; apodo: string | null } | null;
+  quiniela: { nombre: string } | null;
   pagado: boolean;
   predicciones: Record<string, Prediccion>;
 }
 
-const mostrarNombre = (p: ParticipanteVista) => p.apodo ?? p.nombre.split(' ')[0];
-const iniciales     = (p: ParticipanteVista) => (p.apodo ?? p.nombre).slice(0, 2).toUpperCase();
+const mostrarNombre = (j: { nombre: string; apodo: string | null } | null) =>
+  j?.apodo ?? j?.nombre?.split(' ')[0] ?? 'Jugador';
+
+const iniciales = (j: { nombre: string; apodo: string | null } | null) =>
+  (j?.apodo ?? j?.nombre ?? 'J').slice(0, 2).toUpperCase();
 
 function Inicial({ p }: { p: ParticipanteVista }) {
   return (
@@ -28,7 +28,7 @@ function Inicial({ p }: { p: ParticipanteVista }) {
       className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
       style={{ background: 'rgba(234,88,12,0.2)', color: 'var(--accent-gold)' }}
     >
-      {iniciales(p)}
+      {iniciales(p.jugador)}
     </div>
   );
 }
@@ -64,35 +64,15 @@ export default function JornadaPage() {
 
       const { data: partcData } = await supabase
         .from('quiniela_participaciones')
-        .select('user_id, publicado, pagado, quiniela_extra_id')
-        .eq('jornada', jornada);
+        .select(`
+          *,
+          jugador:quiniela_jugadores(nombre, email, apodo),
+          quiniela:quiniela_extra(nombre)
+        `)
+        .eq('jornada', jornada)
+        .eq('publicado', true);
 
       if (!partcData?.length) { setLoading(false); return; }
-
-      const userIds = [...new Set(partcData.map((p: { user_id: string }) => p.user_id))];
-      const { data: jugData } = await supabase
-        .from('quiniela_jugadores')
-        .select('id, nombre, apodo, email')
-        .in('id', userIds);
-      const jugMap: Record<string, { nombre: string; apodo: string | null; email: string }> = {};
-      (jugData ?? []).forEach((j: { id: string; nombre: string; apodo: string | null; email: string }) => {
-        jugMap[j.id] = { nombre: j.nombre, apodo: j.apodo, email: j.email };
-      });
-
-      // Cargar nombres de quinielas extra
-      const quinielaIds = [...new Set(
-        partcData.map((p: { quiniela_extra_id: string | null }) => p.quiniela_extra_id).filter(Boolean)
-      )] as string[];
-      const quinielaMap: Record<string, string> = {};
-      if (quinielaIds.length) {
-        const { data: quinielasData } = await supabase
-          .from('quiniela_extra')
-          .select('id, nombre')
-          .in('id', quinielaIds);
-        (quinielasData ?? []).forEach((q: { id: string; nombre: string }) => {
-          quinielaMap[q.id] = q.nombre;
-        });
-      }
 
       const partidoIds = listaPartidos.map(p => p.id);
       const predsByKey: Record<string, Record<string, Prediccion>> = {};
@@ -108,38 +88,29 @@ export default function JornadaPage() {
         });
       }
 
-      const lista: ParticipanteVista[] = partcData.map((p: {
-        user_id: string;
-        publicado: boolean;
-        pagado: boolean;
-        quiniela_extra_id: string | null;
-      }) => {
+      const lista: ParticipanteVista[] = (partcData as any[]).map(p => {
         const key = `${p.user_id}__${p.quiniela_extra_id ?? ''}`;
         return {
           key,
-          user_id:         p.user_id,
-          quinielaExtraId: p.quiniela_extra_id ?? null,
-          quinielaNombre:  p.quiniela_extra_id ? (quinielaMap[p.quiniela_extra_id] ?? null) : null,
-          nombre:          jugMap[p.user_id]?.nombre ?? 'Jugador',
-          apodo:           jugMap[p.user_id]?.apodo  ?? null,
-          email:           jugMap[p.user_id]?.email  ?? '',
-          publicado:       p.publicado ?? false,
-          pagado:          p.pagado    ?? false,
-          predicciones:    predsByKey[key] ?? {},
+          user_id:           p.user_id,
+          quiniela_extra_id: p.quiniela_extra_id ?? null,
+          jugador:           p.jugador ?? null,
+          quiniela:          p.quiniela ?? null,
+          pagado:            p.pagado ?? false,
+          predicciones:      predsByKey[key] ?? {},
         };
       });
 
-      const score = (p: ParticipanteVista) => (p.publicado && p.pagado ? 2 : p.publicado ? 1 : 0);
       lista.sort((a, b) => {
-        if (a.user_id === userId && !a.quinielaExtraId) return -1;
-        if (b.user_id === userId && !b.quinielaExtraId) return 1;
+        if (a.user_id === userId && !a.quiniela_extra_id) return -1;
+        if (b.user_id === userId && !b.quiniela_extra_id) return 1;
         if (a.user_id === userId) return -1;
         if (b.user_id === userId) return 1;
-        return score(b) - score(a);
+        return (b.pagado ? 1 : 0) - (a.pagado ? 1 : 0);
       });
 
       setParticipantes(lista);
-      setExpandido(`${userId}__`); // expandir quiniela principal del usuario actual
+      setExpandido(`${userId}__`);
       setLoading(false);
     };
 
@@ -170,7 +141,7 @@ export default function JornadaPage() {
         </div>
       ) : participantes.length === 0 ? (
         <p className="text-center py-12 text-sm" style={{ color: 'var(--text-secondary)' }}>
-          Aún no hay participantes en esta jornada.
+          Aún no hay participantes publicados en esta jornada.
         </p>
       ) : (
         <div className="space-y-3" style={{ animation: 'fadeInUp 0.4s ease-out 0.1s both' }}>
@@ -199,36 +170,31 @@ export default function JornadaPage() {
                     <div>
                       <p className="font-semibold text-sm flex items-center gap-1.5 flex-wrap"
                         style={{ color: esYo ? 'var(--accent-gold)' : 'var(--text-primary)' }}>
-                        {mostrarNombre(p)}
-                        {p.quinielaNombre && (
-                          <span className="text-[10px] font-normal" style={{ color: '#ea580c' }}>
-                            🎫 {p.quinielaNombre}
-                          </span>
-                        )}
+                        {mostrarNombre(p.jugador)}
                         {esYo && (
                           <span className="text-[9px] bg-orange-600 text-black px-1.5 py-0.5 rounded-full font-black">TÚ</span>
                         )}
                       </p>
-                      {p.email && (
-                        <p className="text-xs text-slate-500">{emailCorto(p.email)}</p>
+                      {p.quiniela?.nombre && (
+                        <span className="text-xs block" style={{ color: '#ea580c' }}>
+                          🎫 {p.quiniela.nombre}
+                        </span>
+                      )}
+                      {p.jugador?.email && (
+                        <p className="text-xs text-slate-500">{emailCorto(p.jugador.email)}</p>
                       )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    {p.publicado && p.pagado ? (
+                    {p.pagado ? (
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
                         style={{ background: 'rgba(16,185,129,0.15)', color: '#10b981' }}>
                         ✅ Válido
                       </span>
-                    ) : p.publicado ? (
+                    ) : (
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
                         style={{ background: 'rgba(234,170,12,0.15)', color: '#f59e0b' }}>
                         ⏳ Pago pendiente
-                      </span>
-                    ) : (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                        style={{ background: 'rgba(100,116,139,0.15)', color: '#64748b' }}>
-                        🔒 Sin publicar
                       </span>
                     )}
                     <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
@@ -237,40 +203,32 @@ export default function JornadaPage() {
                   </div>
                 </div>
 
-                {/* Contenido — solo visible si expandido */}
+                {/* Predicciones — solo visible si expandido */}
                 {abierto && (
-                  !p.publicado ? (
-                    <div className="px-4 py-3">
-                      <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                        🔒 {esYo ? 'Tus predicciones aún no están publicadas' : `${mostrarNombre(p)} aún no ha publicado sus predicciones`}
-                      </p>
-                    </div>
-                  ) : (
-                    <div>
-                      {partidos.map((partido, pi) => {
-                        const pred = p.predicciones[partido.id];
-                        return (
-                          <div
-                            key={partido.id}
-                            className="px-4 py-2 flex items-center justify-between"
-                            style={{ borderTop: pi > 0 ? '1px solid var(--border)' : undefined }}
-                          >
-                            <span className="text-xs flex-1 pr-3 truncate" style={{ color: 'var(--text-secondary)' }}>
-                              {partido.equipo_local} vs {partido.equipo_visitante}
+                  <div>
+                    {partidos.map((partido, pi) => {
+                      const pred = p.predicciones[partido.id];
+                      return (
+                        <div
+                          key={partido.id}
+                          className="px-4 py-2 flex items-center justify-between"
+                          style={{ borderTop: pi > 0 ? '1px solid var(--border)' : undefined }}
+                        >
+                          <span className="text-xs flex-1 pr-3 truncate" style={{ color: 'var(--text-secondary)' }}>
+                            {partido.equipo_local} vs {partido.equipo_visitante}
+                          </span>
+                          {pred ? (
+                            <span className="shrink-0 font-bold"
+                              style={{ fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: 'var(--text-primary)' }}>
+                              {pred.goles_local_pred} – {pred.goles_visitante_pred}
                             </span>
-                            {pred ? (
-                              <span className="shrink-0 font-bold"
-                                style={{ fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: 'var(--text-primary)' }}>
-                                {pred.goles_local_pred} – {pred.goles_visitante_pred}
-                              </span>
-                            ) : (
-                              <span className="text-xs shrink-0" style={{ color: 'var(--text-secondary)' }}>–</span>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )
+                          ) : (
+                            <span className="text-xs shrink-0" style={{ color: 'var(--text-secondary)' }}>–</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 )}
               </div>
             );

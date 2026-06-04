@@ -151,38 +151,20 @@ export default function RankingPage() {
     // ── Participaciones ──────────────────────────────────
     const { data: participaciones } = await supabase
       .from('quiniela_participaciones')
-      .select('id, user_id, jornada, pagado, publicado, quiniela_extra_id')
+      .select(`
+        id, user_id, jornada, pagado,
+        jugador:quiniela_jugadores(nombre, email, apodo),
+        quiniela:quiniela_extra(nombre)
+      `)
       .eq('jornada', j)
       .order('created_at', { ascending: true });
 
-    const partUserIds = participaciones?.map(p => p.user_id) ?? [];
-    const { data: partJugadores } = partUserIds.length
-      ? await supabase
-          .from('quiniela_jugadores')
-          .select('id, nombre, email, apodo')
-          .in('id', partUserIds)
-      : { data: [] };
-
-    const quinielaIds = [...new Set(
-      (participaciones ?? []).map(p => p.quiniela_extra_id).filter(Boolean)
-    )] as string[];
-    const quinielaMap: Record<string, string> = {};
-    if (quinielaIds.length) {
-      const { data: quinielasData } = await supabase
-        .from('quiniela_extra')
-        .select('id, nombre')
-        .in('id', quinielaIds);
-      (quinielasData ?? []).forEach((q: { id: string; nombre: string }) => {
-        quinielaMap[q.id] = q.nombre;
-      });
-    }
-
-    const participantesConNombre: ParticipanteItem[] = (participaciones ?? []).map(p => ({
+    const participantesConNombre: ParticipanteItem[] = ((participaciones ?? []) as any[]).map(p => ({
       id:             p.id,
       user_id:        p.user_id,
       pagado:         p.pagado,
-      jugador:        (partJugadores ?? []).find(j => j.id === p.user_id) ?? null,
-      quinielaNombre: p.quiniela_extra_id ? (quinielaMap[p.quiniela_extra_id] ?? null) : null,
+      jugador:        p.jugador ?? null,
+      quinielaNombre: (p.quiniela as { nombre: string } | null)?.nombre ?? null,
     }));
     setParticipantesJornada(participantesConNombre);
 
