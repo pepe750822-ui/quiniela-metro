@@ -48,25 +48,18 @@ export default function TablaPage() {
     return jugador?.apodo || jugador?.nombre?.split(' ')[0] || 'Jugador';
   };
 
-  const getPuntos = (userId: string, partidoId: string, quinielaExtraId: string | null) => {
-    const pred = predicciones.find((p: any) =>
+  const getPred = (userId: string, partidoId: string, quinielaExtraId: string | null) =>
+    predicciones.find((p: any) =>
       p.user_id === userId &&
       p.partido_id === partidoId &&
       (p.quiniela_extra_id === quinielaExtraId ||
         (!p.quiniela_extra_id && !quinielaExtraId))
-    );
-    if (!pred) return null;
-    const partido = partidos.find((p: any) => p.id === partidoId);
-    if (partido?.estado !== 'finalizado') return `${pred.goles_local_pred}-${pred.goles_visitante_pred}`;
-    return pred.puntos_ganados;
-  };
+    ) ?? null;
 
-  const getColorPuntos = (valor: any, partido: any) => {
-    if (partido?.estado !== 'finalizado') return 'text-slate-400 text-xs';
-    if (valor === 3) return 'text-emerald-400 font-bold';
-    if (valor === 1) return 'text-orange-400';
-    if (valor === 0) return 'text-red-400';
-    return 'text-slate-600';
+  const ptsColor = (pts: number) => {
+    if (pts === 3) return '#34d399';
+    if (pts === 1) return '#fb923c';
+    return '#f87171';
   };
 
   return (
@@ -149,12 +142,33 @@ export default function TablaPage() {
                     </div>
                   </td>
                   {partidos.map(partido => {
-                    const valor = getPuntos(part.user_id, partido.id, part.quiniela_extra_id);
+                    const pred = getPred(part.user_id, partido.id, part.quiniela_extra_id);
+                    if (partido.estado === 'finalizado') {
+                      const pts = pred?.puntos_ganados ?? null;
+                      return (
+                        <td key={partido.id}
+                          className="px-2 py-2 text-center"
+                          style={{ borderLeft: '1px solid #1e1e2e' }}>
+                          {pts !== null ? (
+                            <div className="font-bold text-sm" style={{ color: ptsColor(pts) }}>
+                              {pts}pts
+                            </div>
+                          ) : (
+                            <div className="text-sm" style={{ color: '#334155' }}>–</div>
+                          )}
+                          {pred && (
+                            <div className="text-xs" style={{ color: '#475569' }}>
+                              {pred.goles_local_pred}-{pred.goles_visitante_pred}
+                            </div>
+                          )}
+                        </td>
+                      );
+                    }
                     return (
                       <td key={partido.id}
-                        className={`px-2 py-2 text-center ${getColorPuntos(valor, partido)}`}
-                        style={{ borderLeft: '1px solid #1e1e2e' }}>
-                        {valor ?? '–'}
+                        className="px-2 py-2 text-center text-xs"
+                        style={{ borderLeft: '1px solid #1e1e2e', color: '#64748b' }}>
+                        {pred ? `${pred.goles_local_pred}-${pred.goles_visitante_pred}` : '–'}
                       </td>
                     );
                   })}
