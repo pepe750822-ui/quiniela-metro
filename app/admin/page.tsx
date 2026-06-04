@@ -205,6 +205,20 @@ export default function AdminPage() {
     }
   };
 
+  const handleLimpiar = async (partidoId: string) => {
+    if (!confirm('¿Limpiar el resultado de este partido?')) return;
+    const { error } = await supabase
+      .from('quiniela_partidos')
+      .update({ goles_local: null, goles_visitante: null, estado: 'pendiente' })
+      .eq('id', partidoId);
+    if (error) {
+      toast.error('Error: ' + error.message);
+    } else {
+      toast.success('🔄 Resultado limpiado');
+      await cargarPartidos();
+    }
+  };
+
   // ── Handlers pozos ───────────────────────────────────
 
   const handleConfirmarPago = async (p: ParticipacionConNombre) => {
@@ -791,6 +805,12 @@ export default function AdminPage() {
                       className="h-12 px-4 rounded-xl font-bold text-sm disabled:opacity-40 transition-all active:scale-95"
                       style={{ background: '#10b981', color: '#000' }}>
                       {guardando === partido.id ? '…' : 'Guardar ✓'}
+                    </button>
+                    <button onClick={() => handleLimpiar(partido.id)}
+                      className="h-12 px-3 rounded-xl text-sm transition-all active:scale-95"
+                      style={{ background: '#334155', color: '#94a3b8' }}
+                      title="Limpiar resultado">
+                      🔄
                     </button>
                   </div>
                 )}
