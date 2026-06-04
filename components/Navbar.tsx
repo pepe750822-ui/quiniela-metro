@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 const links = [
   { href: '/',               label: 'Ranking',      emoji: '🏆' },
   { href: '/predicciones',   label: 'Predicciones', emoji: '⚽' },
+  { href: '/tabla',          label: 'Tabla',        emoji: '📊' },
   { href: '/calendario',     label: 'Calendario',   emoji: '📅' },
   { href: '/perfil',         label: 'Perfil',       emoji: '👤' },
   { href: '/instrucciones',  label: 'Guía',         emoji: '📖' },
