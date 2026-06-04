@@ -26,7 +26,21 @@ export default function TablaPage() {
       .select('id, user_id, pagado, publicado, quiniela_extra_id')
       .eq('jornada', jornada)
       .eq('pagado', true);
-    setParticipaciones(partics || []);
+
+    // Cargar nombres de quinielas extra
+    const quinielaIds = [...new Set(
+      (partics || []).map((p: any) => p.quiniela_extra_id).filter(Boolean)
+    )] as string[];
+    const quinielasMap: Record<string, string> = {};
+    if (quinielaIds.length) {
+      const { data: quinielasData } = await supabase
+        .from('quiniela_extra').select('id, nombre').in('id', quinielaIds);
+      (quinielasData || []).forEach((q: any) => { quinielasMap[q.id] = q.nombre; });
+    }
+    setParticipaciones((partics || []).map((p: any) => ({
+      ...p,
+      quiniela: p.quiniela_extra_id ? { nombre: quinielasMap[p.quiniela_extra_id] ?? null } : null,
+    })));
 
     const userIds = [...new Set(partics?.map((p: any) => p.user_id) || [])];
     const { data: jugs } = await supabase
@@ -151,7 +165,12 @@ export default function TablaPage() {
                     <div className="font-semibold text-sm text-white" style={{ fontFamily: 'var(--font-rajdhani)' }}>
                       {mostrarNombre(part.user_id)}
                     </div>
-                    <div className="text-xs" style={{ color: '#475569' }}>
+                    {part.quiniela?.nombre && (
+                      <div className="font-bold text-xs" style={{ color: '#fb923c', fontFamily: 'var(--font-rajdhani)' }}>
+                        🎫 {part.quiniela.nombre}
+                      </div>
+                    )}
+                    <div className="text-xs no-print" style={{ color: '#475569' }}>
                       {part.pagado ? '✅' : '⏳'}{!part.publicado && ' 🔒'}
                     </div>
                   </td>

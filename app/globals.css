@@ -76,6 +76,17 @@ body {
     background: #f0f0f0 !important;
   }
 
+  td:first-child div:first-child {
+    font-size: 8px !important;
+    font-weight: normal !important;
+  }
+
+  td:first-child div:nth-child(2) {
+    font-size: 7px !important;
+    font-weight: bold !important;
+    color: #c2410c !important;
+  }
+
   h1 {
     color: black !important;
     font-size: 12px !important;
