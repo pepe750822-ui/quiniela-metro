@@ -12,6 +12,14 @@ export default function TablaPage() {
 
   useEffect(() => { cargarDatos(); }, [jornada]);
 
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.id = 'print-style';
+    style.textContent = `@media print { @page { size: landscape !important; } }`;
+    document.head.appendChild(style);
+    return () => { document.getElementById('print-style')?.remove(); };
+  }, []);
+
   const cargarDatos = async () => {
     const { data: parts } = await supabase
       .from('quiniela_partidos')
