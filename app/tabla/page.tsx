@@ -24,7 +24,8 @@ export default function TablaPage() {
     const { data: partics } = await supabase
       .from('quiniela_participaciones')
       .select('id, user_id, pagado, publicado, quiniela_extra_id')
-      .eq('jornada', jornada);
+      .eq('jornada', jornada)
+      .eq('pagado', true);
     setParticipaciones(partics || []);
 
     const userIds = [...new Set(partics?.map((p: any) => p.user_id) || [])];
