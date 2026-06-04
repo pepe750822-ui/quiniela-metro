@@ -115,10 +115,17 @@ CREATE POLICY "todos_ven_partidos"
 CREATE POLICY "ver_predicciones"
   ON quiniela_predicciones FOR SELECT
   USING (
-    auth.uid() = user_id OR
+    auth.uid() = user_id
+    OR
     EXISTS (
-      SELECT 1 FROM quiniela_partidos p
-      WHERE p.id = partido_id AND p.estado != 'pendiente'
+      SELECT 1 FROM quiniela_participaciones p
+      WHERE p.user_id = quiniela_predicciones.user_id
+        AND p.jornada = (
+          SELECT jornada FROM quiniela_partidos
+          WHERE id = quiniela_predicciones.partido_id
+        )
+        AND p.publicado = true
+        AND p.quiniela_extra_id IS NOT DISTINCT FROM quiniela_predicciones.quiniela_extra_id
     )
   );
 
