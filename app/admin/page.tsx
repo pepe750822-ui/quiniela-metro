@@ -46,8 +46,8 @@ export default function AdminPage() {
   const [loading, setLoading]     = useState(true);
   const [isAdmin, setIsAdmin]     = useState(false);
   const [adminId, setAdminId]     = useState<string | null>(null);
-  const [editando, setEditando]   = useState<Record<string, { local: string; visita: string }>>({});
-  const [guardando, setGuardando] = useState<string | null>(null);
+  const [resultados, setResultados] = useState<Record<string, { local: number; visitante: number }>>({});
+  const [guardando, setGuardando]   = useState<string | null>(null);
 
   // Apodos
   const [jugadores, setJugadores] = useState<Jugador[]>([]);
@@ -71,6 +71,15 @@ export default function AdminPage() {
   const [apodoTemp, setApodoTemp]         = useState('');
 
   // ── Loaders ──────────────────────────────────────────
+
+  const cargarPartidos = async () => {
+    const { data: ps } = await supabase
+      .from('quiniela_partidos')
+      .select('*')
+      .not('equipo_local', 'eq', 'A definir')
+      .order('fecha_hora');
+    setPartidos((ps as Partido[]) ?? []);
+  };
 
   const cargarJugadores = async () => {
     const { data } = await supabase
@@ -149,11 +158,7 @@ export default function AdminPage() {
 
       setIsAdmin(true);
 
-      const [{ data: ps }] = await Promise.all([
-        supabase.from('quiniela_partidos').select('*').not('equipo_local', 'eq', 'A definir').order('fecha_hora'),
-        cargarJugadores(),
-      ]);
-      setPartidos((ps as Partido[]) ?? []);
+      await Promise.all([cargarPartidos(), cargarJugadores()]);
 
       await cargarPozos();
       setLoading(false);
@@ -177,27 +182,26 @@ export default function AdminPage() {
 
   // ── Handlers resultados ───────────────────────────────
 
-  const handleGuardar = async (partido: Partido) => {
-    const vals = editando[partido.id];
-    if (!vals) return;
-    setGuardando(partido.id);
-    console.log('Guardando resultado:', partido.id, vals.local, vals.visita);
+  const handleGuardar = async (partidoId: string) => {
+    const resultado = resultados[partidoId];
+    if (resultado === undefined) {
+      toast.error('Ingresa los marcadores primero');
+      return;
+    }
+    setGuardando(partidoId);
+    console.log('Guardando resultado:', partidoId, resultado.local, resultado.visitante);
     const { error } = await supabase
       .from('quiniela_partidos')
-      .update({ goles_local: parseInt(vals.local), goles_visitante: parseInt(vals.visita), estado: 'finalizado' })
-      .eq('id', partido.id);
+      .update({ goles_local: resultado.local, goles_visitante: resultado.visitante, estado: 'finalizado' })
+      .eq('id', partidoId);
     console.log('Resultado de UPDATE:', error);
     setGuardando(null);
     if (error) {
-      toast.error('Error al guardar resultado');
+      toast.error('Error: ' + error.message);
     } else {
-      toast.success('Resultado guardado y puntos calculados');
-      setEditando(prev => { const n = { ...prev }; delete n[partido.id]; return n; });
-      setPartidos(prev => prev.map(p =>
-        p.id === partido.id
-          ? { ...p, goles_local: parseInt(vals.local), goles_visitante: parseInt(vals.visita), estado: 'finalizado' }
-          : p
-      ));
+      toast.success('✅ Resultado guardado');
+      setResultados(prev => { const n = { ...prev }; delete n[partidoId]; return n; });
+      await cargarPartidos();
     }
   };
 
@@ -742,7 +746,7 @@ export default function AdminPage() {
         </h1>
         <div className="space-y-3">
           {partidos.map(partido => {
-            const vals = editando[partido.id];
+            const res = resultados[partido.id];
             return (
               <div key={partido.id} className="rounded-2xl p-4 space-y-3"
                 style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
@@ -764,21 +768,29 @@ export default function AdminPage() {
                 {partido.estado !== 'finalizado' && (
                   <div className="flex items-center justify-center gap-3 mt-1">
                     <input id={`local-${partido.id}`} name={`local-${partido.id}`}
-                      type="number" min="0" max="20" placeholder="0" value={vals?.local ?? ''}
-                      onChange={e => setEditando(prev => ({ ...prev, [partido.id]: { local: e.target.value, visita: prev[partido.id]?.visita ?? '' } }))}
+                      type="number" min="0" max="20" placeholder="0"
+                      value={res?.local ?? ''}
+                      onChange={e => setResultados(prev => ({
+                        ...prev,
+                        [partido.id]: { local: parseInt(e.target.value) || 0, visitante: prev[partido.id]?.visitante ?? 0 },
+                      }))}
                       className="w-14 h-12 text-center text-xl font-bold rounded-xl outline-none"
                       style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontFamily: 'var(--font-bebas)' }} />
                     <span className="text-xl font-bold" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-bebas)' }}>–</span>
-                    <input id={`visita-${partido.id}`} name={`visita-${partido.id}`}
-                      type="number" min="0" max="20" placeholder="0" value={vals?.visita ?? ''}
-                      onChange={e => setEditando(prev => ({ ...prev, [partido.id]: { local: prev[partido.id]?.local ?? '', visita: e.target.value } }))}
+                    <input id={`visitante-${partido.id}`} name={`visitante-${partido.id}`}
+                      type="number" min="0" max="20" placeholder="0"
+                      value={res?.visitante ?? ''}
+                      onChange={e => setResultados(prev => ({
+                        ...prev,
+                        [partido.id]: { local: prev[partido.id]?.local ?? 0, visitante: parseInt(e.target.value) || 0 },
+                      }))}
                       className="w-14 h-12 text-center text-xl font-bold rounded-xl outline-none"
                       style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontFamily: 'var(--font-bebas)' }} />
-                    <button onClick={() => handleGuardar(partido)}
-                      disabled={!vals?.local || !vals?.visita || guardando === partido.id}
+                    <button onClick={() => handleGuardar(partido.id)}
+                      disabled={guardando === partido.id}
                       className="h-12 px-4 rounded-xl font-bold text-sm disabled:opacity-40 transition-all active:scale-95"
                       style={{ background: '#10b981', color: '#000' }}>
-                      {guardando === partido.id ? '…' : '✓'}
+                      {guardando === partido.id ? '…' : 'Guardar ✓'}
                     </button>
                   </div>
                 )}
