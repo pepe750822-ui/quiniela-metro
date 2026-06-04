@@ -62,25 +62,38 @@ export default function JornadaPage() {
       const listaPartidos = (pData as Partido[]) ?? [];
       setPartidos(listaPartidos);
 
-      const { data: partcData } = await supabase
+      const { data: partcData, error: errorPart } = await supabase
         .from('quiniela_participaciones')
-        .select(`
-          *,
-          jugador:quiniela_jugadores(nombre, email, apodo),
-          quiniela:quiniela_extra(nombre)
-        `)
+        .select('id, user_id, pagado, publicado, quiniela_extra_id')
         .eq('jornada', jornada)
         .eq('publicado', true);
+      console.log('Participaciones jornada:', partcData, errorPart);
 
       if (!partcData?.length) { setLoading(false); return; }
+
+      const userIds = [...new Set(partcData.map((p: { user_id: string }) => p.user_id))];
+      const { data: jugData } = await supabase
+        .from('quiniela_jugadores')
+        .select('id, nombre, email, apodo')
+        .in('id', userIds);
+
+      const quinielaIds = [...new Set(
+        partcData
+          .map((p: { quiniela_extra_id: string | null }) => p.quiniela_extra_id)
+          .filter(Boolean) as string[]
+      )];
+      const { data: quinielasData } = quinielaIds.length
+        ? await supabase.from('quiniela_extra').select('id, nombre').in('id', quinielaIds)
+        : { data: [] };
 
       const partidoIds = listaPartidos.map(p => p.id);
       const predsByKey: Record<string, Record<string, Prediccion>> = {};
       if (partidoIds.length) {
-        const { data: predsData } = await supabase
+        const { data: predsData, error: errorPred } = await supabase
           .from('quiniela_predicciones')
           .select('*')
           .in('partido_id', partidoIds);
+        console.log('Predicciones:', predsData, errorPred);
         (predsData as Prediccion[] ?? []).forEach(pred => {
           const key = `${pred.user_id}__${pred.quiniela_extra_id ?? ''}`;
           if (!predsByKey[key]) predsByKey[key] = {};
@@ -88,14 +101,18 @@ export default function JornadaPage() {
         });
       }
 
-      const lista: ParticipanteVista[] = (partcData as any[]).map(p => {
+      const lista: ParticipanteVista[] = partcData.map((p: {
+        user_id: string; pagado: boolean; quiniela_extra_id: string | null;
+      }) => {
         const key = `${p.user_id}__${p.quiniela_extra_id ?? ''}`;
         return {
           key,
           user_id:           p.user_id,
           quiniela_extra_id: p.quiniela_extra_id ?? null,
-          jugador:           p.jugador ?? null,
-          quiniela:          p.quiniela ?? null,
+          jugador:           (jugData ?? []).find((j: { id: string }) => j.id === p.user_id) ?? null,
+          quiniela:          p.quiniela_extra_id
+            ? ((quinielasData ?? []) as { id: string; nombre: string }[]).find(q => q.id === p.quiniela_extra_id) ?? null
+            : null,
           pagado:            p.pagado ?? false,
           predicciones:      predsByKey[key] ?? {},
         };

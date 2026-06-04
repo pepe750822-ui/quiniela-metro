@@ -149,22 +149,42 @@ export default function RankingPage() {
     const j = Number(jornadaSeleccionada);
 
     // ── Participaciones ──────────────────────────────────
-    const { data: participaciones } = await supabase
+    const { data: parts, error: errorPart } = await supabase
       .from('quiniela_participaciones')
-      .select(`
-        id, user_id, jornada, pagado,
-        jugador:quiniela_jugadores(nombre, email, apodo),
-        quiniela:quiniela_extra(nombre)
-      `)
+      .select('id, user_id, jornada, pagado, publicado, quiniela_extra_id')
       .eq('jornada', j)
       .order('created_at', { ascending: true });
+    console.log('Participantes query result:', parts, errorPart);
 
-    const participantesConNombre: ParticipanteItem[] = ((participaciones ?? []) as any[]).map(p => ({
+    const userIds = parts?.map((p: { user_id: string }) => p.user_id) ?? [];
+    const { data: jugadores, error: errorJug } = userIds.length
+      ? await supabase
+          .from('quiniela_jugadores')
+          .select('id, nombre, email, apodo')
+          .in('id', userIds)
+      : { data: [], error: null };
+    console.log('Jugadores query result:', jugadores, errorJug);
+
+    const quinielaIds = (parts ?? [])
+      .map((p: { quiniela_extra_id: string | null }) => p.quiniela_extra_id)
+      .filter(Boolean) as string[];
+    const { data: quinielasExtra } = quinielaIds.length
+      ? await supabase
+          .from('quiniela_extra')
+          .select('id, nombre')
+          .in('id', [...new Set(quinielaIds)])
+      : { data: [] };
+
+    const participantesConNombre: ParticipanteItem[] = (parts ?? []).map((p: {
+      id: string; user_id: string; pagado: boolean; quiniela_extra_id: string | null;
+    }) => ({
       id:             p.id,
       user_id:        p.user_id,
       pagado:         p.pagado,
-      jugador:        p.jugador ?? null,
-      quinielaNombre: (p.quiniela as { nombre: string } | null)?.nombre ?? null,
+      jugador:        (jugadores ?? []).find((j: { id: string }) => j.id === p.user_id) ?? null,
+      quinielaNombre: p.quiniela_extra_id
+        ? ((quinielasExtra ?? []) as { id: string; nombre: string }[]).find(q => q.id === p.quiniela_extra_id)?.nombre ?? null
+        : null,
     }));
     setParticipantesJornada(participantesConNombre);
 
