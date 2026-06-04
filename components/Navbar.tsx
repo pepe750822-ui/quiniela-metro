@@ -6,10 +6,11 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 
 const links = [
-  { href: '/',             label: 'Ranking',      emoji: '🏆' },
-  { href: '/predicciones', label: 'Predicciones', emoji: '⚽' },
-  { href: '/calendario',   label: 'Calendario',   emoji: '📅' },
-  { href: '/perfil',       label: 'Perfil',       emoji: '👤' },
+  { href: '/',               label: 'Ranking',      emoji: '🏆' },
+  { href: '/predicciones',   label: 'Predicciones', emoji: '⚽' },
+  { href: '/calendario',     label: 'Calendario',   emoji: '📅' },
+  { href: '/perfil',         label: 'Perfil',       emoji: '👤' },
+  { href: '/instrucciones',  label: 'Guía',         emoji: '📖' },
 ];
 
 export default function Navbar() {

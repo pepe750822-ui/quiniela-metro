@@ -38,15 +38,22 @@ export async function GET(request: Request) {
         .from('quiniela_jugadores')
         .upsert({
           id: data.user.id,
-          nombre: data.user.user_metadata?.full_name || 
+          nombre: data.user.user_metadata?.full_name ||
                   data.user.email?.split('@')[0] || 'Jugador',
           email: data.user.email!,
           rol: 'jugador',
           last_seen: new Date().toISOString()
-        }, { 
+        }, {
           onConflict: 'id',
           ignoreDuplicates: false
         })
+
+      const tiempoCreacion = new Date(data.user.created_at).getTime();
+      const esNuevo = (Date.now() - tiempoCreacion) < 10000;
+
+      return NextResponse.redirect(
+        new URL(esNuevo ? '/instrucciones' : '/', requestUrl.origin)
+      )
     }
   }
 
