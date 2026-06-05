@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
+import { supabase } from '@/lib/supabase';
 
 const LandingCanvas = dynamic(
   () => import('@/components/LandingCanvas'),
@@ -11,6 +12,11 @@ const LandingCanvas = dynamic(
 
 export default function LandingPage() {
   const [timeLeft, setTimeLeft] = useState({ dias: 0, horas: 0, mins: 0, segs: 0 });
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+  }, []);
 
   useEffect(() => {
     const target = new Date('2026-06-11T13:00:00-06:00');
@@ -89,14 +95,25 @@ export default function LandingPage() {
 
         {/* CTAs */}
         <div className="flex flex-col gap-3 w-full max-w-xs">
-          <Link href="/login" className="block w-full">
-            <button
-              className="w-full text-white py-4 rounded-xl font-bold text-lg hover:opacity-90 active:scale-95 transition-all"
-              style={{ background: '#ea580c', fontFamily: 'var(--font-rajdhani)', boxShadow: '0 0 30px rgba(234,88,12,0.3)' }}
-            >
-              Entrar a jugar ⚽
-            </button>
-          </Link>
+          {user ? (
+            <Link href="/dashboard" className="block w-full">
+              <button
+                className="w-full text-white py-4 rounded-xl font-bold text-lg hover:opacity-90 active:scale-95 transition-all"
+                style={{ background: '#ea580c', fontFamily: 'var(--font-rajdhani)', boxShadow: '0 0 30px rgba(234,88,12,0.3)' }}
+              >
+                Ir a mi quiniela 🏆
+              </button>
+            </Link>
+          ) : (
+            <Link href="/login" className="block w-full">
+              <button
+                className="w-full text-white py-4 rounded-xl font-bold text-lg hover:opacity-90 active:scale-95 transition-all"
+                style={{ background: '#ea580c', fontFamily: 'var(--font-rajdhani)', boxShadow: '0 0 30px rgba(234,88,12,0.3)' }}
+              >
+                Entrar a jugar ⚽
+              </button>
+            </Link>
+          )}
           <Link href="/instrucciones" className="block w-full">
             <button
               className="w-full py-4 rounded-xl font-bold text-lg transition-all"
