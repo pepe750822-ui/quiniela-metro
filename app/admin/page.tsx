@@ -70,6 +70,18 @@ export default function AdminPage() {
   const [actualizando, setActualizando] = useState(false);
   const [apodoTemp, setApodoTemp]         = useState('');
 
+  // Acordeones
+  const [seccionesAbiertas, setSeccionesAbiertas] = useState({
+    pago: true,
+    pozos: false,
+    apodos: false,
+    usuarios: false,
+    resultados: false,
+  });
+  const toggleSeccion = (seccion: keyof typeof seccionesAbiertas) => {
+    setSeccionesAbiertas(prev => ({ ...prev, [seccion]: !prev[seccion] }));
+  };
+
   // ── Loaders ──────────────────────────────────────────
 
   const cargarPartidos = async () => {
@@ -427,75 +439,88 @@ export default function AdminPage() {
       </div>
 
       {/* ── REGISTRAR PAGO ── */}
-      <section className="space-y-4">
-        <h2 style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.75rem', color: 'var(--accent-gold)', letterSpacing: '0.05em' }}>
-          💰 REGISTRAR PAGO
-        </h2>
-        <div className="space-y-3 rounded-2xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+      <section className="space-y-1">
+        <button
+          onClick={() => toggleSeccion('pago')}
+          className="w-full flex items-center justify-between px-4 py-4 rounded-xl hover:border-orange-500/30 transition-all"
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: 'var(--accent-gold)' }}>
+            💰 REGISTRAR PAGO
+          </span>
+          <span style={{ color: '#64748b' }}>{seccionesAbiertas.pago ? '▲' : '▼'}</span>
+        </button>
+        {seccionesAbiertas.pago && (
+          <div className="space-y-3 rounded-2xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
 
-          {/* Selector jugador */}
-          <div>
-            <label className="text-xs uppercase tracking-widest font-semibold block mb-1.5" style={{ color: 'var(--text-secondary)' }}>
-              Jugador
-            </label>
-            <select
-              id="pago-jugador"
-              value={pagoJugadorId}
-              onChange={e => setPagoJugadorId(e.target.value)}
-              className="w-full rounded-xl px-3 py-2.5 text-sm outline-none"
-              style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: pagoJugadorId ? 'var(--text-primary)' : 'var(--text-secondary)', fontFamily: 'var(--font-rajdhani)' }}
-            >
-              <option value="">Seleccionar jugador...</option>
-              {jugadores.map(j => (
-                <option key={j.id} value={j.id}>
-                  {mostrarNombre(j)} — {emailCorto(j.email)}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Selector jornada */}
-          <div>
-            <label className="text-xs uppercase tracking-widest font-semibold block mb-1.5" style={{ color: 'var(--text-secondary)' }}>
-              Jornada
-            </label>
-            <div className="flex gap-2">
-              {[1, 2, 3].map(j => (
-                <button
-                  key={j}
-                  onClick={() => setPagoJornada(j)}
-                  className="flex-1 py-2 rounded-xl text-sm font-bold transition-all active:scale-95"
-                  style={{
-                    background: pagoJornada === j ? '#ea580c' : 'var(--bg-card-hover)',
-                    color: pagoJornada === j ? '#fff' : 'var(--text-secondary)',
-                    border: `1px solid ${pagoJornada === j ? '#ea580c' : 'var(--border)'}`,
-                    fontFamily: 'var(--font-rajdhani)',
-                  }}
-                >
-                  J{j}
-                </button>
-              ))}
+            {/* Selector jugador */}
+            <div>
+              <label className="text-xs uppercase tracking-widest font-semibold block mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                Jugador
+              </label>
+              <select
+                id="pago-jugador"
+                value={pagoJugadorId}
+                onChange={e => setPagoJugadorId(e.target.value)}
+                className="w-full rounded-xl px-3 py-2.5 text-sm outline-none"
+                style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: pagoJugadorId ? 'var(--text-primary)' : 'var(--text-secondary)', fontFamily: 'var(--font-rajdhani)' }}
+              >
+                <option value="">Seleccionar jugador...</option>
+                {jugadores.map(j => (
+                  <option key={j.id} value={j.id}>
+                    {mostrarNombre(j)} — {emailCorto(j.email)}
+                  </option>
+                ))}
+              </select>
             </div>
-          </div>
 
-          <button
-            onClick={registrarPago}
-            disabled={!pagoJugadorId || registrando}
-            className="w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-40"
-            style={{ background: '#10b981', color: '#000', fontFamily: 'var(--font-rajdhani)' }}
-          >
-            {registrando ? '…' : '✅ Confirmar pago $50 MXN'}
-          </button>
-        </div>
+            {/* Selector jornada */}
+            <div>
+              <label className="text-xs uppercase tracking-widest font-semibold block mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                Jornada
+              </label>
+              <div className="flex gap-2">
+                {[1, 2, 3].map(j => (
+                  <button
+                    key={j}
+                    onClick={() => setPagoJornada(j)}
+                    className="flex-1 py-2 rounded-xl text-sm font-bold transition-all active:scale-95"
+                    style={{
+                      background: pagoJornada === j ? '#ea580c' : 'var(--bg-card-hover)',
+                      color: pagoJornada === j ? '#fff' : 'var(--text-secondary)',
+                      border: `1px solid ${pagoJornada === j ? '#ea580c' : 'var(--border)'}`,
+                      fontFamily: 'var(--font-rajdhani)',
+                    }}
+                  >
+                    J{j}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={registrarPago}
+              disabled={!pagoJugadorId || registrando}
+              className="w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-40"
+              style={{ background: '#10b981', color: '#000', fontFamily: 'var(--font-rajdhani)' }}
+            >
+              {registrando ? '…' : '✅ Confirmar pago $50 MXN'}
+            </button>
+          </div>
+        )}
       </section>
 
       {/* ── POZOS ── */}
-      <section className="space-y-4">
-        <h2 style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.75rem', color: 'var(--accent-gold)', letterSpacing: '0.05em' }}>
-          🏆 POZOS POR JORNADA
-        </h2>
-
-        {/* Cards de pozos */}
+      <section className="space-y-1">
+        <button
+          onClick={() => toggleSeccion('pozos')}
+          className="w-full flex items-center justify-between px-4 py-4 rounded-xl hover:border-orange-500/30 transition-all"
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: 'var(--accent-gold)' }}>
+            🏆 POZOS — ${pozos.reduce((s, p) => s + (p.total_mxn ?? 0), 0)} MXN · {pozos.reduce((s, p) => s + (p.participantes ?? 0), 0)} participantes
+          </span>
+          <span style={{ color: '#64748b' }}>{seccionesAbiertas.pozos ? '▲' : '▼'}</span>
+        </button>
+        {seccionesAbiertas.pozos && (
         <div className="space-y-3">
           {pozos.map(pozo => {
             const pendientes = participaciones.filter(p => p.jornada === pozo.jornada && !p.pagado);
@@ -629,13 +654,21 @@ export default function AdminPage() {
             );
           })}
         </div>
+        )}
       </section>
 
       {/* ── APODOS ── */}
-      <section className="space-y-4">
-        <h2 style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.75rem', color: 'var(--accent-gold)', letterSpacing: '0.05em' }}>
-          👤 APODOS
-        </h2>
+      <section className="space-y-1">
+        <button
+          onClick={() => toggleSeccion('apodos')}
+          className="w-full flex items-center justify-between px-4 py-4 rounded-xl hover:border-orange-500/30 transition-all"
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: 'var(--accent-gold)' }}>
+            👤 APODOS — {jugadores.length} jugadores
+          </span>
+          <span style={{ color: '#64748b' }}>{seccionesAbiertas.apodos ? '▲' : '▼'}</span>
+        </button>
+        {seccionesAbiertas.apodos && (
         <div className="space-y-3">
           {jugadores.map(jugador => (
             <div key={jugador.id}
@@ -707,13 +740,21 @@ export default function AdminPage() {
             </div>
           ))}
         </div>
+        )}
       </section>
 
       {/* ── USUARIOS ── */}
-      <section className="space-y-4">
-        <h2 style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.75rem', color: 'var(--accent-gold)', letterSpacing: '0.05em' }}>
-          👥 USUARIOS ({jugadores.length})
-        </h2>
+      <section className="space-y-1">
+        <button
+          onClick={() => toggleSeccion('usuarios')}
+          className="w-full flex items-center justify-between px-4 py-4 rounded-xl hover:border-orange-500/30 transition-all"
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: 'var(--accent-gold)' }}>
+            👥 USUARIOS — {jugadores.length} registrados
+          </span>
+          <span style={{ color: '#64748b' }}>{seccionesAbiertas.usuarios ? '▲' : '▼'}</span>
+        </button>
+        {seccionesAbiertas.usuarios && (
         <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
           {[...jugadores]
             .sort((a, b) => {
@@ -770,13 +811,21 @@ export default function AdminPage() {
               </div>
             ))}
         </div>
+        )}
       </section>
 
       {/* ── RESULTADOS ── */}
-      <section className="space-y-4">
-        <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.75rem', color: 'var(--accent-gold)', letterSpacing: '0.05em' }}>
-          🛠️ RESULTADOS
-        </h1>
+      <section className="space-y-1">
+        <button
+          onClick={() => toggleSeccion('resultados')}
+          className="w-full flex items-center justify-between px-4 py-4 rounded-xl hover:border-orange-500/30 transition-all"
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: 'var(--accent-gold)' }}>
+            🛠️ RESULTADOS — {partidos.length} partidos
+          </span>
+          <span style={{ color: '#64748b' }}>{seccionesAbiertas.resultados ? '▲' : '▼'}</span>
+        </button>
+        {seccionesAbiertas.resultados && (
         <div className="space-y-3">
           {partidos.map(partido => {
             const res = resultados[partido.id];
@@ -842,6 +891,7 @@ export default function AdminPage() {
             );
           })}
         </div>
+        )}
       </section>
     </main>
   );
