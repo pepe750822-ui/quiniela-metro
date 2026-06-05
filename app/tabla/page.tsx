@@ -247,7 +247,7 @@ export default function TablaPage() {
                       const pts = pred?.puntos_ganados ?? null;
                       return (
                         <td key={partido.id}
-                          className="px-2 py-2 text-center"
+                          className="px-1 py-2 text-center"
                           style={{ borderLeft: '1px solid #1e1e2e' }}>
                           {pts !== null ? (
                             <div className="font-bold text-sm" style={{ color: ptsColor(pts) }}>
@@ -257,7 +257,7 @@ export default function TablaPage() {
                             <div className="text-sm" style={{ color: '#334155' }}>–</div>
                           )}
                           {pred && (
-                            <div className="text-xs" style={{ color: '#475569' }}>
+                            <div className="text-xs" style={{ color: '#64748b' }}>
                               {pred.goles_local_pred}-{pred.goles_visitante_pred}
                             </div>
                           )}
@@ -266,9 +266,15 @@ export default function TablaPage() {
                     }
                     return (
                       <td key={partido.id}
-                        className="px-2 py-2 text-center text-xs"
-                        style={{ borderLeft: '1px solid #1e1e2e', color: '#64748b' }}>
-                        {pred ? `${pred.goles_local_pred}-${pred.goles_visitante_pred}` : '–'}
+                        className="px-1 py-2 text-center"
+                        style={{ borderLeft: '1px solid #1e1e2e' }}>
+                        {pred ? (
+                          <div className="text-sm font-medium" style={{ color: '#e2e8f0' }}>
+                            {pred.goles_local_pred}-{pred.goles_visitante_pred}
+                          </div>
+                        ) : (
+                          <span style={{ color: '#334155', fontSize: '0.875rem' }}>–</span>
+                        )}
                       </td>
                     );
                   })}
