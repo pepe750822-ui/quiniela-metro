@@ -14,13 +14,12 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
-      className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] transition-all"
+      className="flex items-center justify-center w-9 h-9 rounded-full transition-all"
       style={{
-        background: 'rgba(255,255,255,0.05)',
-        border: '1px solid rgba(255,255,255,0.08)',
-        color: '#64748b',
+        background: 'var(--bg-card)',
+        border: '1px solid var(--border-color)',
       }}
-      title={isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+      title={isDark ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'}
     >
       {isDark ? '☀️' : '🌙'}
     </button>

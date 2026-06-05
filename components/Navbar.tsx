@@ -61,6 +61,10 @@ export default function Navbar() {
             </>
           )}
         </div>
+      </div>
+
+      {/* ThemeToggle flotante — esquina superior derecha */}
+      <div className="absolute right-3" style={{ bottom: 'calc(100% + 8px)' }}>
         <ThemeToggle />
       </div>
 
