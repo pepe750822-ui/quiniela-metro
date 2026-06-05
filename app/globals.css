@@ -70,79 +70,111 @@ body {
 @media print {
   @page {
     size: portrait !important;
-    margin: 8mm !important;
+    margin: 10mm !important;
   }
 
-  body, html {
+  /* Fondo blanco en TODO */
+  *, *::before, *::after {
     background: white !important;
     color: black !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
-  nav, button, footer, .no-print,
-  [class*="navbar"], [class*="Navbar"] {
+  html, body {
+    background: white !important;
+    color: black !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Ocultar elementos de navegación */
+  nav, button, footer, header,
+  .no-print, [class*="Navbar"],
+  [class*="navbar"], [class*="fixed"],
+  [class*="sticky"] {
     display: none !important;
   }
 
-  h1 {
-    color: #ea580c !important;
-    font-size: 18px !important;
-    font-weight: 900 !important;
-    margin-bottom: 4px !important;
-  }
-
+  /* Mostrar toda la tabla sin cortes */
   table {
     width: 100% !important;
-    font-size: 7px !important;
     border-collapse: collapse !important;
-  }
-
-  th {
-    background: #1a1a1a !important;
-    color: white !important;
-    border: 0.5px solid #444 !important;
-    padding: 3px 2px !important;
-    text-align: center !important;
     font-size: 7px !important;
+    page-break-inside: auto !important;
   }
 
-  td:first-child {
-    background: #f8f8f8 !important;
+  tr {
+    page-break-inside: avoid !important;
+    page-break-after: auto !important;
+  }
+
+  thead {
+    display: table-header-group !important;
+  }
+
+  /* Encabezados de columna */
+  th {
+    background: #333 !important;
+    color: white !important;
+    border: 0.5px solid #666 !important;
+    padding: 3px 2px !important;
+    font-size: 6px !important;
+    text-align: center !important;
+  }
+
+  /* Primera columna jugador */
+  td:first-child, th:first-child {
+    background: #f0f0f0 !important;
     color: black !important;
     font-weight: bold !important;
     font-size: 8px !important;
-    border: 0.5px solid #ccc !important;
-    padding: 3px 4px !important;
     text-align: left !important;
+    padding: 3px 4px !important;
+    width: 80px !important;
+    min-width: 80px !important;
   }
 
+  /* Celdas normales */
   td {
-    border: 0.5px solid #ddd !important;
+    background: white !important;
+    color: black !important;
+    border: 0.5px solid #ccc !important;
     padding: 2px !important;
     text-align: center !important;
     font-size: 7px !important;
-    color: black !important;
+  }
+
+  /* Columna PTS */
+  td:last-child {
+    background: #fff3e0 !important;
+    color: #e65100 !important;
+    font-weight: bold !important;
+    font-size: 9px !important;
+  }
+
+  /* Título */
+  h1 {
+    color: #e65100 !important;
+    font-size: 16px !important;
+    margin-bottom: 4px !important;
     background: white !important;
   }
 
-  .pts-exacto   { color: #16a34a !important; font-weight: bold !important; }
-  .pts-resultado { color: #ea580c !important; }
-  .pts-fallo    { color: #dc2626 !important; }
-
-  td:last-child {
-    background: #fff7ed !important;
-    color: #ea580c !important;
-    font-weight: bold !important;
-    font-size: 10px !important;
-    border: 0.5px solid #fed7aa !important;
-  }
-
+  /* Leyenda */
   .leyenda {
     font-size: 8px !important;
-    margin-top: 6px !important;
     color: #555 !important;
+    margin-top: 6px !important;
+    background: white !important;
   }
 
-  * { overflow: visible !important; }
+  /* Quitar overflow hidden */
+  div, section, main, article {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+  }
 }
