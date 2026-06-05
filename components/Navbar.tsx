@@ -5,8 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 
-const links = [
-  { href: '/',               label: 'Ranking',      emoji: '🏆' },
+const publicLinks = [
   { href: '/predicciones',   label: 'Predicciones', emoji: '⚽' },
   { href: '/tabla',          label: 'Tabla',        emoji: '📊' },
   { href: '/calendario',     label: 'Calendario',   emoji: '📅' },
@@ -20,6 +19,7 @@ export default function Navbar() {
   const [esAdmin,     setEsAdmin]     = useState(false);
   const [nombreCorto, setNombreCorto] = useState('');
   const [emailCorto,  setEmailCorto]  = useState('');
+  const [loggedIn,    setLoggedIn]    = useState(false);
 
   const cerrarSesion = async () => {
     await supabase.auth.signOut();
@@ -29,6 +29,7 @@ export default function Navbar() {
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) return;
+      setLoggedIn(true);
       const emailPrefijo = data.user.email?.split('@')[0] ?? '';
       setEmailCorto(emailPrefijo);
       const { data: jugador } = await supabase
@@ -64,8 +65,11 @@ export default function Navbar() {
 
       {/* Links */}
       <div className="flex" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-      {links.map(({ href, label, emoji }) => {
-        const active = pathname === href;
+      {[
+        { href: loggedIn ? '/dashboard' : '/', label: 'Ranking', emoji: '🏆' },
+        ...publicLinks,
+      ].map(({ href, label, emoji }) => {
+        const active = pathname === href || (href === '/dashboard' && pathname === '/') || (href === '/' && pathname === '/dashboard');
         return (
           <Link key={href} href={href}
             className="flex-1 flex flex-col items-center justify-center py-3 gap-0.5 transition-all min-h-[48px]"
