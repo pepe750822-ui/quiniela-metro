@@ -743,6 +743,25 @@ export default function AdminPage() {
                     {jugador.apodo && (
                       <p className="text-xs" style={{ color: '#ea580c' }}>🏷️ {jugador.apodo}</p>
                     )}
+                    {(() => {
+                      const userPartics = participaciones.filter(p => p.user_id === jugador.id);
+                      return userPartics.length > 0 ? (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {userPartics.map((p, i) => (
+                            <span key={i}
+                              className={`text-xs px-2 py-0.5 rounded-full border ${p.pagado
+                                ? 'bg-emerald-400/10 border-emerald-400/20 text-emerald-400'
+                                : 'bg-orange-400/10 border-orange-400/20 text-orange-400'
+                              }`}>
+                              {p.pagado ? '✅' : '⏳'} J{p.jornada}
+                              {p.quinielaNombre && ` · ${p.quinielaNombre}`}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-xs mt-1" style={{ color: '#475569' }}>Sin quinielas registradas</p>
+                      );
+                    })()}
                   </div>
                 </div>
                 <p className="text-xs shrink-0 ml-3" style={{ color: '#475569' }}>
