@@ -208,6 +208,79 @@ export default function TablaPage() {
     toast.success('✅ CSV descargado con respaldo completo');
   };
 
+  const partidosMitad1 = partidos.slice(0, 12);
+  const partidosMitad2 = partidos.slice(12);
+
+  const calcTotal = (part: any) =>
+    predicciones
+      .filter((p: any) =>
+        p.user_id === part.user_id &&
+        (p.quiniela_extra_id === part.quiniela_extra_id ||
+          (!p.quiniela_extra_id && !part.quiniela_extra_id)) &&
+        partidos.find((partido: any) => partido.id === p.partido_id && partido.estado === 'finalizado')
+      )
+      .reduce((sum: number, p: any) => sum + (p.puntos_ganados || 0), 0);
+
+  const renderFilasPrint = (mitad: any[]) =>
+    participaciones.map((part: any) => {
+      const jugador = jugadores.find((j: any) => j.id === part.user_id) as any;
+      const nombre = jugador?.apodo || jugador?.nombre?.split(' ')[0] || 'Jugador';
+      const quinielaNombre = part.quiniela?.nombre;
+      const totalPuntos = calcTotal(part);
+      return (
+        <tr key={part.id} style={{ borderBottom: '0.5px solid #ddd' }}>
+          <td style={{ background: '#f5f5f5', padding: '3px 4px', fontWeight: 'bold', fontSize: '8px' }}>
+            {nombre}
+            {quinielaNombre && <div style={{ color: '#c2410c', fontSize: '7px' }}>{quinielaNombre}</div>}
+          </td>
+          {mitad.map((partido: any) => {
+            const pred = predicciones.find((p: any) =>
+              p.user_id === part.user_id && p.partido_id === partido.id &&
+              (p.quiniela_extra_id === part.quiniela_extra_id || (!p.quiniela_extra_id && !part.quiniela_extra_id))
+            );
+            const pts = pred?.puntos_ganados;
+            const color = pts === 3 ? '#16a34a' : pts === 1 ? '#ea580c' : pts === 0 ? '#dc2626' : '#666';
+            return (
+              <td key={partido.id} style={{ border: '0.5px solid #ddd', padding: '2px', textAlign: 'center' }}>
+                {pred ? (
+                  <>
+                    {partido.estado === 'finalizado' && (
+                      <div style={{ color, fontWeight: 'bold', fontSize: '8px' }}>{pts}pts</div>
+                    )}
+                    <div style={{ color: '#555', fontSize: '7px' }}>
+                      {pred.goles_local_pred}/{pred.goles_visitante_pred}
+                    </div>
+                  </>
+                ) : (
+                  <span style={{ color: '#ccc' }}>–</span>
+                )}
+              </td>
+            );
+          })}
+          <td style={{ background: '#fff3e0', color: '#c2410c', fontWeight: 'bold', textAlign: 'center', fontSize: '10px' }}>
+            {totalPuntos}
+          </td>
+        </tr>
+      );
+    });
+
+  const renderHeadersPrint = (mitad: any[]) => (
+    <tr>
+      <th style={{ background: '#333', color: 'white', padding: '4px', textAlign: 'left', width: '80px' }}>Jugador</th>
+      {mitad.map((p: any) => (
+        <th key={p.id} style={{ background: '#333', color: 'white', padding: '2px', textAlign: 'center', fontSize: '7px', border: '0.5px solid #666' }}>
+          <div>{p.equipo_local.substring(0, 3).toUpperCase()}</div>
+          <div style={{ color: '#aaa', fontSize: '6px' }}>vs</div>
+          <div>{p.equipo_visitante.substring(0, 3).toUpperCase()}</div>
+          {p.estado === 'finalizado' && (
+            <div style={{ color: '#fb923c', fontWeight: 'bold' }}>{p.goles_local}-{p.goles_visitante}</div>
+          )}
+        </th>
+      ))}
+      <th style={{ background: '#c2410c', color: 'white', padding: '4px', textAlign: 'center', width: '28px' }}>PTS</th>
+    </tr>
+  );
+
   return (
     <div className="min-h-screen bg-base pb-24">
       <div className="px-4 pt-6 pb-4">
@@ -258,8 +331,8 @@ export default function TablaPage() {
         </div>
       </div>
 
-      {/* Tabla horizontal scrollable */}
-      <div className="overflow-x-auto px-2 print:overflow-visible">
+      {/* Tabla horizontal scrollable — oculta al imprimir */}
+      <div className="overflow-x-auto px-2 print:hidden">
         <table className="min-w-max print:min-w-0 print:w-full text-sm border-collapse">
           <thead>
             <tr style={{ borderBottom: '1px solid #1e1e2e' }}>
@@ -383,11 +456,42 @@ export default function TablaPage() {
       </div>
 
       {/* Leyenda */}
-      <div className="px-4 mt-4 flex flex-wrap gap-4 text-xs" style={{ color: '#475569' }}>
+      <div className="px-4 mt-4 flex flex-wrap gap-4 text-xs leyenda" style={{ color: '#475569' }}>
         <span style={{ color: '#34d399' }}>■ 3pts exacto</span>
         <span style={{ color: '#fb923c' }}>■ 1pt resultado</span>
         <span style={{ color: '#f87171' }}>■ 0pts fallo</span>
         <span style={{ color: '#64748b' }}>■ predicción pendiente</span>
+      </div>
+
+      {/* Tablas para impresión — ocultas en pantalla */}
+      <div className="hidden print:block">
+
+        {/* Primera hoja: partidos 1-12 */}
+        <div>
+          <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: '18px', color: '#e65100', marginBottom: '4px' }}>
+            📊 TABLA DE PUNTOS — J{jornada} (Partidos 1–{Math.min(12, partidos.length)})
+          </h1>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8px' }}>
+            <thead>{renderHeadersPrint(partidosMitad1)}</thead>
+            <tbody>{renderFilasPrint(partidosMitad1)}</tbody>
+          </table>
+        </div>
+
+        {/* Segunda hoja: partidos 13-24 */}
+        {partidosMitad2.length > 0 && (
+          <div style={{ pageBreakBefore: 'always' }}>
+            <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: '18px', color: '#e65100', marginBottom: '4px' }}>
+              📊 TABLA DE PUNTOS — J{jornada} (Partidos 13–{partidos.length})
+            </h1>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8px' }}>
+              <thead>{renderHeadersPrint(partidosMitad2)}</thead>
+              <tbody>{renderFilasPrint(partidosMitad2)}</tbody>
+            </table>
+            <div style={{ marginTop: '8px', fontSize: '8px', color: '#555' }}>
+              🟢 3pts = exacto &nbsp; 🟠 1pt = resultado &nbsp; 🔴 0pts = fallo
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
