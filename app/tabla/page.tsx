@@ -135,7 +135,7 @@ export default function TablaPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] pb-24">
+    <div className="min-h-screen bg-base pb-24">
       <div className="px-4 pt-6 pb-4">
         <div className="flex items-center gap-3">
           <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: '2rem', color: '#ea580c', letterSpacing: '0.05em' }}>
@@ -144,7 +144,7 @@ export default function TablaPage() {
           <div className="ml-auto flex gap-2">
             <button
               onClick={descargarCSV}
-              className="flex items-center gap-2 px-4 py-1.5 bg-[#12121a] border border-[#1e1e2e] rounded-lg text-slate-400 text-sm hover:border-orange-500/40 hover:text-orange-400 transition-all"
+              className="flex items-center gap-2 px-4 py-1.5 bg-surface border border-theme rounded-lg text-slate-400 text-sm hover:border-orange-500/40 hover:text-orange-400 transition-all"
               style={{ fontFamily: 'var(--font-rajdhani)', fontWeight: 'bold' }}
             >
               ⬇️ CSV

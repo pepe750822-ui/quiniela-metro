@@ -36,7 +36,7 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="relative min-h-screen bg-[#0a0a0a] overflow-hidden flex flex-col">
+    <div className="relative min-h-screen bg-base overflow-hidden flex flex-col">
 
       {/* Canvas Three.js de fondo */}
       <div className="absolute inset-0 z-0" style={{ opacity: 0.7 }}>

@@ -372,7 +372,7 @@ export default function PrediccionesPage() {
                 <span>Progreso Jornada {jornada}</span>
                 <span>{predichasEnJornada}/{totalEnJornada}</span>
               </div>
-              <div className="w-full bg-[#1e1e2e] rounded-full h-2">
+              <div className="w-full bg-themedcard rounded-full h-2">
                 <div
                   className="h-2 rounded-full transition-all duration-500"
                   style={{

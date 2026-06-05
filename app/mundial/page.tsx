@@ -33,7 +33,7 @@ export default function MundialPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] pb-24">
+    <div className="min-h-screen bg-base pb-24">
 
       <div className="px-4 pt-6 pb-2">
         <h1 className="font-bebas text-3xl text-orange-500">
@@ -66,7 +66,7 @@ export default function MundialPage() {
       <div className="px-2 space-y-4">
 
         {/* Calendario/Resultados — re-monta al cambiar temporada */}
-        <div key={season} className="bg-[#12121a] rounded-xl overflow-hidden"
+        <div key={season} className="bg-surface rounded-xl overflow-hidden"
           style={{ minHeight: '400px' }}>
           <div
             dangerouslySetInnerHTML={{
@@ -97,12 +97,12 @@ export default function MundialPage() {
 
         {/* Detalles partido */}
         <div id="game-content"
-          className="bg-[#12121a] rounded-xl overflow-hidden"
+          className="bg-surface rounded-xl overflow-hidden"
           style={{ minHeight: '300px' }}>
         </div>
 
         {/* Standings */}
-        <div className="bg-[#12121a] rounded-xl overflow-hidden"
+        <div className="bg-surface rounded-xl overflow-hidden"
           style={{ minHeight: '400px' }}>
           <div
             dangerouslySetInnerHTML={{

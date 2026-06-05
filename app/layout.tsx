@@ -37,8 +37,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
       <body
-        className={`${bebasNeue.variable} ${rajdhani.variable} min-h-screen pb-[calc(4rem+env(safe-area-inset-bottom))]`}
-        style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)', fontFamily: 'var(--font-rajdhani), sans-serif' }}
+        className={`${bebasNeue.variable} ${rajdhani.variable} bg-base min-h-screen pb-[calc(4rem+env(safe-area-inset-bottom))]`}
+        style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-rajdhani), sans-serif' }}
       >
         <Providers>
           <InstallBanner />

@@ -1,32 +1,49 @@
 @import "tailwindcss";
 
+/* ── Tema claro (defecto) ──────────────────────────── */
 :root {
-  --bg-primary: #0a0a0a;
-  --bg-secondary: #12121a;
-  --bg-card: #111111;
-  --bg-card-hover: #1a1a1a;
-  --accent-gold: #ea580c;
-  --accent-green: #10b981;
-  --accent-red: #ef4444;
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --border: #1e1e2e;
-  --nav-bg: rgba(10,10,15,0.95);
+  --bg-base:       #ffffff;
+  --bg-surface:    #f8fafc;
+  --bg-card:       #f1f5f9;
+  --text-primary:  #0f172a;
+  --text-secondary:#475569;
+  --text-muted:    #94a3b8;
+  --border-color:  #e2e8f0;
+  --nav-bg:        rgba(255,255,255,0.95);
+  /* Backward-compat aliases */
+  --bg-primary:    var(--bg-base);
+  --bg-secondary:  var(--bg-surface);
+  --border:        var(--border-color);
+  --accent-gold:   #ea580c;
+  --accent-green:  #10b981;
+  --accent-red:    #ef4444;
 }
 
-.light {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8fafc;
-  --bg-card: #f1f5f9;
-  --bg-card-hover: #e2e8f0;
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --border: #e2e8f0;
-  --nav-bg: rgba(255,255,255,0.95);
+/* ── Tema oscuro ───────────────────────────────────── */
+.dark {
+  --bg-base:       #0a0a0a;
+  --bg-surface:    #12121a;
+  --bg-card:       #1e1e2e;
+  --text-primary:  #ffffff;
+  --text-secondary:#94a3b8;
+  --text-muted:    #475569;
+  --border-color:  #1e1e2e;
+  --nav-bg:        rgba(10,10,15,0.95);
+}
+
+/* ── Utilidades de tema ────────────────────────────── */
+@layer utilities {
+  .bg-base    { background-color: var(--bg-base); }
+  .bg-surface { background-color: var(--bg-surface); }
+  .bg-themedcard { background-color: var(--bg-card); }
+  .border-theme { border-color: var(--border-color); }
+  .text-primary-theme  { color: var(--text-primary); }
+  .text-secondary-theme { color: var(--text-secondary); }
+  .text-muted-theme    { color: var(--text-muted); }
 }
 
 body {
-  background: var(--bg-primary);
+  background: var(--bg-base);
   color: var(--text-primary);
 }
 
