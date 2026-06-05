@@ -364,6 +364,48 @@ export default function PrediccionesPage() {
               onPredicir={setPartidoActivo}
             />
           ))}
+
+          {/* Progreso bottom */}
+          {totalEnJornada > 0 && (
+            <div className="mt-6 mb-2">
+              <div className="flex justify-between text-xs text-slate-500 mb-2">
+                <span>Progreso Jornada {jornada}</span>
+                <span>{predichasEnJornada}/{totalEnJornada}</span>
+              </div>
+              <div className="w-full bg-[#1e1e2e] rounded-full h-2">
+                <div
+                  className="h-2 rounded-full transition-all duration-500"
+                  style={{
+                    width: `${totalEnJornada > 0 ? (predichasEnJornada / totalEnJornada) * 100 : 0}%`,
+                    background: jornadaCompleta
+                      ? 'linear-gradient(90deg, #10b981, #34d399)'
+                      : 'linear-gradient(90deg, #ea580c, #f97316)',
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Botón publicar bottom */}
+          {jornadaCompleta && !publicado && (
+            <button
+              onClick={handlePublicar}
+              disabled={publicando}
+              className="w-full text-white py-4 rounded-xl font-bold text-lg hover:opacity-90 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed mt-2"
+              style={{ background: '#ea580c', fontFamily: 'var(--font-rajdhani)', boxShadow: '0 0 20px rgba(234,88,12,0.3)' }}
+            >
+              {publicando ? '⏳ Publicando...' : '📢 Publicar mi quiniela'}
+            </button>
+          )}
+
+          {jornadaCompleta && publicado && (
+            <div
+              className="w-full py-4 rounded-xl text-center font-bold text-lg mt-2"
+              style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#34d399', fontFamily: 'var(--font-rajdhani)' }}
+            >
+              ✅ Quiniela publicada
+            </div>
+          )}
         </div>
       )}
 
