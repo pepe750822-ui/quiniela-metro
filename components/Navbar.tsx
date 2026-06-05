@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 
@@ -15,6 +15,7 @@ const publicLinks = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router   = useRouter();
   const [esAdmin,     setEsAdmin]     = useState(false);
   const [nombreCorto, setNombreCorto] = useState('');
   const [emailCorto,  setEmailCorto]  = useState('');
@@ -81,21 +82,30 @@ export default function Navbar() {
         );
       })}
 
-      {/* Enlace admin — solo visible para rol=admin */}
+      {/* Admin: enlace + cerrar sesión — solo para rol=admin */}
       {esAdmin && (
-        <Link href="/admin"
-          className="flex flex-col items-center justify-center py-3 gap-0.5 px-4 min-h-[48px] transition-all"
-        >
-          <span className="text-xl leading-none" style={pathname === '/admin' ? {
-            filter: 'drop-shadow(0 0 8px rgba(234,88,12,0.8))',
-          } : {}}>
-            ⚙️
-          </span>
-          <span className="text-[10px] font-semibold uppercase tracking-widest"
-            style={{ color: pathname === '/admin' ? 'var(--accent-gold)' : '#64748b' }}>
-            Admin
-          </span>
-        </Link>
+        <>
+          <Link href="/admin"
+            className="flex flex-col items-center justify-center py-3 gap-0.5 px-4 min-h-[48px] transition-all"
+          >
+            <span className="text-xl leading-none" style={pathname === '/admin' ? {
+              filter: 'drop-shadow(0 0 8px rgba(234,88,12,0.8))',
+            } : {}}>
+              ⚙️
+            </span>
+            <span className="text-[10px] font-semibold uppercase tracking-widest"
+              style={{ color: pathname === '/admin' ? 'var(--accent-gold)' : '#64748b' }}>
+              Admin
+            </span>
+          </Link>
+          <button
+            onClick={async () => { await supabase.auth.signOut(); router.push('/login'); }}
+            className="flex flex-col items-center justify-center py-3 gap-0.5 px-4 min-h-[48px] transition-colors text-slate-500 hover:text-red-400"
+          >
+            <span className="text-lg leading-none">🔓</span>
+            <span className="text-[10px] font-semibold uppercase tracking-widest">Salir</span>
+          </button>
+        </>
       )}
 
       </div>
