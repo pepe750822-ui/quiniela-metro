@@ -177,4 +177,35 @@ body {
     height: auto !important;
     max-height: none !important;
   }
+
+  /* Contenedor de tabla sin overflow */
+  .overflow-x-auto {
+    overflow: visible !important;
+    width: 100% !important;
+  }
+
+  /* La tabla se adapta al ancho de la página */
+  table {
+    min-width: 0 !important;
+    width: 100% !important;
+    font-size: 6px !important;
+    table-layout: fixed !important;
+  }
+
+  /* Columna jugador fija */
+  th:first-child, td:first-child {
+    width: 70px !important;
+    max-width: 70px !important;
+  }
+
+  /* Columnas de partidos igual ancho */
+  th:not(:first-child):not(:last-child),
+  td:not(:first-child):not(:last-child) {
+    width: auto !important;
+  }
+
+  /* Columna PTS */
+  th:last-child, td:last-child {
+    width: 30px !important;
+  }
 }

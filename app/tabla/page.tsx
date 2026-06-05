@@ -259,8 +259,8 @@ export default function TablaPage() {
       </div>
 
       {/* Tabla horizontal scrollable */}
-      <div className="overflow-x-auto px-2">
-        <table className="min-w-max text-sm border-collapse">
+      <div className="overflow-x-auto px-2 print:overflow-visible">
+        <table className="min-w-max print:min-w-0 print:w-full text-sm border-collapse">
           <thead>
             <tr style={{ borderBottom: '1px solid #1e1e2e' }}>
               <th className="sticky left-0 z-10 text-left px-3 py-3 min-w-[130px]"
