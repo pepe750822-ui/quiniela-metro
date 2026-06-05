@@ -805,9 +805,18 @@ export default function AdminPage() {
                     })()}
                   </div>
                 </div>
-                <p className="text-xs shrink-0 ml-3" style={{ color: '#475569' }}>
-                  {jugador.last_seen ? timeAgo(jugador.last_seen) : 'Sin actividad'}
-                </p>
+                <div className="shrink-0 ml-3 text-right">
+                  {jugador.last_seen ? (
+                    <>
+                      <p className="text-xs" style={{ color: '#475569' }}>{timeAgo(jugador.last_seen)}</p>
+                      {jugador.ultima_pagina && (
+                        <p className="text-xs" style={{ color: '#64748b' }}>📍 {jugador.ultima_pagina}</p>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-xs" style={{ color: '#64748b' }}>Sin actividad reciente</p>
+                  )}
+                </div>
               </div>
             ))}
         </div>

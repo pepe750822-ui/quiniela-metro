@@ -4,6 +4,7 @@ import './globals.css';
 import Navbar from '@/components/Navbar';
 import InstallBanner from '@/components/InstallBanner';
 import Providers from '@/components/Providers';
+import UpdateLastSeen from '@/components/UpdateLastSeen';
 import { Toaster } from 'sonner';
 
 const bebasNeue = Bebas_Neue({
@@ -42,6 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       >
         <Providers>
           <InstallBanner />
+          <UpdateLastSeen />
           {children}
           <Navbar />
           <Toaster position="top-center" richColors />
