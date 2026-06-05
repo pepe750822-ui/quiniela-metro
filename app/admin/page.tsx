@@ -73,6 +73,10 @@ export default function AdminPage() {
   const [actualizando, setActualizando] = useState(false);
   const [apodoTemp, setApodoTemp]         = useState('');
 
+  // CSV respaldo
+  const [jornadaCSV, setJornadaCSV]   = useState<number>(1);
+  const [descargando, setDescargando] = useState(false);
+
   // Acordeones
   const [seccionesAbiertas, setSeccionesAbiertas] = useState({
     pago: true,
@@ -390,6 +394,99 @@ export default function AdminPage() {
     cargarPozos();
   };
 
+  const descargarCSV = async () => {
+    setDescargando(true);
+    try {
+      const ahora = new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' });
+
+      const { data: parts } = await supabase
+        .from('quiniela_partidos')
+        .select('id, jornada, equipo_local, equipo_visitante, goles_local, goles_visitante, estado, grupo, fecha_hora')
+        .eq('jornada', jornadaCSV)
+        .not('equipo_local', 'eq', 'A definir')
+        .order('fecha_hora');
+      const partsList = parts || [];
+
+      const { data: partics } = await supabase
+        .from('quiniela_participaciones')
+        .select('id, user_id, pagado, publicado, quiniela_extra_id')
+        .eq('jornada', jornadaCSV)
+        .eq('pagado', true);
+
+      const quinielaIds = [...new Set((partics || []).map((p: any) => p.quiniela_extra_id).filter(Boolean))] as string[];
+      const quinielasMap: Record<string, string> = {};
+      if (quinielaIds.length) {
+        const { data: qd } = await supabase.from('quiniela_extra').select('id, nombre').in('id', quinielaIds);
+        (qd || []).forEach((q: any) => { quinielasMap[q.id] = q.nombre; });
+      }
+      const particsList = (partics || []).map((p: any) => ({
+        ...p,
+        quiniela: p.quiniela_extra_id ? { nombre: quinielasMap[p.quiniela_extra_id] ?? null } : null,
+      }));
+
+      const userIds = [...new Set((partics || []).map((p: any) => p.user_id))];
+      const { data: jugs } = await supabase.from('quiniela_jugadores').select('id, nombre, apodo, email').in('id', userIds);
+      const jugsList = jugs || [];
+
+      const { data: preds } = await supabase
+        .from('quiniela_predicciones')
+        .select('user_id, partido_id, goles_local_pred, goles_visitante_pred, puntos_ganados, quiniela_extra_id')
+        .in('partido_id', partsList.map((p: any) => p.id));
+      const predsList = preds || [];
+
+      const metadataRow = [`"Quiniela Metro Mundial 2026"`, `"Jornada ${jornadaCSV}"`, `"Generado: ${ahora}"`, `"RESPALDO COMPLETO"`].join(',');
+      const headers = [
+        '"ID Participación"', '"User ID"', '"Jugador"', '"Apodo"', '"Quiniela"', '"Pagado"', '"Publicado"',
+        ...partsList.map((p: any) => `"${p.equipo_local.substring(0,3).toUpperCase()}vs${p.equipo_visitante.substring(0,3).toUpperCase()}"`),
+        '"TOTAL PTS"', '"EXACTOS"', '"Email"',
+      ].join(',');
+
+      const filas = particsList.map((part: any) => {
+        const jugador = jugsList.find((j: any) => j.id === part.user_id) as any;
+        const celdas = partsList.map((partido: any) => {
+          const pred = predsList.find((p: any) =>
+            p.user_id === part.user_id && p.partido_id === partido.id &&
+            (p.quiniela_extra_id === part.quiniela_extra_id || (!p.quiniela_extra_id && !part.quiniela_extra_id))
+          );
+          if (!pred) return '""';
+          return partido.estado === 'finalizado'
+            ? `"${pred.puntos_ganados}pts (${pred.goles_local_pred}/${pred.goles_visitante_pred})"`
+            : `"${pred.goles_local_pred}/${pred.goles_visitante_pred}"`;
+        });
+        const predsFinalizadas = predsList.filter((p: any) =>
+          p.user_id === part.user_id &&
+          (p.quiniela_extra_id === part.quiniela_extra_id || (!p.quiniela_extra_id && !part.quiniela_extra_id)) &&
+          partsList.find((partido: any) => partido.id === p.partido_id && partido.estado === 'finalizado')
+        );
+        const total = predsFinalizadas.reduce((s: number, p: any) => s + (p.puntos_ganados || 0), 0);
+        const exactos = predsFinalizadas.filter((p: any) => p.puntos_ganados === 3).length;
+        return [`"${part.id}"`, `"${part.user_id}"`, `"${jugador?.nombre || ''}"`, `"${jugador?.apodo || ''}"`,
+          `"${part.quiniela?.nombre || 'Principal'}"`, `"${part.pagado ? 'SI' : 'NO'}"`, `"${part.publicado ? 'SI' : 'NO'}"`,
+          ...celdas, `"${total}"`, `"${exactos}"`, `"${jugador?.email || ''}"`].join(',');
+      });
+
+      const headerPartidos = ['"ID Partido"','"Jornada"','"Grupo"','"Equipo Local"','"Equipo Visitante"','"Goles Local"','"Goles Visitante"','"Estado"','"Fecha CDMX"'].join(',');
+      const filasPartidos = partsList.map((p: any) => [
+        `"${p.id}"`, `"${p.jornada}"`, `"${p.grupo}"`, `"${p.equipo_local}"`, `"${p.equipo_visitante}"`,
+        `"${p.goles_local ?? ''}"`, `"${p.goles_visitante ?? ''}"`, `"${p.estado}"`,
+        `"${new Date(p.fecha_hora).toLocaleString('es-MX', { timeZone: 'America/Mexico_City', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}"`,
+      ].join(','));
+
+      const csvContent = [metadataRow, '', '"=== PREDICCIONES Y PUNTOS ==="', headers, ...filas, '', '"=== PARTIDOS Y RESULTADOS ==="', headerPartidos, ...filasPartidos, '', `"Descargado el ${ahora}"`].join('\n');
+      const blob = new Blob(['﻿' + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `quiniela-metro-jornada${jornadaCSV}-respaldo-${new Date().toISOString().split('T')[0]}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+      toast.success('✅ CSV descargado con respaldo completo');
+    } catch {
+      toast.error('Error al generar CSV');
+    }
+    setDescargando(false);
+  };
+
   const guardarReferencia = async (userId: string) => {
     const { error } = await supabase
       .from('quiniela_jugadores')
@@ -443,8 +540,32 @@ export default function AdminPage() {
     <main className="max-w-lg mx-auto px-4 pb-24 space-y-8"
       style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1.5rem)' }}>
 
-      {/* ── ACTUALIZAR RESULTADOS ── */}
-      <div className="flex justify-end">
+      {/* ── BARRA SUPERIOR ── */}
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        {/* CSV respaldo */}
+        <div className="flex items-center gap-2">
+          <div className="flex gap-1">
+            {[1, 2, 3].map(j => (
+              <button key={j} onClick={() => setJornadaCSV(j)}
+                className="px-2.5 py-1 rounded-lg text-xs font-bold transition-all"
+                style={{
+                  background: jornadaCSV === j ? '#1e3a5f' : 'var(--bg-card)',
+                  color: jornadaCSV === j ? '#60a5fa' : '#64748b',
+                  border: `1px solid ${jornadaCSV === j ? '#3b82f6' : 'var(--border)'}`,
+                }}>
+                J{j}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={descargarCSV}
+            disabled={descargando}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold text-xs transition-all active:scale-95 disabled:opacity-50"
+            style={{ background: 'var(--bg-card)', border: '1px solid #3b82f6', color: '#60a5fa', fontFamily: 'var(--font-rajdhani)' }}>
+            {descargando ? '⏳' : '⬇️'} Respaldo CSV
+          </button>
+        </div>
+        {/* Actualizar resultados */}
         <button
           onClick={actualizarResultados}
           disabled={actualizando}

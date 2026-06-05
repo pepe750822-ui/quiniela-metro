@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { Bandera } from '@/components/Bandera';
 
 export default function TablaPage() {
   const [jornada, setJornada]           = useState(1);
@@ -16,7 +17,7 @@ export default function TablaPage() {
   const cargarDatos = async () => {
     const { data: parts } = await supabase
       .from('quiniela_partidos')
-      .select('id, jornada, equipo_local, equipo_visitante, goles_local, goles_visitante, estado, grupo, fecha_hora')
+      .select('id, jornada, equipo_local, equipo_visitante, bandera_local, bandera_visitante, goles_local, goles_visitante, estado, grupo, fecha_hora')
       .eq('jornada', jornada)
       .not('equipo_local', 'eq', 'A definir')
       .order('fecha_hora');
@@ -70,6 +71,11 @@ export default function TablaPage() {
       (p.quiniela_extra_id === quinielaExtraId ||
         (!p.quiniela_extra_id && !quinielaExtraId))
     ) ?? null;
+
+  const iniciales = (userId: string) => {
+    const j = jugadores.find((j: any) => j.id === userId);
+    return (j?.apodo || j?.nombre || 'J').substring(0, 2).toUpperCase();
+  };
 
   const ptsColor = (pts: number) => {
     if (pts === 3) return '#34d399';
@@ -257,26 +263,36 @@ export default function TablaPage() {
         <table className="min-w-max text-sm border-collapse">
           <thead>
             <tr style={{ borderBottom: '1px solid #1e1e2e' }}>
-              <th className="sticky left-0 z-10 text-left px-3 py-2 min-w-[120px]"
-                style={{ background: '#0a0a0a', color: '#ea580c', fontFamily: 'var(--font-bebas)', fontSize: '1rem' }}>
-                Jugador
+              <th className="sticky left-0 z-10 text-left px-3 py-3 min-w-[130px]"
+                style={{ background: '#0a0a0a', borderBottom: '1px solid #1e1e2e' }}>
+                <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>Jugador</span>
               </th>
               {partidos.map(partido => (
                 <th key={partido.id}
-                  className="px-2 py-2 text-center min-w-[60px]"
-                  style={{ borderLeft: '1px solid #1e1e2e', color: '#64748b', fontFamily: 'var(--font-rajdhani)', fontSize: '0.75rem' }}>
-                  <div>{partido.equipo_local.substring(0, 3).toUpperCase()}</div>
-                  <div style={{ color: '#334155' }}>vs</div>
-                  <div>{partido.equipo_visitante.substring(0, 3).toUpperCase()}</div>
-                  {partido.estado === 'finalizado' && (
-                    <div style={{ color: '#ea580c', fontWeight: 'bold' }}>
+                  className="px-2 py-2 text-center min-w-[70px]"
+                  style={{ borderLeft: '1px solid #1e1e2e', borderBottom: '1px solid #1e1e2e' }}>
+                  <div className="flex items-center justify-center gap-1 mb-1">
+                    <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
+                    <span style={{ fontSize: '0.625rem', color: '#475569' }}>vs</span>
+                    <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
+                  </div>
+                  {partido.estado === 'finalizado' ? (
+                    <div className="rounded px-1 py-0.5 font-bold text-xs"
+                      style={{ background: 'rgba(234,88,12,0.2)', border: '1px solid rgba(234,88,12,0.3)', color: '#fb923c' }}>
                       {partido.goles_local}-{partido.goles_visitante}
                     </div>
+                  ) : partido.estado === 'en_curso' ? (
+                    <div className="rounded px-1 py-0.5 text-[10px] font-bold animate-pulse"
+                      style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>
+                      🔴 EN VIVO
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: '0.625rem', color: '#334155' }}>pendiente</div>
                   )}
                 </th>
               ))}
-              <th className="px-3 py-2 text-center min-w-[60px]"
-                style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', color: '#ea580c', fontFamily: 'var(--font-bebas)', fontSize: '1rem' }}>
+              <th className="px-3 py-2 text-center min-w-[55px]"
+                style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid #1e1e2e', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
                 PTS
               </th>
             </tr>
@@ -295,18 +311,21 @@ export default function TablaPage() {
                 .reduce((sum: number, p: any) => sum + (p.puntos_ganados || 0), 0);
 
               return (
-                <tr key={part.id} style={{ borderBottom: '1px solid #1e1e2e' }}>
-                  <td className="sticky left-0 z-10 px-3 py-2" style={{ background: '#0a0a0a' }}>
-                    <div className="font-semibold text-sm text-white" style={{ fontFamily: 'var(--font-rajdhani)' }}>
-                      {mostrarNombre(part.user_id)}
-                    </div>
-                    {part.quiniela?.nombre && (
-                      <div className="font-bold text-xs" style={{ color: '#fb923c', fontFamily: 'var(--font-rajdhani)' }}>
-                        🎫 {part.quiniela.nombre}
+                <tr key={part.id}>
+                  <td className="sticky left-0 z-10 px-3 py-3" style={{ background: '#0a0a0a', borderBottom: '1px solid #1e1e2e' }}>
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                        style={{ background: 'rgba(234,88,12,0.2)', border: '1px solid rgba(234,88,12,0.3)', color: '#fb923c' }}>
+                        {iniciales(part.user_id)}
                       </div>
-                    )}
-                    <div className="text-xs no-print" style={{ color: '#475569' }}>
-                      {part.pagado ? '✅' : '⏳'}{!part.publicado && ' 🔒'}
+                      <div>
+                        <p className="font-bold text-sm whitespace-nowrap" style={{ color: '#fff', fontFamily: 'var(--font-rajdhani)' }}>
+                          {mostrarNombre(part.user_id)}
+                        </p>
+                        {part.quiniela?.nombre && (
+                          <p className="text-[10px]" style={{ color: '#fb923c' }}>🎫 {part.quiniela.nombre}</p>
+                        )}
+                      </div>
                     </div>
                   </td>
                   {partidos.map(partido => {
@@ -316,7 +335,7 @@ export default function TablaPage() {
                       return (
                         <td key={partido.id}
                           className="px-1 py-2 text-center"
-                          style={{ borderLeft: '1px solid #1e1e2e' }}>
+                          style={{ borderLeft: '1px solid #1e1e2e', borderBottom: '1px solid #1e1e2e' }}>
                           {pts !== null ? (
                             <div className="font-bold text-sm" style={{ color: ptsColor(pts) }}>
                               {pts}pts
@@ -335,7 +354,7 @@ export default function TablaPage() {
                     return (
                       <td key={partido.id}
                         className="px-1 py-2 text-center"
-                        style={{ borderLeft: '1px solid #1e1e2e' }}>
+                        style={{ borderLeft: '1px solid #1e1e2e', borderBottom: '1px solid #1e1e2e' }}>
                         {pred ? (
                           <div className="text-sm font-medium" style={{ color: '#e2e8f0' }}>
                             {pred.goles_local_pred}-{pred.goles_visitante_pred}
@@ -347,7 +366,7 @@ export default function TablaPage() {
                     );
                   })}
                   <td className="px-3 py-2 text-center"
-                    style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', fontFamily: 'var(--font-bebas)', fontSize: '1.25rem', color: '#ea580c' }}>
+                    style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid #1e1e2e', fontFamily: 'var(--font-bebas)', fontSize: '1.25rem', color: '#ea580c' }}>
                     {totalPuntos}
                   </td>
                 </tr>
