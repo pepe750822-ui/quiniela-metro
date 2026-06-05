@@ -483,7 +483,7 @@ export default function AdminPage() {
                 <option value="">Seleccionar jugador...</option>
                 {jugadores.map(j => (
                   <option key={j.id} value={j.id}>
-                    {mostrarNombre(j)} — {emailCorto(j.email)}
+                    {mostrarNombre(j)} — {emailCorto(j.email)}{j.referencia_admin ? ` (📋 ${j.referencia_admin})` : ''}
                   </option>
                 ))}
               </select>
