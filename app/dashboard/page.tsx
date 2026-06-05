@@ -5,7 +5,6 @@ import { supabase } from '@/lib/supabase';
 import { RankingConJugador, Pozo } from '@/types';
 import RankingTable from '@/components/RankingTable';
 import Link from 'next/link';
-import { emailCorto } from '@/lib/utils';
 import dynamic from 'next/dynamic';
 
 const JugadorAnimado = dynamic(
@@ -381,10 +380,7 @@ export default function DashboardPage() {
                       {p.quinielaNombre && (
                         <p className="text-xs" style={{ color: '#ea580c' }}>🎫 {p.quinielaNombre}</p>
                       )}
-                      <p className="text-xs truncate" style={{ color: '#64748b' }}>
-                        {emailCorto(p.jugador?.email || '')}
-                        {' · ✅ Confirmado'}
-                      </p>
+                      <p className="text-xs" style={{ color: '#10b981' }}>✅ Confirmado</p>
                     </div>
                   </div>
                 ))}

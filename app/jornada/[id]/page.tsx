@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Partido, Prediccion } from '@/types';
-import { emailCorto } from '@/lib/utils';
 
 interface ParticipanteVista {
   key: string;
@@ -198,9 +197,6 @@ export default function JornadaPage() {
                         <span className="text-xs block" style={{ color: '#ea580c' }}>
                           🎫 {p.quiniela.nombre}
                         </span>
-                      )}
-                      {p.jugador?.email && (
-                        <p className="text-xs text-slate-500">{emailCorto(p.jugador.email)}</p>
                       )}
                     </div>
                   </div>
