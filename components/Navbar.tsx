@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import ThemeToggle from '@/components/ThemeToggle';
 
 const publicLinks = [
   { href: '/predicciones',   label: 'Predicciones', emoji: '⚽' },
@@ -44,19 +45,24 @@ export default function Navbar() {
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-50 flex flex-col backdrop-blur-xl border-t"
-      style={{ background: 'rgba(10,10,15,0.95)', borderColor: 'rgba(234,88,12,0.2)' }}
+      style={{ background: 'var(--nav-bg)', borderColor: 'rgba(234,88,12,0.2)' }}
     >
       {/* Chip de identidad */}
-      {nombreCorto && (
-        <div className="flex items-center justify-center gap-1.5 py-1 text-[10px]"
-          style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', color: '#475569' }}>
-          <span>👤</span>
-          <span style={{ color: '#64748b' }}>{nombreCorto}</span>
-          {emailCorto && emailCorto !== nombreCorto && (
-            <span style={{ color: '#334155' }}>· {emailCorto}</span>
+      <div className="flex items-center justify-between px-3 py-1 text-[10px]"
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+        <div className="flex items-center gap-1.5" style={{ color: '#475569' }}>
+          {nombreCorto && (
+            <>
+              <span>👤</span>
+              <span style={{ color: '#64748b' }}>{nombreCorto}</span>
+              {emailCorto && emailCorto !== nombreCorto && (
+                <span style={{ color: '#334155' }}>· {emailCorto}</span>
+              )}
+            </>
           )}
         </div>
-      )}
+        <ThemeToggle />
+      </div>
 
       {/* Links */}
       <div className="flex" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>

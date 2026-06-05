@@ -2,6 +2,7 @@
 
 :root {
   --bg-primary: #0a0a0a;
+  --bg-secondary: #12121a;
   --bg-card: #111111;
   --bg-card-hover: #1a1a1a;
   --accent-gold: #ea580c;
@@ -9,13 +10,26 @@
   --accent-red: #ef4444;
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
-  --border: #1c1c1c;
+  --border: #1e1e2e;
+  --nav-bg: rgba(10,10,15,0.95);
+}
+
+.light {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-card: #f1f5f9;
+  --bg-card-hover: #e2e8f0;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --border: #e2e8f0;
+  --nav-bg: rgba(255,255,255,0.95);
 }
 
 body {
   background: var(--bg-primary);
   color: var(--text-primary);
 }
+
 
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--bg-primary); }

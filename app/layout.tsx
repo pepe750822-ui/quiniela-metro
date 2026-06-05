@@ -3,6 +3,7 @@ import { Bebas_Neue, Rajdhani } from 'next/font/google';
 import './globals.css';
 import Navbar from '@/components/Navbar';
 import InstallBanner from '@/components/InstallBanner';
+import Providers from '@/components/Providers';
 import { Toaster } from 'sonner';
 
 const bebasNeue = Bebas_Neue({
@@ -25,7 +26,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
       <head>
         <meta name="theme-color" content="#ea580c" />
         <meta name="mobile-web-app-capable" content="yes" />
@@ -39,10 +40,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         className={`${bebasNeue.variable} ${rajdhani.variable} min-h-screen pb-[calc(4rem+env(safe-area-inset-bottom))]`}
         style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)', fontFamily: 'var(--font-rajdhani), sans-serif' }}
       >
-        <InstallBanner />
-        {children}
-        <Navbar />
-        <Toaster position="top-center" richColors theme="dark" />
+        <Providers>
+          <InstallBanner />
+          {children}
+          <Navbar />
+          <Toaster position="top-center" richColors />
+        </Providers>
       </body>
     </html>
   );
