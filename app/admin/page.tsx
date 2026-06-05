@@ -12,6 +12,7 @@ interface ParticipacionConNombre extends Participacion {
   jugadorNombre: string;
   jugadorEmail: string;
   jugadorApodo: string | null;
+  jugadorReferencia: string | null;
   quinielaNombre: string | null;
 }
 
@@ -63,8 +64,10 @@ export default function AdminPage() {
   const [pagoJornada, setPagoJornada]     = useState<number>(1);
   const [registrando, setRegistrando]     = useState(false);
 
-  // Edición de apodos
+  // Edición de apodos y referencias
   const [editandoApodo, setEditandoApodo] = useState<string | null>(null);
+  const [editandoReferencia, setEditandoReferencia] = useState<string | null>(null);
+  const [referenciaTemp, setReferenciaTemp] = useState('');
 
   // Actualización automática de resultados
   const [actualizando, setActualizando] = useState(false);
@@ -118,14 +121,14 @@ export default function AdminPage() {
     const userIds = [...new Set(lista.map(p => p.user_id))];
     const { data: jugs, error: jugsError } = await supabase
       .from('quiniela_jugadores')
-      .select('id, nombre, email, apodo')
+      .select('id, nombre, email, apodo, referencia_admin')
       .in('id', userIds);
 
     if (jugsError) console.error('Error cargando jugadores para pozos:', jugsError);
 
-    const jugMap: Record<string, { nombre: string; email: string; apodo: string | null }> = {};
-    (jugs ?? []).forEach((j: { id: string; nombre: string; email: string; apodo: string | null }) => {
-      jugMap[j.id] = { nombre: j.nombre, email: j.email, apodo: j.apodo };
+    const jugMap: Record<string, { nombre: string; email: string; apodo: string | null; referencia_admin: string | null }> = {};
+    (jugs ?? []).forEach((j: { id: string; nombre: string; email: string; apodo: string | null; referencia_admin: string | null }) => {
+      jugMap[j.id] = { nombre: j.nombre, email: j.email, apodo: j.apodo, referencia_admin: j.referencia_admin };
     });
 
     // Query 3: nombres de quinielas extra
@@ -143,10 +146,11 @@ export default function AdminPage() {
 
     const enriquecidas: ParticipacionConNombre[] = lista.map(p => ({
       ...p,
-      jugadorNombre:  jugMap[p.user_id]?.nombre ?? p.user_id.slice(0, 8),
-      jugadorEmail:   jugMap[p.user_id]?.email  ?? '',
-      jugadorApodo:   jugMap[p.user_id]?.apodo  ?? null,
-      quinielaNombre: p.quiniela_extra_id ? (quinielaMap[p.quiniela_extra_id] ?? null) : null,
+      jugadorNombre:     jugMap[p.user_id]?.nombre          ?? p.user_id.slice(0, 8),
+      jugadorEmail:      jugMap[p.user_id]?.email           ?? '',
+      jugadorApodo:      jugMap[p.user_id]?.apodo           ?? null,
+      jugadorReferencia: jugMap[p.user_id]?.referencia_admin ?? null,
+      quinielaNombre:    p.quiniela_extra_id ? (quinielaMap[p.quiniela_extra_id] ?? null) : null,
     }));
     setParticipaciones(enriquecidas);
   };
@@ -386,6 +390,18 @@ export default function AdminPage() {
     cargarPozos();
   };
 
+  const guardarReferencia = async (userId: string) => {
+    const { error } = await supabase
+      .from('quiniela_jugadores')
+      .update({ referencia_admin: referenciaTemp.trim() || null })
+      .eq('id', userId);
+    if (!error) {
+      toast.success('Referencia guardada ✓');
+      setEditandoReferencia(null);
+      cargarJugadores();
+    }
+  };
+
   const actualizarResultados = async () => {
     setActualizando(true);
     try {
@@ -591,6 +607,9 @@ export default function AdminPage() {
                               ⏳ Pendiente de pago
                             </span>
                           </div>
+                          {p.jugadorReferencia && (
+                            <p className="text-xs" style={{ color: '#60a5fa' }}>📋 {p.jugadorReferencia}</p>
+                          )}
                           <p className="text-xs text-slate-500 truncate">{p.jugadorEmail ? emailCorto(p.jugadorEmail) : ''}</p>
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">
@@ -625,6 +644,9 @@ export default function AdminPage() {
                           <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                             {mostrarNombreParticipante(p)}
                           </p>
+                          {p.jugadorReferencia && (
+                            <p className="text-xs" style={{ color: '#60a5fa' }}>📋 {p.jugadorReferencia}</p>
+                          )}
                           {p.jugadorEmail && (
                             <p className="text-xs text-slate-500">{emailCorto(p.jugadorEmail)}</p>
                           )}
@@ -664,7 +686,7 @@ export default function AdminPage() {
           className="w-full flex items-center justify-between px-4 py-4 rounded-xl hover:border-orange-500/30 transition-all"
           style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
           <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: 'var(--accent-gold)' }}>
-            👤 APODOS — {jugadores.length} jugadores
+            👤 APODOS Y REFERENCIAS — {jugadores.length} jugadores
           </span>
           <span style={{ color: '#64748b' }}>{seccionesAbiertas.apodos ? '▲' : '▼'}</span>
         </button>
@@ -679,64 +701,117 @@ export default function AdminPage() {
               </p>
               <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{emailCorto(jugador.email)}</p>
 
-              {editandoApodo === jugador.id ? (
-                <div className="flex gap-2 mt-2">
-                  <input
-                    id={`apodo-${jugador.id}`}
-                    name={`apodo-${jugador.id}`}
-                    type="text"
-                    value={apodoTemp}
-                    onChange={e => setApodoTemp(e.target.value)}
-                    onKeyDown={async e => {
-                      if (e.key === 'Enter') e.currentTarget.closest('div')?.querySelector<HTMLButtonElement>('button')?.click();
-                      if (e.key === 'Escape') setEditandoApodo(null);
-                    }}
-                    placeholder="Apodo..."
-                    maxLength={20}
-                    autoFocus
-                    className="flex-1 rounded-lg px-3 py-1.5 text-sm text-white outline-none"
-                    style={{ background: '#0a0a0a', border: '1px solid #ea580c' }}
-                  />
-                  <button
-                    onClick={async () => {
-                      const { error } = await supabase
-                        .from('quiniela_jugadores')
-                        .update({ apodo: apodoTemp.trim() || null })
-                        .eq('id', jugador.id);
-                      if (!error) {
-                        toast.success('Apodo actualizado ✅');
-                        setEditandoApodo(null);
-                        cargarJugadores();
-                      } else {
-                        toast.error('Error al actualizar apodo');
-                      }
-                    }}
-                    className="px-3 py-1.5 rounded-lg text-sm font-bold transition-all active:scale-95"
-                    style={{ background: '#ea580c', color: '#fff' }}>
-                    ✓
-                  </button>
-                  <button
-                    onClick={() => setEditandoApodo(null)}
-                    className="px-2 text-sm transition-colors"
-                    style={{ color: '#64748b' }}>
-                    ✕
-                  </button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 mt-1">
-                  {jugador.apodo ? (
-                    <span className="text-sm" style={{ color: '#ea580c' }}>🏷️ {jugador.apodo}</span>
-                  ) : (
-                    <span className="text-sm" style={{ color: '#334155' }}>Sin apodo</span>
-                  )}
-                  <button
-                    onClick={() => { setEditandoApodo(jugador.id); setApodoTemp(jugador.apodo ?? ''); }}
-                    className="text-xs transition-colors"
-                    style={{ color: '#475569' }}>
-                    ✏️ Editar
-                  </button>
-                </div>
-              )}
+              {/* Apodo público */}
+              <div className="mb-2">
+                <p className="text-xs mb-1" style={{ color: '#64748b' }}>Apodo público (visible para todos)</p>
+                {editandoApodo === jugador.id ? (
+                  <div className="flex gap-2">
+                    <input
+                      id={`apodo-${jugador.id}`}
+                      name={`apodo-${jugador.id}`}
+                      type="text"
+                      value={apodoTemp}
+                      onChange={e => setApodoTemp(e.target.value)}
+                      onKeyDown={async e => {
+                        if (e.key === 'Enter') e.currentTarget.closest('div')?.querySelector<HTMLButtonElement>('button')?.click();
+                        if (e.key === 'Escape') setEditandoApodo(null);
+                      }}
+                      placeholder="Apodo..."
+                      maxLength={20}
+                      autoFocus
+                      className="flex-1 rounded-lg px-3 py-1.5 text-sm text-white outline-none"
+                      style={{ background: '#0a0a0a', border: '1px solid #ea580c' }}
+                    />
+                    <button
+                      onClick={async () => {
+                        const { error } = await supabase
+                          .from('quiniela_jugadores')
+                          .update({ apodo: apodoTemp.trim() || null })
+                          .eq('id', jugador.id);
+                        if (!error) {
+                          toast.success('Apodo actualizado ✅');
+                          setEditandoApodo(null);
+                          cargarJugadores();
+                        } else {
+                          toast.error('Error al actualizar apodo');
+                        }
+                      }}
+                      className="px-3 py-1.5 rounded-lg text-sm font-bold transition-all active:scale-95"
+                      style={{ background: '#ea580c', color: '#fff' }}>
+                      ✓
+                    </button>
+                    <button
+                      onClick={() => setEditandoApodo(null)}
+                      className="px-2 text-sm transition-colors"
+                      style={{ color: '#64748b' }}>
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    {jugador.apodo ? (
+                      <span className="text-sm" style={{ color: '#ea580c' }}>🏷️ {jugador.apodo}</span>
+                    ) : (
+                      <span className="text-sm" style={{ color: '#334155' }}>Sin apodo</span>
+                    )}
+                    <button
+                      onClick={() => { setEditandoApodo(jugador.id); setApodoTemp(jugador.apodo ?? ''); }}
+                      className="text-xs transition-colors"
+                      style={{ color: '#475569' }}>
+                      ✏️ Editar
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Referencia interna */}
+              <div className="mt-2 pt-2" style={{ borderTop: '1px solid #1e1e2e' }}>
+                <p className="text-xs mb-1" style={{ color: '#64748b' }}>🔒 Referencia interna (solo tú la ves)</p>
+                {editandoReferencia === jugador.id ? (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={referenciaTemp}
+                      onChange={e => setReferenciaTemp(e.target.value)}
+                      placeholder="Ej: Compañero turno mañana, Primo de Amy..."
+                      maxLength={50}
+                      autoFocus
+                      className="flex-1 rounded-lg px-3 py-1.5 text-sm text-white outline-none"
+                      style={{ background: '#0a0a0a', border: '1px solid #ea580c' }}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') guardarReferencia(jugador.id);
+                        if (e.key === 'Escape') setEditandoReferencia(null);
+                      }}
+                    />
+                    <button
+                      onClick={() => guardarReferencia(jugador.id)}
+                      className="px-3 py-1.5 rounded-lg text-sm font-bold transition-all active:scale-95"
+                      style={{ background: '#ea580c', color: '#fff' }}>
+                      ✓
+                    </button>
+                    <button
+                      onClick={() => setEditandoReferencia(null)}
+                      className="px-2 text-sm transition-colors"
+                      style={{ color: '#64748b' }}>
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    {jugador.referencia_admin ? (
+                      <span className="text-sm" style={{ color: '#60a5fa' }}>📋 {jugador.referencia_admin}</span>
+                    ) : (
+                      <span className="text-sm" style={{ color: '#334155' }}>Sin referencia</span>
+                    )}
+                    <button
+                      onClick={() => { setEditandoReferencia(jugador.id); setReferenciaTemp(jugador.referencia_admin ?? ''); }}
+                      className="text-xs transition-colors"
+                      style={{ color: '#475569' }}>
+                      ✏️
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -783,6 +858,9 @@ export default function AdminPage() {
                     <p className="text-xs truncate" style={{ color: '#64748b' }}>{jugador.email}</p>
                     {jugador.apodo && (
                       <p className="text-xs" style={{ color: '#ea580c' }}>🏷️ {jugador.apodo}</p>
+                    )}
+                    {jugador.referencia_admin && (
+                      <p className="text-xs" style={{ color: '#60a5fa' }}>📋 {jugador.referencia_admin}</p>
                     )}
                     {(() => {
                       const userPartics = participaciones.filter(p => p.user_id === jugador.id);

@@ -39,6 +39,7 @@ export interface Jugador {
   created_at: string;
   last_seen?: string | null;
   ultima_pagina?: string | null;
+  referencia_admin?: string | null;
   quiniela_nombre?: string | null;
 }
 
