@@ -199,6 +199,41 @@ export default function PerfilPage() {
           </div>
         )}
       </div>
+
+      {/* Cerrar sesión */}
+      <div className="mt-8 pt-6" style={{ borderTop: '1px solid #1e1e2e' }}>
+        <p className="text-xs text-center mb-3" style={{ color: '#475569' }}>
+          ¿Quieres entrar con otra cuenta de Google?
+        </p>
+        <button
+          onClick={async () => {
+            const confirmado = confirm(
+              '¿Cerrar sesión?\n\nSolo hazlo si quieres cambiar de cuenta. La app seguirá funcionando normalmente cuando vuelvas a entrar.'
+            );
+            if (confirmado) {
+              await supabase.auth.signOut();
+              window.location.href = '/';
+            }
+          }}
+          className="w-full py-3 rounded-xl text-sm transition-all"
+          style={{
+            background: '#12121a',
+            border: '1px solid #1e1e2e',
+            color: '#64748b',
+            fontFamily: 'var(--font-rajdhani)',
+          }}
+          onMouseEnter={e => {
+            (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(239,68,68,0.3)';
+            (e.currentTarget as HTMLButtonElement).style.color = '#f87171';
+          }}
+          onMouseLeave={e => {
+            (e.currentTarget as HTMLButtonElement).style.borderColor = '#1e1e2e';
+            (e.currentTarget as HTMLButtonElement).style.color = '#64748b';
+          }}
+        >
+          Cambiar de cuenta
+        </button>
+      </div>
     </main>
   );
 }
