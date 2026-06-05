@@ -70,7 +70,7 @@ body {
 @media print {
   @page {
     size: portrait !important;
-    margin: 10mm !important;
+    margin: 8mm !important;
   }
 
   body, html {
@@ -85,59 +85,63 @@ body {
     display: none !important;
   }
 
-  table, tr, td, th {
-    background: white !important;
-    color: black !important;
-    border: 0.5px solid #999 !important;
+  h1 {
+    color: #ea580c !important;
+    font-size: 18px !important;
+    font-weight: 900 !important;
+    margin-bottom: 4px !important;
+  }
+
+  table {
+    width: 100% !important;
+    font-size: 7px !important;
+    border-collapse: collapse !important;
+  }
+
+  th {
+    background: #1a1a1a !important;
+    color: white !important;
+    border: 0.5px solid #444 !important;
+    padding: 3px 2px !important;
+    text-align: center !important;
+    font-size: 7px !important;
   }
 
   td:first-child {
-    background: #f0f0f0 !important;
+    background: #f8f8f8 !important;
     color: black !important;
-    font-size: 10px !important;
     font-weight: bold !important;
-    text-align: left !important;
-    width: 80px !important;
+    font-size: 8px !important;
+    border: 0.5px solid #ccc !important;
     padding: 3px 4px !important;
+    text-align: left !important;
   }
 
-  td:first-child div:first-child {
-    color: #111 !important;
-    font-weight: bold !important;
-    font-size: 10px !important;
-  }
-
-  td:first-child div:nth-child(2) {
-    color: #c2410c !important;
-    font-weight: bold !important;
-    font-size: 8px !important;
-  }
-
-  td:not(:first-child):not(:last-child) {
-    font-size: 8px !important;
+  td {
+    border: 0.5px solid #ddd !important;
     padding: 2px !important;
-    width: 22px !important;
     text-align: center !important;
+    font-size: 7px !important;
+    color: black !important;
+    background: white !important;
   }
+
+  .pts-exacto   { color: #16a34a !important; font-weight: bold !important; }
+  .pts-resultado { color: #ea580c !important; }
+  .pts-fallo    { color: #dc2626 !important; }
 
   td:last-child {
-    background: #e0e0e0 !important;
+    background: #fff7ed !important;
+    color: #ea580c !important;
     font-weight: bold !important;
-    font-size: 11px !important;
-    color: black !important;
-    width: 30px !important;
-  }
-
-  h1 {
-    color: black !important;
-    font-size: 14px !important;
-    margin: 0 0 5px 0 !important;
+    font-size: 10px !important;
+    border: 0.5px solid #fed7aa !important;
   }
 
   .leyenda {
     font-size: 8px !important;
-    color: black !important;
-    margin-top: 5px !important;
+    margin-top: 6px !important;
+    color: #555 !important;
   }
 
   * { overflow: visible !important; }
