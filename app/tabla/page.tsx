@@ -77,10 +77,10 @@ export default function TablaPage() {
     return (j?.apodo || j?.nombre || 'J').substring(0, 2).toUpperCase();
   };
 
-  const ptsColor = (pts: number) => {
-    if (pts === 3) return '#34d399';
-    if (pts === 1) return '#fb923c';
-    return '#f87171';
+  const ptsClass = (pts: number) => {
+    if (pts === 3) return 'font-bold text-sm text-emerald-700 dark:text-emerald-400';
+    if (pts === 1) return 'font-bold text-sm text-orange-700 dark:text-orange-400';
+    return 'text-sm text-red-700 dark:text-red-400';
   };
 
   const descargarCSV = () => {
@@ -392,7 +392,7 @@ export default function TablaPage() {
                         {iniciales(part.user_id)}
                       </div>
                       <div>
-                        <p className="font-bold text-sm whitespace-nowrap" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-rajdhani)' }}>
+                        <p className="font-bold text-sm whitespace-nowrap text-slate-900 dark:text-white" style={{ fontFamily: 'var(--font-rajdhani)' }}>
                           {mostrarNombre(part.user_id)}
                         </p>
                         {part.quiniela?.nombre && (
@@ -410,14 +410,14 @@ export default function TablaPage() {
                           className="px-1 py-2 text-center"
                           style={{ borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
                           {pts !== null ? (
-                            <div className="font-bold text-sm" style={{ color: ptsColor(pts) }}>
+                            <div className={ptsClass(pts)}>
                               {pts}pts
                             </div>
                           ) : (
-                            <div className="text-sm" style={{ color: '#334155' }}>–</div>
+                            <div className="text-sm text-slate-400 dark:text-slate-600">–</div>
                           )}
                           {pred && (
-                            <div className="text-xs" style={{ color: '#64748b' }}>
+                            <div className="text-xs text-slate-600 dark:text-slate-400">
                               {pred.goles_local_pred}-{pred.goles_visitante_pred}
                             </div>
                           )}
@@ -429,17 +429,17 @@ export default function TablaPage() {
                         className="px-1 py-2 text-center"
                         style={{ borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
                         {pred ? (
-                          <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                          <div className="text-sm font-medium text-slate-800 dark:text-slate-200">
                             {pred.goles_local_pred}-{pred.goles_visitante_pred}
                           </div>
                         ) : (
-                          <span style={{ color: '#334155', fontSize: '0.875rem' }}>–</span>
+                          <span className="text-slate-400 dark:text-slate-600 text-sm">–</span>
                         )}
                       </td>
                     );
                   })}
-                  <td className="px-3 py-2 text-center"
-                    style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1.25rem', color: '#ea580c' }}>
+                  <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
+                    style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
                     {totalPuntos}
                   </td>
                 </tr>

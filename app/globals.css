@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Mapear dark: al selector .dark (next-themes usa attribute="class") */
+@variant dark (&:where(.dark, .dark *));
+
 /* ── Tema claro (defecto) ──────────────────────────── */
 :root {
   --bg-base:       #ffffff;
