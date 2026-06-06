@@ -187,17 +187,17 @@ export default function PrediccionesPage() {
             ⚠️ Tienes predicciones sin pagar en esta jornada
           </p>
 
-          <p className="text-sm font-mono" style={{ color: '#cbd5e1' }}>
+          <p className="text-sm font-mono" style={{ color: 'var(--text-secondary)' }}>
             💳 CLABE: <strong>014180565546539842</strong>
             <br />
-            <span style={{ color: '#94a3b8' }}>Monto: </span><strong style={{ color: '#e2e8f0' }}>$50 MXN</strong>
+            <span style={{ color: 'var(--text-muted)' }}>Monto: </span><strong style={{ color: 'var(--text-primary)' }}>$50 MXN</strong>
           </p>
 
           <div className="rounded-xl p-3 space-y-2" style={{ background: 'rgba(234,88,12,0.1)', border: '1px solid rgba(234,88,12,0.25)' }}>
             <p className="font-bold text-sm" style={{ fontFamily: 'var(--font-rajdhani)', color: '#f97316' }}>
               📱 Envía por WhatsApp al 55 2326 9241:
             </p>
-            <ol className="text-sm space-y-1 list-decimal list-inside" style={{ color: '#cbd5e1' }}>
+            <ol className="text-sm space-y-1 list-decimal list-inside" style={{ color: 'var(--text-secondary)' }}>
               <li>Captura del comprobante de pago</li>
               <li>Tu correo de Google con el que entraste</li>
               <li>Tu nombre o apodo para el ranking</li>
@@ -429,7 +429,7 @@ export default function PrediccionesPage() {
         >
           <div
             className="rounded-2xl p-6 w-full max-w-sm"
-            style={{ background: '#12121a', border: '1px solid #1e1e2e' }}
+            style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)' }}
             onClick={e => e.stopPropagation()}
           >
             <h3 style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.25rem', color: '#ea580c', marginBottom: '1rem' }}>
@@ -446,8 +446,8 @@ export default function PrediccionesPage() {
                 if (e.key === 'Escape') setShowNuevaQuiniela(false);
               }}
               autoFocus
-              className="w-full rounded-lg px-3 py-2 text-white mb-4 outline-none"
-              style={{ background: '#0a0a0a', border: '1px solid #1e1e2e' }}
+              className="w-full rounded-lg px-3 py-2 mb-4 outline-none"
+              style={{ background: 'var(--bg-base)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
             />
             <div className="flex gap-2">
               <button

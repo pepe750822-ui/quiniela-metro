@@ -137,7 +137,7 @@ export default function PrediccionForm({ partido, userId, quinielaExtraId, predi
     >
       <div
         className="w-full max-w-sm rounded-2xl px-4 pt-6 pb-8 space-y-6"
-        style={{ background: '#12121a', border: '1px solid rgba(234,88,12,0.3)', animation: 'fadeIn 0.2s ease-out' }}
+        style={{ background: 'var(--bg-surface)', border: '1px solid rgba(234,88,12,0.3)', animation: 'fadeIn 0.2s ease-out' }}
         onClick={e => e.stopPropagation()}
       >
         <div className="w-10 h-1 rounded-full mx-auto" style={{ background: 'var(--border)' }} />

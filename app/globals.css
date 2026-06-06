@@ -5,6 +5,7 @@
   --bg-base:       #ffffff;
   --bg-surface:    #f8fafc;
   --bg-card:       #f1f5f9;
+  --bg-card-hover: #e2e8f0;
   --text-primary:  #0f172a;
   --text-secondary:#475569;
   --text-muted:    #94a3b8;
@@ -24,6 +25,7 @@
   --bg-base:       #0a0a0a;
   --bg-surface:    #12121a;
   --bg-card:       #1e1e2e;
+  --bg-card-hover: #252535;
   --text-primary:  #ffffff;
   --text-secondary:#94a3b8;
   --text-muted:    #475569;
