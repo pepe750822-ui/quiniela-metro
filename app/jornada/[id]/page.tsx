@@ -9,7 +9,7 @@ interface ParticipanteVista {
   key: string;
   user_id: string;
   quiniela_extra_id: string | null;
-  jugador: { nombre: string; email: string; apodo: string | null; badge_ultimo?: string | null } | null;
+  jugador: { nombre: string; email: string; apodo: string | null; badge_ultimo?: string | null; badge_campeon?: string | null } | null;
   quiniela: { nombre: string } | null;
   publicado: boolean;
   pagado: boolean;
@@ -73,7 +73,7 @@ export default function JornadaPage() {
       const userIds = [...new Set(partcData.map((p: { user_id: string }) => p.user_id))];
       const { data: jugData } = await supabase
         .from('quiniela_jugadores')
-        .select('id, nombre, email, apodo, badge_ultimo')
+        .select('id, nombre, email, apodo, badge_ultimo, badge_campeon')
         .in('id', userIds);
 
       const quinielaIds = [...new Set(
@@ -196,6 +196,12 @@ export default function JornadaPage() {
                           <span className="text-[10px] px-2 py-0.5 rounded-full"
                             style={{ background: 'rgba(202,138,4,0.15)', border: '1px solid rgba(202,138,4,0.3)', color: '#facc15' }}>
                             🤡 Último J{p.jugador.badge_ultimo.replace('J', '')}
+                          </span>
+                        )}
+                        {p.jugador?.badge_campeon && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full"
+                            style={{ background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.4)', color: '#fbbf24' }}>
+                            🏆 {p.jugador.badge_campeon}
                           </span>
                         )}
                       </p>
