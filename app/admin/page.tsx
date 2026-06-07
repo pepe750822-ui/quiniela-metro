@@ -59,6 +59,8 @@ export default function AdminPage() {
   const [confirmando, setConfirmando]       = useState<string | null>(null);
   const [declarando, setDeclarando]         = useState<number | null>(null);
   const [declarandoUltimo, setDeclarandoUltimo] = useState<number | null>(null);
+  const [declarandoCampeon, setDeclarandoCampeon] = useState(false);
+  const [equipoCampeonManual, setEquipoCampeonManual] = useState('');
 
   // Registrar pago manual
   const [pagoJugadorId, setPagoJugadorId] = useState('');
@@ -91,6 +93,7 @@ export default function AdminPage() {
     usuarios: false,
     resultados: false,
     notas: false,
+    campeon: false,
   });
   const toggleSeccion = (seccion: keyof typeof seccionesAbiertas) => {
     setSeccionesAbiertas(prev => ({ ...prev, [seccion]: !prev[seccion] }));
@@ -1279,6 +1282,56 @@ export default function AdminPage() {
                 Sin notas — escribe algo arriba
               </p>
             )}
+          </div>
+        )}
+      </section>
+
+      {/* ── CAMPEÓN MUNDIAL ── */}
+      <section className="space-y-1">
+        <button
+          onClick={() => toggleSeccion('campeon')}
+          className="w-full flex items-center justify-between px-4 py-4 rounded-xl hover:border-orange-500/30 transition-all"
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: 'var(--accent-gold)' }}>
+            🏆 CAMPEÓN MUNDIAL — declaración manual
+          </span>
+          <span style={{ color: '#64748b' }}>{seccionesAbiertas.campeon ? '▲' : '▼'}</span>
+        </button>
+        {seccionesAbiertas.campeon && (
+          <div className="rounded-2xl p-4 space-y-3" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+            <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+              Úsalo si la detección automática no funcionó. Sobreescribe badges anteriores.
+            </p>
+            <div>
+              <label className="text-xs uppercase tracking-widest font-semibold block mb-1.5"
+                style={{ color: 'var(--text-secondary)' }}>
+                Seleccionar campeón
+              </label>
+              <select
+                value={equipoCampeonManual}
+                onChange={e => setEquipoCampeonManual(e.target.value)}
+                className="w-full rounded-xl px-3 py-2.5 text-sm outline-none"
+                style={{
+                  background: 'var(--bg-card-hover)',
+                  border: '1px solid var(--border)',
+                  color: equipoCampeonManual ? 'var(--text-primary)' : 'var(--text-secondary)',
+                  fontFamily: 'var(--font-rajdhani)',
+                }}
+              >
+                <option value="">Seleccionar equipo...</option>
+                {[...new Set(partidos.flatMap(p => [p.equipo_local, p.equipo_visitante]))].sort().map(eq => (
+                  <option key={eq} value={eq}>{eq}</option>
+                ))}
+              </select>
+            </div>
+            <button
+              onClick={declararCampeonManual}
+              disabled={!equipoCampeonManual || declarandoCampeon}
+              className="w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-40"
+              style={{ background: 'rgba(251,191,36,0.2)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.4)', fontFamily: 'var(--font-rajdhani)' }}
+            >
+              {declarandoCampeon ? '⏳ Declarando...' : '🏆 Declarar campeón'}
+            </button>
           </div>
         )}
       </section>
