@@ -157,7 +157,7 @@ export default function DashboardPage() {
 
       const genUserIds = rankItems.map((r: { user_id: string }) => r.user_id);
       const { data: genJugadores } = genUserIds.length
-        ? await supabase.from('quiniela_jugadores').select('id, nombre, email, apodo, avatar_url, badge_ultimo').in('id', genUserIds)
+        ? await supabase.from('quiniela_jugadores').select('id, nombre, email, apodo, avatar_url, badge_ultimo, badge_campeon').in('id', genUserIds)
         : { data: [] };
 
       setParticipantesJornada([]);
@@ -172,15 +172,16 @@ export default function DashboardPage() {
             exactos:      Number(r.exactos_totales),
             updated_at:   '',
             jugador: {
-              id:          r.user_id,
-              nombre:      jug?.nombre      ?? '',
-              apodo:       jug?.apodo       ?? null,
-              email:       jug?.email       ?? '',
-              rol:         'jugador' as const,
-              avatar_url:  jug?.avatar_url  ?? null,
-              creditos:    0,
-              created_at:  '',
-              badge_ultimo: jug?.badge_ultimo ?? null,
+              id:           r.user_id,
+              nombre:       jug?.nombre       ?? '',
+              apodo:        jug?.apodo        ?? null,
+              email:        jug?.email        ?? '',
+              rol:          'jugador' as const,
+              avatar_url:   jug?.avatar_url   ?? null,
+              creditos:     0,
+              created_at:   '',
+              badge_ultimo:  jug?.badge_ultimo  ?? null,
+              badge_campeon: jug?.badge_campeon ?? null,
             },
           };
         })
@@ -246,7 +247,7 @@ export default function DashboardPage() {
     const { data: rankJugadores } = rankUserIds.length
       ? await supabase
           .from('quiniela_jugadores')
-          .select('id, nombre, email, apodo, avatar_url, badge_ultimo')
+          .select('id, nombre, email, apodo, avatar_url, badge_ultimo, badge_campeon')
           .in('id', rankUserIds)
       : { data: [] };
 
@@ -261,15 +262,16 @@ export default function DashboardPage() {
           exactos:      Number(r.exactos),
           updated_at:   r.updated_at ?? '',
           jugador: {
-            id:          r.user_id,
-            nombre:      jug?.nombre      ?? '',
-            apodo:       jug?.apodo       ?? null,
-            email:       jug?.email       ?? '',
-            rol:         'jugador' as const,
-            avatar_url:  jug?.avatar_url  ?? null,
-            creditos:    0,
-            created_at:  '',
-            badge_ultimo: jug?.badge_ultimo ?? null,
+            id:           r.user_id,
+            nombre:       jug?.nombre       ?? '',
+            apodo:        jug?.apodo        ?? null,
+            email:        jug?.email        ?? '',
+            rol:          'jugador' as const,
+            avatar_url:   jug?.avatar_url   ?? null,
+            creditos:     0,
+            created_at:   '',
+            badge_ultimo:  jug?.badge_ultimo  ?? null,
+            badge_campeon: jug?.badge_campeon ?? null,
           },
         };
       })

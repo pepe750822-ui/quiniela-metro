@@ -67,6 +67,12 @@ export default function RankingTable({ ranking, userId, pendienteIds }: Props) {
                     🤡 Último J{entry.jugador.badge_ultimo.replace('J', '')}
                   </span>
                 )}
+                {entry.jugador?.badge_campeon && (
+                  <span className="text-[9px] px-1.5 py-0.5 rounded-full"
+                    style={{ background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.4)', color: '#fbbf24' }}>
+                    🏆 {entry.jugador.badge_campeon}
+                  </span>
+                )}
                 {entry.jugador?.quiniela_nombre && (
                   <span className="text-[9px] text-center block" style={{ color: '#ea580c' }}>
                     🎫 {entry.jugador.quiniela_nombre}
@@ -110,6 +116,12 @@ export default function RankingTable({ ranking, userId, pendienteIds }: Props) {
                       <span className="text-[10px] px-1.5 py-0.5 rounded-full"
                         style={{ background: 'rgba(202,138,4,0.15)', border: '1px solid rgba(202,138,4,0.3)', color: '#facc15' }}>
                         🤡 Último J{entry.jugador.badge_ultimo.replace('J', '')}
+                      </span>
+                    )}
+                    {entry.jugador?.badge_campeon && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full"
+                        style={{ background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.4)', color: '#fbbf24' }}>
+                        🏆 {entry.jugador.badge_campeon}
                       </span>
                     )}
                   </p>
@@ -166,6 +178,12 @@ export default function RankingTable({ ranking, userId, pendienteIds }: Props) {
                       <span className="text-[10px] px-1.5 py-0.5 rounded-full"
                         style={{ background: 'rgba(202,138,4,0.15)', border: '1px solid rgba(202,138,4,0.3)', color: '#facc15' }}>
                         🤡 Último J{entry.jugador.badge_ultimo.replace('J', '')}
+                      </span>
+                    )}
+                    {entry.jugador?.badge_campeon && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full"
+                        style={{ background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.4)', color: '#fbbf24' }}>
+                        🏆 {entry.jugador.badge_campeon}
                       </span>
                     )}
                   </p>
