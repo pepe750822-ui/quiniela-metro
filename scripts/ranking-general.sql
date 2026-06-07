@@ -1,24 +1,37 @@
--- Ejecutar DESPUÉS de apodo.sql
+-- Vista: ranking acumulado J1+J2+J3 (solo participaciones pagadas, sin quinielas extra)
+CREATE OR REPLACE VIEW ranking_general AS
+SELECT
+  r.user_id,
+  SUM(r.puntos_total) as puntos_totales,
+  SUM(r.exactos) as exactos_totales,
+  COUNT(r.jornada) as jornadas_jugadas
+FROM quiniela_ranking r
+JOIN quiniela_participaciones p
+  ON p.user_id = r.user_id
+  AND p.jornada = r.jornada
+  AND p.pagado = true
+  AND p.quiniela_extra_id IS NULL
+GROUP BY r.user_id
+ORDER BY puntos_totales DESC;
+
+-- Función RPC: misma lógica, accesible desde el cliente con SECURITY DEFINER
 CREATE OR REPLACE FUNCTION get_ranking_general()
 RETURNS TABLE (
-  user_id      UUID,
-  nombre       TEXT,
-  apodo        TEXT,
-  email        TEXT,
-  avatar_url   TEXT,
-  puntos_total BIGINT,
-  exactos      BIGINT
+  user_id UUID,
+  puntos_totales BIGINT,
+  exactos_totales BIGINT,
+  jornadas_jugadas BIGINT
 ) AS $$
   SELECT
-    j.id          AS user_id,
-    j.nombre,
-    j.apodo,
-    j.email,
-    j.avatar_url,
-    COALESCE(SUM(r.puntos_total), 0) AS puntos_total,
-    COALESCE(SUM(r.exactos),      0) AS exactos
-  FROM quiniela_jugadores j
-  LEFT JOIN quiniela_ranking r ON r.user_id = j.id
-  GROUP BY j.id, j.nombre, j.apodo, j.email, j.avatar_url
-  ORDER BY puntos_total DESC;
+    r.user_id,
+    SUM(r.puntos_total) as puntos_totales,
+    SUM(r.exactos) as exactos_totales,
+    COUNT(r.jornada) as jornadas_jugadas
+  FROM quiniela_ranking r
+  JOIN quiniela_participaciones p
+    ON p.user_id = r.user_id
+    AND p.jornada = r.jornada
+    AND p.pagado = true
+  GROUP BY r.user_id
+  ORDER BY puntos_totales DESC;
 $$ LANGUAGE sql SECURITY DEFINER;

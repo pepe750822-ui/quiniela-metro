@@ -139,12 +139,51 @@ export default function DashboardPage() {
   const [loading, setLoading]                   = useState(true);
   const [pozos, setPozos]                       = useState<Pozo[]>([]);
   const [pendienteIds, setPendienteIds]         = useState<string[]>([]);
-  const [jornadaSeleccionada, setJornadaSeleccionada] = useState<number>(1);
+  const [jornadaSeleccionada, setJornadaSeleccionada] = useState<number | 'general'>(1);
   const [participantesJornada, setParticipantesJornada] = useState<ParticipanteItem[]>([]);
   const { d, h, m, s, started, mounted: countdownReady } = useCountdown(INAUGURAL);
 
   const cargarRanking = useCallback(async () => {
     setLoading(true);
+
+    if (jornadaSeleccionada === 'general') {
+      const { data: generalData } = await supabase.rpc('get_ranking_general');
+      const rankItems = (generalData ?? []) as { user_id: string; puntos_totales: number; exactos_totales: number; jornadas_jugadas: number }[];
+
+      const genUserIds = rankItems.map((r: { user_id: string }) => r.user_id);
+      const { data: genJugadores } = genUserIds.length
+        ? await supabase.from('quiniela_jugadores').select('id, nombre, email, apodo, avatar_url, badge_ultimo').in('id', genUserIds)
+        : { data: [] };
+
+      setParticipantesJornada([]);
+      setRanking(
+        rankItems.map((r: { user_id: string; puntos_totales: number; exactos_totales: number }) => {
+          const jug = (genJugadores ?? []).find((j: { id: string }) => j.id === r.user_id);
+          return {
+            id:           r.user_id,
+            user_id:      r.user_id,
+            jornada:      null,
+            puntos_total: Number(r.puntos_totales),
+            exactos:      Number(r.exactos_totales),
+            updated_at:   '',
+            jugador: {
+              id:          r.user_id,
+              nombre:      jug?.nombre      ?? '',
+              apodo:       jug?.apodo       ?? null,
+              email:       jug?.email       ?? '',
+              rol:         'jugador' as const,
+              avatar_url:  jug?.avatar_url  ?? null,
+              creditos:    0,
+              created_at:  '',
+              badge_ultimo: jug?.badge_ultimo ?? null,
+            },
+          };
+        })
+      );
+      setLoading(false);
+      return;
+    }
+
     const j = Number(jornadaSeleccionada);
 
     const { data: parts, error: errorPart } = await supabase
@@ -202,7 +241,7 @@ export default function DashboardPage() {
     const { data: rankJugadores } = rankUserIds.length
       ? await supabase
           .from('quiniela_jugadores')
-          .select('id, nombre, email, apodo, avatar_url')
+          .select('id, nombre, email, apodo, avatar_url, badge_ultimo')
           .in('id', rankUserIds)
       : { data: [] };
 
@@ -217,14 +256,15 @@ export default function DashboardPage() {
           exactos:      Number(r.exactos),
           updated_at:   r.updated_at ?? '',
           jugador: {
-            id:         r.user_id,
-            nombre:     jug?.nombre     ?? '',
-            apodo:      jug?.apodo      ?? null,
-            email:      jug?.email      ?? '',
-            rol:        'jugador' as const,
-            avatar_url: jug?.avatar_url ?? null,
-            creditos:   0,
-            created_at: '',
+            id:          r.user_id,
+            nombre:      jug?.nombre      ?? '',
+            apodo:       jug?.apodo       ?? null,
+            email:       jug?.email       ?? '',
+            rol:         'jugador' as const,
+            avatar_url:  jug?.avatar_url  ?? null,
+            creditos:    0,
+            created_at:  '',
+            badge_ultimo: jug?.badge_ultimo ?? null,
           },
         };
       })
@@ -257,6 +297,26 @@ export default function DashboardPage() {
   useEffect(() => { cargarRanking(); }, [jornadaSeleccionada]);
 
   const jornadasDisponibles = pozos.length > 0 ? pozos.map(p => p.jornada) : [1];
+
+  const compartirRanking = () => {
+    const texto = ranking
+      .map((entry, i) => {
+        const medals = ['🥇', '🥈', '🥉'];
+        const medal = medals[i] || `${i + 1}.`;
+        const nombre = entry.jugador?.apodo || entry.jugador?.nombre?.split(' ')[0] || 'Jugador';
+        return `${medal} ${nombre} — ${entry.puntos_total} pts`;
+      })
+      .join('\n');
+
+    const jornadaLabel = jornadaSeleccionada === 'general' ? 'General' : `Jornada ${jornadaSeleccionada}`;
+    const mensaje = encodeURIComponent(
+      `🏆 Ranking Quiniela Metro — ${jornadaLabel}\n\n` +
+      texto +
+      `\n\n⚽ quinielamundial2026metro.vercel.app`
+    );
+
+    window.open(`https://wa.me/?text=${mensaje}`, '_blank');
+  };
 
   return (
     <main
@@ -321,23 +381,23 @@ export default function DashboardPage() {
       {/* Ranking por jornada */}
       <div style={{ animation: 'fadeInUp 0.5s ease-out 0.3s both' }}>
         <h2 className="font-bebas text-2xl mb-3" style={{ color: '#ea580c' }}>
-          Clasificación Jornada {jornadaSeleccionada}
+          {jornadaSeleccionada === 'general' ? '🏆 Clasificación General' : `Clasificación Jornada ${jornadaSeleccionada}`}
         </h2>
 
-        <div className="flex gap-2 mb-4">
-          {jornadasDisponibles.map(j => (
+        <div className="flex gap-2 mb-4 flex-wrap">
+          {(['general', ...jornadasDisponibles] as (number | 'general')[]).map(j => (
             <button
               key={j}
               onClick={() => setJornadaSeleccionada(j)}
-              className="px-4 py-1.5 rounded-full text-sm font-bold transition-all active:scale-95 min-h-[36px]"
+              className="px-4 py-1.5 rounded-lg text-sm font-bold transition-all active:scale-95 min-h-[36px]"
               style={{
-                background: jornadaSeleccionada === j ? 'var(--accent-gold)' : 'var(--bg-card)',
-                color: jornadaSeleccionada === j ? '#000' : 'var(--text-secondary)',
-                border: `1px solid ${jornadaSeleccionada === j ? 'var(--accent-gold)' : 'var(--border)'}`,
+                background: jornadaSeleccionada === j ? '#ea580c' : 'var(--bg-card)',
+                color: jornadaSeleccionada === j ? '#fff' : 'var(--text-secondary)',
+                border: `1px solid ${jornadaSeleccionada === j ? '#ea580c' : 'var(--border)'}`,
                 fontFamily: 'var(--font-rajdhani)',
               }}
             >
-              J{j}
+              {j === 'general' ? '🏆 General' : `J${j}`}
             </button>
           ))}
         </div>
@@ -348,7 +408,15 @@ export default function DashboardPage() {
               style={{ borderColor: 'var(--accent-gold)', borderTopColor: 'transparent' }} />
           </div>
         ) : ranking.length > 0 ? (
-          <RankingTable ranking={ranking} userId={userId} pendienteIds={pendienteIds} />
+          <>
+            <RankingTable ranking={ranking} userId={userId} pendienteIds={pendienteIds} />
+            <button
+              onClick={compartirRanking}
+              className="w-full mt-4 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all hover:opacity-80 active:scale-95"
+              style={{ background: 'rgba(22,163,74,0.15)', border: '1px solid rgba(34,197,94,0.3)', color: '#4ade80', fontFamily: 'var(--font-rajdhani)' }}>
+              💬 Compartir ranking en WhatsApp
+            </button>
+          </>
         ) : (
           <div>
             <p className="text-sm text-center mb-4" style={{ color: '#64748b' }}>

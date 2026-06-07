@@ -9,7 +9,7 @@ interface ParticipanteVista {
   key: string;
   user_id: string;
   quiniela_extra_id: string | null;
-  jugador: { nombre: string; email: string; apodo: string | null } | null;
+  jugador: { nombre: string; email: string; apodo: string | null; badge_ultimo?: string | null } | null;
   quiniela: { nombre: string } | null;
   publicado: boolean;
   pagado: boolean;
@@ -73,7 +73,7 @@ export default function JornadaPage() {
       const userIds = [...new Set(partcData.map((p: { user_id: string }) => p.user_id))];
       const { data: jugData } = await supabase
         .from('quiniela_jugadores')
-        .select('id, nombre, email, apodo')
+        .select('id, nombre, email, apodo, badge_ultimo')
         .in('id', userIds);
 
       const quinielaIds = [...new Set(
@@ -191,6 +191,12 @@ export default function JornadaPage() {
                         {mostrarNombre(p.jugador)}
                         {esYo && (
                           <span className="text-[9px] bg-orange-600 text-black px-1.5 py-0.5 rounded-full font-black">TÚ</span>
+                        )}
+                        {p.jugador?.badge_ultimo && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full"
+                            style={{ background: 'rgba(202,138,4,0.15)', border: '1px solid rgba(202,138,4,0.3)', color: '#facc15' }}>
+                            🤡 Último J{p.jugador.badge_ultimo.replace('J', '')}
+                          </span>
                         )}
                       </p>
                       {p.quiniela?.nombre && (

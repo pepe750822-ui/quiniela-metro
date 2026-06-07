@@ -58,6 +58,7 @@ export default function AdminPage() {
   const [participaciones, setParticipaciones] = useState<ParticipacionConNombre[]>([]);
   const [confirmando, setConfirmando]       = useState<string | null>(null);
   const [declarando, setDeclarando]         = useState<number | null>(null);
+  const [declarandoUltimo, setDeclarandoUltimo] = useState<number | null>(null);
 
   // Registrar pago manual
   const [pagoJugadorId, setPagoJugadorId] = useState('');
@@ -344,6 +345,37 @@ export default function AdminPage() {
     } else {
       toast.success(`🏆 Ganador Jornada ${jornada}: ${ganadorNombre}`);
       cargarPozos();
+    }
+  };
+
+  const declararUltimo = async (jornada: number) => {
+    setDeclarandoUltimo(jornada);
+
+    const { data: rankingUltimo } = await supabase
+      .from('quiniela_ranking')
+      .select('user_id, puntos_total')
+      .eq('jornada', jornada)
+      .order('puntos_total', { ascending: true })
+      .limit(1)
+      .single();
+
+    if (!rankingUltimo) {
+      toast.error('No hay datos de ranking para esta jornada');
+      setDeclarandoUltimo(null);
+      return;
+    }
+
+    const { error } = await supabase
+      .from('quiniela_jugadores')
+      .update({ badge_ultimo: `J${jornada}` })
+      .eq('id', rankingUltimo.user_id);
+
+    setDeclarandoUltimo(null);
+    if (error) {
+      toast.error('Error al asignar badge');
+    } else {
+      toast.success(`🤡 Último lugar J${jornada} declarado`);
+      cargarJugadores();
     }
   };
 
@@ -676,7 +708,7 @@ export default function AdminPage() {
                       👥 {pozo.participantes} · ${pozo.total_mxn} MXN
                     </p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 flex-wrap justify-end">
                     <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full"
                       style={{
                         background: pozo.estado === 'abierto'
@@ -689,13 +721,22 @@ export default function AdminPage() {
                       {pozo.estado}
                     </span>
                     {pozo.estado === 'abierto' && (
-                      <button
-                        onClick={() => handleDeclararGanador(pozo.jornada)}
-                        disabled={declarando === pozo.jornada}
-                        className="text-xs px-2 py-1 rounded-lg font-bold disabled:opacity-50 transition-all active:scale-95"
-                        style={{ background: 'rgba(234,88,12,0.2)', color: 'var(--accent-gold)', border: '1px solid rgba(234,88,12,0.3)' }}>
-                        {declarando === pozo.jornada ? '…' : '🏆 Declarar ganador'}
-                      </button>
+                      <>
+                        <button
+                          onClick={() => handleDeclararGanador(pozo.jornada)}
+                          disabled={declarando === pozo.jornada}
+                          className="text-xs px-2 py-1 rounded-lg font-bold disabled:opacity-50 transition-all active:scale-95"
+                          style={{ background: 'rgba(234,88,12,0.2)', color: 'var(--accent-gold)', border: '1px solid rgba(234,88,12,0.3)' }}>
+                          {declarando === pozo.jornada ? '…' : '🏆 Declarar ganador'}
+                        </button>
+                        <button
+                          onClick={() => declararUltimo(pozo.jornada)}
+                          disabled={declarandoUltimo === pozo.jornada}
+                          className="text-xs px-3 py-1.5 rounded-lg font-bold disabled:opacity-50 transition-all active:scale-95"
+                          style={{ background: 'rgba(202,138,4,0.2)', color: '#facc15', border: '1px solid rgba(202,138,4,0.3)' }}>
+                          {declarandoUltimo === pozo.jornada ? '…' : '🤡 Último lugar'}
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>

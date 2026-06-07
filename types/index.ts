@@ -41,6 +41,7 @@ export interface Jugador {
   ultima_pagina?: string | null;
   referencia_admin?: string | null;
   quiniela_nombre?: string | null;
+  badge_ultimo?: string | null;
 }
 
 export interface Pago {
