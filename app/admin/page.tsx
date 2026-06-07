@@ -256,9 +256,21 @@ export default function AdminPage() {
     if (error) {
       toast.error('Error: ' + error.message);
     } else {
+      const partidoObj = partidos.find(p => p.id === partidoId);
       toast.success('✅ Resultado guardado');
       setResultados(prev => { const n = { ...prev }; delete n[partidoId]; return n; });
       await cargarPartidos();
+
+      if (partidoObj?.grupo === 'FIN') {
+        try {
+          const ganador = resultado.local > resultado.visitante
+            ? partidoObj.equipo_local
+            : partidoObj.equipo_visitante;
+          await declararCampeonLogic(ganador);
+        } catch (e: unknown) {
+          toast.error('Error al declarar campeón: ' + (e as Error).message);
+        }
+      }
     }
   };
 
@@ -413,6 +425,43 @@ export default function AdminPage() {
       toast.success(`🤡 Último lugar J${jornada} declarado`);
       cargarJugadores();
     }
+  };
+
+  const declararCampeonLogic = async (ganador: string) => {
+    // Reset all previous badges first (handles corrections)
+    await supabase
+      .from('quiniela_jugadores')
+      .update({ badge_campeon: null })
+      .not('badge_campeon', 'is', null);
+
+    const { data: acertaron } = await supabase
+      .from('quiniela_campeon_picks')
+      .select('user_id')
+      .eq('equipo', ganador);
+
+    const userIds = (acertaron ?? []).map((p: { user_id: string }) => p.user_id);
+
+    if (userIds.length > 0) {
+      const { error } = await supabase
+        .from('quiniela_jugadores')
+        .update({ badge_campeon: ganador })
+        .in('id', userIds);
+      if (error) throw error;
+    }
+
+    toast.success(`🏆 Campeón declarado — ${userIds.length} usuario${userIds.length !== 1 ? 's' : ''} acertaron`);
+  };
+
+  const declararCampeonManual = async () => {
+    if (!equipoCampeonManual) return;
+    setDeclarandoCampeon(true);
+    try {
+      await declararCampeonLogic(equipoCampeonManual);
+      cargarJugadores();
+    } catch (e: unknown) {
+      toast.error('Error: ' + (e as Error).message);
+    }
+    setDeclarandoCampeon(false);
   };
 
   const registrarPago = async () => {
