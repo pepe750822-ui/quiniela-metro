@@ -79,8 +79,7 @@ No se mantiene una lista hardcodeada — usa los equipos ya registrados en la DB
 Ubicación: `handleGuardar()` en `app/admin/page.tsx`.
 
 Flujo al guardar un resultado:
-1. Verificar si el partido tiene `grupo = 'Final'` y el nuevo estado es `'finalizado'`.
-   > ⚠️ **Verificar el valor exacto antes de implementar:** consultar `SELECT DISTINCT grupo FROM quiniela_partidos ORDER BY grupo` para confirmar el string que usa la DB para la Final (puede ser `'Final'`, `'Finals'`, `'Fase Final'`, etc.).
+1. Verificar si el partido tiene `grupo = 'FIN'` y el nuevo estado es `'finalizado'`.
 2. Determinar ganador: `goles_local > goles_visitante ? equipo_local : equipo_visitante`.
    - El admin ingresa el resultado definitivo (incluye tiempo extra / penales).
 3. Consultar `quiniela_campeon_picks` filtrando por `equipo = ganador`.
