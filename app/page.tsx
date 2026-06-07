@@ -149,6 +149,15 @@ export default function LandingPage() {
       <div className="relative z-20 text-center pb-8 text-slate-700 text-xs">
         México 🇲🇽 · Canadá 🇨🇦 · Estados Unidos 🇺🇸
       </div>
+
+      {/* Botón flotante WhatsApp */}
+      <a
+        href="https://chat.whatsapp.com/LeFSQrZwf9nARVoU7YARhD"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-6 right-6 z-50 bg-green-500 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-[0_4px_20px_rgba(34,197,94,0.4)] hover:bg-green-400 hover:scale-110 active:scale-95 transition-all text-2xl">
+        💬
+      </a>
     </div>
   );
 }

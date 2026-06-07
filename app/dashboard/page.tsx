@@ -457,6 +457,16 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
+
+      {/* Grupo WhatsApp */}
+      <a
+        href="https://chat.whatsapp.com/LeFSQrZwf9nARVoU7YARhD"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm hover:opacity-80 transition-all mt-3"
+        style={{ background: 'rgba(22,163,74,0.15)', border: '1px solid rgba(34,197,94,0.3)', color: '#4ade80', fontFamily: 'var(--font-rajdhani)' }}>
+        💬 Únete al grupo de WhatsApp del torneo
+      </a>
     </main>
   );
 }
