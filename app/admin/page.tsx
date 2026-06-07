@@ -78,6 +78,11 @@ export default function AdminPage() {
   const [jornadaCSV, setJornadaCSV]   = useState<number>(1);
   const [descargando, setDescargando] = useState(false);
 
+  // Notas del admin (localStorage)
+  const NOTAS_KEY = 'admin_notas';
+  const [notas, setNotas] = useState<{ texto: string; fecha: string }[]>([]);
+  const [nuevaNota, setNuevaNota] = useState('');
+
   // Acordeones
   const [seccionesAbiertas, setSeccionesAbiertas] = useState({
     pago: true,
@@ -85,9 +90,40 @@ export default function AdminPage() {
     apodos: false,
     usuarios: false,
     resultados: false,
+    notas: false,
   });
   const toggleSeccion = (seccion: keyof typeof seccionesAbiertas) => {
     setSeccionesAbiertas(prev => ({ ...prev, [seccion]: !prev[seccion] }));
+  };
+
+  // ── Notas localStorage ───────────────────────────────
+
+  useEffect(() => {
+    const guardadas = localStorage.getItem(NOTAS_KEY);
+    if (guardadas) setNotas(JSON.parse(guardadas));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const agregarNota = () => {
+    if (!nuevaNota.trim()) return;
+    const nuevas = [{
+      texto: nuevaNota.trim(),
+      fecha: new Date().toLocaleString('es-MX', {
+        timeZone: 'America/Mexico_City',
+        day: '2-digit', month: '2-digit',
+        hour: '2-digit', minute: '2-digit',
+      }),
+    }, ...notas];
+    setNotas(nuevas);
+    localStorage.setItem(NOTAS_KEY, JSON.stringify(nuevas));
+    setNuevaNota('');
+    toast.success('✅ Nota guardada');
+  };
+
+  const eliminarNota = (index: number) => {
+    const nuevas = notas.filter((_, i) => i !== index);
+    setNotas(nuevas);
+    localStorage.setItem(NOTAS_KEY, JSON.stringify(nuevas));
   };
 
   // ── Loaders ──────────────────────────────────────────
@@ -1140,6 +1176,61 @@ export default function AdminPage() {
             );
           })}
         </div>
+        )}
+      </section>
+
+      {/* ── NOTAS DEL ADMIN ── */}
+      <section className="space-y-1">
+        <button
+          onClick={() => toggleSeccion('notas')}
+          className="w-full flex items-center justify-between px-4 py-4 rounded-xl hover:border-orange-500/30 transition-all"
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: 'var(--accent-gold)' }}>
+            📝 NOTAS DEL ADMIN — {notas.length} nota{notas.length !== 1 ? 's' : ''}
+          </span>
+          <span style={{ color: '#64748b' }}>{seccionesAbiertas.notas ? '▲' : '▼'}</span>
+        </button>
+        {seccionesAbiertas.notas && (
+          <div className="rounded-2xl p-4 space-y-2" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+            <div className="flex gap-2 mb-3">
+              <input
+                type="text"
+                placeholder="Ej: Anibal me dio $50 en efectivo..."
+                value={nuevaNota}
+                onChange={e => setNuevaNota(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && agregarNota()}
+                className="flex-1 rounded-lg px-3 py-2 text-white text-sm outline-none focus:border-orange-500"
+                style={{ background: '#0a0a0a', border: '1px solid #1e1e2e' }}
+              />
+              <button
+                onClick={agregarNota}
+                className="px-4 py-2 rounded-lg font-bold text-sm transition-all active:scale-95"
+                style={{ background: '#ea580c', color: '#fff' }}>
+                ✓
+              </button>
+            </div>
+
+            {notas.map((nota, i) => (
+              <div key={i} className="flex items-start justify-between py-2 gap-2"
+                style={{ borderBottom: i < notas.length - 1 ? '1px solid #1e1e2e' : 'none' }}>
+                <div>
+                  <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{nota.texto}</p>
+                  <p className="text-xs mt-0.5" style={{ color: '#475569' }}>{nota.fecha}</p>
+                </div>
+                <button
+                  onClick={() => eliminarNota(i)}
+                  className="text-xs flex-shrink-0 transition-opacity hover:opacity-70">
+                  🗑️
+                </button>
+              </div>
+            ))}
+
+            {notas.length === 0 && (
+              <p className="text-sm text-center py-4" style={{ color: '#475569' }}>
+                Sin notas — escribe algo arriba
+              </p>
+            )}
+          </div>
         )}
       </section>
     </main>
