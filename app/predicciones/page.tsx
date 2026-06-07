@@ -8,6 +8,8 @@ import PartidoCard from '@/components/PartidoCard';
 import PrediccionForm from '@/components/PrediccionForm';
 import { toast } from 'sonner';
 
+const DEADLINE_CAMPEON = new Date('2026-06-11T20:00:00Z');
+
 export default function PrediccionesPage() {
   const router = useRouter();
   const [userId, setUserId]               = useState<string | null>(null);
@@ -21,6 +23,15 @@ export default function PrediccionesPage() {
   const [participando, setParticipando]   = useState<boolean | null>(null);
   const [publicado, setPublicado]         = useState<boolean>(false);
   const [publicando, setPublicando]       = useState<boolean>(false);
+
+  // Predicción campeón mundial
+  const [campeonEquipos, setCampeonEquipos]     = useState<string[]>([]);
+  const [miCampeonPick, setMiCampeonPick]       = useState<string | null>(null);
+  const [campeonPickTemp, setCampeonPickTemp]   = useState<string | null>(null);
+  const [campeonGuardando, setCampeonGuardando] = useState(false);
+  const [campeonStats, setCampeonStats]         = useState<{ equipo: string; total: number }[]>([]);
+  const [campeonDeclarado, setCampeonDeclarado] = useState<string | null>(null);
+  const [miBadgeCampeon, setMiBadgeCampeon]     = useState<string | null>(null);
 
   // Múltiples quinielas
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -112,6 +123,54 @@ export default function PrediccionesPage() {
     }
   }, [userId, jornada, cargarQuinielas, cargarPredicciones, cargarPozoYParticipacion]);
 
+  useEffect(() => {
+    if (!userId) return;
+    const cargarCampeon = async () => {
+      const [{ data: ps }, { data: pick }, { data: jug }, { data: allPicks }, { data: final }] = await Promise.all([
+        supabase.from('quiniela_partidos').select('equipo_local, equipo_visitante'),
+        supabase.from('quiniela_campeon_picks').select('equipo').eq('user_id', userId).maybeSingle(),
+        supabase.from('quiniela_jugadores').select('badge_campeon').eq('id', userId).maybeSingle(),
+        supabase.from('quiniela_campeon_picks').select('equipo'),
+        supabase
+          .from('quiniela_partidos')
+          .select('goles_local, goles_visitante, equipo_local, equipo_visitante')
+          .eq('grupo', 'FIN')
+          .eq('estado', 'finalizado')
+          .maybeSingle(),
+      ]);
+
+      const allTeams = [
+        ...new Set(
+          (ps ?? []).flatMap((p: { equipo_local: string; equipo_visitante: string }) => [p.equipo_local, p.equipo_visitante])
+        ),
+      ].sort();
+      setCampeonEquipos(allTeams);
+
+      setMiCampeonPick(pick?.equipo ?? null);
+      setCampeonPickTemp(pick?.equipo ?? null);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setMiBadgeCampeon((jug as any)?.badge_campeon ?? null);
+
+      if (final) {
+        const ganador = (final.goles_local ?? 0) > (final.goles_visitante ?? 0)
+          ? final.equipo_local
+          : final.equipo_visitante;
+        setCampeonDeclarado(ganador);
+      }
+
+      const statsMap: Record<string, number> = {};
+      (allPicks ?? []).forEach((p: { equipo: string }) => {
+        statsMap[p.equipo] = (statsMap[p.equipo] || 0) + 1;
+      });
+      setCampeonStats(
+        Object.entries(statsMap)
+          .map(([equipo, total]) => ({ equipo, total }))
+          .sort((a, b) => b.total - a.total)
+      );
+    };
+    cargarCampeon();
+  }, [userId]);
+
   const handleGuardado = () => {
     setPartidoActivo(null);
     cargarPredicciones();
@@ -159,11 +218,30 @@ export default function PrediccionesPage() {
     }
   };
 
+  const guardarCampeonPick = async () => {
+    if (!userId || !campeonPickTemp) return;
+    setCampeonGuardando(true);
+    const { error } = await supabase
+      .from('quiniela_campeon_picks')
+      .upsert({ user_id: userId, equipo: campeonPickTemp }, { onConflict: 'user_id' });
+    setCampeonGuardando(false);
+    if (error) {
+      toast.error('Error al guardar: ' + error.message);
+    } else {
+      setMiCampeonPick(campeonPickTemp);
+      toast.success('🏆 ¡Campeón guardado!');
+    }
+  };
+
   // Progreso de predicciones en la jornada actual
   const predichasEnJornada = partidos.filter(p => predicciones[p.id]).length;
   const totalEnJornada = partidos.length;
   const porcentaje = totalEnJornada > 0 ? Math.round((predichasEnJornada / totalEnJornada) * 100) : 0;
   const jornadaCompleta = predichasEnJornada >= totalEnJornada && totalEnJornada > 0;
+
+  const campeonDeadlinePasado = Date.now() >= DEADLINE_CAMPEON.getTime();
+  const campeonAcerto = campeonDeclarado && miBadgeCampeon === campeonDeclarado;
+  const campeonFallo  = campeonDeclarado && miCampeonPick && miCampeonPick !== campeonDeclarado;
 
   return (
     <main
@@ -176,6 +254,105 @@ export default function PrediccionesPage() {
           PREDICCIONES
         </h1>
       </div>
+
+      {/* ── PREDICCIÓN CAMPEÓN ── */}
+      {campeonEquipos.length > 0 && (
+        <div
+          className="rounded-2xl p-4 space-y-3"
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', animation: 'fadeInUp 0.4s ease-out 0.03s both' }}
+        >
+          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
+            🏆 Predicción: Campeón Mundial
+          </p>
+
+          {campeonAcerto && (
+            <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.4)' }}>
+              <p className="font-bold" style={{ color: '#fbbf24', fontFamily: 'var(--font-rajdhani)' }}>
+                ✅ ¡Acertaste! — {campeonDeclarado}
+              </p>
+              <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>🏆 Tienes el badge de Campeón</p>
+            </div>
+          )}
+
+          {campeonFallo && (
+            <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(100,116,139,0.1)', border: '1px solid rgba(100,116,139,0.2)' }}>
+              <p className="text-sm font-semibold" style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-rajdhani)' }}>
+                ❌ No fue {miCampeonPick} — ganó <strong style={{ color: '#fbbf24' }}>{campeonDeclarado}</strong>
+              </p>
+            </div>
+          )}
+
+          {campeonDeclarado && !miCampeonPick && (
+            <p className="text-sm text-center" style={{ color: 'var(--text-secondary)' }}>
+              No hiciste una predicción — ganó <strong style={{ color: '#fbbf24' }}>{campeonDeclarado}</strong>
+            </p>
+          )}
+
+          {!campeonDeclarado && campeonDeadlinePasado && !miCampeonPick && (
+            <p className="text-sm text-center" style={{ color: 'var(--text-secondary)' }}>No hiciste una predicción 🔒</p>
+          )}
+
+          {!campeonDeclarado && campeonDeadlinePasado && miCampeonPick && (
+            <>
+              <div className="rounded-xl p-3 flex items-center gap-2"
+                style={{ background: 'rgba(100,116,139,0.08)', border: '1px solid rgba(100,116,139,0.2)' }}>
+                <span>🔒</span>
+                <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                  Tu campeón: <strong style={{ color: '#fbbf24' }}>{miCampeonPick}</strong>
+                </span>
+              </div>
+              {campeonStats.length > 0 && (
+                <div className="space-y-1 pt-1">
+                  <p className="text-[10px] uppercase tracking-widest" style={{ color: '#64748b' }}>Picks del grupo</p>
+                  {campeonStats.map(s => (
+                    <div key={s.equipo} className="flex items-center justify-between text-xs py-0.5">
+                      <span style={{ color: s.equipo === miCampeonPick ? '#fbbf24' : 'var(--text-secondary)' }}>
+                        {s.equipo}
+                      </span>
+                      <span style={{ color: '#64748b' }}>{s.total} jugador{s.total !== 1 ? 'es' : ''}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {!campeonDeadlinePasado && !campeonDeclarado && (
+            <>
+              {miCampeonPick && (
+                <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                  Pick actual: <strong style={{ color: '#fbbf24' }}>{miCampeonPick}</strong> · Puedes cambiar hasta el 11 jun 15:00 CDMX
+                </p>
+              )}
+              <div className="grid grid-cols-3 gap-1.5 max-h-64 overflow-y-auto">
+                {campeonEquipos.map(equipo => (
+                  <button
+                    key={equipo}
+                    onClick={() => setCampeonPickTemp(equipo)}
+                    className="py-2 px-1 rounded-lg text-xs font-semibold text-center transition-all active:scale-95"
+                    style={{
+                      background: campeonPickTemp === equipo ? '#ea580c' : 'var(--bg-card-hover)',
+                      color: campeonPickTemp === equipo ? '#fff' : 'var(--text-secondary)',
+                      border: `1px solid ${campeonPickTemp === equipo ? '#ea580c' : 'var(--border)'}`,
+                      fontFamily: 'var(--font-rajdhani)',
+                    }}
+                  >
+                    {equipo}
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={guardarCampeonPick}
+                disabled={!campeonPickTemp || campeonGuardando || campeonPickTemp === miCampeonPick}
+                className="w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-40"
+                style={{ background: '#ea580c', color: '#fff', fontFamily: 'var(--font-rajdhani)' }}
+              >
+                {campeonGuardando ? '⏳ Guardando...' : miCampeonPick ? '🔄 Actualizar predicción' : '🏆 Guardar predicción'}
+              </button>
+            </>
+          )}
+        </div>
+      )}
 
       {/* Banner: pago pendiente */}
       {participando === false && (
