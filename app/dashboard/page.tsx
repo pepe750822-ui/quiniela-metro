@@ -143,6 +143,11 @@ export default function DashboardPage() {
   const [participantesJornada, setParticipantesJornada] = useState<ParticipanteItem[]>([]);
   const { d, h, m, s, started, mounted: countdownReady } = useCountdown(INAUGURAL);
 
+  const [campeonPick, setCampeonPick]           = useState<string | null>(null);
+  const [campeonBadge, setCampeonBadge]         = useState<string | null>(null);
+  const [campeonDeclarado, setCampeonDeclarado] = useState<string | null>(null);
+  const [campeonLoaded, setCampeonLoaded]       = useState(false);
+
   const cargarRanking = useCallback(async () => {
     setLoading(true);
 
@@ -275,7 +280,32 @@ export default function DashboardPage() {
   }, [jornadaSeleccionada]);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id));
+    supabase.auth.getUser().then(async ({ data }) => {
+      const uid = data.user?.id;
+      setUserId(uid);
+      if (uid) {
+        const [{ data: pick }, { data: jug }, { data: final }] = await Promise.all([
+          supabase.from('quiniela_campeon_picks').select('equipo').eq('user_id', uid).maybeSingle(),
+          supabase.from('quiniela_jugadores').select('badge_campeon').eq('id', uid).maybeSingle(),
+          supabase
+            .from('quiniela_partidos')
+            .select('goles_local, goles_visitante, equipo_local, equipo_visitante')
+            .eq('grupo', 'FIN')
+            .eq('estado', 'finalizado')
+            .maybeSingle(),
+        ]);
+        setCampeonPick(pick?.equipo ?? null);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setCampeonBadge((jug as any)?.badge_campeon ?? null);
+        if (final) {
+          const ganador = (final.goles_local ?? 0) > (final.goles_visitante ?? 0)
+            ? final.equipo_local
+            : final.equipo_visitante;
+          setCampeonDeclarado(ganador);
+        }
+        setCampeonLoaded(true);
+      }
+    });
 
     supabase
       .from('quiniela_pozo')
@@ -367,6 +397,46 @@ export default function DashboardPage() {
           </>
         )}
       </div>
+
+      {/* Champion pick compact card */}
+      {campeonLoaded && (
+        <div
+          className="rounded-2xl px-4 py-3 text-center"
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', animation: 'fadeInUp 0.5s ease-out 0.2s both' }}
+        >
+          {campeonDeclarado && campeonBadge === campeonDeclarado && (
+            <p className="text-sm font-bold" style={{ color: '#fbbf24', fontFamily: 'var(--font-rajdhani)' }}>
+              🏆 ¡Acertaste el Campeón! — {campeonDeclarado}
+            </p>
+          )}
+          {campeonDeclarado && campeonPick && campeonPick !== campeonDeclarado && (
+            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+              🏆 Campeón: <strong style={{ color: '#fbbf24' }}>{campeonDeclarado}</strong> · Tu pick: {campeonPick} ❌
+            </p>
+          )}
+          {campeonDeclarado && !campeonPick && (
+            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+              🏆 Campeón mundial: <strong style={{ color: '#fbbf24' }}>{campeonDeclarado}</strong>
+            </p>
+          )}
+          {!campeonDeclarado && Date.now() >= INAUGURAL.getTime() && campeonPick && (
+            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+              🔒 Tu campeón: <strong style={{ color: '#fbbf24' }}>{campeonPick}</strong>
+            </p>
+          )}
+          {!campeonDeclarado && Date.now() < INAUGURAL.getTime() && !campeonPick && (
+            <Link href="/predicciones" className="text-sm font-semibold hover:opacity-80"
+              style={{ color: '#ea580c', fontFamily: 'var(--font-rajdhani)' }}>
+              🏆 ¿Ya elegiste tu campeón? → Ir a Predicciones
+            </Link>
+          )}
+          {!campeonDeclarado && Date.now() < INAUGURAL.getTime() && campeonPick && (
+            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+              🏆 Tu campeón: <strong style={{ color: '#fbbf24' }}>{campeonPick}</strong>
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Pozos por jornada */}
       {pozos.length > 0 && (
