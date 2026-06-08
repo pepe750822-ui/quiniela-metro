@@ -488,7 +488,7 @@ export default function DashboardPage() {
             </p>
           </div>
           <a
-            href={`https://wa.me/5552326941?text=${encodeURIComponent(
+            href={`https://wa.me/521552326941?text=${encodeURIComponent(
               '¡Hola! Ya realicé mi pago para la Quiniela Metro Mundial 2026 🏆\n\n' +
               'Por favor confirma mi participación.\n\n' +
               'Mi correo de registro: ' + (userEmail || '') + '\n' +
