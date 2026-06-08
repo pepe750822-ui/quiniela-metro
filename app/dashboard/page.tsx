@@ -320,7 +320,11 @@ export default function DashboardPage() {
           .eq('pagado', false)
           .eq('publicado', true)
           .maybeSingle();
-        setParticipacionPendiente(participacionPend);
+        setParticipacionPendiente(participacionPend ? {
+          ...participacionPend,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          quiniela: Array.isArray((participacionPend as any).quiniela) ? (participacionPend as any).quiniela[0] ?? null : (participacionPend as any).quiniela ?? null,
+        } : null);
       }
     });
 
