@@ -15,7 +15,7 @@ export async function GET(request: Request) {
     return NextResponse.redirect(new URL(`/login?error=${error}`, requestUrl.origin))
   }
 
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
