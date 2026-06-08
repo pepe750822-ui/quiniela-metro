@@ -31,9 +31,12 @@ export async function GET(request: Request) {
   // Manejar Magic Link (token_hash)
   if (token_hash && type) {
     const { data, error: verifyError } = await supabase.auth
-      .verifyOtp({ token_hash, type: type as any })
+      .verifyOtp({ 
+        token_hash, 
+        type: type as 'email' | 'magiclink' | 'signup' 
+      })
     
-    console.log('OTP verify:', data?.user?.email, verifyError?.message)
+    console.log('OTP verify result:', data?.user?.email, verifyError?.message)
     
     if (!verifyError && data?.user) {
       await supabase
