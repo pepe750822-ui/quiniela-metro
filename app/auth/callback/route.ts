@@ -1,4 +1,4 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
@@ -9,34 +9,37 @@ export async function GET(request: Request) {
   const type = requestUrl.searchParams.get('type')
   const error = requestUrl.searchParams.get('error')
 
-  console.log('=== AUTH CALLBACK ===')
-  console.log('code:', code ? 'EXISTE' : 'NO')
-  console.log('token_hash:', token_hash ? 'EXISTE' : 'NO')
-  console.log('type:', type)
-  console.log('error:', error)
+  console.log('Callback:', { code: !!code, token_hash: !!token_hash, type, error })
 
   if (error) {
-    return NextResponse.redirect(
-      new URL(`/login?error=${error}`, requestUrl.origin)
-    )
+    return NextResponse.redirect(new URL(`/login?error=${error}`, requestUrl.origin))
   }
 
   const cookieStore = cookies()
-  const supabase = createRouteHandlerClient({ 
-    cookies: () => cookieStore 
-  })
-
-  let redirectTo = '/'
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value
+        },
+        set(name: string, value: string, options: any) {
+          cookieStore.set({ name, value, ...options })
+        },
+        remove(name: string, options: any) {
+          cookieStore.set({ name, value: '', ...options })
+        },
+      },
+    }
+  )
 
   // Manejar Magic Link (token_hash)
   if (token_hash && type) {
     const { data, error: verifyError } = await supabase.auth
-      .verifyOtp({ 
-        token_hash, 
-        type: type as 'email' | 'magiclink' | 'signup' 
-      })
+      .verifyOtp({ token_hash, type: type as any })
     
-    console.log('OTP verify result:', data?.user?.email, verifyError?.message)
+    console.log('OTP verify:', data?.user?.email, verifyError?.message)
     
     if (!verifyError && data?.user) {
       await supabase
@@ -49,11 +52,8 @@ export async function GET(request: Request) {
           rol: 'jugador',
           last_seen: new Date().toISOString()
         }, { onConflict: 'id', ignoreDuplicates: false })
-
-      const tiempoCreacion = new Date(data.user.created_at).getTime();
-      if ((Date.now() - tiempoCreacion) < 10000) {
-        redirectTo = '/instrucciones'
-      }
+      
+      return NextResponse.redirect(new URL('/', requestUrl.origin))
     }
   }
 
@@ -73,13 +73,8 @@ export async function GET(request: Request) {
           rol: 'jugador',
           last_seen: new Date().toISOString()
         }, { onConflict: 'id', ignoreDuplicates: false })
-
-      const tiempoCreacion = new Date(data.user.created_at).getTime();
-      if ((Date.now() - tiempoCreacion) < 10000) {
-        redirectTo = '/instrucciones'
-      }
     }
   }
 
-  return NextResponse.redirect(new URL(redirectTo, requestUrl.origin))
+  return NextResponse.redirect(new URL('/', requestUrl.origin))
 }
