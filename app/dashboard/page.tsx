@@ -147,6 +147,7 @@ export default function DashboardPage() {
   const [campeonBadge, setCampeonBadge]         = useState<string | null>(null);
   const [campeonDeclarado, setCampeonDeclarado] = useState<string | null>(null);
   const [campeonLoaded, setCampeonLoaded]       = useState(false);
+  const [participacionPendiente, setParticipacionPendiente] = useState<{id: string, pagado: boolean, jornada: number} | null>(null);
 
   const cargarRanking = useCallback(async () => {
     setLoading(true);
@@ -306,6 +307,15 @@ export default function DashboardPage() {
           setCampeonDeclarado(ganador);
         }
         setCampeonLoaded(true);
+
+        const { data: participacionPend } = await supabase
+          .from('quiniela_participaciones')
+          .select('id, pagado, jornada')
+          .eq('user_id', uid)
+          .eq('pagado', false)
+          .eq('publicado', true)
+          .maybeSingle();
+        setParticipacionPendiente(participacionPend);
       }
     });
 
@@ -447,6 +457,40 @@ export default function DashboardPage() {
             Pozos acumulados
           </p>
           {pozos.map(pozo => <PozoCard key={pozo.id} pozo={pozo} />)}
+        </div>
+      )}
+
+      {/* Solo visible para el usuario actual si tiene pago pendiente */}
+      {participacionPendiente && (
+        <div className="mb-4 bg-orange-600/10 border border-orange-500/30 rounded-2xl p-4 mt-6" style={{ animation: 'fadeInUp 0.5s ease-out 0.28s both' }}>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-xl">⏳</span>
+            <h3 className="font-bebas text-lg text-orange-400">
+              TU PAGO ESTÁ PENDIENTE
+            </h3>
+          </div>
+          <p className="text-slate-400 text-sm mb-3">
+            Tus predicciones están guardadas pero no 
+            participarás en el pozo hasta que se confirme 
+            tu pago de $50 MXN.
+          </p>
+          <div className="bg-[#0a0a0a] rounded-xl p-3 mb-3">
+            <p className="text-xs text-slate-500 mb-1">
+              Datos para transferencia:
+            </p>
+            <p className="text-white text-sm font-bold">
+              Santander — CLABE: 014180565546539842
+            </p>
+            <p className="text-slate-400 text-xs">
+              JOSE LUIS GONZALEZ PEREZ
+            </p>
+          </div>
+          <a
+            href="https://wa.me/5552326941?text=Hola%2C%20ya%20realic%C3%A9%20mi%20pago%20para%20la%20Quiniela%20Metro%20Mundial%202026.%20Mi%20correo%20es%3A%20"
+            target="_blank"
+            className="w-full flex items-center justify-center gap-2 bg-green-600 text-white py-3 rounded-xl font-rajdhani font-bold text-sm">
+            💬 Enviar comprobante por WhatsApp
+          </a>
         </div>
       )}
 
