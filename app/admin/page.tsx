@@ -118,15 +118,14 @@ export default function AdminPage() {
         })
       });
       const data = await res.json();
-      if (data.success) {
-        setMagicLink(data.message);
-        toast.success('✅ Link enviado');
-        setEmailMagic('');
+      if (data.link) {
+        setMagicLink(data.link);
+        toast.success('✅ Link generado');
       } else {
         toast.error('Error: ' + data.error);
       }
     } catch (e) {
-      toast.error('Error al enviar link');
+      toast.error('Error al generar link');
     }
     setGenerandoLink(false);
   };
@@ -840,10 +839,35 @@ export default function AdminPage() {
 
             {magicLink && (
               <div className="bg-[#0a0a0a] border border-green-500/30
-              rounded-xl p-3 text-center">
-                <p className="text-green-400 text-sm font-bold">
-                  ✅ Link enviado al correo: {magicLink.replace('Magic link enviado al correo ', '')}
+              rounded-xl p-3">
+                <p className="text-green-400 text-xs font-bold mb-2">
+                  ✅ Link listo — mándalo por WhatsApp:
                 </p>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(magicLink);
+                    toast.success('Link copiado ✅');
+                  }}
+                  className="w-full bg-green-600/20 border 
+                  border-green-500/30 text-green-400 py-2 
+                  rounded-lg text-sm font-bold mb-2">
+                  📋 Copiar link
+                </button>
+                
+                <a
+                  href={`https://wa.me/?text=${encodeURIComponent(
+                    '¡Hola! Tu acceso a la Quiniela Metro Mundial 2026 está listo ⚽\n\n' +
+                    'Da clic en este link para entrar directo:\n' +
+                    magicLink + '\n\n' +
+                    'El link expira en 24 horas.\n' +
+                    '¡Mucho éxito! 🏆'
+                  )}`}
+                  target="_blank"
+                  className="w-full flex items-center justify-center
+                  bg-green-600 text-white py-2 rounded-lg 
+                  text-sm font-bold">
+                  💬 Mandar por WhatsApp
+                </a>
               </div>
             )}
           </div>

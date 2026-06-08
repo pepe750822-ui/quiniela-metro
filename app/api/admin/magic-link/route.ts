@@ -13,21 +13,20 @@ export async function POST(request: Request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  // Enviar magic link directo al correo del usuario
-  const { error } = await supabaseAdmin.auth.signInWithOtp({
-    email,
-    options: {
-      emailRedirectTo: 'https://quinielamundial2026metro.vercel.app/auth/callback',
-      shouldCreateUser: true
-    }
-  })
+  const { data, error } = await supabaseAdmin.auth.admin
+    .generateLink({
+      type: 'magiclink',
+      email,
+      options: {
+        redirectTo: 'https://quinielamundial2026metro.vercel.app/auth/callback'
+      }
+    })
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 })
   }
 
   return NextResponse.json({ 
-    success: true,
-    message: `Magic link enviado al correo ${email}`
+    link: data.properties?.action_link 
   })
 }
