@@ -334,16 +334,16 @@ export default function TablaPage() {
       {/* Tabla horizontal scrollable — oculta al imprimir */}
       <div className="overflow-x-auto px-2 print:hidden">
         <table className="min-w-max print:min-w-0 print:w-full text-sm border-collapse">
-          <thead>
+          <thead className="sticky top-0 z-20">
             <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-              <th className="sticky left-0 z-10 text-left px-3 py-3 min-w-[130px]"
+              <th className="sticky left-0 z-30 text-left px-3 py-3 min-w-[130px]"
                 style={{ background: 'var(--bg-base)', borderBottom: '1px solid var(--border-color)' }}>
                 <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>Jugador</span>
               </th>
               {partidos.map(partido => (
                 <th key={partido.id}
                   className="px-2 py-2 text-center min-w-[70px]"
-                  style={{ borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
+                  style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
                   <div className="flex items-center justify-center gap-1 mb-1">
                     <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
                     <span style={{ fontSize: '0.625rem', color: '#475569' }}>vs</span>
@@ -365,7 +365,7 @@ export default function TablaPage() {
                 </th>
               ))}
               <th className="px-3 py-2 text-center min-w-[55px]"
-                style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
+                style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
                 PTS
               </th>
             </tr>
