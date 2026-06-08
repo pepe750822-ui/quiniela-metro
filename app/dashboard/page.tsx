@@ -149,6 +149,7 @@ export default function DashboardPage() {
   const [campeonLoaded, setCampeonLoaded]       = useState(false);
   const [participacionPendiente, setParticipacionPendiente] = useState<{id: string, pagado: boolean, jornada: number} | null>(null);
   const [userEmail, setUserEmail] = useState<string>('');
+  const [userName, setUserName] = useState<string>('');
 
   const cargarRanking = useCallback(async () => {
     setLoading(true);
@@ -291,7 +292,7 @@ export default function DashboardPage() {
       if (uid) {
         const [{ data: pick }, { data: jug }, { data: final }] = await Promise.all([
           supabase.from('quiniela_campeon_picks').select('equipo').eq('user_id', uid).maybeSingle(),
-          supabase.from('quiniela_jugadores').select('badge_campeon').eq('id', uid).maybeSingle(),
+          supabase.from('quiniela_jugadores').select('nombre, apodo, badge_campeon').eq('id', uid).maybeSingle(),
           supabase
             .from('quiniela_partidos')
             .select('goles_local, goles_visitante, equipo_local, equipo_visitante')
@@ -301,7 +302,9 @@ export default function DashboardPage() {
         ]);
         setCampeonPick(pick?.equipo ?? null);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        setCampeonBadge((jug as any)?.badge_campeon ?? null);
+        const jugAny = jug as any;
+        setCampeonBadge(jugAny?.badge_campeon ?? null);
+        setUserName(jugAny?.apodo || jugAny?.nombre?.split(' ')[0] || '');
         if (final) {
           const ganador = (final.goles_local ?? 0) > (final.goles_visitante ?? 0)
             ? final.equipo_local
@@ -491,6 +494,7 @@ export default function DashboardPage() {
             href={`https://wa.me/525523269241?text=${encodeURIComponent(
               '¡Hola! Ya realicé mi pago para la Quiniela Metro Mundial 2026 🏆\n\n' +
               'Por favor confirma mi participación.\n\n' +
+              'Nombre: ' + (userName || '') + '\n' +
               'Mi correo de registro: ' + (userEmail || '') + '\n' +
               'Jornada: ' + (participacionPendiente?.jornada || 1) + '\n\n' +
               'Te adjunto mi comprobante de pago 📎'
