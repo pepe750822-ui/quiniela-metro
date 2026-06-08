@@ -15,7 +15,7 @@ export async function POST(request: Request) {
 
   const { data, error } = await supabaseAdmin.auth.admin
     .generateLink({
-      type: 'email',
+      type: 'email' as any,
       email,
       options: {
         redirectTo: 'https://quinielamundial2026metro.vercel.app/auth/callback'
