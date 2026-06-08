@@ -332,7 +332,7 @@ export default function TablaPage() {
       </div>
 
       {/* Tabla horizontal scrollable — oculta al imprimir */}
-      <div className="overflow-x-auto px-2 print:hidden">
+      <div className="overflow-x-auto overflow-y-auto px-2 print:hidden" style={{ maxHeight: 'calc(100vh - 160px)' }}>
         <table className="min-w-max print:min-w-0 print:w-full text-sm border-collapse">
           <thead className="sticky top-0 z-20">
             <tr style={{ borderBottom: '1px solid var(--border-color)' }}>

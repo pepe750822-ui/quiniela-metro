@@ -85,6 +85,11 @@ export default function AdminPage() {
   const [notas, setNotas] = useState<{ texto: string; fecha: string }[]>([]);
   const [nuevaNota, setNuevaNota] = useState('');
 
+  // Magic Link
+  const [emailMagic, setEmailMagic] = useState('');
+  const [magicLink, setMagicLink] = useState('');
+  const [generandoLink, setGenerandoLink] = useState(false);
+
   // Acordeones
   const [seccionesAbiertas, setSeccionesAbiertas] = useState({
     pago: true,
@@ -94,9 +99,35 @@ export default function AdminPage() {
     resultados: false,
     notas: false,
     campeon: false,
+    magicLink: false,
   });
   const toggleSeccion = (seccion: keyof typeof seccionesAbiertas) => {
     setSeccionesAbiertas(prev => ({ ...prev, [seccion]: !prev[seccion] }));
+  };
+
+  const generarMagicLink = async () => {
+    if (!emailMagic.trim()) return;
+    setGenerandoLink(true);
+    try {
+      const res = await fetch('/api/admin/magic-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: emailMagic.trim(),
+          secret: 'quiniela-metro-cleanup-2026'
+        })
+      });
+      const data = await res.json();
+      if (data.link) {
+        setMagicLink(data.link);
+        toast.success('✅ Link generado');
+      } else {
+        toast.error('Error: ' + data.error);
+      }
+    } catch (e) {
+      toast.error('Error al generar link');
+    }
+    setGenerandoLink(false);
   };
 
   // ── Notas localStorage ───────────────────────────────
@@ -762,6 +793,83 @@ export default function AdminPage() {
             >
               {registrando ? '…' : '✅ Confirmar pago $50 MXN'}
             </button>
+          </div>
+        )}
+      </section>
+
+      {/* ── MAGIC LINK ── */}
+      <section className="space-y-1">
+        <button
+          onClick={() => toggleSeccion('magicLink')}
+          className="w-full flex items-center justify-between px-4 py-4 rounded-xl hover:border-orange-500/30 transition-all"
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: 'var(--accent-gold)' }}>
+            🔗 MAGIC LINK
+          </span>
+          <span style={{ color: '#64748b' }}>{seccionesAbiertas.magicLink ? '▲' : '▼'}</span>
+        </button>
+        {seccionesAbiertas.magicLink && (
+          <div className="space-y-3 rounded-2xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+            <p className="text-slate-500 text-xs">
+              Genera un link para que cualquier persona entre
+              a la quiniela sin necesitar Google.
+              Funciona con Gmail, Hotmail, Yahoo o cualquier correo.
+              El link expira en 24 horas.
+            </p>
+            
+            <input
+              type="email"
+              placeholder="correo@hotmail.com"
+              value={emailMagic}
+              onChange={e => setEmailMagic(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && generarMagicLink()}
+              className="w-full bg-[#0a0a0a] border border-[#1e1e2e]
+              rounded-lg px-3 py-2 text-white text-sm outline-none
+              focus:border-orange-500"
+            />
+            
+            <button
+              onClick={generarMagicLink}
+              disabled={generandoLink || !emailMagic.trim()}
+              className="w-full bg-orange-600 text-white py-3
+              rounded-xl font-rajdhani font-bold text-sm
+              hover:bg-orange-500 disabled:opacity-40 transition-all">
+              {generandoLink ? '⏳ Generando...' : '🔗 Generar Magic Link'}
+            </button>
+
+            {magicLink && (
+              <div className="bg-[#0a0a0a] border border-green-500/30
+              rounded-xl p-3">
+                <p className="text-green-400 text-xs font-bold mb-2">
+                  ✅ Link listo — mándalo por WhatsApp:
+                </p>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(magicLink);
+                    toast.success('Link copiado ✅');
+                  }}
+                  className="w-full bg-green-600/20 border 
+                  border-green-500/30 text-green-400 py-2 
+                  rounded-lg text-sm font-bold mb-2">
+                  📋 Copiar link
+                </button>
+                
+                <a
+                  href={`https://wa.me/?text=${encodeURIComponent(
+                    '¡Hola! Tu acceso a la Quiniela Metro Mundial 2026 está listo ⚽\n\n' +
+                    'Da clic en este link para entrar directo:\n' +
+                    magicLink + '\n\n' +
+                    'El link expira en 24 horas.\n' +
+                    '¡Mucho éxito! 🏆'
+                  )}`}
+                  target="_blank"
+                  className="w-full flex items-center justify-center
+                  bg-green-600 text-white py-2 rounded-lg 
+                  text-sm font-bold">
+                  💬 Mandar por WhatsApp
+                </a>
+              </div>
+            )}
           </div>
         )}
       </section>
