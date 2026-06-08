@@ -147,7 +147,7 @@ export default function DashboardPage() {
   const [campeonBadge, setCampeonBadge]         = useState<string | null>(null);
   const [campeonDeclarado, setCampeonDeclarado] = useState<string | null>(null);
   const [campeonLoaded, setCampeonLoaded]       = useState(false);
-  const [participacionPendiente, setParticipacionPendiente] = useState<{id: string, pagado: boolean, jornada: number} | null>(null);
+  const [participacionPendiente, setParticipacionPendiente] = useState<{id: string, pagado: boolean, jornada: number, quiniela_extra_id: string | null, quiniela: {nombre: string} | null} | null>(null);
   const [userEmail, setUserEmail] = useState<string>('');
   const [userName, setUserName] = useState<string>('');
 
@@ -315,7 +315,7 @@ export default function DashboardPage() {
 
         const { data: participacionPend } = await supabase
           .from('quiniela_participaciones')
-          .select('id, pagado, jornada')
+          .select('id, pagado, jornada, quiniela_extra_id, quiniela:quiniela_extra(nombre)')
           .eq('user_id', uid)
           .eq('pagado', false)
           .eq('publicado', true)
@@ -469,9 +469,11 @@ export default function DashboardPage() {
       {participacionPendiente && (
         <div className="mb-4 bg-orange-600/10 border border-orange-500/30 rounded-2xl p-4 mt-6" style={{ animation: 'fadeInUp 0.5s ease-out 0.28s both' }}>
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-xl">⏳</span>
             <h3 className="font-bebas text-lg text-orange-400">
-              TU PAGO ESTÁ PENDIENTE
+              {participacionPendiente?.quiniela?.nombre
+                ? `⏳ PAGO PENDIENTE — 🎫 ${participacionPendiente.quiniela.nombre}`
+                : '⏳ TU PAGO ESTÁ PENDIENTE'
+              }
             </h3>
           </div>
           <p className="text-slate-400 text-sm mb-3">
@@ -495,6 +497,7 @@ export default function DashboardPage() {
               '¡Hola! Ya realicé mi pago para la Quiniela Metro Mundial 2026 🏆\n\n' +
               'Por favor confirma mi participación.\n\n' +
               'Nombre: ' + (userName || '') + '\n' +
+              'Quiniela: ' + (participacionPendiente?.quiniela?.nombre || 'Principal') + '\n' +
               'Mi correo de registro: ' + (userEmail || '') + '\n' +
               'Jornada: ' + (participacionPendiente?.jornada || 1) + '\n\n' +
               'Te adjunto mi comprobante de pago 📎'
