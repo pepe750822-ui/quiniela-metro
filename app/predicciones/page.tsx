@@ -8,7 +8,7 @@ import PartidoCard from '@/components/PartidoCard';
 import PrediccionForm from '@/components/PrediccionForm';
 import { toast } from 'sonner';
 
-const DEADLINE_CAMPEON = new Date('2026-06-11T20:00:00Z');
+const DEADLINE_CAMPEON = new Date('2026-06-28T02:00:00Z'); // 27 jun 8:00 p.m. CDMX
 
 export default function PrediccionesPage() {
   const router = useRouter();
@@ -321,7 +321,7 @@ export default function PrediccionesPage() {
             <>
               {miCampeonPick && (
                 <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                  Pick actual: <strong style={{ color: '#fbbf24' }}>{miCampeonPick}</strong> · Puedes cambiar hasta el 11 jun 15:00 CDMX
+                  Pick actual: <strong style={{ color: '#fbbf24' }}>{miCampeonPick}</strong> · Puedes cambiar hasta el 27 jun 8:00 p.m. CDMX
                 </p>
               )}
               <div className="grid grid-cols-3 gap-1.5 max-h-64 overflow-y-auto">

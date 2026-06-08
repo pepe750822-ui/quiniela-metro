@@ -15,14 +15,14 @@ CREATE POLICY "campeon_picks_read" ON quiniela_campeon_picks
 CREATE POLICY "campeon_picks_insert" ON quiniela_campeon_picks
   FOR INSERT WITH CHECK (
     auth.uid() = user_id
-    AND NOW() < '2026-06-11T20:00:00+00'::timestamptz
+    AND NOW() < '2026-06-28T02:00:00+00'::timestamptz  -- 27 jun 8:00 p.m. CDMX
   );
 
 -- Own user can update before deadline
 CREATE POLICY "campeon_picks_update" ON quiniela_campeon_picks
   FOR UPDATE USING (
     auth.uid() = user_id
-    AND NOW() < '2026-06-11T20:00:00+00'::timestamptz
+    AND NOW() < '2026-06-28T02:00:00+00'::timestamptz  -- 27 jun 8:00 p.m. CDMX
   );
 
 -- badge_campeon: team name when user guessed correctly, NULL otherwise
