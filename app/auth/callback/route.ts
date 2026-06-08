@@ -5,15 +5,15 @@ import { NextResponse } from 'next/server'
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
+  const token_hash = requestUrl.searchParams.get('token_hash')
+  const type = requestUrl.searchParams.get('type')
   const error = requestUrl.searchParams.get('error')
-  const error_description = requestUrl.searchParams.get('error_description')
 
   console.log('=== AUTH CALLBACK ===')
-  console.log('code:', code ? 'EXISTE' : 'NO EXISTE')
+  console.log('code:', code ? 'EXISTE' : 'NO')
+  console.log('token_hash:', token_hash ? 'EXISTE' : 'NO')
+  console.log('type:', type)
   console.log('error:', error)
-  console.log('error_description:', error_description)
-  console.log('full URL:', request.url)
-  console.log('====================')
 
   if (error) {
     return NextResponse.redirect(
@@ -21,41 +21,62 @@ export async function GET(request: Request) {
     )
   }
 
-  if (code) {
-    const cookieStore = cookies()
-    const supabase = createRouteHandlerClient({ 
-      cookies: () => cookieStore 
-    })
+  const cookieStore = cookies()
+  const supabase = createRouteHandlerClient({ 
+    cookies: () => cookieStore 
+  })
+
+  let redirectTo = '/'
+
+  // Manejar Magic Link (token_hash)
+  if (token_hash && type) {
+    const { data, error: verifyError } = await supabase.auth
+      .verifyOtp({ token_hash, type: type as any })
     
+    console.log('OTP verify:', data?.user?.email, verifyError?.message)
+    
+    if (!verifyError && data?.user) {
+      await supabase
+        .from('quiniela_jugadores')
+        .upsert({
+          id: data.user.id,
+          nombre: data.user.user_metadata?.full_name || 
+                  data.user.email?.split('@')[0] || 'Jugador',
+          email: data.user.email!,
+          rol: 'jugador',
+          last_seen: new Date().toISOString()
+        }, { onConflict: 'id', ignoreDuplicates: false })
+
+      const tiempoCreacion = new Date(data.user.created_at).getTime();
+      if ((Date.now() - tiempoCreacion) < 10000) {
+        redirectTo = '/instrucciones'
+      }
+    }
+  }
+
+  // Manejar Google OAuth (code)
+  if (code) {
     const { data, error: exchangeError } = await supabase.auth
       .exchangeCodeForSession(code)
     
-    console.log('Exchange error:', exchangeError?.message)
-    console.log('User:', data?.user?.email)
-
     if (!exchangeError && data?.user) {
       await supabase
         .from('quiniela_jugadores')
         .upsert({
           id: data.user.id,
-          nombre: data.user.user_metadata?.full_name ||
+          nombre: data.user.user_metadata?.full_name || 
                   data.user.email?.split('@')[0] || 'Jugador',
           email: data.user.email!,
           rol: 'jugador',
           last_seen: new Date().toISOString()
-        }, {
-          onConflict: 'id',
-          ignoreDuplicates: false
-        })
+        }, { onConflict: 'id', ignoreDuplicates: false })
 
       const tiempoCreacion = new Date(data.user.created_at).getTime();
-      const esNuevo = (Date.now() - tiempoCreacion) < 10000;
-
-      return NextResponse.redirect(
-        new URL(esNuevo ? '/instrucciones' : '/', requestUrl.origin)
-      )
+      if ((Date.now() - tiempoCreacion) < 10000) {
+        redirectTo = '/instrucciones'
+      }
     }
   }
 
-  return NextResponse.redirect(new URL('/', requestUrl.origin))
+  return NextResponse.redirect(new URL(redirectTo, requestUrl.origin))
 }
