@@ -148,6 +148,7 @@ export default function DashboardPage() {
   const [campeonDeclarado, setCampeonDeclarado] = useState<string | null>(null);
   const [campeonLoaded, setCampeonLoaded]       = useState(false);
   const [participacionPendiente, setParticipacionPendiente] = useState<{id: string, pagado: boolean, jornada: number} | null>(null);
+  const [userEmail, setUserEmail] = useState<string>('');
 
   const cargarRanking = useCallback(async () => {
     setLoading(true);
@@ -286,6 +287,7 @@ export default function DashboardPage() {
     supabase.auth.getUser().then(async ({ data }) => {
       const uid = data.user?.id;
       setUserId(uid);
+      setUserEmail(data.user?.email || '');
       if (uid) {
         const [{ data: pick }, { data: jug }, { data: final }] = await Promise.all([
           supabase.from('quiniela_campeon_picks').select('equipo').eq('user_id', uid).maybeSingle(),
@@ -486,10 +488,16 @@ export default function DashboardPage() {
             </p>
           </div>
           <a
-            href="https://wa.me/5552326941?text=Hola%2C%20ya%20realic%C3%A9%20mi%20pago%20para%20la%20Quiniela%20Metro%20Mundial%202026.%20Mi%20correo%20es%3A%20"
+            href={`https://wa.me/5552326941?text=${encodeURIComponent(
+              '¡Hola! Ya realicé mi pago para la Quiniela Metro Mundial 2026 🏆\n\n' +
+              'Por favor confirma mi participación.\n\n' +
+              'Mi correo de registro: ' + (userEmail || '') + '\n' +
+              'Jornada: ' + (participacionPendiente?.jornada || 1) + '\n\n' +
+              'Te adjunto mi comprobante de pago 📎'
+            )}`}
             target="_blank"
-            className="w-full flex items-center justify-center gap-2 bg-green-600 text-white py-3 rounded-xl font-rajdhani font-bold text-sm">
-            💬 Enviar comprobante por WhatsApp
+            className="w-full flex items-center justify-center gap-2 bg-green-600 text-white py-3 rounded-xl font-rajdhani font-bold text-sm hover:bg-green-500 transition-all">
+            💬 Avisar al admin — Enviar comprobante
           </a>
         </div>
       )}
