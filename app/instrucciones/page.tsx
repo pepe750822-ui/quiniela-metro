@@ -46,7 +46,7 @@ export default function InstruccionesPage() {
       numero: 8,
       emoji: '✏️',
       titulo: 'PUEDES EDITAR',
-      descripcion: 'Puedes cambiar tus predicciones hasta 24 horas antes del primer partido de cada jornada.\n\n⏰ Jornada 1 cierra: jueves 10 de junio a las 11:59 p.m. CDMX',
+      descripcion: 'Puedes cambiar tus predicciones hasta 24 horas antes del primer partido de cada jornada.\n\n⏰ Jornada 1 cierra: miércoles 10 de junio a las 11:59 p.m. CDMX',
     },
   ];
 
