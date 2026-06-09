@@ -318,7 +318,6 @@ export default function DashboardPage() {
           .select('id, pagado, jornada, quiniela_extra_id, quiniela:quiniela_extra(nombre)')
           .eq('user_id', uid)
           .eq('pagado', false)
-          .eq('publicado', true)
           .maybeSingle();
         setParticipacionPendiente(participacionPend ? {
           ...participacionPend,
