@@ -239,16 +239,41 @@ export default function DashboardPage() {
       .filter((p: { quiniela_extra_id: string | null }) => p.quiniela_extra_id === null)
       .map((p: { user_id: string }) => p.user_id);
 
-    const { data: rankData } = pagadosIds.length
+    const { data: rankingData } = pagadosIds.length
       ? await supabase
-          .from('quiniela_ranking')
-          .select('id, user_id, jornada, puntos_total, exactos, updated_at')
-          .eq('jornada', j)
+          .from('quiniela_predicciones')
+          .select(`
+            user_id,
+            quiniela_extra_id,
+            puntos_ganados,
+            partido:quiniela_partidos!inner(estado, jornada)
+          `)
+          .eq('partido.jornada', jornadaSeleccionada)
+          .eq('partido.estado', 'finalizado')
+          .is('quiniela_extra_id', null)
           .in('user_id', pagadosIds)
-          .order('puntos_total', { ascending: false })
       : { data: [] };
 
-    const rankUserIds = rankData?.map((r: { user_id: string }) => r.user_id) ?? [];
+    const puntajesPorUsuario = (rankingData ?? []).reduce(
+      (acc: Record<string, { puntos: number; exactos: number }>, pred: { user_id: string; puntos_ganados: number | null }) => {
+        const uid = pred.user_id;
+        if (!acc[uid]) acc[uid] = { puntos: 0, exactos: 0 };
+        acc[uid].puntos += pred.puntos_ganados || 0;
+        if (pred.puntos_ganados === 3) acc[uid].exactos++;
+        return acc;
+      },
+      {} as Record<string, { puntos: number; exactos: number }>
+    );
+
+    const rankingOrdenado = Object.entries(puntajesPorUsuario)
+      .map(([user_id, stats]) => ({
+        user_id,
+        puntos_total: stats.puntos,
+        exactos:      stats.exactos,
+      }))
+      .sort((a, b) => b.puntos_total - a.puntos_total);
+
+    const rankUserIds = rankingOrdenado.map(r => r.user_id);
     const { data: rankJugadores } = rankUserIds.length
       ? await supabase
           .from('quiniela_jugadores')
@@ -257,15 +282,15 @@ export default function DashboardPage() {
       : { data: [] };
 
     setRanking(
-      (rankData ?? []).map(r => {
-        const jug = (rankJugadores ?? []).find(j => j.id === r.user_id);
+      rankingOrdenado.map(r => {
+        const jug = (rankJugadores ?? []).find((jg: { id: string }) => jg.id === r.user_id);
         return {
-          id:           r.id,
+          id:           r.user_id,
           user_id:      r.user_id,
-          jornada:      r.jornada,
-          puntos_total: Number(r.puntos_total),
-          exactos:      Number(r.exactos),
-          updated_at:   r.updated_at ?? '',
+          jornada:      j,
+          puntos_total: r.puntos_total,
+          exactos:      r.exactos,
+          updated_at:   '',
           jugador: {
             id:           r.user_id,
             nombre:       jug?.nombre       ?? '',
