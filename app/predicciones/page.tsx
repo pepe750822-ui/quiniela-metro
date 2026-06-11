@@ -10,6 +10,16 @@ import { toast } from 'sonner';
 
 const DEADLINE_CAMPEON = new Date('2026-06-28T02:00:00Z'); // 27 jun 8:00 p.m. CDMX
 
+const DEADLINE_J1 = new Date('2026-06-11T05:59:00Z');
+const DEADLINE_J2 = new Date('2026-06-22T05:59:00Z');
+const DEADLINE_J3 = new Date('2026-06-27T05:59:00Z');
+
+const getDeadline = (jornada: number) => {
+  if (jornada === 1) return DEADLINE_J1;
+  if (jornada === 2) return DEADLINE_J2;
+  return DEADLINE_J3;
+};
+
 export default function PrediccionesPage() {
   const router = useRouter();
   const [userId, setUserId]               = useState<string | null>(null);
@@ -238,6 +248,9 @@ export default function PrediccionesPage() {
   const totalEnJornada = partidos.length;
   const porcentaje = totalEnJornada > 0 ? Math.round((predichasEnJornada / totalEnJornada) * 100) : 0;
   const jornadaCompleta = predichasEnJornada >= totalEnJornada && totalEnJornada > 0;
+
+  const estaBloquado = (partido: Partido) =>
+    partido.estado === 'finalizado' || new Date() > getDeadline(jornada);
 
   const campeonDeadlinePasado = Date.now() >= DEADLINE_CAMPEON.getTime();
   const campeonAcerto = campeonDeclarado && miBadgeCampeon === campeonDeclarado;
@@ -538,7 +551,7 @@ export default function PrediccionesPage() {
               partido={partido}
               prediccion={predicciones[partido.id] ?? null}
               participacionPagada={predicciones[partido.id] ? participando : undefined}
-              onPredicir={setPartidoActivo}
+              onPredicir={estaBloquado(partido) ? undefined : setPartidoActivo}
             />
           ))}
 
