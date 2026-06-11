@@ -235,7 +235,9 @@ export default function DashboardPage() {
     }));
     setParticipantesJornada(participantesConNombre);
 
-    const pagadosIds = (parts ?? []).map((p: { user_id: string }) => p.user_id);
+    const pagadosIds = (parts ?? [])
+      .filter((p: { quiniela_extra_id: string | null }) => p.quiniela_extra_id === null)
+      .map((p: { user_id: string }) => p.user_id);
 
     const { data: rankData } = pagadosIds.length
       ? await supabase
