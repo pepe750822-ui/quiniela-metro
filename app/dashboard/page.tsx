@@ -139,6 +139,7 @@ export default function DashboardPage() {
   const [loading, setLoading]                   = useState(true);
   const [pozos, setPozos]                       = useState<Pozo[]>([]);
   const [pendienteIds, setPendienteIds]         = useState<string[]>([]);
+  const [pagadosIds, setPagadosIds]             = useState<string[]>([]);
   const [jornadaSeleccionada, setJornadaSeleccionada] = useState<number | 'general'>(1);
   const [participantesJornada, setParticipantesJornada] = useState<ParticipanteItem[]>([]);
   const { d, h, m, s, started, mounted: countdownReady } = useCountdown(INAUGURAL);
@@ -238,6 +239,8 @@ export default function DashboardPage() {
     const pagadosIds = (parts ?? [])
       .filter((p: { quiniela_extra_id: string | null }) => p.quiniela_extra_id === null)
       .map((p: { user_id: string }) => p.user_id);
+
+    setPagadosIds(pagadosIds);
 
     const { data: rankingData } = pagadosIds.length
       ? await supabase
@@ -570,7 +573,7 @@ export default function DashboardPage() {
           </div>
         ) : ranking.length > 0 ? (
           <>
-            <RankingTable ranking={ranking} userId={userId} pendienteIds={pendienteIds} />
+            <RankingTable ranking={ranking} userId={userId} pendienteIds={pendienteIds.filter(id => !pagadosIds.includes(id))} />
             <button
               onClick={compartirRanking}
               className="w-full mt-4 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all hover:opacity-80 active:scale-95"
