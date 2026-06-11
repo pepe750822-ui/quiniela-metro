@@ -52,7 +52,7 @@ export default function RankingTable({ ranking, userId, pendienteIds }: Props) {
             const realIdx = entry === top3[0] ? 0 : entry === top3[1] ? 1 : 2;
             const glows   = ['rgba(192,192,192,0.15)', 'rgba(234,88,12,0.15)', 'rgba(180,120,60,0.1)'];
             return (
-              <div key={entry.user_id}
+              <div key={entry.id}
                 className="flex-1 flex flex-col items-center gap-2 rounded-2xl py-3 px-2"
                 style={{ background: glows[visualIdx], animation: `fadeInUp 0.5s ease-out ${visualIdx * 100}ms both` }}
               >
@@ -95,7 +95,7 @@ export default function RankingTable({ ranking, userId, pendienteIds }: Props) {
             const esYo = entry.user_id === userId;
             const pos  = i + 4;
             return (
-              <div key={entry.user_id}
+              <div key={entry.id}
                 className="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all"
                 style={{
                   background: esYo ? 'rgba(234,88,12,0.08)' : 'var(--bg-card)',
@@ -158,7 +158,7 @@ export default function RankingTable({ ranking, userId, pendienteIds }: Props) {
           {ranking.map((entry, i) => {
             const esYo = entry.user_id === userId;
             return (
-              <div key={entry.user_id}
+              <div key={entry.id}
                 className="flex items-center gap-3 px-4 py-3 rounded-2xl"
                 style={{
                   background: esYo ? 'rgba(234,88,12,0.08)' : 'var(--bg-card)',

@@ -236,19 +236,21 @@ export default function DashboardPage() {
     }));
     setParticipantesJornada(participantesConNombre);
 
-    // Correcciones 2+3: solo pagados con predicción publicada, sin quiniela_extra
+    // Todos los pagados+publicados, incluyendo quinielas familiares
     const { data: pagadosConPrediccion } = await supabase
       .from('quiniela_participaciones')
-      .select('user_id')
+      .select('user_id, quiniela_extra_id')
       .eq('jornada', j)
       .eq('pagado', true)
-      .eq('publicado', true)
-      .is('quiniela_extra_id', null);
+      .eq('publicado', true);
 
-    const pagadosIds = pagadosConPrediccion?.map((p: { user_id: string }) => p.user_id) ?? [];
-    setPagadosIds(pagadosIds);
+    const pagadosEntries = (pagadosConPrediccion ?? []) as { user_id: string; quiniela_extra_id: string | null }[];
 
-    const { data: rankingData } = pagadosIds.length
+    // user_ids únicos para el badge y para la query de puntos
+    const allUserIds = [...new Set(pagadosEntries.map(p => p.user_id))];
+    setPagadosIds(allUserIds);
+
+    const { data: rankingData } = allUserIds.length
       ? await supabase
           .from('quiniela_predicciones')
           .select(`
@@ -259,58 +261,71 @@ export default function DashboardPage() {
           `)
           .eq('partido.jornada', jornadaSeleccionada)
           .eq('partido.estado', 'finalizado')
-          .is('quiniela_extra_id', null)
-          .in('user_id', pagadosIds)
+          .in('user_id', allUserIds)
       : { data: [] };
 
-    const puntajesPorUsuario = (rankingData ?? []).reduce(
-      (acc: Record<string, { puntos: number; exactos: number }>, pred: { user_id: string; puntos_ganados: number | null }) => {
-        const uid = pred.user_id;
-        if (!acc[uid]) acc[uid] = { puntos: 0, exactos: 0 };
-        acc[uid].puntos += pred.puntos_ganados || 0;
-        if (pred.puntos_ganados === 3) acc[uid].exactos++;
-        return acc;
-      },
-      {} as Record<string, { puntos: number; exactos: number }>
-    );
+    // Agrupar puntos por user_id + quiniela_extra_id
+    const puntajes: Record<string, { puntos: number; exactos: number }> = {};
+    (rankingData ?? []).forEach((pred: { user_id: string; quiniela_extra_id: string | null; puntos_ganados: number | null }) => {
+      const key = `${pred.user_id}:${pred.quiniela_extra_id ?? 'null'}`;
+      if (!puntajes[key]) puntajes[key] = { puntos: 0, exactos: 0 };
+      puntajes[key].puntos += pred.puntos_ganados || 0;
+      if (pred.puntos_ganados === 3) puntajes[key].exactos++;
+    });
 
-    // Corrección 2: incluir todos los pagadosIds aunque tengan 0 pts
-    const rankingOrdenado = pagadosIds
-      .map(uid => ({
-        user_id:      uid,
-        puntos_total: puntajesPorUsuario[uid]?.puntos  ?? 0,
-        exactos:      puntajesPorUsuario[uid]?.exactos ?? 0,
-      }))
+    // Incluir todos los pagados+publicados aunque tengan 0 pts
+    const rankingOrdenado = pagadosEntries
+      .map(p => {
+        const key = `${p.user_id}:${p.quiniela_extra_id ?? 'null'}`;
+        return {
+          id:                key,
+          user_id:           p.user_id,
+          quiniela_extra_id: p.quiniela_extra_id,
+          puntos_total:      puntajes[key]?.puntos  ?? 0,
+          exactos:           puntajes[key]?.exactos ?? 0,
+        };
+      })
       .sort((a, b) => b.puntos_total - a.puntos_total);
 
-    const { data: rankJugadores } = pagadosIds.length
+    // Jugadores
+    const { data: rankJugadores } = allUserIds.length
       ? await supabase
           .from('quiniela_jugadores')
           .select('id, nombre, email, apodo, avatar_url, badge_ultimo, badge_campeon')
-          .in('id', pagadosIds)
+          .in('id', allUserIds)
+      : { data: [] };
+
+    // Nombres de quinielas familiares
+    const extraIds = [...new Set(pagadosEntries.map(p => p.quiniela_extra_id).filter(Boolean))] as string[];
+    const { data: quinielasNombres } = extraIds.length
+      ? await supabase.from('quiniela_extra').select('id, nombre').in('id', extraIds)
       : { data: [] };
 
     setRanking(
       rankingOrdenado.map(r => {
         const jug = (rankJugadores ?? []).find((jg: { id: string }) => jg.id === r.user_id);
+        const quinielaNombre = r.quiniela_extra_id
+          ? ((quinielasNombres ?? []) as { id: string; nombre: string }[]).find(q => q.id === r.quiniela_extra_id)?.nombre ?? null
+          : null;
         return {
-          id:           r.user_id,
+          id:           r.id,
           user_id:      r.user_id,
           jornada:      j,
           puntos_total: r.puntos_total,
           exactos:      r.exactos,
           updated_at:   '',
           jugador: {
-            id:           r.user_id,
-            nombre:       jug?.nombre       ?? '',
-            apodo:        jug?.apodo        ?? null,
-            email:        jug?.email        ?? '',
-            rol:          'jugador' as const,
-            avatar_url:   jug?.avatar_url   ?? null,
-            creditos:     0,
-            created_at:   '',
-            badge_ultimo:  jug?.badge_ultimo  ?? null,
-            badge_campeon: jug?.badge_campeon ?? null,
+            id:              r.user_id,
+            nombre:          jug?.nombre          ?? '',
+            apodo:           jug?.apodo           ?? null,
+            email:           jug?.email           ?? '',
+            rol:             'jugador' as const,
+            avatar_url:      jug?.avatar_url      ?? null,
+            creditos:        0,
+            created_at:      '',
+            badge_ultimo:    jug?.badge_ultimo    ?? null,
+            badge_campeon:   jug?.badge_campeon   ?? null,
+            quiniela_nombre: quinielaNombre,
           },
         };
       })
