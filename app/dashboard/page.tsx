@@ -236,10 +236,16 @@ export default function DashboardPage() {
     }));
     setParticipantesJornada(participantesConNombre);
 
-    const pagadosIds = (parts ?? [])
-      .filter((p: { quiniela_extra_id: string | null }) => p.quiniela_extra_id === null)
-      .map((p: { user_id: string }) => p.user_id);
+    // Correcciones 2+3: solo pagados con predicción publicada, sin quiniela_extra
+    const { data: pagadosConPrediccion } = await supabase
+      .from('quiniela_participaciones')
+      .select('user_id')
+      .eq('jornada', j)
+      .eq('pagado', true)
+      .eq('publicado', true)
+      .is('quiniela_extra_id', null);
 
+    const pagadosIds = pagadosConPrediccion?.map((p: { user_id: string }) => p.user_id) ?? [];
     setPagadosIds(pagadosIds);
 
     const { data: rankingData } = pagadosIds.length
@@ -268,20 +274,20 @@ export default function DashboardPage() {
       {} as Record<string, { puntos: number; exactos: number }>
     );
 
-    const rankingOrdenado = Object.entries(puntajesPorUsuario)
-      .map(([user_id, stats]) => ({
-        user_id,
-        puntos_total: stats.puntos,
-        exactos:      stats.exactos,
+    // Corrección 2: incluir todos los pagadosIds aunque tengan 0 pts
+    const rankingOrdenado = pagadosIds
+      .map(uid => ({
+        user_id:      uid,
+        puntos_total: puntajesPorUsuario[uid]?.puntos  ?? 0,
+        exactos:      puntajesPorUsuario[uid]?.exactos ?? 0,
       }))
       .sort((a, b) => b.puntos_total - a.puntos_total);
 
-    const rankUserIds = rankingOrdenado.map(r => r.user_id);
-    const { data: rankJugadores } = rankUserIds.length
+    const { data: rankJugadores } = pagadosIds.length
       ? await supabase
           .from('quiniela_jugadores')
           .select('id, nombre, email, apodo, avatar_url, badge_ultimo, badge_campeon')
-          .in('id', rankUserIds)
+          .in('id', pagadosIds)
       : { data: [] };
 
     setRanking(
