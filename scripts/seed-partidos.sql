@@ -84,6 +84,7 @@ BEGIN
   FROM quiniela_predicciones p
   JOIN quiniela_partidos pa ON pa.id = p.partido_id
   WHERE pa.jornada = NEW.jornada
+    AND p.quiniela_extra_id IS NULL
   GROUP BY p.user_id
   ON CONFLICT (user_id, jornada)
   DO UPDATE SET

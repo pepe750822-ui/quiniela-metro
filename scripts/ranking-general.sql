@@ -32,6 +32,7 @@ RETURNS TABLE (
     ON p.user_id = r.user_id
     AND p.jornada = r.jornada
     AND p.pagado = true
+    AND p.quiniela_extra_id IS NULL
   GROUP BY r.user_id
   ORDER BY puntos_totales DESC;
 $$ LANGUAGE sql SECURITY DEFINER;
