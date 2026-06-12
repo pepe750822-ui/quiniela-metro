@@ -208,6 +208,22 @@ export default function TablaPage() {
     toast.success('✅ CSV descargado con respaldo completo');
   };
 
+  const participacionesOrdenadas = participaciones
+    .map(part => {
+      const puntosTotal = predicciones
+        .filter((p: any) =>
+          p.user_id === part.user_id &&
+          (p.quiniela_extra_id === part.quiniela_extra_id ||
+            (!p.quiniela_extra_id && !part.quiniela_extra_id)) &&
+          partidos.find((partido: any) =>
+            partido.id === p.partido_id && partido.estado === 'finalizado'
+          )
+        )
+        .reduce((sum: number, p: any) => sum + (p.puntos_ganados || 0), 0);
+      return { ...part, puntosTotal };
+    })
+    .sort((a, b) => b.puntosTotal - a.puntosTotal);
+
   const partidosMitad1 = partidos.slice(0, 12);
   const partidosMitad2 = partidos.slice(12);
 
@@ -222,7 +238,7 @@ export default function TablaPage() {
       .reduce((sum: number, p: any) => sum + (p.puntos_ganados || 0), 0);
 
   const renderFilasPrint = (mitad: any[]) =>
-    participaciones.map((part: any) => {
+    participacionesOrdenadas.map((part: any) => {
       const jugador = jugadores.find((j: any) => j.id === part.user_id) as any;
       const nombre = jugador?.apodo || jugador?.nombre?.split(' ')[0] || 'Jugador';
       const quinielaNombre = part.quiniela?.nombre;
@@ -371,7 +387,7 @@ export default function TablaPage() {
             </tr>
           </thead>
           <tbody>
-            {participaciones.map(part => {
+            {participacionesOrdenadas.map(part => {
               const totalPuntos = predicciones
                 .filter((p: any) =>
                   p.user_id === part.user_id &&
