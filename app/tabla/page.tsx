@@ -224,6 +224,15 @@ export default function TablaPage() {
     })
     .sort((a, b) => b.puntosTotal - a.puntosTotal);
 
+  const participacionesConPrediccion = participacionesOrdenadas
+    .filter(part =>
+      predicciones.some((p: any) =>
+        p.user_id === part.user_id &&
+        (p.quiniela_extra_id === part.quiniela_extra_id ||
+          (!p.quiniela_extra_id && !part.quiniela_extra_id))
+      )
+    );
+
   const partidosMitad1 = partidos.slice(0, 12);
   const partidosMitad2 = partidos.slice(12);
 
@@ -238,7 +247,7 @@ export default function TablaPage() {
       .reduce((sum: number, p: any) => sum + (p.puntos_ganados || 0), 0);
 
   const renderFilasPrint = (mitad: any[]) =>
-    participacionesOrdenadas.map((part: any) => {
+    participacionesConPrediccion.map((part: any) => {
       const jugador = jugadores.find((j: any) => j.id === part.user_id) as any;
       const nombre = jugador?.apodo || jugador?.nombre?.split(' ')[0] || 'Jugador';
       const quinielaNombre = part.quiniela?.nombre;
