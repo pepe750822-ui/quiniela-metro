@@ -114,6 +114,7 @@ export default function AdminPage() {
   const [grupoTabAdmin, setGrupoTabAdmin] = useState('A');
   const [editGrupo, setEditGrupo] = useState<Record<string, any>>({});
   const [guardandoEquipo, setGuardandoEquipo] = useState<string | null>(null);
+  const [recalculando, setRecalculando] = useState(false);
 
   const cargarGrupos = async () => {
     const { data } = await supabase
@@ -122,6 +123,56 @@ export default function AdminPage() {
       .order('pts', { ascending: false })
       .order('dg', { ascending: false });
     setGrupos(data || []);
+  };
+
+  const recalcularGrupos = async () => {
+    setRecalculando(true);
+    const { data: partidos } = await supabase
+      .from('quiniela_partidos')
+      .select('*')
+      .eq('estado', 'finalizado')
+      .in('grupo', ['A','B','C','D','E','F','G','H','I','J','K','L']);
+
+    if (!partidos || partidos.length === 0) {
+      toast.error('No hay partidos finalizados en grupos');
+      setRecalculando(false);
+      return;
+    }
+
+    const stats: Record<string, { pj:number; g:number; e:number; p:number; gf:number; gc:number }> = {};
+
+    partidos.forEach(partido => {
+      const local = partido.equipo_local;
+      const visitante = partido.equipo_visitante;
+      const gl = partido.goles_local ?? 0;
+      const gv = partido.goles_visitante ?? 0;
+
+      if (!stats[local])     stats[local]     = { pj:0, g:0, e:0, p:0, gf:0, gc:0 };
+      if (!stats[visitante]) stats[visitante] = { pj:0, g:0, e:0, p:0, gf:0, gc:0 };
+
+      stats[local].pj++;  stats[local].gf  += gl;  stats[local].gc  += gv;
+      if (gl > gv)      stats[local].g++;
+      else if (gl === gv) stats[local].e++;
+      else              stats[local].p++;
+
+      stats[visitante].pj++;  stats[visitante].gf += gv;  stats[visitante].gc += gl;
+      if (gv > gl)      stats[visitante].g++;
+      else if (gv === gl) stats[visitante].e++;
+      else              stats[visitante].p++;
+    });
+
+    await Promise.all(
+      Object.entries(stats).map(([equipo, s]) =>
+        supabase
+          .from('quiniela_grupos')
+          .update({ pj: s.pj, g: s.g, e: s.e, p: s.p, gf: s.gf, gc: s.gc, updated_at: new Date().toISOString() })
+          .eq('equipo', equipo)
+      )
+    );
+
+    toast.success(`✅ Grupos actualizados (${partidos.length} partidos)`);
+    setRecalculando(false);
+    await cargarGrupos();
   };
 
   const guardarEquipoGrupo = async (equipo: any) => {
@@ -1514,6 +1565,16 @@ export default function AdminPage() {
         </button>
         {seccionesAbiertas.grupos && (
           <div className="rounded-2xl p-4 space-y-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+            {/* Recalcular desde resultados */}
+            <button
+              onClick={recalcularGrupos}
+              disabled={recalculando}
+              className="w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-40"
+              style={{ background: 'rgba(234,88,12,0.2)', color: 'var(--accent-gold)', border: '1px solid rgba(234,88,12,0.4)', fontFamily: 'var(--font-rajdhani)' }}
+            >
+              {recalculando ? '⏳ Calculando...' : '🔄 Recalcular grupos desde resultados'}
+            </button>
+
             {/* Tabs grupos A–L */}
             <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
               {['A','B','C','D','E','F','G','H','I','J','K','L'].map(g => (
