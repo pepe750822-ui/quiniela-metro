@@ -13,7 +13,6 @@ const publicLinks = [
   { href: '/bracket',        label: 'Bracket',      emoji: '🏆' },
   { href: '/calendario',     label: 'Calendario',   emoji: '📅' },
   { href: '/perfil',         label: 'Perfil',       emoji: '👤' },
-  { href: '/instrucciones',  label: 'Guía',         emoji: '📖' },
 ];
 
 export default function Navbar() {
