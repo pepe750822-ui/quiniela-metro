@@ -5,6 +5,25 @@ import { Bandera } from '@/components/Bandera';
 import { Partido } from '@/types';
 import { formatearFechaCDMX } from '@/lib/utils';
 
+const crucesE32: Record<string, string> = {
+  '73': '2° Grupo A vs 2° Grupo B',
+  '74': '1° Grupo E vs Mejor 3° (A,B,C,D,F)',
+  '75': '1° Grupo F vs 2° Grupo C',
+  '76': '2° Grupo E vs 2° Grupo I',
+  '77': '1° Grupo I vs Mejor 3° (C,D,F,G,H)',
+  '78': '1° Grupo A vs Mejor 3° (C,E,F,H,I)',
+  '79': '1° Grupo L vs Mejor 3° (E,H,I,J,K)',
+  '80': '1° Grupo G vs Mejor 3° (A,E,H,I,J)',
+  '81': '1° Grupo D vs Mejor 3° (B,E,F,I,J)',
+  '82': '1° Grupo B vs Mejor 3° (E,F,G,I,J)',
+  '83': '2° Grupo D vs 2° Grupo G',
+  '84': '1° Grupo J vs 2° Grupo H',
+  '85': '1° Grupo C vs 2° Grupo L',
+  '86': '1° Grupo H vs 2° Grupo J',
+  '87': '1° Grupo K vs 2° Grupo F',
+  '88': '2° Grupo B vs 2° Grupo K',
+};
+
 const RONDAS: { key: string; label: string; short: string }[] = [
   { key: 'E32',  label: 'Ronda de 32',  short: 'R32'  },
   { key: 'OCT',  label: 'Octavos',      short: 'OCT'  },
@@ -14,7 +33,7 @@ const RONDAS: { key: string; label: string; short: string }[] = [
 ];
 
 // ── Tarjeta de partido ──────────────────────────────────────────────────────
-function PartidoCard({ p, compact = false }: { p: Partido; compact?: boolean }) {
+function PartidoCard({ p, compact = false, cruce }: { p: Partido; compact?: boolean; cruce?: string }) {
   const fin = p.estado === 'finalizado';
   const vivo = p.estado === 'en_curso';
   const gl = p.goles_local ?? 0;
@@ -92,12 +111,19 @@ function PartidoCard({ p, compact = false }: { p: Partido; compact?: boolean }) 
           </p>
         </div>
       )}
+      {cruce && (!p.equipo_local || p.equipo_local === 'A definir') && (
+        <div className="px-2.5 py-1.5 text-center" style={{ borderTop: '1px solid var(--border)', background: 'var(--bg-card-hover)' }}>
+          <p className="text-[9px] leading-snug" style={{ color: '#475569', fontFamily: 'var(--font-rajdhani)' }}>
+            {cruce}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
 
 // ── Columna de ronda ────────────────────────────────────────────────────────
-function Columna({ label, partidos }: { label: string; partidos: Partido[] }) {
+function Columna({ label, partidos, crucesMap }: { label: string; partidos: Partido[]; crucesMap?: Record<string, string> }) {
   return (
     <div className="flex flex-col shrink-0" style={{ width: 172 }}>
       <p
@@ -113,7 +139,13 @@ function Columna({ label, partidos }: { label: string; partidos: Partido[] }) {
             Próximamente
           </div>
         ) : (
-          partidos.map(p => <PartidoCard key={p.id} p={p} />)
+          partidos.map(p => (
+            <PartidoCard
+              key={p.id}
+              p={p}
+              cruce={crucesMap ? (crucesMap[String(p.jornada)] ?? 'Cruce por definir') : undefined}
+            />
+          ))
         )}
       </div>
     </div>
@@ -169,7 +201,12 @@ export default function BracketPage() {
           <div className="overflow-x-auto pb-4" style={{ scrollbarWidth: 'thin' }}>
             <div className="flex gap-4 px-4" style={{ minWidth: 'max-content' }}>
               {RONDAS.map(r => (
-                <Columna key={r.key} label={r.label} partidos={porRonda(r.key)} />
+                <Columna
+                  key={r.key}
+                  label={r.label}
+                  partidos={porRonda(r.key)}
+                  crucesMap={r.key === 'E32' ? crucesE32 : undefined}
+                />
               ))}
             </div>
           </div>
