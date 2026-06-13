@@ -85,7 +85,7 @@ export default function CalendarioPage() {
   }
 
   return (
-    <main className="min-h-screen pb-24 px-4 sm:px-6 relative text-white" style={{ background: 'var(--bg-primary)' }}>
+    <main className="min-h-screen pb-24 px-4 sm:px-6 relative text-slate-900 dark:text-white" style={{ background: 'var(--bg-primary)' }}>
       {/* Decoración de fondo */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-orange-600/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
@@ -124,7 +124,7 @@ export default function CalendarioPage() {
                     )}
                     
                     {partido.estado === 'finalizado' && (
-                      <div className="absolute top-3 left-3 bg-white/10 text-gray-400 text-xs font-bold px-2 py-1 rounded-md">
+                      <div className="absolute top-3 left-3 bg-green-600/20 text-green-700 dark:text-green-400 text-xs font-bold px-2 py-1 rounded-md">
                         FINAL
                       </div>
                     )}
@@ -136,12 +136,12 @@ export default function CalendarioPage() {
                     <div className="flex items-center justify-between mt-2">
                       <div className="flex flex-col items-center gap-2 w-1/3">
                         <Bandera emoji={partido.bandera_local} nombre={partido.equipo_local} size="md" />
-                        <span className="text-sm font-bold text-center">{partido.equipo_local}</span>
+                        <span className="text-sm font-bold text-center text-slate-900 dark:text-white">{partido.equipo_local}</span>
                       </div>
 
                       <div className="flex flex-col items-center justify-center w-1/3">
                         {(partido.estado === 'en_curso' || partido.estado === 'finalizado') ? (
-                          <div className="text-3xl font-black text-white flex gap-3">
+                          <div className="text-3xl font-black text-slate-900 dark:text-white flex gap-3">
                             <span className={partido.estado === 'en_curso' ? 'text-orange-400' : ''}>{partido.goles_local}</span>
                             <span className="text-gray-600">-</span>
                             <span className={partido.estado === 'en_curso' ? 'text-orange-400' : ''}>{partido.goles_visitante}</span>
@@ -155,7 +155,7 @@ export default function CalendarioPage() {
 
                       <div className="flex flex-col items-center gap-2 w-1/3">
                         <Bandera emoji={partido.bandera_visitante} nombre={partido.equipo_visitante} size="md" />
-                        <span className="text-sm font-bold text-center">{partido.equipo_visitante}</span>
+                        <span className="text-sm font-bold text-center text-slate-900 dark:text-white">{partido.equipo_visitante}</span>
                       </div>
                     </div>
                   </div>
