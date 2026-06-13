@@ -9,6 +9,7 @@ import ThemeToggle from '@/components/ThemeToggle';
 const publicLinks = [
   { href: '/predicciones',   label: 'Predicciones', emoji: '⚽' },
   { href: '/tabla',          label: 'Tabla',        emoji: '📊' },
+  { href: '/grupos',         label: 'Grupos',       emoji: '🌎' },
   { href: '/calendario',     label: 'Calendario',   emoji: '📅' },
   { href: '/perfil',         label: 'Perfil',       emoji: '👤' },
   { href: '/instrucciones',  label: 'Guía',         emoji: '📖' },

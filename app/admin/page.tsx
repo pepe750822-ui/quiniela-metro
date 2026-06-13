@@ -100,9 +100,48 @@ export default function AdminPage() {
     notas: false,
     campeon: false,
     magicLink: false,
+    grupos: false,
   });
   const toggleSeccion = (seccion: keyof typeof seccionesAbiertas) => {
     setSeccionesAbiertas(prev => ({ ...prev, [seccion]: !prev[seccion] }));
+  };
+
+  // POZOS — jornada abierta
+  const [jornadaAbierta, setJornadaAbierta] = useState<number>(1);
+
+  // Grupos Mundial
+  const [grupos, setGrupos] = useState<any[]>([]);
+  const [grupoTabAdmin, setGrupoTabAdmin] = useState('A');
+  const [editGrupo, setEditGrupo] = useState<Record<string, any>>({});
+  const [guardandoEquipo, setGuardandoEquipo] = useState<string | null>(null);
+
+  const cargarGrupos = async () => {
+    const { data } = await supabase
+      .from('quiniela_grupos')
+      .select('*')
+      .order('pts', { ascending: false })
+      .order('dg', { ascending: false });
+    setGrupos(data || []);
+  };
+
+  const guardarEquipoGrupo = async (equipo: any) => {
+    const vals = editGrupo[equipo.id] ?? {};
+    setGuardandoEquipo(equipo.id);
+    const { error } = await supabase
+      .from('quiniela_grupos')
+      .update({
+        pj: Number(vals.pj ?? equipo.pj),
+        g: Number(vals.g ?? equipo.g),
+        e: Number(vals.e ?? equipo.e),
+        p: Number(vals.p ?? equipo.p),
+        gf: Number(vals.gf ?? equipo.gf),
+        gc: Number(vals.gc ?? equipo.gc),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', equipo.id);
+    setGuardandoEquipo(null);
+    if (error) toast.error('Error: ' + error.message);
+    else { toast.success('✅ Guardado'); await cargarGrupos(); }
   };
 
   const generarMagicLink = async () => {
@@ -886,25 +925,28 @@ export default function AdminPage() {
           <span style={{ color: '#64748b' }}>{seccionesAbiertas.pozos ? '▲' : '▼'}</span>
         </button>
         {seccionesAbiertas.pozos && (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {pozos.map(pozo => {
             const pendientes = participaciones.filter(p => p.jornada === pozo.jornada && !p.pagado);
             const confirmadas = participaciones.filter(p => p.jornada === pozo.jornada && p.pagado);
+            const isOpen = jornadaAbierta === pozo.jornada;
             return (
-              <div key={pozo.id} className="rounded-2xl overflow-hidden"
-                style={{ border: '1px solid var(--border)', background: 'var(--bg-card)' }}>
-                {/* Header del pozo */}
-                <div className="px-4 py-3 flex items-center justify-between"
-                  style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-card-hover)' }}>
-                  <div>
-                    <p className="font-bold text-sm" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-rajdhani)' }}>
+              <div key={pozo.id} className="rounded-xl overflow-hidden"
+                style={{ border: '1px solid var(--border)' }}>
+
+                {/* Header acordeón */}
+                <button
+                  onClick={() => setJornadaAbierta(isOpen ? 0 : pozo.jornada)}
+                  className="w-full flex items-center justify-between p-4"
+                  style={{ background: 'var(--bg-card-hover)' }}
+                >
+                  <div className="flex items-center gap-3 flex-wrap text-left">
+                    <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: 'var(--accent-gold)' }}>
                       Jornada {pozo.jornada}
-                    </p>
-                    <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                    </span>
+                    <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                       👥 {pozo.participantes} · ${pozo.total_mxn} MXN
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                    </span>
                     <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full"
                       style={{
                         background: pozo.estado === 'abierto'
@@ -916,12 +958,22 @@ export default function AdminPage() {
                       }}>
                       {pozo.estado}
                     </span>
+                  </div>
+                  <span style={{ color: '#64748b', flexShrink: 0 }}>{isOpen ? '▲' : '▼'}</span>
+                </button>
+
+                {/* Contenido colapsable */}
+                {isOpen && (
+                  <div style={{ background: 'var(--bg-card)', borderTop: '1px solid var(--border)' }}>
+
+                    {/* Acciones */}
                     {pozo.estado === 'abierto' && (
-                      <>
+                      <div className="px-4 py-3 flex gap-2 flex-wrap"
+                        style={{ borderBottom: '1px solid var(--border)' }}>
                         <button
                           onClick={() => handleDeclararGanador(pozo.jornada)}
                           disabled={declarando === pozo.jornada}
-                          className="text-xs px-2 py-1 rounded-lg font-bold disabled:opacity-50 transition-all active:scale-95"
+                          className="text-xs px-3 py-1.5 rounded-lg font-bold disabled:opacity-50 transition-all active:scale-95"
                           style={{ background: 'rgba(234,88,12,0.2)', color: 'var(--accent-gold)', border: '1px solid rgba(234,88,12,0.3)' }}>
                           {declarando === pozo.jornada ? '…' : '🏆 Declarar ganador'}
                         </button>
@@ -932,103 +984,105 @@ export default function AdminPage() {
                           style={{ background: 'rgba(202,138,4,0.2)', color: '#facc15', border: '1px solid rgba(202,138,4,0.3)' }}>
                           {declarandoUltimo === pozo.jornada ? '…' : '🤡 Último lugar'}
                         </button>
-                      </>
+                      </div>
+                    )}
+
+                    {/* Ganador si existe */}
+                    {pozo.ganador_nombre && (
+                      <div className="px-4 py-2 text-sm"
+                        style={{ background: 'rgba(16,185,129,0.08)', borderBottom: '1px solid rgba(16,185,129,0.2)' }}>
+                        <span className="font-bold" style={{ color: '#10b981' }}>🥇 Ganador: {pozo.ganador_nombre}</span>
+                        <span className="ml-2 text-xs" style={{ color: 'var(--text-secondary)' }}>· ${pozo.total_mxn} MXN</span>
+                      </div>
+                    )}
+
+                    {/* Pagos pendientes */}
+                    {pendientes.length > 0 && (
+                      <div className="px-4 py-3 space-y-2">
+                        <p className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: '#ea580c' }}>
+                          ⏳ Pendientes de pago ({pendientes.length})
+                        </p>
+                        {pendientes.map(p => (
+                          <div key={p.id}
+                            className="flex items-center justify-between gap-2 rounded-xl px-3 py-2.5"
+                            style={{ background: 'rgba(234,88,12,0.08)', border: '1px solid rgba(234,88,12,0.3)' }}>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                                  {mostrarNombreParticipante(p)}
+                                </p>
+                                <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold"
+                                  style={{ background: 'rgba(234,88,12,0.2)', color: '#ea580c', border: '1px solid rgba(234,88,12,0.4)' }}>
+                                  ⏳ Pendiente de pago
+                                </span>
+                              </div>
+                              {p.jugadorReferencia && (
+                                <p className="text-xs" style={{ color: '#60a5fa' }}>📋 {p.jugadorReferencia}</p>
+                              )}
+                              <p className="text-xs text-slate-500 truncate">{p.jugadorEmail ? emailCorto(p.jugadorEmail) : ''}</p>
+                            </div>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <button
+                                onClick={() => handleConfirmarPago(p)}
+                                disabled={confirmando === p.id}
+                                className="text-xs px-3 py-2 rounded-xl font-bold disabled:opacity-50 transition-all active:scale-95 whitespace-nowrap"
+                                style={{ background: '#10b981', color: '#000' }}>
+                                {confirmando === p.id ? '…' : '✅ Confirmar pago'}
+                              </button>
+                              <button
+                                onClick={() => handleEliminarParticipacion(p)}
+                                className="text-xs px-2 py-2 rounded-xl font-bold transition-all active:scale-95"
+                                style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)' }}>
+                                🗑️
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Confirmados */}
+                    {confirmadas.length > 0 && (
+                      <div className="px-4 py-3 space-y-1"
+                        style={{ borderTop: pendientes.length > 0 ? '1px solid var(--border)' : 'none' }}>
+                        <p className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: '#10b981' }}>
+                          ✅ Confirmados ({confirmadas.length})
+                        </p>
+                        {confirmadas.map(p => (
+                          <div key={p.id} className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                                {mostrarNombreParticipante(p)}
+                              </p>
+                              {p.jugadorReferencia && (
+                                <p className="text-xs" style={{ color: '#60a5fa' }}>📋 {p.jugadorReferencia}</p>
+                              )}
+                              {p.jugadorEmail && (
+                                <p className="text-xs text-slate-500">{emailCorto(p.jugadorEmail)}</p>
+                              )}
+                              {formatPagadoAt(p.pagado_at) && (
+                                <p className="text-[10px]" style={{ color: '#475569' }}>
+                                  📅 {formatPagadoAt(p.pagado_at)}
+                                </p>
+                              )}
+                            </div>
+                            <button
+                              onClick={() => handleEliminarParticipacion(p)}
+                              className="text-xs px-2 py-1 rounded-lg transition-all active:scale-95"
+                              style={{ background: 'rgba(239,68,68,0.12)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}>
+                              🗑️
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {pendientes.length === 0 && confirmadas.length === 0 && (
+                      <p className="px-4 py-3 text-xs" style={{ color: 'var(--text-secondary)' }}>
+                        Sin participaciones registradas.
+                      </p>
                     )}
                   </div>
-                </div>
-
-                {/* Ganador si existe */}
-                {pozo.ganador_nombre && (
-                  <div className="px-4 py-2 text-sm" style={{ background: 'rgba(16,185,129,0.08)', borderBottom: '1px solid rgba(16,185,129,0.2)' }}>
-                    <span className="font-bold" style={{ color: '#10b981' }}>🥇 Ganador: {pozo.ganador_nombre}</span>
-                    <span className="ml-2 text-xs" style={{ color: 'var(--text-secondary)' }}>· ${pozo.total_mxn} MXN</span>
-                  </div>
-                )}
-
-                {/* Pagos pendientes */}
-                {pendientes.length > 0 && (
-                  <div className="px-4 py-3 space-y-2">
-                    <p className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: '#ea580c' }}>
-                      ⏳ Pendientes de pago ({pendientes.length})
-                    </p>
-                    {pendientes.map(p => (
-                      <div key={p.id}
-                        className="flex items-center justify-between gap-2 rounded-xl px-3 py-2.5"
-                        style={{ background: 'rgba(234,88,12,0.08)', border: '1px solid rgba(234,88,12,0.3)' }}>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-                              {mostrarNombreParticipante(p)}
-                            </p>
-                            <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold"
-                              style={{ background: 'rgba(234,88,12,0.2)', color: '#ea580c', border: '1px solid rgba(234,88,12,0.4)' }}>
-                              ⏳ Pendiente de pago
-                            </span>
-                          </div>
-                          {p.jugadorReferencia && (
-                            <p className="text-xs" style={{ color: '#60a5fa' }}>📋 {p.jugadorReferencia}</p>
-                          )}
-                          <p className="text-xs text-slate-500 truncate">{p.jugadorEmail ? emailCorto(p.jugadorEmail) : ''}</p>
-                        </div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <button
-                            onClick={() => handleConfirmarPago(p)}
-                            disabled={confirmando === p.id}
-                            className="text-xs px-3 py-2 rounded-xl font-bold disabled:opacity-50 transition-all active:scale-95 whitespace-nowrap"
-                            style={{ background: '#10b981', color: '#000' }}>
-                            {confirmando === p.id ? '…' : '✅ Confirmar pago'}
-                          </button>
-                          <button
-                            onClick={() => handleEliminarParticipacion(p)}
-                            className="text-xs px-2 py-2 rounded-xl font-bold transition-all active:scale-95"
-                            style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)' }}>
-                            🗑️
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Confirmados */}
-                {confirmadas.length > 0 && (
-                  <div className="px-4 py-3 space-y-1" style={{ borderTop: pendientes.length > 0 ? '1px solid var(--border)' : 'none' }}>
-                    <p className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: '#10b981' }}>
-                      ✅ Confirmados ({confirmadas.length})
-                    </p>
-                    {confirmadas.map(p => (
-                      <div key={p.id} className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                            {mostrarNombreParticipante(p)}
-                          </p>
-                          {p.jugadorReferencia && (
-                            <p className="text-xs" style={{ color: '#60a5fa' }}>📋 {p.jugadorReferencia}</p>
-                          )}
-                          {p.jugadorEmail && (
-                            <p className="text-xs text-slate-500">{emailCorto(p.jugadorEmail)}</p>
-                          )}
-                          {formatPagadoAt(p.pagado_at) && (
-                            <p className="text-[10px]" style={{ color: '#475569' }}>
-                              📅 {formatPagadoAt(p.pagado_at)}
-                            </p>
-                          )}
-                        </div>
-                        <button
-                          onClick={() => handleEliminarParticipacion(p)}
-                          className="text-xs px-2 py-1 rounded-lg transition-all active:scale-95"
-                          style={{ background: 'rgba(239,68,68,0.12)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}>
-                          🗑️
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {pendientes.length === 0 && confirmadas.length === 0 && (
-                  <p className="px-4 py-3 text-xs" style={{ color: 'var(--text-secondary)' }}>
-                    Sin participaciones registradas.
-                  </p>
                 )}
               </div>
             );
@@ -1440,6 +1494,114 @@ export default function AdminPage() {
             >
               {declarandoCampeon ? '⏳ Declarando...' : '🏆 Declarar campeón'}
             </button>
+          </div>
+        )}
+      </section>
+
+      {/* ── GRUPOS MUNDIAL ── */}
+      <section className="space-y-1">
+        <button
+          onClick={() => {
+            toggleSeccion('grupos');
+            if (!seccionesAbiertas.grupos) cargarGrupos();
+          }}
+          className="w-full flex items-center justify-between px-4 py-4 rounded-xl hover:border-orange-500/30 transition-all"
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: 'var(--accent-gold)' }}>
+            🌎 GRUPOS — tabla de posiciones
+          </span>
+          <span style={{ color: '#64748b' }}>{seccionesAbiertas.grupos ? '▲' : '▼'}</span>
+        </button>
+        {seccionesAbiertas.grupos && (
+          <div className="rounded-2xl p-4 space-y-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+            {/* Tabs grupos A–L */}
+            <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+              {['A','B','C','D','E','F','G','H','I','J','K','L'].map(g => (
+                <button
+                  key={g}
+                  onClick={() => setGrupoTabAdmin(g)}
+                  className="px-3 py-1 rounded-lg text-xs font-bold shrink-0 transition-all"
+                  style={{
+                    fontFamily: 'var(--font-rajdhani)',
+                    background: grupoTabAdmin === g ? 'rgba(234,88,12,0.2)' : 'var(--bg-card-hover)',
+                    border: grupoTabAdmin === g ? '1px solid rgba(234,88,12,0.6)' : '1px solid var(--border)',
+                    color: grupoTabAdmin === g ? 'var(--accent-gold)' : 'var(--text-secondary)',
+                  }}
+                >
+                  {g}
+                </button>
+              ))}
+            </div>
+
+            {grupos.filter(e => e.grupo === grupoTabAdmin).length === 0 ? (
+              <p className="text-xs text-center py-4" style={{ color: 'var(--text-secondary)' }}>
+                No hay equipos en el Grupo {grupoTabAdmin}. Ejecuta el SQL seed primero.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {grupos
+                  .filter(e => e.grupo === grupoTabAdmin)
+                  .sort((a, b) => b.pts - a.pts || b.dg - a.dg)
+                  .map(eq => {
+                    const vals = editGrupo[eq.id] ?? {};
+                    const field = (f: string) => vals[f] !== undefined ? vals[f] : eq[f];
+                    return (
+                      <div key={eq.id} className="rounded-xl p-3 space-y-3"
+                        style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)' }}>
+                        <div className="flex items-center gap-2">
+                          {eq.bandera && <Bandera emoji={eq.bandera} nombre={eq.equipo} size="sm" />}
+                          <span style={{ fontFamily: 'var(--font-rajdhani)', fontWeight: 700, color: 'var(--text-primary)' }}>
+                            {eq.equipo}
+                          </span>
+                          <span className="ml-auto" style={{ fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: 'var(--accent-gold)' }}>
+                            {eq.pts} pts · DG {eq.dg}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-6 gap-2">
+                          {(['pj','g','e','p','gf','gc'] as const).map(f => (
+                            <div key={f}>
+                              <label className="text-[10px] uppercase tracking-widest block mb-1"
+                                style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-rajdhani)' }}>
+                                {f.toUpperCase()}
+                              </label>
+                              <input
+                                type="number"
+                                min={0}
+                                value={field(f)}
+                                onChange={e => setEditGrupo(prev => ({
+                                  ...prev,
+                                  [eq.id]: { ...(prev[eq.id] ?? {}), [f]: e.target.value }
+                                }))}
+                                className="w-full rounded-lg px-2 py-1.5 text-center text-sm outline-none"
+                                style={{
+                                  background: 'var(--bg-card)',
+                                  border: '1px solid var(--border)',
+                                  color: 'var(--text-primary)',
+                                  fontFamily: 'var(--font-rajdhani)',
+                                  fontWeight: 700,
+                                }}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                        <button
+                          onClick={() => guardarEquipoGrupo(eq)}
+                          disabled={guardandoEquipo === eq.id}
+                          className="w-full py-2 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-40"
+                          style={{
+                            background: 'rgba(234,88,12,0.15)',
+                            color: 'var(--accent-gold)',
+                            border: '1px solid rgba(234,88,12,0.3)',
+                            fontFamily: 'var(--font-rajdhani)',
+                          }}
+                        >
+                          {guardandoEquipo === eq.id ? '⏳ Guardando...' : '💾 Guardar'}
+                        </button>
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
           </div>
         )}
       </section>
