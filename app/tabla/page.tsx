@@ -11,6 +11,21 @@ export default function TablaPage() {
   const [jugadores, setJugadores]       = useState<any[]>([]);
   const [predicciones, setPredicciones] = useState<any[]>([]);
   const [participaciones, setParticipaciones] = useState<any[]>([]);
+  const [esAdmin, setEsAdmin]           = useState(false);
+
+  useEffect(() => {
+    const verificarAdmin = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from('quiniela_jugadores')
+        .select('rol')
+        .eq('id', user.id)
+        .single();
+      setEsAdmin(data?.rol === 'admin');
+    };
+    verificarAdmin();
+  }, []);
 
   useEffect(() => { cargarDatos(); }, [jornada]);
 
@@ -47,7 +62,7 @@ export default function TablaPage() {
     const userIds = [...new Set(partics?.map((p: any) => p.user_id) || [])];
     const { data: jugs } = await supabase
       .from('quiniela_jugadores')
-      .select('id, nombre, apodo, email')
+      .select('id, nombre, apodo, referencia_admin, email')
       .in('id', userIds);
     setJugadores(jugs || []);
 
@@ -397,6 +412,7 @@ export default function TablaPage() {
           </thead>
           <tbody>
             {participacionesOrdenadas.map(part => {
+              const jugador = jugadores.find((j: any) => j.id === part.user_id);
               const totalPuntos = predicciones
                 .filter((p: any) =>
                   p.user_id === part.user_id &&
@@ -422,6 +438,14 @@ export default function TablaPage() {
                         </p>
                         {part.quiniela?.nombre && (
                           <p className="text-[10px]" style={{ color: '#fb923c' }}>🎫 {part.quiniela.nombre}</p>
+                        )}
+                        {esAdmin && jugador?.referencia_admin && (
+                          <p className="text-xs text-blue-400">📋 {jugador.referencia_admin}</p>
+                        )}
+                        {esAdmin && (
+                          <p className="text-xs text-slate-500">
+                            {jugador?.email?.split('@')[0]}
+                          </p>
                         )}
                       </div>
                     </div>
