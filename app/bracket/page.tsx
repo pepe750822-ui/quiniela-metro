@@ -6,22 +6,29 @@ import { Partido } from '@/types';
 import { formatearFechaCDMX } from '@/lib/utils';
 
 const crucesE32: Record<string, string> = {
-  '73': '2° Grupo A vs 2° Grupo B',
-  '74': '1° Grupo E vs Mejor 3° (A,B,C,D,F)',
-  '75': '1° Grupo F vs 2° Grupo C',
-  '76': '2° Grupo E vs 2° Grupo I',
-  '77': '1° Grupo I vs Mejor 3° (C,D,F,G,H)',
-  '78': '1° Grupo A vs Mejor 3° (C,E,F,H,I)',
-  '79': '1° Grupo L vs Mejor 3° (E,H,I,J,K)',
-  '80': '1° Grupo G vs Mejor 3° (A,E,H,I,J)',
-  '81': '1° Grupo D vs Mejor 3° (B,E,F,I,J)',
-  '82': '1° Grupo B vs Mejor 3° (E,F,G,I,J)',
-  '83': '2° Grupo D vs 2° Grupo G',
-  '84': '1° Grupo J vs 2° Grupo H',
-  '85': '1° Grupo C vs 2° Grupo L',
-  '86': '1° Grupo H vs 2° Grupo J',
-  '87': '1° Grupo K vs 2° Grupo F',
-  '88': '2° Grupo B vs 2° Grupo K',
+  '2026-06-28T19:00': '2°A vs 2°B',
+  '2026-06-29T17:00': '1°E vs Mejor 3° (A,B,C,D,F)',
+  '2026-06-29T20:30': '1°F vs 2°C',
+  '2026-06-30T01:00': '2°E vs 2°I',
+  '2026-06-30T17:00': '1°I vs Mejor 3° (C,D,F,G,H)',
+  '2026-06-30T21:00': '1°A vs Mejor 3° (C,E,F,H,I)',
+  '2026-07-01T01:00': '1°L vs Mejor 3° (E,H,I,J,K)',
+  '2026-07-01T16:00': '1°G vs Mejor 3° (A,E,H,I,J)',
+  '2026-07-01T20:00': '1°D vs Mejor 3° (B,E,F,I,J)',
+  '2026-07-02T00:00': '1°B vs Mejor 3° (E,F,G,I,J)',
+  '2026-07-02T19:00': '2°D vs 2°G',
+  '2026-07-02T23:00': '1°J vs 2°H',
+  '2026-07-03T03:00': '1°C vs 2°L',
+  '2026-07-03T18:00': '1°H vs 2°J',
+  '2026-07-03T22:00': '1°K vs 2°F',
+  '2026-07-04T01:30': '2°B vs 2°K',
+};
+
+const getFechaKey = (fechaHora: string): string => {
+  const d = new Date(fechaHora);
+  const h = d.getUTCHours().toString().padStart(2, '0');
+  const m = d.getUTCMinutes().toString().padStart(2, '0');
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}T${h}:${m}`;
 };
 
 const RONDAS: { key: string; label: string; short: string }[] = [
@@ -143,7 +150,7 @@ function Columna({ label, partidos, crucesMap }: { label: string; partidos: Part
             <PartidoCard
               key={p.id}
               p={p}
-              cruce={crucesMap ? (crucesMap[String(p.jornada)] ?? 'Cruce por definir') : undefined}
+              cruce={crucesMap ? crucesMap[getFechaKey(p.fecha_hora)] : undefined}
             />
           ))
         )}
