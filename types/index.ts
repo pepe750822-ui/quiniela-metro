@@ -13,6 +13,12 @@ export interface Partido {
   goles_visitante: number | null;
   fecha_hora: string;
   estado: EstadoPartido;
+  estadio?: string | null;
+  ciudad?: string | null;
+  pais_sede?: string | null;
+  tv_abierta?: string | null;
+  tv_paga?: string | null;
+  streaming?: string | null;
 }
 
 export interface Prediccion {

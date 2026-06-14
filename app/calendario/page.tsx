@@ -18,6 +18,12 @@ interface Partido {
   goles_visitante: number | null;
   fecha_hora: string;
   estado: 'pendiente' | 'en_curso' | 'finalizado';
+  estadio?: string | null;
+  ciudad?: string | null;
+  pais_sede?: string | null;
+  tv_abierta?: string | null;
+  tv_paga?: string | null;
+  streaming?: string | null;
 }
 
 export default function CalendarioPage() {
@@ -158,6 +164,22 @@ export default function CalendarioPage() {
                         <span className="text-sm font-bold text-center text-slate-900 dark:text-white">{partido.equipo_visitante}</span>
                       </div>
                     </div>
+
+                    {partido.estadio && (
+                      <div className="mt-2 text-xs text-slate-500 text-center space-y-0.5">
+                        <p>🏟️ {partido.estadio} · {partido.ciudad}</p>
+                        <p>{partido.pais_sede}</p>
+                        {partido.tv_abierta && (
+                          <p className="text-green-400">📺 {partido.tv_abierta}</p>
+                        )}
+                        {partido.tv_paga && (
+                          <p className="text-blue-400">📡 {partido.tv_paga}</p>
+                        )}
+                        {partido.streaming && (
+                          <p className="text-purple-400">📱 {partido.streaming}</p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

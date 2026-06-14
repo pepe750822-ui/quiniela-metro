@@ -125,6 +125,13 @@ function PartidoCard({ p, compact = false, cruce }: { p: Partido; compact?: bool
           </p>
         </div>
       )}
+      {p.estadio && (
+        <div className="px-2.5 py-1 text-center" style={{ borderTop: '1px solid var(--border)', background: 'var(--bg-card-hover)' }}>
+          <p className="text-[10px] text-slate-600" style={{ fontFamily: 'var(--font-rajdhani)' }}>
+            🏟️ {p.ciudad} · {p.pais_sede}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
