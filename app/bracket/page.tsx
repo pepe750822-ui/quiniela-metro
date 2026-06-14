@@ -126,10 +126,28 @@ function PartidoCard({ p, compact = false, cruce }: { p: Partido; compact?: bool
         </div>
       )}
       {p.estadio && (
-        <div className="px-2.5 py-1 text-center" style={{ borderTop: '1px solid var(--border)', background: 'var(--bg-card-hover)' }}>
-          <p className="text-[10px] text-slate-600" style={{ fontFamily: 'var(--font-rajdhani)' }}>
-            🏟️ {p.ciudad} · {p.pais_sede}
+        <div className="px-2.5 py-1.5 text-center space-y-0.5" style={{ borderTop: '1px solid var(--border)', background: 'var(--bg-card-hover)' }}>
+          <p className="text-[10px] text-slate-500" style={{ fontFamily: 'var(--font-rajdhani)' }}>
+            🏟️ {p.estadio}
           </p>
+          <p className="text-[10px] text-slate-600" style={{ fontFamily: 'var(--font-rajdhani)' }}>
+            {p.ciudad} · {p.pais_sede}
+          </p>
+          {p.tv_abierta && (
+            <p className="text-[10px] text-green-500" style={{ fontFamily: 'var(--font-rajdhani)' }}>
+              📺 {p.tv_abierta}
+            </p>
+          )}
+          {p.tv_paga && (
+            <p className="text-[10px] text-blue-500" style={{ fontFamily: 'var(--font-rajdhani)' }}>
+              📡 {p.tv_paga}
+            </p>
+          )}
+          {p.streaming && (
+            <p className="text-[10px] text-purple-500" style={{ fontFamily: 'var(--font-rajdhani)' }}>
+              📱 {p.streaming}
+            </p>
+          )}
         </div>
       )}
     </div>
