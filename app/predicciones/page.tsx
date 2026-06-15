@@ -27,7 +27,7 @@ export default function PrediccionesPage() {
   const [predicciones, setPredicciones]   = useState<Record<string, Prediccion>>({});
   const [partidoActivo, setPartidoActivo] = useState<Partido | null>(null);
   const [loading, setLoading]             = useState(true);
-  const [jornada, setJornada]             = useState(1);
+  const [jornada, setJornada]             = useState(2);
   const [jornadas, setJornadas]           = useState<number[]>([]);
   const [pozo, setPozo]                   = useState<Pozo | null>(null);
   const [participando, setParticipando]   = useState<boolean | null>(null);
@@ -470,18 +470,23 @@ export default function PrediccionesPage() {
 
       {/* Selector jornada */}
       <div className="flex gap-2 overflow-x-auto pb-1" style={{ animation: 'fadeInUp 0.4s ease-out 0.15s both' }}>
-        {jornadas.map(j => (
-          <button key={j} onClick={() => setJornada(j)}
-            className="px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all active:scale-95 min-h-[36px]"
-            style={{
-              background: jornada === j ? 'var(--accent-gold)' : 'var(--bg-card)',
-              color: jornada === j ? '#000' : 'var(--text-secondary)',
-              border: `1px solid ${jornada === j ? 'var(--accent-gold)' : 'var(--border)'}`,
-              fontFamily: 'var(--font-rajdhani)',
-            }}>
-            Jornada {j}
-          </button>
-        ))}
+        {jornadas.map(j => {
+          const cerrada = j < 2 || new Date() > getDeadline(j);
+          const activa  = jornada === j;
+          return (
+            <button key={j} onClick={() => setJornada(j)}
+              className="px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all active:scale-95 min-h-[36px] flex items-center gap-1"
+              style={{
+                background: activa ? 'var(--accent-gold)' : 'var(--bg-card)',
+                color: activa ? '#000' : cerrada ? '#64748b' : 'var(--text-secondary)',
+                border: `1px solid ${activa ? 'var(--accent-gold)' : 'var(--border)'}`,
+                fontFamily: 'var(--font-rajdhani)',
+              }}>
+              {cerrada && !activa && <span style={{ fontSize: '0.6rem' }}>🔒</span>}
+              Jornada {j}
+            </button>
+          );
+        })}
       </div>
 
       {/* Barra de progreso */}
