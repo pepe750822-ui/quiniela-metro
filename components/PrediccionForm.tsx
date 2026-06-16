@@ -72,14 +72,19 @@ export default function PrediccionForm({ partido, userId, quinielaExtraId, predi
     }
 
     // Guardar predicción
-    const { error } = await supabase.from('quiniela_predicciones').upsert({
-      user_id:              userId,
-      partido_id:           partido.id,
-      goles_local_pred:     local,
-      goles_visitante_pred: visita,
-      quiniela_extra_id:    quinielaExtraId,
-      updated_at:           new Date().toISOString(),
-    }, { onConflict: 'user_id,partido_id,quiniela_extra_id' });
+    const { error } = await supabase
+      .from('quiniela_predicciones')
+      .upsert({
+        user_id:              userId,
+        partido_id:           partido.id,
+        quiniela_extra_id:    quinielaExtraId || null,
+        goles_local_pred:     local,
+        goles_visitante_pred: visita,
+        updated_at:           new Date().toISOString(),
+      }, {
+        onConflict: 'user_id,partido_id,quiniela_extra_id',
+        ignoreDuplicates: false,
+      });
 
     if (error) {
       setLoading(false);
