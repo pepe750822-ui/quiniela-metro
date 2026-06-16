@@ -12,6 +12,7 @@ export default function TablaPage() {
   const [predicciones, setPredicciones] = useState<any[]>([]);
   const [participaciones, setParticipaciones] = useState<any[]>([]);
   const [esAdmin, setEsAdmin]           = useState(false);
+  const [loading, setLoading]           = useState(false);
 
   useEffect(() => {
     const verificarAdmin = async () => {
@@ -27,9 +28,10 @@ export default function TablaPage() {
     verificarAdmin();
   }, []);
 
-  useEffect(() => { cargarDatos(); }, [jornada]);
+  useEffect(() => { refreshData(); }, [jornada]);
 
-  const cargarDatos = async () => {
+  const refreshData = async () => {
+    setLoading(true);
     const { data: parts } = await supabase
       .from('quiniela_partidos')
       .select('id, jornada, equipo_local, equipo_visitante, bandera_local, bandera_visitante, goles_local, goles_visitante, estado, grupo, fecha_hora')
@@ -72,6 +74,7 @@ export default function TablaPage() {
       .select('user_id, partido_id, goles_local_pred, goles_visitante_pred, puntos_ganados, quiniela_extra_id')
       .in('partido_id', partidoIds);
     setPredicciones(preds || []);
+    setLoading(false);
   };
 
   const mostrarNombre = (userId: string) => {
@@ -329,6 +332,15 @@ export default function TablaPage() {
             📊 TABLA DE PUNTOS
           </h1>
           <div className="ml-auto flex gap-2">
+            {esAdmin && (
+              <button
+                onClick={refreshData}
+                disabled={loading}
+                className="text-xs bg-[#12121a] border border-[#1e1e2e] text-slate-400 px-3 py-1.5 rounded-lg hover:border-orange-500/40 hover:text-orange-400 transition-all disabled:opacity-50"
+              >
+                {loading ? '⏳' : '🔄'} Actualizar
+              </button>
+            )}
             <button
               onClick={descargarCSV}
               className="flex items-center gap-2 px-4 py-1.5 bg-surface border border-theme rounded-lg text-slate-400 text-sm hover:border-orange-500/40 hover:text-orange-400 transition-all"
