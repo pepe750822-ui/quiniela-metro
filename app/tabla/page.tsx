@@ -77,8 +77,7 @@ export default function TablaPage() {
     const { data: preds } = await supabase
       .from('quiniela_predicciones')
       .select('user_id, partido_id, goles_local_pred, goles_visitante_pred, puntos_ganados, quiniela_extra_id')
-      .in('partido_id', partidoIds)
-      .in('user_id', userIds);
+      .in('partido_id', partidoIds);
     console.log('Total preds cargadas:', preds?.length, '| userIds:', userIds);
     const julioPreds = preds?.filter((p: any) => p.user_id === 'f60a9d6b-480e-44f9-a295-13b9ca4f6bad');
     console.log('Julio predicciones:', julioPreds?.length, julioPreds);
