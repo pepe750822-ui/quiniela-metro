@@ -88,13 +88,24 @@ export default function TablaPage() {
     return jugador?.apodo || jugador?.nombre?.split(' ')[0] || 'Jugador';
   };
 
-  const getPred = (userId: string, partidoId: string, quinielaExtraId: string | null) =>
-    predicciones.find((p: any) =>
+  const getPred = (userId: string, partidoId: string, quinielaExtraId: string | null) => {
+    const direct = predicciones.find((p: any) =>
       p.user_id === userId &&
       p.partido_id === partidoId &&
       (p.quiniela_extra_id === quinielaExtraId ||
         (!p.quiniela_extra_id && !quinielaExtraId))
-    ) ?? null;
+    );
+    if (direct) return direct;
+    // Quinielas extra sin predicciones propias heredan el slot principal
+    if (quinielaExtraId) {
+      return predicciones.find((p: any) =>
+        p.user_id === userId &&
+        p.partido_id === partidoId &&
+        !p.quiniela_extra_id
+      ) ?? null;
+    }
+    return null;
+  };
 
   const iniciales = (userId: string) => {
     const j = jugadores.find((j: any) => j.id === userId);
@@ -234,15 +245,19 @@ export default function TablaPage() {
 
   const participacionesOrdenadas = participaciones
     .map(part => {
-      const puntosTotal = predicciones
-        .filter((p: any) =>
-          p.user_id === part.user_id &&
-          (p.quiniela_extra_id === part.quiniela_extra_id ||
-            (!p.quiniela_extra_id && !part.quiniela_extra_id)) &&
-          partidos.find((partido: any) =>
-            partido.id === p.partido_id && partido.estado === 'finalizado'
-          )
-        )
+      const predsFiltradas = predicciones.filter((p: any) =>
+        p.user_id === part.user_id &&
+        (p.quiniela_extra_id === part.quiniela_extra_id ||
+          (!p.quiniela_extra_id && !part.quiniela_extra_id))
+      );
+      // Quinielas extra sin predicciones propias heredan el slot principal
+      const predsEfectivas = (predsFiltradas.length === 0 && part.quiniela_extra_id)
+        ? predicciones.filter((p: any) => p.user_id === part.user_id && !p.quiniela_extra_id)
+        : predsFiltradas;
+      const puntosTotal = predsEfectivas
+        .filter((p: any) => partidos.find((partido: any) =>
+          partido.id === p.partido_id && partido.estado === 'finalizado'
+        ))
         .reduce((sum: number, p: any) => sum + (p.puntos_ganados || 0), 0);
       return { ...part, puntosTotal };
     })
@@ -253,7 +268,9 @@ export default function TablaPage() {
       predicciones.some((p: any) =>
         p.user_id === part.user_id &&
         (p.quiniela_extra_id === part.quiniela_extra_id ||
-          (!p.quiniela_extra_id && !part.quiniela_extra_id))
+          (!p.quiniela_extra_id && !part.quiniela_extra_id) ||
+          // Quinielas extra sin predicciones propias: el usuario tiene al menos el slot principal
+          (!!part.quiniela_extra_id && !p.quiniela_extra_id))
       )
     );
 
@@ -263,15 +280,19 @@ export default function TablaPage() {
   const partidosMitad1 = partidos.slice(0, 12);
   const partidosMitad2 = partidos.slice(12);
 
-  const calcTotal = (part: any) =>
-    predicciones
-      .filter((p: any) =>
-        p.user_id === part.user_id &&
-        (p.quiniela_extra_id === part.quiniela_extra_id ||
-          (!p.quiniela_extra_id && !part.quiniela_extra_id)) &&
-        partidos.find((partido: any) => partido.id === p.partido_id && partido.estado === 'finalizado')
-      )
+  const calcTotal = (part: any) => {
+    const own = predicciones.filter((p: any) =>
+      p.user_id === part.user_id &&
+      (p.quiniela_extra_id === part.quiniela_extra_id ||
+        (!p.quiniela_extra_id && !part.quiniela_extra_id))
+    );
+    const pool = (own.length === 0 && part.quiniela_extra_id)
+      ? predicciones.filter((p: any) => p.user_id === part.user_id && !p.quiniela_extra_id)
+      : own;
+    return pool
+      .filter((p: any) => partidos.find((partido: any) => partido.id === p.partido_id && partido.estado === 'finalizado'))
       .reduce((sum: number, p: any) => sum + (p.puntos_ganados || 0), 0);
+  };
 
   const renderFilasPrint = (mitad: any[]) =>
     participacionesConPrediccion.map((part: any) => {
@@ -286,10 +307,7 @@ export default function TablaPage() {
             {quinielaNombre && <div style={{ color: '#c2410c', fontSize: '7px' }}>{quinielaNombre}</div>}
           </td>
           {mitad.map((partido: any) => {
-            const pred = predicciones.find((p: any) =>
-              p.user_id === part.user_id && p.partido_id === partido.id &&
-              (p.quiniela_extra_id === part.quiniela_extra_id || (!p.quiniela_extra_id && !part.quiniela_extra_id))
-            );
+            const pred = getPred(part.user_id, partido.id, part.quiniela_extra_id);
             const pts = pred?.puntos_ganados;
             const color = pts === 3 ? '#16a34a' : pts === 1 ? '#ea580c' : pts === 0 ? '#dc2626' : '#666';
             return (
