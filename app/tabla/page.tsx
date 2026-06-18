@@ -268,6 +268,9 @@ export default function TablaPage() {
   const partidosMitad1 = partidos.slice(0, 12);
   const partidosMitad2 = partidos.slice(12);
 
+  const finalizados = partidos.filter((p: any) => p.estado === 'finalizado');
+  const pendientes  = partidos.filter((p: any) => p.estado !== 'finalizado');
+
   const calcTotal = (part: any) => {
     const own = predicciones.filter((p: any) =>
       p.user_id === part.user_id &&
@@ -407,7 +410,7 @@ export default function TablaPage() {
                 style={{ background: 'var(--bg-base)', borderBottom: '1px solid var(--border-color)' }}>
                 <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>Jugador</span>
               </th>
-              {partidos.map(partido => (
+              {finalizados.map(partido => (
                 <th key={partido.id}
                   className="px-2 py-2 text-center min-w-[70px]"
                   style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
@@ -416,12 +419,26 @@ export default function TablaPage() {
                     <span style={{ fontSize: '0.625rem', color: '#475569' }}>vs</span>
                     <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
                   </div>
-                  {partido.estado === 'finalizado' ? (
-                    <div className="rounded px-1 py-0.5 font-bold text-xs"
-                      style={{ background: 'rgba(234,88,12,0.2)', border: '1px solid rgba(234,88,12,0.3)', color: '#fb923c' }}>
-                      {partido.goles_local}-{partido.goles_visitante}
-                    </div>
-                  ) : partido.estado === 'en_curso' ? (
+                  <div className="rounded px-1 py-0.5 font-bold text-xs"
+                    style={{ background: 'rgba(234,88,12,0.2)', border: '1px solid rgba(234,88,12,0.3)', color: '#fb923c' }}>
+                    {partido.goles_local}-{partido.goles_visitante}
+                  </div>
+                </th>
+              ))}
+              <th className="px-3 py-2 text-center min-w-[55px]"
+                style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
+                PTS
+              </th>
+              {pendientes.map(partido => (
+                <th key={partido.id}
+                  className="px-2 py-2 text-center min-w-[70px]"
+                  style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
+                  <div className="flex items-center justify-center gap-1 mb-1">
+                    <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
+                    <span style={{ fontSize: '0.625rem', color: '#475569' }}>vs</span>
+                    <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
+                  </div>
+                  {partido.estado === 'en_curso' ? (
                     <div className="rounded px-1 py-0.5 text-[10px] font-bold animate-pulse"
                       style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>
                       🔴 EN VIVO
@@ -431,10 +448,6 @@ export default function TablaPage() {
                   )}
                 </th>
               ))}
-              <th className="px-3 py-2 text-center min-w-[55px]"
-                style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
-                PTS
-              </th>
             </tr>
           </thead>
           <tbody>
@@ -477,29 +490,32 @@ export default function TablaPage() {
                       </div>
                     </div>
                   </td>
-                  {partidos.map(partido => {
+                  {finalizados.map(partido => {
                     const pred = getPred(part.user_id, partido.id, part.quiniela_extra_id);
-                    if (partido.estado === 'finalizado') {
-                      const pts = pred?.puntos_ganados ?? null;
-                      return (
-                        <td key={partido.id}
-                          className="px-1 py-2 text-center"
-                          style={{ borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
-                          {pts !== null ? (
-                            <div className={ptsClass(pts)}>
-                              {pts}pts
-                            </div>
-                          ) : (
-                            <div className="text-sm text-slate-400 dark:text-slate-600">–</div>
-                          )}
-                          {pred && (
-                            <div className="text-xs text-slate-600 dark:text-slate-400">
-                              {pred.goles_local_pred}-{pred.goles_visitante_pred}
-                            </div>
-                          )}
-                        </td>
-                      );
-                    }
+                    const pts = pred?.puntos_ganados ?? null;
+                    return (
+                      <td key={partido.id}
+                        className="px-1 py-2 text-center"
+                        style={{ borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
+                        {pts !== null ? (
+                          <div className={ptsClass(pts)}>{pts}pts</div>
+                        ) : (
+                          <div className="text-sm text-slate-400 dark:text-slate-600">–</div>
+                        )}
+                        {pred && (
+                          <div className="text-xs text-slate-600 dark:text-slate-400">
+                            {pred.goles_local_pred}-{pred.goles_visitante_pred}
+                          </div>
+                        )}
+                      </td>
+                    );
+                  })}
+                  <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
+                    style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
+                    {totalPuntos}
+                  </td>
+                  {pendientes.map(partido => {
+                    const pred = getPred(part.user_id, partido.id, part.quiniela_extra_id);
                     return (
                       <td key={partido.id}
                         className="px-1 py-2 text-center"
@@ -514,10 +530,6 @@ export default function TablaPage() {
                       </td>
                     );
                   })}
-                  <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
-                    style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
-                    {totalPuntos}
-                  </td>
                 </tr>
               );
             })}
