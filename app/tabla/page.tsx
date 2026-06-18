@@ -69,10 +69,11 @@ export default function TablaPage() {
     setJugadores(jugs || []);
 
     const partidoIds = parts?.map((p: any) => p.id) || [];
-    const { data: preds } = await supabase
+    const { data: preds, error: predsError } = await supabase
       .from('quiniela_predicciones')
       .select('user_id, partido_id, goles_local_pred, goles_visitante_pred, puntos_ganados, quiniela_extra_id')
       .in('partido_id', partidoIds);
+    console.log('preds error:', predsError, 'preds count:', preds?.length);
     setPredicciones(preds || []);
     setLoading(false);
   };
