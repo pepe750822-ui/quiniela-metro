@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { Bandera } from '@/components/Bandera';
 
 export default function TablaPage() {
-  const [jornada, setJornada]           = useState(1);
+  const [jornada, setJornada]           = useState(2);
   const [partidos, setPartidos]         = useState<any[]>([]);
   const [jugadores, setJugadores]       = useState<any[]>([]);
   const [predicciones, setPredicciones] = useState<any[]>([]);
