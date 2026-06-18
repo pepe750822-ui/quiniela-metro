@@ -361,6 +361,18 @@ export default function AdminPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin]);
 
+  useEffect(() => {
+    if (partidos.length > 0 && seccionesAbiertas.resultados) {
+      const primerPendiente = partidos.find(p => p.estado === 'pendiente');
+      if (primerPendiente) {
+        setTimeout(() => {
+          const el = document.getElementById(`partido-${primerPendiente.id}`);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 500);
+      }
+    }
+  }, [partidos, seccionesAbiertas.resultados]);
+
   // ── Handlers resultados ───────────────────────────────
 
   const handleGuardar = async (partidoId: string) => {
@@ -1382,7 +1394,7 @@ export default function AdminPage() {
           {partidos.map(partido => {
             const res = resultados[partido.id];
             return (
-              <div key={partido.id} className="rounded-2xl p-4 space-y-3"
+              <div key={partido.id} id={`partido-${partido.id}`} className="rounded-2xl p-4 space-y-3"
                 style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
                 <div className="flex items-center justify-between text-xs" style={{ color: 'var(--text-secondary)' }}>
                   <span>Grupo {partido.grupo} · J{partido.jornada}</span>
