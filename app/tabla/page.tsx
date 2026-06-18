@@ -75,7 +75,6 @@ export default function TablaPage() {
       supabase.from('quiniela_predicciones').select(selectPreds).in('partido_id', partidoIds).range(1000, 1999),
     ]);
     const allPreds = [...(preds1 || []), ...(preds2 || [])];
-    console.log('preds total:', allPreds.length);
     setPredicciones(allPreds);
     setLoading(false);
   };
