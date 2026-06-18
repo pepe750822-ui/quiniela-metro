@@ -669,11 +669,13 @@ export default function AdminPage() {
       const { data: jugs } = await supabase.from('quiniela_jugadores').select('id, nombre, apodo, email').in('id', userIds);
       const jugsList = jugs || [];
 
-      const { data: preds } = await supabase
-        .from('quiniela_predicciones')
-        .select('user_id, partido_id, goles_local_pred, goles_visitante_pred, puntos_ganados, quiniela_extra_id')
-        .in('partido_id', partsList.map((p: any) => p.id));
-      const predsList = preds || [];
+      const csvPartidoIds = partsList.map((p: any) => p.id);
+      const selectPredsCsv = 'user_id, partido_id, goles_local_pred, goles_visitante_pred, puntos_ganados, quiniela_extra_id';
+      const [{ data: preds1 }, { data: preds2 }] = await Promise.all([
+        supabase.from('quiniela_predicciones').select(selectPredsCsv).in('partido_id', csvPartidoIds).range(0, 999),
+        supabase.from('quiniela_predicciones').select(selectPredsCsv).in('partido_id', csvPartidoIds).range(1000, 1999),
+      ]);
+      const predsList = [...(preds1 || []), ...(preds2 || [])];
 
       const metadataRow = [`"Quiniela Metro Mundial 2026"`, `"Jornada ${jornadaCSV}"`, `"Generado: ${ahora}"`, `"RESPALDO COMPLETO"`].join(',');
       const headers = [

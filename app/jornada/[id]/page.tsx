@@ -88,11 +88,11 @@ export default function JornadaPage() {
       const partidoIds = listaPartidos.map(p => p.id);
       const predsByKey: Record<string, Record<string, Prediccion>> = {};
       if (partidoIds.length) {
-        const { data: predsData, error: errorPred } = await supabase
-          .from('quiniela_predicciones')
-          .select('*')
-          .in('partido_id', partidoIds);
-        console.log('Predicciones:', predsData, errorPred);
+        const [{ data: predsData1 }, { data: predsData2 }] = await Promise.all([
+          supabase.from('quiniela_predicciones').select('*').in('partido_id', partidoIds).range(0, 999),
+          supabase.from('quiniela_predicciones').select('*').in('partido_id', partidoIds).range(1000, 1999),
+        ]);
+        const predsData = [...(predsData1 || []), ...(predsData2 || [])];
         (predsData as Prediccion[] ?? []).forEach(pred => {
           const key = `${pred.user_id}__${pred.quiniela_extra_id ?? ''}`;
           if (!predsByKey[key]) predsByKey[key] = {};
