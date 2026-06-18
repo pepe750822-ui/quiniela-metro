@@ -66,6 +66,7 @@ export default function TablaPage() {
     })));
 
     const userIds = [...new Set(partics?.map((p: any) => p.user_id) || [])];
+    console.log('userIds en tabla:', userIds);
     const { data: jugs } = await supabase
       .from('quiniela_jugadores')
       .select('id, nombre, apodo, referencia_admin, email')
@@ -76,7 +77,9 @@ export default function TablaPage() {
     const { data: preds } = await supabase
       .from('quiniela_predicciones')
       .select('user_id, partido_id, goles_local_pred, goles_visitante_pred, puntos_ganados, quiniela_extra_id')
-      .in('partido_id', partidoIds);
+      .in('partido_id', partidoIds)
+      .in('user_id', userIds);
+    console.log('Total preds cargadas:', preds?.length, '| userIds:', userIds);
     const julioPreds = preds?.filter((p: any) => p.user_id === 'f60a9d6b-480e-44f9-a295-13b9ca4f6bad');
     console.log('Julio predicciones:', julioPreds?.length, julioPreds);
     setPredicciones(preds || []);
@@ -152,12 +155,7 @@ export default function TablaPage() {
       const quinielaNombre = part.quiniela?.nombre || 'Principal';
 
       const celdas = partidos.map((partido: any) => {
-        const pred = predicciones.find((p: any) =>
-          p.user_id === part.user_id &&
-          p.partido_id === partido.id &&
-          (p.quiniela_extra_id === part.quiniela_extra_id ||
-            (!p.quiniela_extra_id && !part.quiniela_extra_id))
-        );
+        const pred = getPred(part.user_id, partido.id, part.quiniela_extra_id);
         if (!pred) return '""';
         if (partido.estado === 'finalizado') {
           return `"${pred.puntos_ganados}pts (${pred.goles_local_pred}/${pred.goles_visitante_pred})"`;
