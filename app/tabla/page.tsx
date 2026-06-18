@@ -72,7 +72,8 @@ export default function TablaPage() {
     const { data: preds, error: predsError } = await supabase
       .from('quiniela_predicciones')
       .select('user_id, partido_id, goles_local_pred, goles_visitante_pred, puntos_ganados, quiniela_extra_id')
-      .in('partido_id', partidoIds);
+      .in('partido_id', partidoIds)
+      .limit(2000);
     console.log('preds error:', predsError, 'preds count:', preds?.length);
     setPredicciones(preds || []);
     setLoading(false);
