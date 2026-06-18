@@ -46,10 +46,6 @@ export default function TablaPage() {
       .eq('jornada', jornada)
       .eq('pagado', true);
 
-    console.log('Total partics J2:', partics?.length);
-    const julioPartic = partics?.find((p: any) => p.user_id === 'f60a9d6b-480e-44f9-a295-13b9ca4f6bad');
-    console.log('Julio en partics:', julioPartic);
-
     // Cargar nombres de quinielas extra
     const quinielaIds = [...new Set(
       (partics || []).map((p: any) => p.quiniela_extra_id).filter(Boolean)
@@ -66,7 +62,6 @@ export default function TablaPage() {
     })));
 
     const userIds = [...new Set(partics?.map((p: any) => p.user_id) || [])];
-    console.log('userIds en tabla:', userIds);
     const { data: jugs } = await supabase
       .from('quiniela_jugadores')
       .select('id, nombre, apodo, referencia_admin, email')
@@ -78,9 +73,6 @@ export default function TablaPage() {
       .from('quiniela_predicciones')
       .select('user_id, partido_id, goles_local_pred, goles_visitante_pred, puntos_ganados, quiniela_extra_id')
       .in('partido_id', partidoIds);
-    console.log('Total preds cargadas:', preds?.length, '| userIds:', userIds);
-    const julioPreds = preds?.filter((p: any) => p.user_id === 'f60a9d6b-480e-44f9-a295-13b9ca4f6bad');
-    console.log('Julio predicciones:', julioPreds?.length, julioPreds);
     setPredicciones(preds || []);
     setLoading(false);
   };
@@ -270,9 +262,6 @@ export default function TablaPage() {
           (!!part.quiniela_extra_id && !p.quiniela_extra_id))
       )
     );
-
-  const julioFinal = participacionesConPrediccion.find((p: any) => p.user_id === 'f60a9d6b-480e-44f9-a295-13b9ca4f6bad');
-  console.log('Julio en tabla final:', julioFinal);
 
   const partidosMitad1 = partidos.slice(0, 12);
   const partidosMitad2 = partidos.slice(12);
