@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 const DEADLINE_CAMPEON = new Date('2026-06-28T02:00:00Z'); // 27 jun 8:00 p.m. CDMX
 
 const DEADLINE_J1 = new Date('2026-06-11T05:59:00Z');
-const DEADLINE_J2 = new Date('2026-06-22T05:59:00Z');
+const DEADLINE_J2 = new Date('2026-06-18T16:00:00Z'); // 18 jun 10:00 a.m. CDMX — primer partido J2
 const DEADLINE_J3 = new Date('2026-06-27T05:59:00Z');
 
 const getDeadline = (jornada: number) => {
