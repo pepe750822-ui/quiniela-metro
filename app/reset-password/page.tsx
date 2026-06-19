@@ -21,16 +21,30 @@ export default function ResetPasswordPage() {
   const [loading, setLoading]     = useState(false);
   const [error, setError]         = useState('');
   const [success, setSuccess]     = useState(false);
-  const [sessionReady, setSessionReady] = useState(false);
+  const [verificando, setVerificando] = useState(true);
 
-  // Supabase sends the token in the URL hash; wait for the session to be set
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        setSessionReady(true);
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setVerificando(false);
+        return;
       }
-    });
-    return () => subscription.unsubscribe();
+
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        async (event) => {
+          if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
+            setVerificando(false);
+          }
+        }
+      );
+
+      setTimeout(() => { setVerificando(false); }, 5000);
+
+      return () => subscription.unsubscribe();
+    };
+
+    checkSession();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -99,7 +113,7 @@ export default function ResetPasswordPage() {
                 Redirigiendo…
               </p>
             </div>
-          ) : !sessionReady ? (
+          ) : verificando ? (
             <div className="text-center space-y-3 py-6">
               <Spinner />
               <p className="text-sm" style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-rajdhani)' }}>
