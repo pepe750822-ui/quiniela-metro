@@ -41,6 +41,13 @@ export default function LoginPage() {
   const [pwdError, setPwdError]   = useState('');
   const [pwdSuccess, setPwdSuccess] = useState('');
 
+  // Reset password
+  const [showReset, setShowReset]     = useState(false);
+  const [resetEmail, setResetEmail]   = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetSent, setResetSent]     = useState(false);
+  const [resetError, setResetError]   = useState('');
+
   // Magic Link
   const [showMagic, setShowMagic]     = useState(false);
   const [magicEmail, setMagicEmail]   = useState('');
@@ -125,6 +132,23 @@ export default function LoginPage() {
     setConfirm('');
     setShowPwd(false);
     setShowConfirm(false);
+  };
+
+  // ── Reset Password ───────────────────────────────────────────────────────
+  const handleReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetError('');
+    if (!resetEmail) { setResetError('Ingresa tu correo.'); return; }
+    setResetLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+      redirectTo: 'https://quinielamundial2026metro.vercel.app/reset-password',
+    });
+    if (error) {
+      setResetError('No se pudo enviar el correo. Intenta de nuevo.');
+    } else {
+      setResetSent(true);
+    }
+    setResetLoading(false);
   };
 
   // ── Magic Link ───────────────────────────────────────────────────────────
@@ -297,7 +321,57 @@ export default function LoginPage() {
               {pwdLoading ? <Spinner /> : null}
               {pwdLoading ? 'Un momento…' : mode === 'login' ? 'Entrar con contraseña' : 'Crear cuenta'}
             </button>
+
+            {mode === 'login' && (
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => { setShowReset(v => !v); setResetSent(false); setResetError(''); setResetEmail(''); }}
+                  className="text-xs font-semibold transition-colors hover:underline"
+                  style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
+                >
+                  ¿Olvidaste tu contraseña?
+                </button>
+              </div>
+            )}
           </form>
+
+          {mode === 'login' && showReset && (
+            <div className="border-t pt-4 space-y-3" style={{ borderColor: 'var(--border-color)' }}>
+              {resetSent ? (
+                <p className="text-xs font-semibold text-center" style={{ color: 'var(--accent-green)' }}>
+                  ✅ Te enviamos un correo para restablecer tu contraseña.
+                </p>
+              ) : (
+                <form onSubmit={handleReset} className="space-y-3">
+                  <p className="text-xs font-semibold" style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-rajdhani)' }}>
+                    Ingresa tu correo y te enviaremos un link para restablecer tu contraseña.
+                  </p>
+                  <input
+                    type="email"
+                    placeholder="tu@correo.com"
+                    value={resetEmail}
+                    onChange={e => setResetEmail(e.target.value)}
+                    className={INPUT_CLASS}
+                    style={inputStyle}
+                    required
+                  />
+                  {resetError && (
+                    <p className="text-xs font-semibold px-1" style={{ color: 'var(--accent-red)' }}>{resetError}</p>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={resetLoading}
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm text-white transition-all active:scale-95 disabled:opacity-60"
+                    style={{ background: '#475569', fontFamily: 'var(--font-rajdhani)' }}
+                  >
+                    {resetLoading ? <Spinner /> : '🔑'}
+                    {resetLoading ? 'Enviando…' : 'Enviar correo de recuperación'}
+                  </button>
+                </form>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Magic Link — colapsable */}
