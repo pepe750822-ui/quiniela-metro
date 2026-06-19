@@ -35,6 +35,8 @@ export default function LoginPage() {
   const [email, setEmail]         = useState('');
   const [password, setPassword]   = useState('');
   const [confirm, setConfirm]     = useState('');
+  const [showPwd, setShowPwd]     = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [pwdLoading, setPwdLoading] = useState(false);
   const [pwdError, setPwdError]   = useState('');
   const [pwdSuccess, setPwdSuccess] = useState('');
@@ -121,6 +123,8 @@ export default function LoginPage() {
     setPwdSuccess('');
     setPassword('');
     setConfirm('');
+    setShowPwd(false);
+    setShowConfirm(false);
   };
 
   // ── Magic Link ───────────────────────────────────────────────────────────
@@ -231,27 +235,49 @@ export default function LoginPage() {
               autoComplete="email"
               required
             />
-            <input
-              type="password"
-              placeholder="Contraseña"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              className={INPUT_CLASS}
-              style={inputStyle}
-              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-              required
-            />
-            {mode === 'register' && (
+            <div className="relative">
               <input
-                type="password"
-                placeholder="Confirmar contraseña"
-                value={confirm}
-                onChange={e => setConfirm(e.target.value)}
+                type={showPwd ? 'text' : 'password'}
+                placeholder="Contraseña"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
                 className={INPUT_CLASS}
-                style={inputStyle}
-                autoComplete="new-password"
+                style={{ ...inputStyle, paddingRight: '2.75rem' }}
+                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                 required
               />
+              <button
+                type="button"
+                onClick={() => setShowPwd(v => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-lg leading-none"
+                style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
+                tabIndex={-1}
+              >
+                {showPwd ? '🙈' : '👁️'}
+              </button>
+            </div>
+            {mode === 'register' && (
+              <div className="relative">
+                <input
+                  type={showConfirm ? 'text' : 'password'}
+                  placeholder="Confirmar contraseña"
+                  value={confirm}
+                  onChange={e => setConfirm(e.target.value)}
+                  className={INPUT_CLASS}
+                  style={{ ...inputStyle, paddingRight: '2.75rem' }}
+                  autoComplete="new-password"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirm(v => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-lg leading-none"
+                  style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
+                  tabIndex={-1}
+                >
+                  {showConfirm ? '🙈' : '👁️'}
+                </button>
+              </div>
             )}
 
             {/* Error / success */}
