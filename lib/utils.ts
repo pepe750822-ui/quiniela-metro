@@ -41,3 +41,15 @@ export const getFechaCDMX = (fechaHora: string) => {
     day: '2-digit',
   });
 };
+
+export const getNombreJornada = (j: number) => {
+  if (j === 4) return 'Ronda de 32';
+  if (j === 5) return 'Ronda de 16';
+  if (j === 6) return 'Cuartos';
+  if (j === 7) return 'Semifinales';
+  if (j === 8) return '3er Lugar';
+  if (j === 9) return 'Final';
+  return `J${j}`;
+};
+
+export const getMontoJornada = (j: number) => j === 4 ? 100 : 50;

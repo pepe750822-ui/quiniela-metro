@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { RankingConJugador, Pozo } from '@/types';
 import RankingTable from '@/components/RankingTable';
+import { getNombreJornada } from '@/lib/utils';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 
@@ -409,7 +410,7 @@ export default function DashboardPage() {
       })
       .join('\n');
 
-    const jornadaLabel = jornadaSeleccionada === 'general' ? 'General' : `Jornada ${jornadaSeleccionada}`;
+    const jornadaLabel = jornadaSeleccionada === 'general' ? 'General' : getNombreJornada(jornadaSeleccionada as number);
     const mensaje = encodeURIComponent(
       `🏆 Ranking Quiniela Metro — ${jornadaLabel}\n\n` +
       texto +
@@ -566,7 +567,7 @@ export default function DashboardPage() {
       {/* Ranking por jornada */}
       <div style={{ animation: 'fadeInUp 0.5s ease-out 0.3s both' }}>
         <h2 className="font-bebas text-2xl mb-3" style={{ color: '#ea580c' }}>
-          {jornadaSeleccionada === 'general' ? '🏆 Clasificación General' : `Clasificación Jornada ${jornadaSeleccionada}`}
+          {jornadaSeleccionada === 'general' ? '🏆 Clasificación General' : `Clasificación ${getNombreJornada(jornadaSeleccionada as number)}`}
         </h2>
 
         <div className="flex gap-2 mb-4 flex-wrap">
@@ -582,7 +583,7 @@ export default function DashboardPage() {
                 fontFamily: 'var(--font-rajdhani)',
               }}
             >
-              {j === 'general' ? '🏆 General' : `J${j}`}
+              {j === 'general' ? '🏆 General' : getNombreJornada(j)}
             </button>
           ))}
         </div>

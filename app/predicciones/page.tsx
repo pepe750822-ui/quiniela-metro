@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Partido, Prediccion, Pozo } from '@/types';
+import { getNombreJornada } from '@/lib/utils';
 import PartidoCard from '@/components/PartidoCard';
 import PrediccionForm from '@/components/PrediccionForm';
 import { toast } from 'sonner';
@@ -12,11 +13,13 @@ import { toast } from 'sonner';
 const DEADLINE_J1 = new Date('2026-06-11T05:59:00Z');
 const DEADLINE_J2 = new Date('2026-06-18T16:00:00Z'); // 18 jun 10:00 a.m. CDMX — primer partido J2
 const DEADLINE_J3 = new Date('2026-06-27T05:59:00Z');
+const DEADLINE_J4 = new Date('2026-06-28T19:00:00Z');
 
 const getDeadline = (jornada: number) => {
   if (jornada === 1) return DEADLINE_J1;
   if (jornada === 2) return DEADLINE_J2;
-  return DEADLINE_J3;
+  if (jornada === 3) return DEADLINE_J3;
+  return DEADLINE_J4;
 };
 
 export default function PrediccionesPage() {
@@ -57,7 +60,6 @@ export default function PrediccionesPage() {
     supabase
       .from('quiniela_partidos')
       .select('jornada')
-      .lte('jornada', 3)
       .order('jornada')
       .then(({ data }) => {
         const unicas = [...new Set((data ?? []).map((p: { jornada: number }) => p.jornada))];
@@ -100,7 +102,6 @@ export default function PrediccionesPage() {
       .from('quiniela_partidos')
       .select('*')
       .eq('jornada', jornada)
-      .lte('jornada', 3)
       .order('fecha_hora');
     setPartidos((data as Partido[]) ?? []);
   }, [jornada]);
@@ -309,8 +310,8 @@ export default function PrediccionesPage() {
           <div className="flex items-center justify-between">
             <p className="text-xs font-semibold" style={{ color: participando === true ? '#10b981' : 'var(--text-secondary)', fontFamily: 'var(--font-rajdhani)' }}>
               {participando === true
-                ? `✅ Participando en Jornada ${jornada}`
-                : `🏆 Pozo Jornada ${jornada}`}
+                ? `✅ Participando en ${getNombreJornada(jornada)}`
+                : `🏆 Pozo ${getNombreJornada(jornada)}`}
             </p>
             <div className="text-right">
               <p style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.4rem', color: 'var(--accent-gold)', lineHeight: 1 }}>
@@ -380,7 +381,7 @@ export default function PrediccionesPage() {
                 fontFamily: 'var(--font-rajdhani)',
               }}>
               {cerrada && !activa && <span style={{ fontSize: '0.6rem' }}>🔒</span>}
-              Jornada {j}
+              {getNombreJornada(j)}
             </button>
           );
         })}
@@ -399,8 +400,8 @@ export default function PrediccionesPage() {
           <div className="flex items-center justify-between">
             <p className="text-sm font-semibold" style={{ fontFamily: 'var(--font-rajdhani)', color: jornadaCompleta ? '#10b981' : 'var(--text-primary)' }}>
               {jornadaCompleta
-                ? (publicado ? `✅ ¡Jornada ${jornada} completa y publicada!` : `✅ ¡Jornada ${jornada} completa!`)
-                : `Jornada ${jornada}: ${predichasEnJornada}/${totalEnJornada} partidos predichos`}
+                ? (publicado ? `✅ ¡${getNombreJornada(jornada)} completa y publicada!` : `✅ ¡${getNombreJornada(jornada)} completa!`)
+                : `${getNombreJornada(jornada)}: ${predichasEnJornada}/${totalEnJornada} partidos predichos`}
             </p>
             <span className="text-sm font-bold" style={{ fontFamily: 'var(--font-bebas)', color: jornadaCompleta ? '#10b981' : 'var(--accent-gold)' }}>
               {porcentaje}%
@@ -447,21 +448,36 @@ export default function PrediccionesPage() {
         </div>
       ) : (
         <div className="space-y-3" style={{ animation: 'fadeInUp 0.4s ease-out 0.2s both' }}>
-          {partidos.map(partido => (
-            <PartidoCard
-              key={partido.id}
-              partido={partido}
-              prediccion={predicciones[partido.id] ?? null}
-              participacionPagada={predicciones[partido.id] ? participando : undefined}
-              onPredicir={estaBloquado(partido) ? undefined : setPartidoActivo}
-            />
-          ))}
+          {jornada === 4 && partidos.length > 0 && partidos.every(p => p.equipo_local === 'A definir') ? (
+            <div
+              className="rounded-2xl p-6 text-center space-y-2"
+              style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
+            >
+              <p className="text-3xl">⏳</p>
+              <p className="font-bold text-sm" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
+                Los equipos se definen al término de la Fase de Grupos (J3)
+              </p>
+              <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                Deadline: 28 jun 2026 · 13:00 CDMX
+              </p>
+            </div>
+          ) : (
+            partidos.map(partido => (
+              <PartidoCard
+                key={partido.id}
+                partido={partido}
+                prediccion={predicciones[partido.id] ?? null}
+                participacionPagada={predicciones[partido.id] ? participando : undefined}
+                onPredicir={estaBloquado(partido) ? undefined : setPartidoActivo}
+              />
+            ))
+          )}
 
           {/* Progreso bottom */}
           {totalEnJornada > 0 && (
             <div className="mt-6 mb-2">
               <div className="flex justify-between text-xs text-slate-500 mb-2">
-                <span>Progreso Jornada {jornada}</span>
+                <span>Progreso {getNombreJornada(jornada)}</span>
                 <span>{predichasEnJornada}/{totalEnJornada}</span>
               </div>
               <div className="w-full bg-themedcard rounded-full h-2">

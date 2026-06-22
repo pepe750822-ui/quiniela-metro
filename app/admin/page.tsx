@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Partido, Jugador, Pozo, Participacion } from '@/types';
-import { emailCorto, mostrarNombre } from '@/lib/utils';
+import { emailCorto, mostrarNombre, getNombreJornada, getMontoJornada } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Bandera } from '@/components/Bandera';
 
@@ -439,10 +439,11 @@ export default function AdminPage() {
 
     // Incrementar pozo
     const pozo = pozos.find(pz => pz.jornada === p.jornada);
+    const monto = getMontoJornada(p.jornada);
     const { error: e2 } = await supabase
       .from('quiniela_pozo')
       .update({
-        total_mxn:     (pozo?.total_mxn ?? 0) + 50,
+        total_mxn:     (pozo?.total_mxn ?? 0) + monto,
         participantes: (pozo?.participantes ?? 0) + 1,
       })
       .eq('jornada', p.jornada);
@@ -451,7 +452,7 @@ export default function AdminPage() {
     if (e2) {
       toast.error('Participación confirmada pero error al actualizar pozo');
     } else {
-      toast.success(`✅ Pago de ${mostrarNombreParticipante(p)} confirmado (+$50 al pozo J${p.jornada})`);
+      toast.success(`✅ Pago de ${mostrarNombreParticipante(p)} confirmado (+$${monto} al pozo ${getNombreJornada(p.jornada)})`);
       cargarPozos();
     }
   };
@@ -483,11 +484,12 @@ export default function AdminPage() {
 
     if (p.pagado) {
       const pozo = pozos.find(pz => pz.jornada === p.jornada);
+      const monto = getMontoJornada(p.jornada);
       if (pozo) {
         await supabase
           .from('quiniela_pozo')
           .update({
-            total_mxn:     Math.max(0, (pozo.total_mxn ?? 0) - 50),
+            total_mxn:     Math.max(0, (pozo.total_mxn ?? 0) - monto),
             participantes: Math.max(0, (pozo.participantes ?? 0) - 1),
           })
           .eq('jornada', p.jornada);
@@ -615,7 +617,7 @@ export default function AdminPage() {
 
     if (partExistente) {
       if (partExistente.pagado) {
-        toast.error(`${mostrarNombre(jugador ?? { nombre: 'Jugador', apodo: null })} ya tiene pago confirmado en J${pagoJornada}`);
+        toast.error(`${mostrarNombre(jugador ?? { nombre: 'Jugador', apodo: null })} ya tiene pago confirmado en ${getNombreJornada(pagoJornada)}`);
         setRegistrando(false);
         return;
       }
@@ -625,23 +627,25 @@ export default function AdminPage() {
         .eq('id', partExistente.id);
       if (error) { toast.error('Error al actualizar participación'); setRegistrando(false); return; }
     } else {
+      const monto = getMontoJornada(pagoJornada);
       const { error } = await supabase
         .from('quiniela_participaciones')
-        .insert({ user_id: pagoJugadorId, jornada: pagoJornada, pagado: true, monto: 50, pagado_at: new Date().toISOString() });
+        .insert({ user_id: pagoJugadorId, jornada: pagoJornada, pagado: true, monto, pagado_at: new Date().toISOString() });
       if (error) { toast.error('Error al crear participación'); setRegistrando(false); return; }
     }
 
     const pozo = pozos.find(pz => pz.jornada === pagoJornada);
+    const montoPozo = getMontoJornada(pagoJornada);
     await supabase
       .from('quiniela_pozo')
       .update({
-        total_mxn:     (pozo?.total_mxn ?? 0) + 50,
+        total_mxn:     (pozo?.total_mxn ?? 0) + montoPozo,
         participantes: (pozo?.participantes ?? 0) + 1,
       })
       .eq('jornada', pagoJornada);
 
     const nombre = jugador ? mostrarNombre(jugador) : 'Jugador';
-    toast.success(`✅ Pago de ${nombre} registrado en Jornada ${pagoJornada}`);
+    toast.success(`✅ Pago de ${nombre} registrado en ${getNombreJornada(pagoJornada)}`);
     setPagoJugadorId('');
     setRegistrando(false);
     cargarPozos();
@@ -800,7 +804,7 @@ export default function AdminPage() {
         {/* CSV respaldo */}
         <div className="flex items-center gap-2">
           <div className="flex gap-1">
-            {[1, 2, 3].map(j => (
+            {[1, 2, 3, 4].map(j => (
               <button key={j} onClick={() => setJornadaCSV(j)}
                 className="px-2.5 py-1 rounded-lg text-xs font-bold transition-all"
                 style={{
@@ -808,7 +812,7 @@ export default function AdminPage() {
                   color: jornadaCSV === j ? '#60a5fa' : '#64748b',
                   border: `1px solid ${jornadaCSV === j ? '#3b82f6' : 'var(--border)'}`,
                 }}>
-                J{j}
+                {getNombreJornada(j)}
               </button>
             ))}
           </div>
@@ -871,7 +875,7 @@ export default function AdminPage() {
                 Jornada
               </label>
               <div className="flex gap-2">
-                {[1, 2, 3].map(j => (
+                {[1, 2, 3, 4].map(j => (
                   <button
                     key={j}
                     onClick={() => setPagoJornada(j)}
@@ -883,7 +887,7 @@ export default function AdminPage() {
                       fontFamily: 'var(--font-rajdhani)',
                     }}
                   >
-                    J{j}
+                    {getNombreJornada(j)}
                   </button>
                 ))}
               </div>
@@ -895,7 +899,7 @@ export default function AdminPage() {
               className="w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-40"
               style={{ background: '#10b981', color: '#000', fontFamily: 'var(--font-rajdhani)' }}
             >
-              {registrando ? '…' : '✅ Confirmar pago $50 MXN'}
+              {registrando ? '…' : `✅ Confirmar pago $${getMontoJornada(pagoJornada)} MXN`}
             </button>
           </div>
         )}
@@ -1007,7 +1011,7 @@ export default function AdminPage() {
                 >
                   <div className="flex items-center gap-3 flex-wrap text-left">
                     <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: 'var(--accent-gold)' }}>
-                      Jornada {pozo.jornada}
+                      {getNombreJornada(pozo.jornada)}
                     </span>
                     <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                       👥 {pozo.participantes} · ${pozo.total_mxn} MXN

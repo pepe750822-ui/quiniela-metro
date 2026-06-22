@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Bandera } from '@/components/Bandera';
+import { getNombreJornada } from '@/lib/utils';
 
 export default function TablaPage() {
   const [jornada, setJornada]           = useState(2);
@@ -397,7 +398,7 @@ export default function TablaPage() {
 
         {/* Selector jornada */}
         <div className="flex gap-2 mt-3">
-          {[1, 2, 3].map(j => (
+          {[1, 2, 3, 4].map(j => (
             <button
               key={j}
               onClick={() => setJornada(j)}
@@ -409,7 +410,7 @@ export default function TablaPage() {
                 border: `1px solid ${jornada === j ? '#ea580c' : 'var(--border-color)'}`,
               }}
             >
-              J{j}
+              {getNombreJornada(j)}
             </button>
           ))}
         </div>
