@@ -262,7 +262,7 @@ export default function PrediccionesPage() {
   const estaBloquado = (partido: Partido) =>
     partido.estado === 'finalizado' || new Date() > getDeadline(jornada);
 
-  const campeonDeadlinePasado = Date.now() >= DEADLINE_J1.getTime();
+  const campeonDeadlinePasado = Date.now() >= DEADLINE_J3.getTime();
   const campeonAcerto = campeonDeclarado && miCampeonPick === campeonDeclarado;
   const campeonFallo  = campeonDeclarado && miCampeonPick && miCampeonPick !== campeonDeclarado;
 
