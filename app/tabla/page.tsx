@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Bandera } from '@/components/Bandera';
@@ -13,6 +13,7 @@ export default function TablaPage() {
   const [participaciones, setParticipaciones] = useState<any[]>([]);
   const [esAdmin, setEsAdmin]           = useState(false);
   const [loading, setLoading]           = useState(false);
+  const tablaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const verificarAdmin = async () => {
@@ -29,6 +30,19 @@ export default function TablaPage() {
   }, []);
 
   useEffect(() => { refreshData(); }, [jornada]);
+
+  useEffect(() => {
+    if (partidos.length === 0) return;
+    const primerPendiente = partidos.find(p => p.estado === 'pendiente');
+    if (primerPendiente && tablaRef.current) {
+      setTimeout(() => {
+        const col = document.getElementById(`col-${primerPendiente.id}`);
+        if (col) {
+          col.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+      }, 800);
+    }
+  }, [partidos]);
 
   const refreshData = async () => {
     setLoading(true);
@@ -402,7 +416,7 @@ export default function TablaPage() {
       </div>
 
       {/* Tabla horizontal scrollable — oculta al imprimir */}
-      <div className="overflow-x-auto overflow-y-auto px-2 print:hidden" style={{ maxHeight: 'calc(100vh - 160px)' }}>
+      <div ref={tablaRef} className="overflow-x-auto overflow-y-auto px-2 print:hidden" style={{ maxHeight: 'calc(100vh - 160px)' }}>
         <table className="min-w-max print:min-w-0 print:w-full text-sm border-collapse">
           <thead className="sticky top-0 z-20">
             <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
@@ -430,7 +444,7 @@ export default function TablaPage() {
                 PTS
               </th>
               {pendientes.map(partido => (
-                <th key={partido.id}
+                <th key={partido.id} id={`col-${partido.id}`}
                   className="px-2 py-2 text-center min-w-[70px]"
                   style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
                   <div className="flex items-center justify-center gap-1 mb-1">
