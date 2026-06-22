@@ -165,6 +165,13 @@ export default function DashboardPage() {
         ? await supabase.from('quiniela_jugadores').select('id, nombre, email, apodo, avatar_url, badge_ultimo, badge_campeon').in('id', genUserIds)
         : { data: [] };
 
+      // Campeón picks para quiniela principal (quiniela_extra_id IS NULL)
+      const { data: genCampeones } = genUserIds.length
+        ? await supabase.from('quiniela_prediccion_campeon').select('user_id, equipo').is('quiniela_extra_id', null).in('user_id', genUserIds)
+        : { data: [] };
+      const genCampeonMap: Record<string, string> = {};
+      (genCampeones ?? []).forEach((c: { user_id: string; equipo: string }) => { genCampeonMap[c.user_id] = c.equipo; });
+
       setParticipantesJornada([]);
       setRanking(
         rankItems.map((r: { user_id: string; puntos_totales: number; exactos_totales: number }) => {
@@ -187,6 +194,7 @@ export default function DashboardPage() {
               created_at:   '',
               badge_ultimo:  jug?.badge_ultimo  ?? null,
               badge_campeon: jug?.badge_campeon ?? null,
+              campeon_pick:  genCampeonMap[r.user_id] ?? null,
             },
           };
         })
@@ -302,6 +310,15 @@ export default function DashboardPage() {
       ? await supabase.from('quiniela_extra').select('id, nombre').in('id', extraIds)
       : { data: [] };
 
+    // Campeón picks por user_id + quiniela_extra_id
+    const { data: campeonesData } = allUserIds.length
+      ? await supabase.from('quiniela_prediccion_campeon').select('user_id, quiniela_extra_id, equipo').in('user_id', allUserIds)
+      : { data: [] };
+    const campeonMap: Record<string, string> = {};
+    (campeonesData ?? []).forEach((c: { user_id: string; quiniela_extra_id: string | null; equipo: string }) => {
+      campeonMap[`${c.user_id}:${c.quiniela_extra_id ?? 'null'}`] = c.equipo;
+    });
+
     setRanking(
       rankingOrdenado.map(r => {
         const jug = (rankJugadores ?? []).find((jg: { id: string }) => jg.id === r.user_id);
@@ -327,6 +344,7 @@ export default function DashboardPage() {
             badge_ultimo:    jug?.badge_ultimo    ?? null,
             badge_campeon:   jug?.badge_campeon   ?? null,
             quiniela_nombre: quinielaNombre,
+            campeon_pick:    campeonMap[`${r.user_id}:${r.quiniela_extra_id ?? 'null'}`] ?? null,
           },
         };
       })

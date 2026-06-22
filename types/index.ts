@@ -47,6 +47,7 @@ export interface Jugador {
   ultima_pagina?: string | null;
   referencia_admin?: string | null;
   quiniela_nombre?: string | null;
+  campeon_pick?: string | null;
   badge_ultimo?: string | null;
   badge_campeon?: string | null;
 }
