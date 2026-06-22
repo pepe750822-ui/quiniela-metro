@@ -123,57 +123,55 @@ export default function PrediccionesPage() {
     setLoading(false);
   }, [userId, quinielaSeleccionada]);
 
+  const cargarCampeon = useCallback(async () => {
+    if (!userId) return;
+    const [{ data: equiposData }, { data: pick }, { data: allPicks }, { data: final }] = await Promise.all([
+      supabase.from('quiniela_grupos').select('equipo').order('equipo'),
+      (quinielaSeleccionada === null
+        ? supabase.from('quiniela_prediccion_campeon').select('equipo').eq('user_id', userId).is('quiniela_extra_id', null).maybeSingle()
+        : supabase.from('quiniela_prediccion_campeon').select('equipo').eq('user_id', userId).eq('quiniela_extra_id', quinielaSeleccionada).maybeSingle()),
+      supabase.from('quiniela_prediccion_campeon').select('equipo'),
+      supabase
+        .from('quiniela_partidos')
+        .select('goles_local, goles_visitante, equipo_local, equipo_visitante')
+        .eq('grupo', 'FIN')
+        .eq('estado', 'finalizado')
+        .maybeSingle(),
+    ]);
+
+    const allTeams = (equiposData ?? []).map((p: { equipo: string }) => p.equipo);
+    setCampeonEquipos(allTeams);
+
+    setMiCampeonPick(pick?.equipo ?? null);
+    setCampeonPickTemp(pick?.equipo ?? null);
+
+    if (final) {
+      const ganador = (final.goles_local ?? 0) > (final.goles_visitante ?? 0)
+        ? final.equipo_local
+        : final.equipo_visitante;
+      setCampeonDeclarado(ganador);
+    }
+
+    const statsMap: Record<string, number> = {};
+    (allPicks ?? []).forEach((p: { equipo: string }) => {
+      statsMap[p.equipo] = (statsMap[p.equipo] || 0) + 1;
+    });
+    setCampeonStats(
+      Object.entries(statsMap)
+        .map(([equipo, total]) => ({ equipo, total }))
+        .sort((a, b) => b.total - a.total)
+    );
+  }, [userId, quinielaSeleccionada]);
+
   useEffect(() => { cargarPartidos(); }, [cargarPartidos]);
   useEffect(() => {
     if (userId) {
       cargarQuinielas(userId);
       cargarPredicciones();
+      cargarCampeon();
       cargarPozoYParticipacion(userId, jornada);
     }
-  }, [userId, jornada, cargarQuinielas, cargarPredicciones, cargarPozoYParticipacion]);
-
-  useEffect(() => {
-    if (!userId) return;
-    const cargarCampeon = async () => {
-      const [{ data: equiposData }, { data: pick }, { data: allPicks }, { data: final }] = await Promise.all([
-        supabase.from('quiniela_grupos').select('equipo').order('equipo'),
-        (quinielaSeleccionada === null
-          ? supabase.from('quiniela_prediccion_campeon').select('equipo').eq('user_id', userId).is('quiniela_extra_id', null).maybeSingle()
-          : supabase.from('quiniela_prediccion_campeon').select('equipo').eq('user_id', userId).eq('quiniela_extra_id', quinielaSeleccionada).maybeSingle()),
-        supabase.from('quiniela_prediccion_campeon').select('equipo'),
-        supabase
-          .from('quiniela_partidos')
-          .select('goles_local, goles_visitante, equipo_local, equipo_visitante')
-          .eq('grupo', 'FIN')
-          .eq('estado', 'finalizado')
-          .maybeSingle(),
-      ]);
-
-      const allTeams = (equiposData ?? []).map((p: { equipo: string }) => p.equipo);
-      setCampeonEquipos(allTeams);
-
-      setMiCampeonPick(pick?.equipo ?? null);
-      setCampeonPickTemp(pick?.equipo ?? null);
-
-      if (final) {
-        const ganador = (final.goles_local ?? 0) > (final.goles_visitante ?? 0)
-          ? final.equipo_local
-          : final.equipo_visitante;
-        setCampeonDeclarado(ganador);
-      }
-
-      const statsMap: Record<string, number> = {};
-      (allPicks ?? []).forEach((p: { equipo: string }) => {
-        statsMap[p.equipo] = (statsMap[p.equipo] || 0) + 1;
-      });
-      setCampeonStats(
-        Object.entries(statsMap)
-          .map(([equipo, total]) => ({ equipo, total }))
-          .sort((a, b) => b.total - a.total)
-      );
-    };
-    cargarCampeon();
-  }, [userId, quinielaSeleccionada]);
+  }, [userId, jornada, cargarQuinielas, cargarPredicciones, cargarCampeon, cargarPozoYParticipacion]);
 
   useEffect(() => {
     if (partidos.length === 0) return;

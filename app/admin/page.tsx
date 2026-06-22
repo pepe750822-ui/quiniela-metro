@@ -779,6 +779,23 @@ export default function AdminPage() {
 
   // ── Guards ───────────────────────────────────────────
 
+  const jornadasConPozo = new Set(pozos.map(p => p.jornada));
+  const pozosCompletos = [...pozos];
+  for (let j = 1; j <= 4; j++) {
+    if (!jornadasConPozo.has(j)) {
+      pozosCompletos.push({
+        id: `synthetic-${j}`,
+        jornada: j,
+        total_mxn: 0,
+        participantes: 0,
+        ganador_id: null,
+        ganador_nombre: null,
+        estado: 'abierto',
+        created_at: new Date().toISOString(),
+      });
+    }
+  }
+
   if (loading) return (
     <div className="flex justify-center py-20">
       <div className="h-8 w-8 border-2 border-t-transparent rounded-full animate-spin"
@@ -995,7 +1012,7 @@ export default function AdminPage() {
         </button>
         {seccionesAbiertas.pozos && (
         <div className="space-y-2">
-          {pozos.map(pozo => {
+          {pozosCompletos.map(pozo => {
             const pendientes = participaciones.filter(p => p.jornada === pozo.jornada && !p.pagado);
             const confirmadas = participaciones.filter(p => p.jornada === pozo.jornada && p.pagado);
             const isOpen = jornadaAbierta === pozo.jornada;
