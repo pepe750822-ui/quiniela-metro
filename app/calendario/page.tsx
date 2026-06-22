@@ -72,6 +72,19 @@ export default function CalendarioPage() {
     };
   }, []);
 
+  useEffect(() => {
+    if (partidos.length === 0) return;
+    const primerPendiente = partidos.find(p => p.estado === 'pendiente' || p.estado === 'en_curso');
+    if (primerPendiente) {
+      setTimeout(() => {
+        const el = document.getElementById(`partido-${primerPendiente.id}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 600);
+    }
+  }, [partidos]);
+
   // Agrupar por fecha CDMX: definidos primero, "A definir" al final
   const definidos = partidos.filter(p => p.equipo_local && p.equipo_local !== 'A definir');
   const porDefinir = partidos.filter(p => !p.equipo_local || p.equipo_local === 'A definir');
@@ -115,12 +128,12 @@ export default function CalendarioPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {lista.map(partido => partido.equipo_local === 'A definir' || !partido.equipo_local ? (
-                  <div key={partido.id} className="opacity-40 text-slate-500 text-xs rounded-2xl p-3 border border-white/5 bg-white/[0.02] flex items-center justify-between">
+                  <div key={partido.id} id={`partido-${partido.id}`} className="opacity-40 text-slate-500 text-xs rounded-2xl p-3 border border-white/5 bg-white/[0.02] flex items-center justify-between">
                     <span>Por definir</span>
                     <span>{formatearFechaCDMX(partido.fecha_hora)}</span>
                   </div>
                 ) : (
-                  <div key={partido.id} className="relative bg-white/5 backdrop-blur-md rounded-2xl p-5 border border-white/10 hover:border-orange-500/50 transition-all duration-300">
+                  <div key={partido.id} id={`partido-${partido.id}`} className="relative bg-white/5 backdrop-blur-md rounded-2xl p-5 border border-white/10 hover:border-orange-500/50 transition-all duration-300">
                     
                     {partido.estado === 'en_curso' && (
                       <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-red-500/20 text-red-500 text-xs font-bold px-2 py-1 rounded-md animate-pulse">

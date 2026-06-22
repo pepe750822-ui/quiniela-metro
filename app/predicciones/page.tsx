@@ -175,6 +175,19 @@ export default function PrediccionesPage() {
     cargarCampeon();
   }, [userId, quinielaSeleccionada]);
 
+  useEffect(() => {
+    if (partidos.length === 0) return;
+    const primerPendiente = partidos.find(p => p.estado === 'pendiente');
+    if (primerPendiente) {
+      setTimeout(() => {
+        const el = document.getElementById(`partido-${primerPendiente.id}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 800);
+    }
+  }, [partidos]);
+
   const handleGuardado = () => {
     setPartidoActivo(null);
     cargarPredicciones();
@@ -463,13 +476,14 @@ export default function PrediccionesPage() {
             </div>
           ) : (
             partidos.map(partido => (
-              <PartidoCard
-                key={partido.id}
-                partido={partido}
-                prediccion={predicciones[partido.id] ?? null}
-                participacionPagada={predicciones[partido.id] ? participando : undefined}
-                onPredicir={estaBloquado(partido) ? undefined : setPartidoActivo}
-              />
+              <div key={partido.id} id={`partido-${partido.id}`}>
+                <PartidoCard
+                  partido={partido}
+                  prediccion={predicciones[partido.id] ?? null}
+                  participacionPagada={predicciones[partido.id] ? participando : undefined}
+                  onPredicir={estaBloquado(partido) ? undefined : setPartidoActivo}
+                />
+              </div>
             ))
           )}
 
