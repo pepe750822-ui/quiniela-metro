@@ -458,7 +458,7 @@ export default function AdminPage() {
   };
 
   const handleEliminarParticipacion = async (p: ParticipacionConNombre) => {
-    if (!confirm(`¿Eliminar participación de ${mostrarNombreParticipante(p)} en Jornada ${p.jornada}?`)) return;
+    if (!confirm(`¿Eliminar participación de ${mostrarNombreParticipante(p)} en ${getNombreJornada(p.jornada)}?`)) return;
 
     const { data: partidos } = await supabase
       .from('quiniela_partidos')
@@ -529,7 +529,7 @@ export default function AdminPage() {
     if (e2) {
       toast.error('Error al declarar ganador');
     } else {
-      toast.success(`🏆 Ganador Jornada ${jornada}: ${ganadorNombre}`);
+      toast.success(`🏆 Ganador ${getNombreJornada(jornada)}: ${ganadorNombre}`);
       cargarPozos();
     }
   };
@@ -1353,7 +1353,7 @@ export default function AdminPage() {
                                 ? 'bg-emerald-400/10 border-emerald-400/20 text-emerald-400'
                                 : 'bg-orange-400/10 border-orange-400/20 text-orange-400'
                               }`}>
-                              {p.pagado ? '✅' : '⏳'} J{p.jornada}
+                              {p.pagado ? '✅' : '⏳'} {getNombreJornada(p.jornada)}
                               {p.quinielaNombre && ` · ${p.quinielaNombre}`}
                             </span>
                           ))}

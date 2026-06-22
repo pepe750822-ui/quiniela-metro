@@ -398,7 +398,9 @@ export default function DashboardPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { cargarRanking(); }, [jornadaSeleccionada]);
 
-  const jornadasDisponibles = pozos.length > 0 ? pozos.map(p => p.jornada) : [1];
+  const jornadasDisponibles = pozos.length > 0
+    ? [...new Set([...pozos.map(p => p.jornada), 4])]
+    : [1, 2, 3, 4];
 
   const compartirRanking = () => {
     const texto = ranking
