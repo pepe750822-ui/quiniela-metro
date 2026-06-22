@@ -43,6 +43,7 @@ export default function PrediccionesPage() {
   const [campeonGuardando, setCampeonGuardando] = useState(false);
   const [campeonStats, setCampeonStats]         = useState<{ equipo: string; total: number }[]>([]);
   const [campeonDeclarado, setCampeonDeclarado] = useState<string | null>(null);
+  const [todosMisPicksCampeon, setTodosMisPicksCampeon] = useState<{ quiniela_extra_id: string | null; equipo: string }[]>([]);
 
   // Múltiples quinielas
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -125,7 +126,7 @@ export default function PrediccionesPage() {
 
   const cargarCampeon = useCallback(async () => {
     if (!userId) return;
-    const [{ data: equiposData }, { data: pick }, { data: allPicks }, { data: final }] = await Promise.all([
+    const [{ data: equiposData }, { data: pick }, { data: allPicks }, { data: final }, { data: misPicks }] = await Promise.all([
       supabase.from('quiniela_grupos').select('equipo').order('equipo'),
       (quinielaSeleccionada === null
         ? supabase.from('quiniela_prediccion_campeon').select('equipo').eq('user_id', userId).is('quiniela_extra_id', null).maybeSingle()
@@ -137,6 +138,7 @@ export default function PrediccionesPage() {
         .eq('grupo', 'FIN')
         .eq('estado', 'finalizado')
         .maybeSingle(),
+      supabase.from('quiniela_prediccion_campeon').select('quiniela_extra_id, equipo').eq('user_id', userId),
     ]);
 
     const allTeams = (equiposData ?? []).map((p: { equipo: string }) => p.equipo);
@@ -144,6 +146,7 @@ export default function PrediccionesPage() {
 
     setMiCampeonPick(pick?.equipo ?? null);
     setCampeonPickTemp(pick?.equipo ?? null);
+    setTodosMisPicksCampeon((misPicks ?? []) as { quiniela_extra_id: string | null; equipo: string }[]);
 
     if (final) {
       const ganador = (final.goles_local ?? 0) > (final.goles_visitante ?? 0)
@@ -530,15 +533,20 @@ export default function PrediccionesPage() {
       )}
 
       {/* ── PREDICCIÓN CAMPEÓN ── */}
-      {campeonEquipos.length > 0 && (
-        <div
-          className="rounded-2xl p-4 space-y-3"
-          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', animation: 'fadeInUp 0.4s ease-out 0.03s both' }}
-        >
-          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
-            🏆 ¿Quién será el Campeón Mundial?
-          </p>
+      <div
+        className="rounded-2xl p-4 space-y-3"
+        style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', animation: 'fadeInUp 0.4s ease-out 0.03s both' }}
+      >
+        <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
+          🏆 ¿Quién será el Campeón Mundial?
+        </p>
 
+        {campeonEquipos.length === 0 ? (
+          <div className="flex justify-center py-4">
+            <div className="h-5 w-5 border-2 border-t-transparent rounded-full animate-spin"
+              style={{ borderColor: 'var(--accent-gold)', borderTopColor: 'transparent' }} />
+          </div>
+        ) : (<>
           {campeonAcerto && (
             <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.4)' }}>
               <p className="font-bold" style={{ color: '#fbbf24', fontFamily: 'var(--font-rajdhani)' }}>
@@ -595,7 +603,7 @@ export default function PrediccionesPage() {
             <>
               {miCampeonPick && (
                 <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                  Pick actual: <strong style={{ color: '#fbbf24' }}>{miCampeonPick}</strong> · Puedes cambiar hasta el 11 jun 2026
+                  Pick actual: <strong style={{ color: '#fbbf24' }}>{miCampeonPick}</strong> · Puedes cambiar hasta el 27 jun 2026
                 </p>
               )}
               <div className="grid grid-cols-3 gap-1.5 max-h-64 overflow-y-auto">
@@ -625,6 +633,32 @@ export default function PrediccionesPage() {
               </button>
             </>
           )}
+        </>)}
+      </div>
+
+      {/* ── RESUMEN DE PREDICCIONES DE CAMPEÓN ── */}
+      {todosMisPicksCampeon.length > 0 && (
+        <div
+          className="rounded-2xl p-4 space-y-2"
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', animation: 'fadeInUp 0.4s ease-out 0.05s both' }}
+        >
+          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
+            🏆 Predicciones de Campeón
+          </p>
+          {todosMisPicksCampeon.map((pick, i) => {
+            const nombreQuiniela = pick.quiniela_extra_id
+              ? quinielasExtra.find(q => q.id === pick.quiniela_extra_id)?.nombre
+              : null;
+            return (
+              <div key={i} className="flex items-center justify-between text-sm py-1"
+                style={{ borderBottom: i < todosMisPicksCampeon.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>
+                  {nombreQuiniela ? `🎫 ${nombreQuiniela}` : 'Tu quiniela'}
+                </span>
+                <span className="font-semibold" style={{ color: '#fbbf24' }}>{pick.equipo}</span>
+              </div>
+            );
+          })}
         </div>
       )}
 
