@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Bandera } from '@/components/Bandera';
 import { Partido } from '@/types';
-import { formatearFechaCDMX } from '@/lib/utils';
+import { formatearFechaCDMX, getNombreJornada } from '@/lib/utils';
 
 const crucesE32: Record<string, string> = {
   '2026-06-28T19:00': '2°A vs 2°B',
@@ -32,11 +32,11 @@ const getFechaKey = (fechaHora: string): string => {
 };
 
 const RONDAS: { key: string; label: string; short: string }[] = [
-  { key: 'E32',  label: 'Ronda de 32',  short: 'R32'  },
-  { key: 'OCT',  label: 'Octavos',      short: 'OCT'  },
-  { key: 'CUA',  label: 'Cuartos',      short: 'CUA'  },
-  { key: 'SEMI', label: 'Semis',        short: 'SEMI' },
-  { key: 'FIN',  label: 'Final',        short: 'FIN'  },
+  { key: 'E32',  label: getNombreJornada(4), short: 'R32'  },
+  { key: 'OCT',  label: getNombreJornada(5), short: 'OCT'  },
+  { key: 'CUA',  label: getNombreJornada(6), short: 'CUA'  },
+  { key: 'SEMI', label: getNombreJornada(7), short: 'SEMI' },
+  { key: 'FIN',  label: getNombreJornada(9), short: 'FIN'  },
 ];
 
 // ── Tarjeta de partido ──────────────────────────────────────────────────────
@@ -251,7 +251,7 @@ export default function BracketPage() {
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-widest mb-2"
                       style={{ color: '#64748b', fontFamily: 'var(--font-rajdhani)' }}>
-                      🥉 Tercer lugar
+                      🥉 {getNombreJornada(8)}
                     </p>
                     <PartidoCard p={tercerLugar[0]} />
                   </div>
@@ -260,7 +260,7 @@ export default function BracketPage() {
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-widest mb-2"
                       style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
-                      🏆 Gran Final
+                      🏆 {getNombreJornada(9)}
                     </p>
                     <PartidoCard p={final[0]} />
                   </div>
