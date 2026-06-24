@@ -503,10 +503,10 @@ export default function AdminPage() {
   const handleDeclararGanador = async (jornada: number) => {
     setDeclarando(jornada);
 
-    // Get all paid+published participants for this jornada
+    // Get all paid+published participants (including quiniela_extra_id)
     const { data: parts } = await supabase
       .from('quiniela_participaciones')
-      .select('user_id')
+      .select('user_id, quiniela_extra_id')
       .eq('jornada', jornada)
       .eq('pagado', true)
       .eq('publicado', true);
@@ -519,33 +519,47 @@ export default function AdminPage() {
 
     const userIds = [...new Set(parts.map(p => p.user_id))];
 
-    // Get puntos_ganados for all users in this jornada
+    // Get finalizado partido IDs for this jornada
+    const { data: partidosFin } = await supabase
+      .from('quiniela_partidos')
+      .select('id')
+      .eq('jornada', jornada)
+      .eq('estado', 'finalizado');
+    const partidoIds = (partidosFin ?? []).map(p => p.id);
+
+    if (partidoIds.length === 0) {
+      toast.error('No hay partidos finalizados en esta jornada');
+      setDeclarando(null);
+      return;
+    }
+
+    // Get puntos_ganados grouped by user_id + quiniela_extra_id
     const { data: predicciones } = await supabase
       .from('quiniela_predicciones')
-      .select('user_id, puntos_ganados')
+      .select('user_id, quiniela_extra_id, puntos_ganados')
       .in('user_id', userIds)
-      .in('partido_id', (
-        await supabase.from('quiniela_partidos').select('id').eq('jornada', jornada).eq('estado', 'finalizado')
-      ).data?.map(p => p.id) ?? []);
+      .in('partido_id', partidoIds);
 
-    // Sum points per user
+    // Sum points per user_id + quiniela_extra_id combo
     const puntajes: Record<string, number> = {};
-    (predicciones ?? []).forEach((p: { user_id: string; puntos_ganados: number | null }) => {
-      puntajes[p.user_id] = (puntajes[p.user_id] || 0) + (p.puntos_ganados || 0);
+    (predicciones ?? []).forEach((p: { user_id: string; quiniela_extra_id: string | null; puntos_ganados: number | null }) => {
+      const key = `${p.user_id}:${p.quiniela_extra_id ?? 'null'}`;
+      puntajes[key] = (puntajes[key] || 0) + (p.puntos_ganados || 0);
     });
 
-    // Find top scorer — if tie, first pagado wins
-    const sorted = userIds
-      .map(uid => ({ user_id: uid, puntos: puntajes[uid] || 0 }))
-      .sort((a, b) => b.puntos - a.puntos);
+    // Build ranking: each participation entry is separate
+    const ranking = parts.map(p => {
+      const key = `${p.user_id}:${p.quiniela_extra_id ?? 'null'}`;
+      return { user_id: p.user_id, quiniela_extra_id: p.quiniela_extra_id, puntos: puntajes[key] || 0 };
+    }).sort((a, b) => b.puntos - a.puntos);
 
-    if (sorted.length === 0) {
+    if (ranking.length === 0) {
       toast.error('No hay datos de puntuación para esta jornada');
       setDeclarando(null);
       return;
     }
 
-    const ganador = sorted[0];
+    const ganador = ranking[0];
 
     // Get winner name
     const { data: jugGanador } = await supabase
@@ -573,10 +587,10 @@ export default function AdminPage() {
   const declararUltimo = async (jornada: number) => {
     setDeclarandoUltimo(jornada);
 
-    // Get all paid+published participants for this jornada
+    // Get all paid+published participants (including quiniela_extra_id)
     const { data: parts } = await supabase
       .from('quiniela_participaciones')
-      .select('user_id')
+      .select('user_id, quiniela_extra_id')
       .eq('jornada', jornada)
       .eq('pagado', true)
       .eq('publicado', true);
@@ -589,33 +603,47 @@ export default function AdminPage() {
 
     const userIds = [...new Set(parts.map(p => p.user_id))];
 
-    // Get puntos_ganados for all users in this jornada
+    // Get finalizado partido IDs for this jornada
+    const { data: partidosFin } = await supabase
+      .from('quiniela_partidos')
+      .select('id')
+      .eq('jornada', jornada)
+      .eq('estado', 'finalizado');
+    const partidoIds = (partidosFin ?? []).map(p => p.id);
+
+    if (partidoIds.length === 0) {
+      toast.error('No hay partidos finalizados en esta jornada');
+      setDeclarandoUltimo(null);
+      return;
+    }
+
+    // Get puntos_ganados grouped by user_id + quiniela_extra_id
     const { data: predicciones } = await supabase
       .from('quiniela_predicciones')
-      .select('user_id, puntos_ganados')
+      .select('user_id, quiniela_extra_id, puntos_ganados')
       .in('user_id', userIds)
-      .in('partido_id', (
-        await supabase.from('quiniela_partidos').select('id').eq('jornada', jornada).eq('estado', 'finalizado')
-      ).data?.map(p => p.id) ?? []);
+      .in('partido_id', partidoIds);
 
-    // Sum points per user
+    // Sum points per user_id + quiniela_extra_id combo
     const puntajes: Record<string, number> = {};
-    (predicciones ?? []).forEach((p: { user_id: string; puntos_ganados: number | null }) => {
-      puntajes[p.user_id] = (puntajes[p.user_id] || 0) + (p.puntos_ganados || 0);
+    (predicciones ?? []).forEach((p: { user_id: string; quiniela_extra_id: string | null; puntos_ganados: number | null }) => {
+      const key = `${p.user_id}:${p.quiniela_extra_id ?? 'null'}`;
+      puntajes[key] = (puntajes[key] || 0) + (p.puntos_ganados || 0);
     });
 
-    // Find last place (lowest score) — if tie, last pagado loses
-    const sorted = userIds
-      .map(uid => ({ user_id: uid, puntos: puntajes[uid] || 0 }))
-      .sort((a, b) => a.puntos - b.puntos);
+    // Build ranking: each participation entry is separate
+    const ranking = parts.map(p => {
+      const key = `${p.user_id}:${p.quiniela_extra_id ?? 'null'}`;
+      return { user_id: p.user_id, quiniela_extra_id: p.quiniela_extra_id, puntos: puntajes[key] || 0 };
+    }).sort((a, b) => a.puntos - b.puntos);
 
-    if (sorted.length === 0) {
+    if (ranking.length === 0) {
       toast.error('No hay datos de puntuación para esta jornada');
       setDeclarandoUltimo(null);
       return;
     }
 
-    const ultimo = sorted[0];
+    const ultimo = ranking[0];
 
     const { error } = await supabase
       .from('quiniela_jugadores')
