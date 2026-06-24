@@ -503,26 +503,62 @@ export default function AdminPage() {
   const handleDeclararGanador = async (jornada: number) => {
     setDeclarando(jornada);
 
-    const { data, error } = await supabase
-      .from('quiniela_ranking')
-      .select('*, jugador:quiniela_jugadores(nombre, apodo)')
+    // Get all paid+published participants for this jornada
+    const { data: parts } = await supabase
+      .from('quiniela_participaciones')
+      .select('user_id')
       .eq('jornada', jornada)
-      .order('puntos_total', { ascending: false })
-      .limit(1)
-      .single();
+      .eq('pagado', true)
+      .eq('publicado', true);
 
-    if (error || !data) {
-      toast.error('No hay datos de ranking para esta jornada');
+    if (!parts || parts.length === 0) {
+      toast.error('No hay participantes pagados para esta jornada');
       setDeclarando(null);
       return;
     }
 
-    const jugGanador = (data as { jugador?: { nombre: string; apodo: string | null } }).jugador;
+    const userIds = [...new Set(parts.map(p => p.user_id))];
+
+    // Get puntos_ganados for all users in this jornada
+    const { data: predicciones } = await supabase
+      .from('quiniela_predicciones')
+      .select('user_id, puntos_ganados')
+      .in('user_id', userIds)
+      .in('partido_id', (
+        await supabase.from('quiniela_partidos').select('id').eq('jornada', jornada).eq('estado', 'finalizado')
+      ).data?.map(p => p.id) ?? []);
+
+    // Sum points per user
+    const puntajes: Record<string, number> = {};
+    (predicciones ?? []).forEach((p: { user_id: string; puntos_ganados: number | null }) => {
+      puntajes[p.user_id] = (puntajes[p.user_id] || 0) + (p.puntos_ganados || 0);
+    });
+
+    // Find top scorer — if tie, first pagado wins
+    const sorted = userIds
+      .map(uid => ({ user_id: uid, puntos: puntajes[uid] || 0 }))
+      .sort((a, b) => b.puntos - a.puntos);
+
+    if (sorted.length === 0) {
+      toast.error('No hay datos de puntuación para esta jornada');
+      setDeclarando(null);
+      return;
+    }
+
+    const ganador = sorted[0];
+
+    // Get winner name
+    const { data: jugGanador } = await supabase
+      .from('quiniela_jugadores')
+      .select('nombre, apodo')
+      .eq('id', ganador.user_id)
+      .maybeSingle();
+
     const ganadorNombre = mostrarNombre({ nombre: jugGanador?.nombre ?? 'Desconocido', apodo: jugGanador?.apodo ?? null });
 
     const { error: e2 } = await supabase
       .from('quiniela_pozo')
-      .update({ ganador_id: data.user_id, ganador_nombre: ganadorNombre, estado: 'cerrado' })
+      .update({ ganador_id: ganador.user_id, ganador_nombre: ganadorNombre, estado: 'cerrado' })
       .eq('jornada', jornada);
 
     setDeclarando(null);
@@ -537,24 +573,54 @@ export default function AdminPage() {
   const declararUltimo = async (jornada: number) => {
     setDeclarandoUltimo(jornada);
 
-    const { data: rankingUltimo } = await supabase
-      .from('quiniela_ranking')
-      .select('user_id, puntos_total')
+    // Get all paid+published participants for this jornada
+    const { data: parts } = await supabase
+      .from('quiniela_participaciones')
+      .select('user_id')
       .eq('jornada', jornada)
-      .order('puntos_total', { ascending: true })
-      .limit(1)
-      .single();
+      .eq('pagado', true)
+      .eq('publicado', true);
 
-    if (!rankingUltimo) {
-      toast.error('No hay datos de ranking para esta jornada');
+    if (!parts || parts.length === 0) {
+      toast.error('No hay participantes pagados para esta jornada');
       setDeclarandoUltimo(null);
       return;
     }
 
+    const userIds = [...new Set(parts.map(p => p.user_id))];
+
+    // Get puntos_ganados for all users in this jornada
+    const { data: predicciones } = await supabase
+      .from('quiniela_predicciones')
+      .select('user_id, puntos_ganados')
+      .in('user_id', userIds)
+      .in('partido_id', (
+        await supabase.from('quiniela_partidos').select('id').eq('jornada', jornada).eq('estado', 'finalizado')
+      ).data?.map(p => p.id) ?? []);
+
+    // Sum points per user
+    const puntajes: Record<string, number> = {};
+    (predicciones ?? []).forEach((p: { user_id: string; puntos_ganados: number | null }) => {
+      puntajes[p.user_id] = (puntajes[p.user_id] || 0) + (p.puntos_ganados || 0);
+    });
+
+    // Find last place (lowest score) — if tie, last pagado loses
+    const sorted = userIds
+      .map(uid => ({ user_id: uid, puntos: puntajes[uid] || 0 }))
+      .sort((a, b) => a.puntos - b.puntos);
+
+    if (sorted.length === 0) {
+      toast.error('No hay datos de puntuación para esta jornada');
+      setDeclarandoUltimo(null);
+      return;
+    }
+
+    const ultimo = sorted[0];
+
     const { error } = await supabase
       .from('quiniela_jugadores')
       .update({ badge_ultimo: `J${jornada}` })
-      .eq('id', rankingUltimo.user_id);
+      .eq('id', ultimo.user_id);
 
     setDeclarandoUltimo(null);
     if (error) {
