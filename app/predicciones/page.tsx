@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 
 const DEADLINE_J1 = new Date('2026-06-11T05:59:00Z');
 const DEADLINE_J2 = new Date('2026-06-18T16:00:00Z'); // 18 jun 10:00 a.m. CDMX — primer partido J2
-const DEADLINE_J3 = new Date('2026-06-27T05:59:00Z');
+const DEADLINE_J3 = new Date('2026-06-24T19:00:00Z'); // 24 jun 13:00 CDMX — primer partido J3
 const DEADLINE_J4 = new Date('2026-06-28T19:00:00Z');
 
 const getDeadline = (jornada: number) => {
@@ -261,7 +261,7 @@ export default function PrediccionesPage() {
   const jornadaCompleta = predichasEnJornada >= totalEnJornada && totalEnJornada > 0;
 
   const estaBloquado = (partido: Partido) =>
-    partido.estado === 'finalizado' || new Date() > getDeadline(jornada) || new Date(partido.fecha_hora) < new Date();
+    partido.estado === 'finalizado' || new Date() > getDeadline(jornada);
 
   const campeonDeadlinePasado = Date.now() >= DEADLINE_J3.getTime();
   const campeonAcerto = campeonDeclarado && miCampeonPick === campeonDeclarado;
