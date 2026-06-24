@@ -468,11 +468,16 @@ export default function TablaPage() {
           <tbody>
             {participacionesOrdenadas.map(part => {
               const jugador = jugadores.find((j: any) => j.id === part.user_id);
-              const totalPuntos = predicciones
+              const predsFiltradas = predicciones.filter((p: any) =>
+                p.user_id === part.user_id &&
+                (p.quiniela_extra_id === part.quiniela_extra_id ||
+                  (!p.quiniela_extra_id && !part.quiniela_extra_id))
+              );
+              const predsEfectivas = (predsFiltradas.length === 0 && part.quiniela_extra_id)
+                ? predicciones.filter((p: any) => p.user_id === part.user_id && !p.quiniela_extra_id)
+                : predsFiltradas;
+              const totalPuntos = predsEfectivas
                 .filter((p: any) =>
-                  p.user_id === part.user_id &&
-                  (p.quiniela_extra_id === part.quiniela_extra_id ||
-                    (!p.quiniela_extra_id && !part.quiniela_extra_id)) &&
                   partidos.find((partido: any) =>
                     partido.id === p.partido_id && partido.estado === 'finalizado'
                   )
