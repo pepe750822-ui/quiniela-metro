@@ -1147,7 +1147,7 @@ export default function AdminPage() {
                   <div style={{ background: 'var(--bg-card)', borderTop: '1px solid var(--border)' }}>
 
                     {/* Acciones */}
-                    {pozo.estado === 'abierto' && (
+                    {pozo.estado !== 'pagado' && (
                       <div className="px-4 py-3 flex gap-2 flex-wrap"
                         style={{ borderBottom: '1px solid var(--border)' }}>
                         <button
