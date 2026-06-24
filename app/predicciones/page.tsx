@@ -261,7 +261,7 @@ export default function PrediccionesPage() {
   const jornadaCompleta = predichasEnJornada >= totalEnJornada && totalEnJornada > 0;
 
   const estaBloquado = (partido: Partido) =>
-    partido.estado === 'finalizado' || new Date() > getDeadline(jornada);
+    partido.estado === 'finalizado' || new Date() > getDeadline(jornada) || new Date(partido.fecha_hora) < new Date();
 
   const campeonDeadlinePasado = Date.now() >= DEADLINE_J3.getTime();
   const campeonAcerto = campeonDeclarado && miCampeonPick === campeonDeclarado;
