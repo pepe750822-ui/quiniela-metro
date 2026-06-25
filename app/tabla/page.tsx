@@ -444,10 +444,6 @@ export default function TablaPage() {
                   </div>
                 </th>
               ))}
-              <th className="px-3 py-2 text-center min-w-[55px]"
-                style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
-                PTS
-              </th>
               {pendientes.map(partido => (
                 <th key={partido.id} id={`col-${partido.id}`}
                   className="px-2 py-2 text-center min-w-[70px]"
@@ -467,6 +463,10 @@ export default function TablaPage() {
                   )}
                 </th>
               ))}
+              <th className="px-3 py-2 text-center min-w-[55px]"
+                style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
+                PTS
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -538,10 +538,6 @@ export default function TablaPage() {
                       </td>
                     );
                   })}
-                  <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
-                    style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
-                    {totalPuntos}
-                  </td>
                   {pendientes.map(partido => {
                     const pred = getPred(part.user_id, partido.id, part.quiniela_extra_id);
                     return (
@@ -558,6 +554,10 @@ export default function TablaPage() {
                       </td>
                     );
                   })}
+                  <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
+                    style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
+                    {totalPuntos}
+                  </td>
                 </tr>
               );
             })}
