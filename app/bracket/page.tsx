@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Bandera } from '@/components/Bandera';
 import { Partido } from '@/types';
-import { formatearFechaCDMX, getNombreJornada } from '@/lib/utils';
+import { formatearFechaCDMX, getNombreJornada, getFechaKey, equiposE32 } from '@/lib/utils';
 
 const crucesE32: Record<string, string> = {
   '2026-06-28T19:00': '2°A vs 2°B',
@@ -24,13 +24,6 @@ const crucesE32: Record<string, string> = {
   '2026-07-04T01:30': '2°B vs 2°K',
 };
 
-const getFechaKey = (fechaHora: string): string => {
-  const d = new Date(fechaHora);
-  const h = d.getUTCHours().toString().padStart(2, '0');
-  const m = d.getUTCMinutes().toString().padStart(2, '0');
-  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}T${h}:${m}`;
-};
-
 const RONDAS: { key: string; label: string; short: string }[] = [
   { key: 'E32',  label: getNombreJornada(4), short: 'R32'  },
   { key: 'OCT',  label: getNombreJornada(5), short: 'OCT'  },
@@ -40,13 +33,17 @@ const RONDAS: { key: string; label: string; short: string }[] = [
 ];
 
 // ── Tarjeta de partido ──────────────────────────────────────────────────────
-function PartidoCard({ p, compact = false, cruce }: { p: Partido; compact?: boolean; cruce?: string }) {
+function PartidoCard({ p, compact = false, cruce, equipos }: { p: Partido; compact?: boolean; cruce?: string; equipos?: Record<string, { local: string; visitante: string }> }) {
   const fin = p.estado === 'finalizado';
   const vivo = p.estado === 'en_curso';
   const gl = p.goles_local ?? 0;
   const gv = p.goles_visitante ?? 0;
   const ganadorLocal    = fin && gl > gv;
   const ganadorVisitante = fin && gv > gl;
+
+  const fechaKey = getFechaKey(p.fecha_hora);
+  const local = p.equipo_local !== 'A definir' ? p.equipo_local : (equipos?.[fechaKey]?.local || 'A definir');
+  const visitante = p.equipo_visitante !== 'A definir' ? p.equipo_visitante : (equipos?.[fechaKey]?.visitante || 'A definir');
 
   const TeamRow = ({
     nombre, bandera, goles, ganador,
@@ -99,14 +96,14 @@ function PartidoCard({ p, compact = false, cruce }: { p: Partido; compact?: bool
         </div>
       )}
       <TeamRow
-        nombre={p.equipo_local}
+        nombre={local}
         bandera={p.bandera_local}
         goles={p.goles_local}
         ganador={ganadorLocal}
       />
       <div style={{ height: 1, background: 'var(--border)' }} />
       <TeamRow
-        nombre={p.equipo_visitante}
+        nombre={visitante}
         bandera={p.bandera_visitante}
         goles={p.goles_visitante}
         ganador={ganadorVisitante}
@@ -118,7 +115,7 @@ function PartidoCard({ p, compact = false, cruce }: { p: Partido; compact?: bool
           </p>
         </div>
       )}
-      {cruce && (!p.equipo_local || p.equipo_local === 'A definir') && (
+      {cruce && (local === 'A definir' || !local) && (
         <div className="px-2.5 py-1.5 text-center" style={{ borderTop: '1px solid var(--border)', background: 'var(--bg-card-hover)' }}>
           <p className="text-[9px] leading-snug" style={{ color: '#475569', fontFamily: 'var(--font-rajdhani)' }}>
             {cruce}
@@ -155,7 +152,7 @@ function PartidoCard({ p, compact = false, cruce }: { p: Partido; compact?: bool
 }
 
 // ── Columna de ronda ────────────────────────────────────────────────────────
-function Columna({ label, partidos, crucesMap }: { label: string; partidos: Partido[]; crucesMap?: Record<string, string> }) {
+function Columna({ label, partidos, crucesMap, equipos }: { label: string; partidos: Partido[]; crucesMap?: Record<string, string>; equipos?: Record<string, { local: string; visitante: string }> }) {
   return (
     <div className="flex flex-col shrink-0" style={{ width: 172 }}>
       <p
@@ -172,11 +169,12 @@ function Columna({ label, partidos, crucesMap }: { label: string; partidos: Part
           </div>
         ) : (
           partidos.map(p => (
-            <PartidoCard
-              key={p.id}
-              p={p}
-              cruce={crucesMap ? crucesMap[getFechaKey(p.fecha_hora)] : undefined}
-            />
+              <PartidoCard
+                key={p.id}
+                p={p}
+                cruce={crucesMap ? crucesMap[getFechaKey(p.fecha_hora)] : undefined}
+                equipos={equipos}
+              />
           ))
         )}
       </div>
@@ -238,6 +236,7 @@ export default function BracketPage() {
                   label={r.label}
                   partidos={porRonda(r.key)}
                   crucesMap={r.key === 'E32' ? crucesE32 : undefined}
+                  equipos={r.key === 'E32' ? equiposE32 : undefined}
                 />
               ))}
             </div>

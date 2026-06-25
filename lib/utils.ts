@@ -53,3 +53,19 @@ export const getNombreJornada = (j: number) => {
 };
 
 export const getMontoJornada = (j: number) => j === 4 ? 100 : 50;
+
+export const getFechaKey = (fecha: string) => {
+  const d = new Date(fecha);
+  return d.toISOString().slice(0, 16);
+};
+
+export const equiposE32: Record<string, { local: string; visitante: string }> = {
+  '2026-06-28T19:00': { local: 'Sudáfrica',     visitante: 'Canadá' },
+  '2026-06-29T17:00': { local: 'Brasil',        visitante: '' },
+  '2026-06-29T20:30': { local: 'Alemania',      visitante: '' },
+  '2026-06-30T01:00': { local: 'Marruecos',     visitante: '' },
+  '2026-07-01T01:00': { local: 'México',        visitante: '' },
+  '2026-07-02T00:00': { local: 'Estados Unidos', visitante: '' },
+  '2026-07-03T03:00': { local: 'Suiza',         visitante: '' },
+  '2026-07-03T22:00': { local: 'Argentina',     visitante: '' },
+};

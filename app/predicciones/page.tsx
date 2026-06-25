@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Partido, Prediccion, Pozo } from '@/types';
-import { getNombreJornada } from '@/lib/utils';
+import { getNombreJornada, getFechaKey, equiposE32 } from '@/lib/utils';
 import PartidoCard from '@/components/PartidoCard';
 import PrediccionForm from '@/components/PrediccionForm';
 import { toast } from 'sonner';
@@ -263,6 +263,20 @@ export default function PrediccionesPage() {
   const estaBloquado = (partido: Partido) =>
     partido.estado === 'finalizado' || new Date() > getDeadline(jornada);
 
+  // Resolver nombres de equipos conocidos para Dieciseisavos
+  const resolvedPartidos = partidos.map(p => {
+    if (jornada !== 4) return p;
+    const key = getFechaKey(p.fecha_hora);
+    const eq = equiposE32[key];
+    if (!eq) return p;
+    return {
+      ...p,
+      equipo_local: p.equipo_local !== 'A definir' ? p.equipo_local : (eq.local || 'A definir'),
+      equipo_visitante: p.equipo_visitante !== 'A definir' ? p.equipo_visitante : (eq.visitante || 'A definir'),
+    };
+  });
+  const todosSinResolver = jornada === 4 && resolvedPartidos.every(p => p.equipo_local === 'A definir' && p.equipo_visitante === 'A definir');
+
   const campeonDeadlinePasado = Date.now() >= DEADLINE_J3.getTime();
   const campeonAcerto = campeonDeclarado && miCampeonPick === campeonDeclarado;
   const campeonFallo  = campeonDeclarado && miCampeonPick && miCampeonPick !== campeonDeclarado;
@@ -462,7 +476,7 @@ export default function PrediccionesPage() {
         </div>
       ) : (
         <div className="space-y-3" style={{ animation: 'fadeInUp 0.4s ease-out 0.2s both' }}>
-          {jornada === 4 && partidos.length > 0 && partidos.every(p => p.equipo_local === 'A definir') ? (
+          {todosSinResolver ? (
             <div
               className="rounded-2xl p-6 text-center space-y-2"
               style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
@@ -476,7 +490,7 @@ export default function PrediccionesPage() {
               </p>
             </div>
           ) : (
-            partidos.map(partido => (
+            resolvedPartidos.map(partido => (
               <div key={partido.id} id={`partido-${partido.id}`}>
                 <PartidoCard
                   partido={partido}
