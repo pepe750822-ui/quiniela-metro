@@ -34,10 +34,9 @@ export default function TablaPage() {
 
   useEffect(() => {
     if (partidos.length === 0) return;
-    const primerPendiente = partidos.find(p => p.estado === 'pendiente');
-    if (primerPendiente && tablaRef.current) {
+    if (tablaRef.current) {
       setTimeout(() => {
-        const col = document.getElementById(`col-${primerPendiente.id}`);
+        const col = document.getElementById('col-pts');
         if (col) {
           col.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
         }
@@ -425,7 +424,7 @@ export default function TablaPage() {
                 style={{ background: 'var(--bg-base)', borderBottom: '1px solid var(--border-color)' }}>
                 <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>Jugador</span>
               </th>
-              <th className="sticky left-[130px] z-30 px-3 py-2 text-center min-w-[55px]"
+               <th className="sticky left-[130px] z-20 px-3 py-2 text-center min-w-[55px]"
                 style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
                 PTS
               </th>
@@ -444,6 +443,10 @@ export default function TablaPage() {
                   </div>
                 </th>
               ))}
+              <th id="col-pts" className="px-3 py-2 text-center min-w-[55px]"
+                style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
+                PTS
+              </th>
               {pendientes.map(partido => (
                 <th key={partido.id} id={`col-${partido.id}`}
                   className="px-2 py-2 text-center min-w-[70px]"
@@ -514,7 +517,7 @@ export default function TablaPage() {
                       </div>
                     </div>
                   </td>
-                  <td className="sticky left-[130px] z-10 px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
+                  <td className="sticky left-[130px] z-20 px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
                     style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
                     {totalPuntos}
                   </td>
@@ -538,6 +541,10 @@ export default function TablaPage() {
                       </td>
                     );
                   })}
+                  <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
+                    style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
+                    {totalPuntos}
+                  </td>
                   {pendientes.map(partido => {
                     const pred = getPred(part.user_id, partido.id, part.quiniela_extra_id);
                     return (
