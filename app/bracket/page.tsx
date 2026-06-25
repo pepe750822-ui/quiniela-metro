@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Bandera } from '@/components/Bandera';
 import { Partido } from '@/types';
-import { formatearFechaCDMX, getNombreJornada, getFechaKey, equiposE32 } from '@/lib/utils';
+import { formatearFechaCDMX, getNombreJornada, getFechaKey, equiposE32, BANDERAS_EQUIPOS } from '@/lib/utils';
 
 const crucesE32: Record<string, string> = {
   '2026-06-28T19:00': '2°A vs 2°B',
@@ -44,6 +44,8 @@ function PartidoCard({ p, compact = false, cruce, equipos }: { p: Partido; compa
   const fechaKey = getFechaKey(p.fecha_hora);
   const local = p.equipo_local !== 'A definir' ? p.equipo_local : (equipos?.[fechaKey]?.local || 'A definir');
   const visitante = p.equipo_visitante !== 'A definir' ? p.equipo_visitante : (equipos?.[fechaKey]?.visitante || 'A definir');
+  const banderaLocal = BANDERAS_EQUIPOS[local] ?? p.bandera_local ?? '';
+  const banderaVisitante = BANDERAS_EQUIPOS[visitante] ?? p.bandera_visitante ?? '';
 
   const TeamRow = ({
     nombre, bandera, goles, ganador,
@@ -97,14 +99,14 @@ function PartidoCard({ p, compact = false, cruce, equipos }: { p: Partido; compa
       )}
       <TeamRow
         nombre={local}
-        bandera={p.bandera_local}
+        bandera={banderaLocal}
         goles={p.goles_local}
         ganador={ganadorLocal}
       />
       <div style={{ height: 1, background: 'var(--border)' }} />
       <TeamRow
         nombre={visitante}
-        bandera={p.bandera_visitante}
+        bandera={banderaVisitante}
         goles={p.goles_visitante}
         ganador={ganadorVisitante}
       />

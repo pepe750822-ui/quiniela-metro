@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Partido, Prediccion, Pozo } from '@/types';
-import { getNombreJornada, getFechaKey, equiposE32 } from '@/lib/utils';
+import { getNombreJornada, getFechaKey, equiposE32, BANDERAS_EQUIPOS } from '@/lib/utils';
 import PartidoCard from '@/components/PartidoCard';
 import PrediccionForm from '@/components/PrediccionForm';
 import { toast } from 'sonner';
@@ -269,10 +269,14 @@ export default function PrediccionesPage() {
     const key = getFechaKey(p.fecha_hora);
     const eq = equiposE32[key];
     if (!eq) return p;
+    const equipLocal = p.equipo_local !== 'A definir' ? p.equipo_local : (eq.local || 'A definir');
+    const equipVisitante = p.equipo_visitante !== 'A definir' ? p.equipo_visitante : (eq.visitante || 'A definir');
     return {
       ...p,
-      equipo_local: p.equipo_local !== 'A definir' ? p.equipo_local : (eq.local || 'A definir'),
-      equipo_visitante: p.equipo_visitante !== 'A definir' ? p.equipo_visitante : (eq.visitante || 'A definir'),
+      equipo_local: equipLocal,
+      equipo_visitante: equipVisitante,
+      bandera_local: BANDERAS_EQUIPOS[equipLocal] ?? p.bandera_local ?? '',
+      bandera_visitante: BANDERAS_EQUIPOS[equipVisitante] ?? p.bandera_visitante ?? '',
     };
   });
   const todosSinResolver = jornada === 4 && resolvedPartidos.every(p => p.equipo_local === 'A definir' && p.equipo_visitante === 'A definir');
