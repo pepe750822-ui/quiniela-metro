@@ -52,7 +52,7 @@ export const getNombreJornada = (j: number) => {
   return `J${j}`;
 };
 
-export const getMontoJornada = (j: number) => j === 4 ? 100 : 50;
+export const getMontoJornada = (j: number) => 50;
 
 export const getFechaKey = (fecha: string) => {
   const d = new Date(fecha);
