@@ -50,7 +50,6 @@ export default function TablaPage() {
       .from('quiniela_partidos')
       .select('id, jornada, equipo_local, equipo_visitante, bandera_local, bandera_visitante, goles_local, goles_visitante, estado, grupo, fecha_hora')
       .eq('jornada', jornada)
-      .not('equipo_local', 'eq', 'A definir')
       .order('fecha_hora');
     setPartidos(parts || []);
 
