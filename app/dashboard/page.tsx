@@ -141,7 +141,7 @@ export default function DashboardPage() {
   const [pozos, setPozos]                       = useState<Pozo[]>([]);
   const [pendienteIds, setPendienteIds]         = useState<string[]>([]);
   const [pagadosIds, setPagadosIds]             = useState<string[]>([]);
-  const [jornadaSeleccionada, setJornadaSeleccionada] = useState<number | 'general'>(3);
+  const [jornadaSeleccionada, setJornadaSeleccionada] = useState<number | 'general'>(4);
   const [participantesJornada, setParticipantesJornada] = useState<ParticipanteItem[]>([]);
   const { d, h, m, s, started, mounted: countdownReady } = useCountdown(INAUGURAL);
 

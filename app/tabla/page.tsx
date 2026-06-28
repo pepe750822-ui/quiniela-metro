@@ -7,7 +7,7 @@ import { Bandera } from '@/components/Bandera';
 import { getNombreJornada } from '@/lib/utils';
 
 export default function TablaPage() {
-  const [jornada, setJornada]           = useState(3);
+  const [jornada, setJornada]           = useState(4);
   const [partidos, setPartidos]         = useState<any[]>([]);
   const [jugadores, setJugadores]       = useState<any[]>([]);
   const [predicciones, setPredicciones] = useState<any[]>([]);
