@@ -875,7 +875,7 @@ export default function AdminPage() {
 
   const jornadasConPozo = new Set(pozos.map(p => p.jornada));
   const pozosCompletos = [...pozos];
-  for (let j = 1; j <= 4; j++) {
+  for (let j = 1; j <= 5; j++) {
     if (!jornadasConPozo.has(j)) {
       pozosCompletos.push({
         id: `synthetic-${j}`,
@@ -915,7 +915,7 @@ export default function AdminPage() {
         {/* CSV respaldo */}
         <div className="flex items-center gap-2">
           <div className="flex gap-1">
-            {[1, 2, 3, 4].map(j => (
+            {[1, 2, 3, 4, 5].map(j => (
               <button key={j} onClick={() => setJornadaCSV(j)}
                 className="px-2.5 py-1 rounded-lg text-xs font-bold transition-all"
                 style={{

@@ -403,7 +403,7 @@ export default function TablaPage() {
 
         {/* Selector jornada */}
         <div className="flex gap-2 mt-3">
-          {[1, 2, 3, 4].map(j => (
+          {[1, 2, 3, 4, 5].map(j => (
             <button
               key={j}
               onClick={() => setJornada(j)}

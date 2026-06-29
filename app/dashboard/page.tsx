@@ -417,7 +417,7 @@ export default function DashboardPage() {
   useEffect(() => { cargarRanking(); }, [jornadaSeleccionada]);
 
   const jornadasDisponibles = pozos.length > 0
-    ? [...new Set([...pozos.map(p => p.jornada), 4])]
+    ? [...new Set([...pozos.map(p => p.jornada), 4, 5])]
     : [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
   const compartirRanking = () => {
