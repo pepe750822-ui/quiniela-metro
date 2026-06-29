@@ -173,6 +173,12 @@ export default function PrediccionForm({ partido, userId, quinielaExtraId, predi
           </p>
         </div>
 
+        {partido.jornada >= 5 && (
+          <p className="text-xs text-center font-semibold" style={{ color: 'var(--text-secondary)' }}>
+            ⏱️ Marcador a 90 minutos (tiempo reglamentario)
+          </p>
+        )}
+
         <div className="flex items-center justify-around py-2">
           <div className="flex flex-col items-center gap-3">
             <span className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>{partido.equipo_local}</span>
@@ -186,10 +192,20 @@ export default function PrediccionForm({ partido, userId, quinielaExtraId, predi
         </div>
 
         {partido.jornada >= 5 && (
+          <p className="text-xs text-center leading-relaxed" style={{ color: '#64748b' }}>
+            Si hay empate en 90 min y predijiste empate = 1pt,
+            aunque el partido continúe a prórroga o penales.
+          </p>
+        )}
+
+        {partido.jornada >= 5 && (
           <div className="space-y-3">
             <div className="space-y-1.5">
               <p className="text-xs text-center uppercase tracking-widest font-semibold" style={{ color: 'var(--text-secondary)' }}>
                 ¿Quién clasifica?
+              </p>
+              <p className="text-xs text-center" style={{ color: '#64748b' }}>
+                Independiente del marcador a 90 min
               </p>
               <div className="flex gap-2">
                 {[partido.equipo_local, partido.equipo_visitante]
@@ -228,7 +244,7 @@ export default function PrediccionForm({ partido, userId, quinielaExtraId, predi
                       border: `1px solid ${comoTerminaPred === opcion ? 'var(--accent-gold)' : 'var(--border)'}`,
                     }}
                   >
-                    {opcion === 'reglamentario' ? '⚽ Normal' : opcion === 'tiempo_extra' ? '⏱️ Prórroga' : '🥅 Penales'}
+                    {opcion === 'reglamentario' ? '⏱️ Tiempo reglamentario' : opcion === 'tiempo_extra' ? '⏩ Prórroga' : '🥅 Penales'}
                   </button>
                 ))}
               </div>
