@@ -5,12 +5,18 @@ import { Partido } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Bandera } from '@/components/Bandera';
+import { getMontoJornada } from '@/lib/utils';
 
 interface Props {
   partido: Partido;
   userId: string;
   quinielaExtraId: string | null;
-  prediccionExistente?: { goles_local_pred: number; goles_visitante_pred: number } | null;
+  prediccionExistente?: {
+    goles_local_pred: number;
+    goles_visitante_pred: number;
+    clasificado_pred?: string | null;
+    como_termina_pred?: string | null;
+  } | null;
   onGuardado: () => void;
   onCancelar: () => void;
 }
@@ -42,9 +48,11 @@ function Contador({ value, onChange }: { value: number; onChange: (v: number) =>
 }
 
 export default function PrediccionForm({ partido, userId, quinielaExtraId, prediccionExistente, onGuardado, onCancelar }: Props) {
-  const [local,   setLocal]   = useState(prediccionExistente?.goles_local_pred ?? 0);
-  const [visita,  setVisita]  = useState(prediccionExistente?.goles_visitante_pred ?? 0);
-  const [loading, setLoading] = useState(false);
+  const [local,           setLocal]           = useState(prediccionExistente?.goles_local_pred ?? 0);
+  const [visita,          setVisita]          = useState(prediccionExistente?.goles_visitante_pred ?? 0);
+  const [clasificadoPred, setClasificadoPred] = useState<string | null>(prediccionExistente?.clasificado_pred ?? null);
+  const [comoTerminaPred, setComoTerminaPred] = useState<string | null>(prediccionExistente?.como_termina_pred ?? null);
+  const [loading,         setLoading]         = useState(false);
 
   const handleGuardar = async () => {
     setLoading(true);
@@ -66,7 +74,7 @@ export default function PrediccionForm({ partido, userId, quinielaExtraId, predi
         user_id:           userId,
         jornada:           partido.jornada,
         pagado:            false,
-        monto:             50,
+        monto:             getMontoJornada(partido.jornada),
         quiniela_extra_id: quinielaExtraId,
       });
     }
@@ -80,6 +88,10 @@ export default function PrediccionForm({ partido, userId, quinielaExtraId, predi
         quiniela_extra_id:    quinielaExtraId || null,
         goles_local_pred:     local,
         goles_visitante_pred: visita,
+        ...(partido.jornada >= 5 && {
+          clasificado_pred:  clasificadoPred,
+          como_termina_pred: comoTerminaPred,
+        }),
         updated_at:           new Date().toISOString(),
       }, {
         onConflict: 'user_id,partido_id,quiniela_extra_id',
@@ -172,6 +184,55 @@ export default function PrediccionForm({ partido, userId, quinielaExtraId, predi
             <Contador value={visita} onChange={setVisita} />
           </div>
         </div>
+
+        {partido.jornada >= 5 && (
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <p className="text-xs text-center uppercase tracking-widest font-semibold" style={{ color: 'var(--text-secondary)' }}>
+                ¿Quién clasifica?
+              </p>
+              <div className="flex gap-2">
+                {[partido.equipo_local, partido.equipo_visitante].map(equipo => (
+                  <button
+                    key={equipo}
+                    type="button"
+                    onClick={() => setClasificadoPred(equipo)}
+                    className="flex-1 py-2 rounded-xl text-sm font-semibold transition-all active:scale-95"
+                    style={{
+                      background: clasificadoPred === equipo ? 'var(--accent-gold)' : 'var(--bg-card-hover)',
+                      color: clasificadoPred === equipo ? '#000' : 'var(--text-secondary)',
+                      border: `1px solid ${clasificadoPred === equipo ? 'var(--accent-gold)' : 'var(--border)'}`,
+                    }}
+                  >
+                    {equipo}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <p className="text-xs text-center uppercase tracking-widest font-semibold" style={{ color: 'var(--text-secondary)' }}>
+                ¿Cómo termina?
+              </p>
+              <div className="flex gap-2">
+                {(['reglamentario', 'tiempo_extra', 'penales'] as const).map(opcion => (
+                  <button
+                    key={opcion}
+                    type="button"
+                    onClick={() => setComoTerminaPred(opcion)}
+                    className="flex-1 py-2 rounded-xl text-xs font-semibold transition-all active:scale-95"
+                    style={{
+                      background: comoTerminaPred === opcion ? 'var(--accent-gold)' : 'var(--bg-card-hover)',
+                      color: comoTerminaPred === opcion ? '#000' : 'var(--text-secondary)',
+                      border: `1px solid ${comoTerminaPred === opcion ? 'var(--accent-gold)' : 'var(--border)'}`,
+                    }}
+                  >
+                    {opcion === 'reglamentario' ? '⚽ Normal' : opcion === 'tiempo_extra' ? '⏱️ Prórroga' : '🥅 Penales'}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="flex gap-3">
           <button
