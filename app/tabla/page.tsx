@@ -552,6 +552,19 @@ export default function TablaPage() {
                             {pred.goles_local_pred}-{pred.goles_visitante_pred}
                           </div>
                         )}
+                        {pred && partido.jornada >= 5 && (pred.clasificado_pred || pred.como_termina_pred) && (
+                          <div className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>
+                            {pred.clasificado_pred && (
+                              <span>{BANDERAS_EQUIPOS[pred.clasificado_pred] ?? '🏳️'}</span>
+                            )}
+                            {pred.clasificado_pred && pred.como_termina_pred && ' '}
+                            {pred.como_termina_pred && (
+                              <span>
+                                {pred.como_termina_pred === 'reglamentario' ? '⏱️' : pred.como_termina_pred === 'tiempo_extra' ? '⏩' : '🥅'}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </td>
                     );
                   })}
@@ -566,9 +579,24 @@ export default function TablaPage() {
                         className="px-1 py-2 text-center"
                         style={{ borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
                         {pred ? (
-                          <div className="text-sm font-medium text-slate-800 dark:text-slate-200">
-                            {pred.goles_local_pred}-{pred.goles_visitante_pred}
-                          </div>
+                          <>
+                            <div className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                              {pred.goles_local_pred}-{pred.goles_visitante_pred}
+                            </div>
+                            {partido.jornada >= 5 && (pred.clasificado_pred || pred.como_termina_pred) && (
+                              <div className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>
+                                {pred.clasificado_pred && (
+                                  <span>{BANDERAS_EQUIPOS[pred.clasificado_pred] ?? '🏳️'}</span>
+                                )}
+                                {pred.clasificado_pred && pred.como_termina_pred && ' '}
+                                {pred.como_termina_pred && (
+                                  <span>
+                                    {pred.como_termina_pred === 'reglamentario' ? '⏱️' : pred.como_termina_pred === 'tiempo_extra' ? '⏩' : '🥅'}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </>
                         ) : (
                           <span className="text-slate-400 dark:text-slate-600 text-sm">–</span>
                         )}
@@ -599,6 +627,13 @@ export default function TablaPage() {
         <span style={{ color: '#f87171' }}>■ 0pts fallo</span>
         <span style={{ color: '#64748b' }}>■ predicción pendiente</span>
       </div>
+      {jornada >= 5 && (
+        <div className="px-4 mt-1 flex flex-wrap gap-4 text-xs leyenda" style={{ color: '#475569' }}>
+          <span>⏱️ Reglamentario</span>
+          <span>⏩ Prórroga</span>
+          <span>🥅 Penales</span>
+        </div>
+      )}
 
       {/* Tablas para impresión — ocultas en pantalla */}
       <div className="hidden print:block">
