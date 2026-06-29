@@ -79,22 +79,39 @@ export default function PrediccionForm({ partido, userId, quinielaExtraId, predi
       });
     }
 
-    // Guardar predicción
-    const { error } = await supabase
+    // Guardar predicción — SELECT + UPDATE/INSERT para evitar el problema
+    // de onConflict con quiniela_extra_id nullable en el índice predicciones_unique_idx
+    const predPayload = {
+      goles_local_pred:     local,
+      goles_visitante_pred: visita,
+      clasificado_pred:     partido.jornada >= 5 ? clasificadoPred : null,
+      como_termina_pred:    partido.jornada >= 5 ? comoTerminaPred : null,
+      updated_at:           new Date().toISOString(),
+    };
+
+    const baseExistingQuery = supabase
       .from('quiniela_predicciones')
-      .upsert({
-        user_id:              userId,
-        partido_id:           partido.id,
-        quiniela_extra_id:    quinielaExtraId || null,
-        goles_local_pred:     local,
-        goles_visitante_pred: visita,
-        clasificado_pred:     partido.jornada >= 5 ? clasificadoPred : null,
-        como_termina_pred:    partido.jornada >= 5 ? comoTerminaPred : null,
-        updated_at:           new Date().toISOString(),
-      }, {
-        onConflict: 'user_id,partido_id,quiniela_extra_id',
-        ignoreDuplicates: false,
-      });
+      .select('id')
+      .eq('user_id', userId)
+      .eq('partido_id', partido.id);
+
+    const { data: existing } = await (quinielaExtraId === null
+      ? baseExistingQuery.is('quiniela_extra_id', null).maybeSingle()
+      : baseExistingQuery.eq('quiniela_extra_id', quinielaExtraId).maybeSingle());
+
+    const { error } = existing
+      ? await supabase
+          .from('quiniela_predicciones')
+          .update(predPayload)
+          .eq('id', existing.id)
+      : await supabase
+          .from('quiniela_predicciones')
+          .insert({
+            user_id:           userId,
+            partido_id:        partido.id,
+            quiniela_extra_id: quinielaExtraId || null,
+            ...predPayload,
+          });
 
     if (error) {
       setLoading(false);
