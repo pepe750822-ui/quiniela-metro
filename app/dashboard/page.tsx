@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { RankingConJugador, Pozo } from '@/types';
 import RankingTable from '@/components/RankingTable';
-import { getNombreJornada } from '@/lib/utils';
+import { getNombreJornada, getMontoJornada } from '@/lib/utils';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 
@@ -554,7 +554,7 @@ export default function DashboardPage() {
           <p className="text-slate-400 text-sm mb-3">
             Tus predicciones están guardadas pero no 
             participarás en el pozo hasta que se confirme 
-            tu pago de $50 MXN.
+            tu pago de ${getMontoJornada(participacionPendiente.jornada)} MXN.
           </p>
           <div className="bg-[#0a0a0a] rounded-xl p-3 mb-3">
             <p className="text-xs text-slate-500 mb-1">
