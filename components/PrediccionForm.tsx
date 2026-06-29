@@ -88,10 +88,8 @@ export default function PrediccionForm({ partido, userId, quinielaExtraId, predi
         quiniela_extra_id:    quinielaExtraId || null,
         goles_local_pred:     local,
         goles_visitante_pred: visita,
-        ...(partido.jornada >= 5 && {
-          clasificado_pred:  clasificadoPred,
-          como_termina_pred: comoTerminaPred,
-        }),
+        clasificado_pred:     partido.jornada >= 5 ? clasificadoPred : null,
+        como_termina_pred:    partido.jornada >= 5 ? comoTerminaPred : null,
         updated_at:           new Date().toISOString(),
       }, {
         onConflict: 'user_id,partido_id,quiniela_extra_id',
