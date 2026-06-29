@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Bandera } from '@/components/Bandera';
-import { getNombreJornada } from '@/lib/utils';
+import { getNombreJornada, BANDERAS_EQUIPOS } from '@/lib/utils';
 
 export default function TablaPage() {
   const [jornada, setJornada]           = useState(4);
@@ -48,7 +48,7 @@ export default function TablaPage() {
     setLoading(true);
     const { data: parts } = await supabase
       .from('quiniela_partidos')
-      .select('id, jornada, equipo_local, equipo_visitante, bandera_local, bandera_visitante, goles_local, goles_visitante, estado, grupo, fecha_hora')
+      .select('id, jornada, equipo_local, equipo_visitante, bandera_local, bandera_visitante, goles_local, goles_visitante, estado, grupo, fecha_hora, clasificado, como_termino')
       .eq('jornada', jornada)
       .order('fecha_hora');
     setPartidos(parts || []);
@@ -82,7 +82,7 @@ export default function TablaPage() {
     setJugadores(jugs || []);
 
     const partidoIds = parts?.map((p: any) => p.id) || [];
-    const selectPreds = 'user_id, partido_id, goles_local_pred, goles_visitante_pred, puntos_ganados, quiniela_extra_id';
+    const selectPreds = 'user_id, partido_id, goles_local_pred, goles_visitante_pred, puntos_ganados, quiniela_extra_id, clasificado_pred, como_termina_pred';
     const [{ data: preds1 }, { data: preds2 }] = await Promise.all([
       supabase.from('quiniela_predicciones').select(selectPreds).in('partido_id', partidoIds).range(0, 999),
       supabase.from('quiniela_predicciones').select(selectPreds).in('partido_id', partidoIds).range(1000, 1999),
@@ -125,6 +125,13 @@ export default function TablaPage() {
     if (pts === 3) return 'font-bold text-sm text-emerald-700 dark:text-emerald-400';
     if (pts === 1) return 'font-bold text-sm text-orange-700 dark:text-orange-400';
     return 'text-sm text-red-700 dark:text-red-400';
+  };
+
+  const emojiComoTermino = (como: string | null | undefined) => {
+    if (como === 'reglamentario') return '⚽';
+    if (como === 'tiempo_extra')  return '⏱️';
+    if (como === 'penales')       return '🥅';
+    return '';
   };
 
   const descargarCSV = () => {
@@ -440,6 +447,14 @@ export default function TablaPage() {
                     style={{ background: 'rgba(234,88,12,0.2)', border: '1px solid rgba(234,88,12,0.3)', color: '#fb923c' }}>
                     {partido.goles_local}-{partido.goles_visitante}
                   </div>
+                  {jornada >= 5 && partido.clasificado && (
+                    <div className="flex items-center justify-center gap-0.5 mt-0.5">
+                      <Bandera emoji={BANDERAS_EQUIPOS[partido.clasificado] ?? ''} nombre={partido.clasificado} size="sm" />
+                      <span style={{ fontSize: '0.6rem', color: '#94a3b8' }}>
+                        {emojiComoTermino(partido.como_termino)}
+                      </span>
+                    </div>
+                  )}
                 </th>
               ))}
               <th id="col-pts" className="px-3 py-2 text-center min-w-[55px]"
