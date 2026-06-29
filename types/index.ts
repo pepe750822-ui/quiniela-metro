@@ -13,6 +13,8 @@ export interface Partido {
   goles_visitante: number | null;
   fecha_hora: string;
   estado: EstadoPartido;
+  clasificado?: string | null;
+  como_termino?: string | null;
   estadio?: string | null;
   ciudad?: string | null;
   pais_sede?: string | null;
@@ -29,6 +31,8 @@ export interface Prediccion {
   goles_visitante_pred: number;
   puntos_ganados: number;
   quiniela_extra_id?: string | null;
+  clasificado_pred?: string | null;
+  como_termina_pred?: string | null;
   created_at: string;
   updated_at: string;
   partido?: Partido;
