@@ -489,15 +489,16 @@ export default function PrediccionesPage() {
             style={{ borderColor: 'var(--accent-gold)', borderTopColor: 'transparent' }} />
         </div>
       ) : (
-        {jornada >= 5 && (
-          <div className="flex gap-3 text-xs flex-wrap" style={{ color: '#64748b' }}>
-            <span>⏱️ Tiempo reglamentario</span>
-            <span>⏩ Prórroga</span>
-            <span>🥅 Penales</span>
-          </div>
-        )}
+        <>
+          {jornada >= 5 && (
+            <div className="flex gap-3 text-xs flex-wrap" style={{ color: '#64748b' }}>
+              <span>⏱️ Tiempo reglamentario</span>
+              <span>⏩ Prórroga</span>
+              <span>🥅 Penales</span>
+            </div>
+          )}
 
-        <div className="space-y-3" style={{ animation: 'fadeInUp 0.4s ease-out 0.2s both' }}>
+          <div className="space-y-3" style={{ animation: 'fadeInUp 0.4s ease-out 0.2s both' }}>
           {todosSinResolver ? (
             <div
               className="rounded-2xl p-6 text-center space-y-2"
@@ -566,6 +567,7 @@ export default function PrediccionesPage() {
             </div>
           )}
         </div>
+        </>
       )}
 
       {/* ── PREDICCIÓN CAMPEÓN ── */}
