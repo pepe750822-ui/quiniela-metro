@@ -3,11 +3,17 @@
 import { useEffect, useState } from 'react';
 import { Partido } from '@/types';
 import { Bandera } from '@/components/Bandera';
-import { formatearHoraCDMX, formatearDiaCDMX } from '@/lib/utils';
+import { formatearHoraCDMX, formatearDiaCDMX, BANDERAS_EQUIPOS } from '@/lib/utils';
 
 interface Props {
   partido: Partido;
-  prediccion?: { goles_local_pred: number; goles_visitante_pred: number; puntos_ganados: number } | null;
+  prediccion?: {
+    goles_local_pred: number;
+    goles_visitante_pred: number;
+    puntos_ganados: number;
+    clasificado_pred?: string | null;
+    como_termina_pred?: string | null;
+  } | null;
   participacionPagada?: boolean | null;
   onPredicir?: (partido: Partido) => void;
 }
@@ -96,6 +102,16 @@ export default function PartidoCard({ partido, prediccion, participacionPagada, 
           <div className="flex items-center justify-between">
             <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
               Tu pred: <strong style={{ color: 'var(--text-primary)' }}>{prediccion.goles_local_pred} – {prediccion.goles_visitante_pred}</strong>
+              {partido.jornada >= 5 && (prediccion.clasificado_pred || prediccion.como_termina_pred) && (
+                <span style={{ color: 'var(--text-secondary)' }}>
+                  {prediccion.clasificado_pred && (
+                    <> | <Bandera emoji={BANDERAS_EQUIPOS[prediccion.clasificado_pred] ?? ''} nombre={prediccion.clasificado_pred} size="sm" /> {prediccion.clasificado_pred}</>
+                  )}
+                  {prediccion.como_termina_pred && (
+                    <> | {prediccion.como_termina_pred === 'reglamentario' ? '⏱️' : prediccion.como_termina_pred === 'tiempo_extra' ? '⏩' : '🥅'}</>
+                  )}
+                </span>
+              )}
             </span>
             {partido.estado === 'finalizado' && (
               <span className="text-xs font-bold" style={{ color: puntosColor }}>
