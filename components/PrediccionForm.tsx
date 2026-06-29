@@ -192,7 +192,9 @@ export default function PrediccionForm({ partido, userId, quinielaExtraId, predi
                 ¿Quién clasifica?
               </p>
               <div className="flex gap-2">
-                {[partido.equipo_local, partido.equipo_visitante].map(equipo => (
+                {[partido.equipo_local, partido.equipo_visitante]
+                  .filter(e => e && e !== 'A definir')
+                  .map(equipo => (
                   <button
                     key={equipo}
                     type="button"

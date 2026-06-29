@@ -14,12 +14,22 @@ const DEADLINE_J1 = new Date('2026-06-11T05:59:00Z');
 const DEADLINE_J2 = new Date('2026-06-18T16:00:00Z'); // 18 jun 10:00 a.m. CDMX — primer partido J2
 const DEADLINE_J3 = new Date('2026-06-24T19:00:00Z'); // 24 jun 13:00 CDMX — primer partido J3
 const DEADLINE_J4 = new Date('2026-06-28T19:00:00Z');
+const DEADLINE_J5 = new Date('2026-07-05T18:00:00Z'); // 5 jul 12:00 CDMX — primer Octavo
+const DEADLINE_J6 = new Date('2026-07-11T18:00:00Z'); // 11 jul — Cuartos
+const DEADLINE_J7 = new Date('2026-07-14T21:00:00Z'); // 14 jul — Semis
+const DEADLINE_J8 = new Date('2026-07-18T21:00:00Z'); // 18 jul — 3er Lugar
+const DEADLINE_J9 = new Date('2026-07-19T21:00:00Z'); // 19 jul — Final
 
 const getDeadline = (jornada: number) => {
   if (jornada === 1) return DEADLINE_J1;
   if (jornada === 2) return DEADLINE_J2;
   if (jornada === 3) return DEADLINE_J3;
-  return DEADLINE_J4;
+  if (jornada === 4) return DEADLINE_J4;
+  if (jornada === 5) return DEADLINE_J5;
+  if (jornada === 6) return DEADLINE_J6;
+  if (jornada === 7) return DEADLINE_J7;
+  if (jornada === 8) return DEADLINE_J8;
+  return DEADLINE_J9;
 };
 
 export default function PrediccionesPage() {
