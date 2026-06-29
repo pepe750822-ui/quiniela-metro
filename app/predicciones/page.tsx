@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Partido, Prediccion, Pozo } from '@/types';
-import { getNombreJornada, getFechaKey, equiposE32, BANDERAS_EQUIPOS } from '@/lib/utils';
+import { getNombreJornada, getFechaKey, equiposE32, BANDERAS_EQUIPOS, getMontoJornada } from '@/lib/utils';
 import PartidoCard from '@/components/PartidoCard';
 import PrediccionForm from '@/components/PrediccionForm';
 import { toast } from 'sonner';
@@ -320,7 +320,7 @@ export default function PrediccionesPage() {
           <p className="text-sm font-mono" style={{ color: 'var(--text-secondary)' }}>
             💳 CLABE: <strong>014180565546539842</strong>
             <br />
-            <span style={{ color: 'var(--text-muted)' }}>Monto: </span><strong style={{ color: 'var(--text-primary)' }}>$50 MXN</strong>
+            <span style={{ color: 'var(--text-muted)' }}>Monto: </span><strong style={{ color: 'var(--text-primary)' }}>${getMontoJornada(jornada)} MXN</strong>
           </p>
 
           <div className="rounded-xl p-3 space-y-2" style={{ background: 'rgba(234,88,12,0.1)', border: '1px solid rgba(234,88,12,0.25)' }}>
