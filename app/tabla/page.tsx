@@ -538,6 +538,40 @@ export default function TablaPage() {
                   {finalizados.map(partido => {
                     const pred = getPred(part.user_id, partido.id, part.quiniela_extra_id);
                     const pts = pred?.puntos_ganados ?? null;
+                    if (partido.jornada >= 5) {
+                      const bandera = pred?.clasificado_pred
+                        ? (BANDERAS_EQUIPOS[pred.clasificado_pred] || pred.clasificado_pred)
+                        : null;
+                      const emojiTermina = pred?.como_termina_pred === 'reglamentario' ? '⏱️'
+                        : pred?.como_termina_pred === 'tiempo_extra' ? '⏩'
+                        : pred?.como_termina_pred === 'penales' ? '🥅' : '';
+                      const ptsJ5Class = pts === 3
+                        ? 'font-bold text-sm text-emerald-700 dark:text-emerald-400'
+                        : pts === 1
+                          ? 'font-bold text-sm text-blue-600 dark:text-blue-400'
+                          : 'text-sm text-red-700 dark:text-red-400';
+                      return (
+                        <td key={partido.id}
+                          className="px-1 py-2 text-center"
+                          style={{ borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
+                          {pred && (
+                            <div className="text-xs text-slate-600 dark:text-slate-400">
+                              {pred.goles_local_pred}-{pred.goles_visitante_pred}
+                            </div>
+                          )}
+                          {pred && (bandera || emojiTermina) && (
+                            <div className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>
+                              {[bandera, emojiTermina].filter(Boolean).join(' ')}
+                            </div>
+                          )}
+                          {pts !== null ? (
+                            <div className={ptsJ5Class}>{pts}pts</div>
+                          ) : (
+                            <div className="text-sm text-slate-400 dark:text-slate-600">–</div>
+                          )}
+                        </td>
+                      );
+                    }
                     return (
                       <td key={partido.id}
                         className="px-1 py-2 text-center"
@@ -550,19 +584,6 @@ export default function TablaPage() {
                         {pred && (
                           <div className="text-xs text-slate-600 dark:text-slate-400">
                             {pred.goles_local_pred}-{pred.goles_visitante_pred}
-                          </div>
-                        )}
-                        {pred && partido.jornada >= 5 && (pred.clasificado_pred || pred.como_termina_pred) && (
-                          <div className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>
-                            {pred.clasificado_pred && (
-                              <span>{BANDERAS_EQUIPOS[pred.clasificado_pred] ?? '🏳️'}</span>
-                            )}
-                            {pred.clasificado_pred && pred.como_termina_pred && ' '}
-                            {pred.como_termina_pred && (
-                              <span>
-                                {pred.como_termina_pred === 'reglamentario' ? '⏱️' : pred.como_termina_pred === 'tiempo_extra' ? '⏩' : '🥅'}
-                              </span>
-                            )}
                           </div>
                         )}
                       </td>
@@ -585,15 +606,12 @@ export default function TablaPage() {
                             </div>
                             {partido.jornada >= 5 && (pred.clasificado_pred || pred.como_termina_pred) && (
                               <div className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>
-                                {pred.clasificado_pred && (
-                                  <span>{BANDERAS_EQUIPOS[pred.clasificado_pred] ?? '🏳️'}</span>
-                                )}
-                                {pred.clasificado_pred && pred.como_termina_pred && ' '}
-                                {pred.como_termina_pred && (
-                                  <span>
-                                    {pred.como_termina_pred === 'reglamentario' ? '⏱️' : pred.como_termina_pred === 'tiempo_extra' ? '⏩' : '🥅'}
-                                  </span>
-                                )}
+                                {[
+                                  pred.clasificado_pred ? (BANDERAS_EQUIPOS[pred.clasificado_pred] || pred.clasificado_pred) : null,
+                                  pred.como_termina_pred === 'reglamentario' ? '⏱️'
+                                    : pred.como_termina_pred === 'tiempo_extra' ? '⏩'
+                                    : pred.como_termina_pred === 'penales' ? '🥅' : null,
+                                ].filter(Boolean).join(' ')}
                               </div>
                             )}
                           </>
