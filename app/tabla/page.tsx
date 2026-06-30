@@ -6,6 +6,35 @@ import { toast } from 'sonner';
 import { Bandera } from '@/components/Bandera';
 import { getNombreJornada, BANDERAS_EQUIPOS } from '@/lib/utils';
 
+function ReglasBanner() {
+  const [abierto, setAbierto] = useState(false);
+  return (
+    <div className="mx-2 mb-2 rounded-xl print:hidden" style={{ background: 'rgba(234,88,12,0.06)', border: '1px solid rgba(234,88,12,0.25)' }}>
+      <button
+        onClick={() => setAbierto(v => !v)}
+        className="w-full flex items-center justify-between px-4 py-2.5 text-left"
+      >
+        <span className="text-xs font-semibold" style={{ color: '#fb923c', fontFamily: 'var(--font-rajdhani)' }}>
+          📋 Reglas para Octavos en adelante
+        </span>
+        <span className="text-xs" style={{ color: '#fb923c' }}>{abierto ? '▲' : '▼'}</span>
+      </button>
+      {abierto && (
+        <div className="px-4 pb-3 space-y-1.5 text-xs" style={{ color: '#94a3b8' }}>
+          <p>Predices <span style={{ color: '#e2e8f0' }}>3 cosas</span>: marcador a 90 min, quién clasifica y cómo termina.</p>
+          <div className="flex flex-wrap gap-x-4 gap-y-1 pt-0.5">
+            <span><span style={{ color: '#059669' }}>3 pts</span> marcador exacto</span>
+            <span><span style={{ color: '#2563eb' }}>1 pt</span> resultado correcto</span>
+            <span><span style={{ color: '#9333ea' }}>+1 pt</span> clasificado correcto</span>
+            <span><span style={{ color: '#f97316' }}>+1 pt</span> cómo termina correcto</span>
+          </div>
+          <p>Máximo <span style={{ color: '#eab308' }}>5 pts</span> por partido · ⏱️ Regla · ⏩ Prórroga · 🥅 Penales</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function TablaPage() {
   const [jornada, setJornada]           = useState(5);
   const [partidos, setPartidos]         = useState<any[]>([]);
@@ -426,6 +455,9 @@ export default function TablaPage() {
           ))}
         </div>
       </div>
+
+      {/* Banner reglas J5+ — colapsable */}
+      {jornada >= 5 && <ReglasBanner />}
 
       {/* Tabla horizontal scrollable — oculta al imprimir */}
       <div ref={tablaRef} className="overflow-x-auto overflow-y-auto px-2 print:hidden" style={{ maxHeight: 'calc(100vh - 160px)' }}>
