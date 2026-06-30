@@ -78,14 +78,15 @@ export default function PrediccionesPage() {
       });
   }, [router]);
 
-  const cargarQuinielas = useCallback(async (uid: string) => {
-    const { data } = await supabase
-      .from('quiniela_extra')
-      .select('*')
-      .eq('user_id', uid)
-      .eq('activa', true)
-      .order('created_at');
-    setQuinielasExtra(data || []);
+  const cargarQuinielas = useCallback(async (uid: string, j: number) => {
+    const [{ data: extras }, { data: partics }] = await Promise.all([
+      supabase.from('quiniela_extra').select('*').eq('user_id', uid).eq('activa', true).order('created_at'),
+      supabase.from('quiniela_participaciones').select('quiniela_extra_id').eq('user_id', uid).eq('jornada', j).not('quiniela_extra_id', 'is', null),
+    ]);
+    const idsConParticipacion = new Set((partics || []).map((p: any) => p.quiniela_extra_id));
+    const filtradas = (extras || []).filter((q: any) => idsConParticipacion.has(q.id));
+    setQuinielasExtra(filtradas);
+    setQuinielaSeleccionada(prev => (prev && !idsConParticipacion.has(prev) ? null : prev));
   }, []);
 
   const cargarPozoYParticipacion = useCallback(async (uid: string, j: number) => {
@@ -179,7 +180,7 @@ export default function PrediccionesPage() {
   useEffect(() => { cargarPartidos(); }, [cargarPartidos]);
   useEffect(() => {
     if (userId) {
-      cargarQuinielas(userId);
+      cargarQuinielas(userId, jornada);
       cargarPredicciones();
       cargarCampeon();
       cargarPozoYParticipacion(userId, jornada);
