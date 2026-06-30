@@ -115,7 +115,7 @@ function MatchCard({ partido, isFinal }: { partido: Partido | null; isFinal?: bo
           fontFamily: 'var(--font-rajdhani)',
           letterSpacing: '0.04em',
         }}>
-          {comoTermino === 'penales' ? '🥅' : '⏱️'} {clasificado} avanza{comoTermino === 'penales' ? ' en penales' : ' en prórroga'}
+          {comoTermino === 'penales' ? '🥅' : '⏱️'} {clasificado} avanza{comoTermino === 'penales' ? ' en penales' : ' en prórroga'}{partido.marcador_penales ? ` (${partido.marcador_penales})` : ''}
         </div>
       )}
     </div>

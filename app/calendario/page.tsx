@@ -26,6 +26,7 @@ interface Partido {
   streaming?: string | null;
   clasificado?: string | null;
   como_termino?: string | null;
+  marcador_penales?: string | null;
 }
 
 export default function CalendarioPage() {
@@ -182,7 +183,7 @@ export default function CalendarioPage() {
 
                     {partido.estado === 'finalizado' && partido.clasificado && partido.como_termino && partido.como_termino !== 'reglamentario' && (
                       <div className="mt-2 text-center text-xs font-semibold" style={{ color: '#94a3b8', fontFamily: 'var(--font-rajdhani)' }}>
-                        {partido.como_termino === 'penales' ? '🥅' : '⏱️'} {partido.clasificado} avanza{partido.como_termino === 'penales' ? ' en penales' : ' en prórroga'}
+                        {partido.como_termino === 'penales' ? '🥅' : '⏱️'} {partido.clasificado} avanza{partido.como_termino === 'penales' ? ' en penales' : ' en prórroga'}{partido.marcador_penales ? ` (${partido.marcador_penales})` : ''}
                       </div>
                     )}
 
