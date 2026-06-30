@@ -1,286 +1,336 @@
 'use client';
+
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Bandera } from '@/components/Bandera';
 import { Partido } from '@/types';
-import { formatearFechaCDMX, getNombreJornada, getFechaKey, equiposE32, BANDERAS_EQUIPOS } from '@/lib/utils';
+import { getFechaKey, equiposE32, BANDERAS_EQUIPOS } from '@/lib/utils';
 
-const crucesE32: Record<string, string> = {
-  '2026-06-28T19:00': '2°A vs 2°B',
-  '2026-06-29T17:00': '1°E vs Mejor 3° (A,B,C,D,F)',
-  '2026-06-29T20:30': '1°F vs 2°C',
-  '2026-06-30T01:00': '2°E vs 2°I',
-  '2026-06-30T17:00': '1°I vs Mejor 3° (C,D,F,G,H)',
-  '2026-06-30T21:00': '1°A vs Mejor 3° (C,E,F,H,I)',
-  '2026-07-01T01:00': '1°L vs Mejor 3° (E,H,I,J,K)',
-  '2026-07-01T16:00': '1°G vs Mejor 3° (A,E,H,I,J)',
-  '2026-07-01T20:00': '1°D vs Mejor 3° (B,E,F,I,J)',
-  '2026-07-02T00:00': '1°B vs Mejor 3° (E,F,G,I,J)',
-  '2026-07-02T19:00': '2°D vs 2°G',
-  '2026-07-02T23:00': '1°J vs 2°H',
-  '2026-07-03T03:00': '1°C vs 2°L',
-  '2026-07-03T18:00': '1°H vs 2°J',
-  '2026-07-03T22:00': '1°K vs 2°F',
-  '2026-07-04T01:30': '2°B vs 2°K',
-};
+// ── Layout constants ──────────────────────────────────────────────────────────
+const SLOT_H  = 86;               // px per E32 slot
+const BH      = 8 * SLOT_H;      // bracket height = 688px
+const CARD_W  = 150;             // match card width
+const CARD_H  = 60;              // approximate match card height
+const CONN_W  = 22;              // connector SVG width
 
-const RONDAS: { key: string; label: string; short: string }[] = [
-  { key: 'E32',  label: getNombreJornada(4), short: 'R32'  },
-  { key: 'OCT',  label: getNombreJornada(5), short: 'OCT'  },
-  { key: 'CUA',  label: getNombreJornada(6), short: 'CUA'  },
-  { key: 'SEMI', label: getNombreJornada(7), short: 'SEMI' },
-  { key: 'FIN',  label: getNombreJornada(9), short: 'FIN'  },
-];
+function itemCenter(round: number, idx: number) {
+  return (idx * Math.pow(2, round) + Math.pow(2, round - 1)) * SLOT_H;
+}
+function itemTop(round: number, idx: number) {
+  return itemCenter(round, idx) - CARD_H / 2;
+}
 
-// ── Tarjeta de partido ──────────────────────────────────────────────────────
-function PartidoCard({ p, compact = false, cruce, equipos }: { p: Partido; compact?: boolean; cruce?: string; equipos?: Record<string, { local: string; visitante: string }> }) {
-  const fin = p.estado === 'finalizado';
-  const vivo = p.estado === 'en_curso';
-  const gl = p.goles_local ?? 0;
-  const gv = p.goles_visitante ?? 0;
-  const ganadorLocal    = fin && gl > gv;
-  const ganadorVisitante = fin && gv > gl;
-
-  const fechaKey = getFechaKey(p.fecha_hora);
-  const local = p.equipo_local !== 'A definir' ? p.equipo_local : (equipos?.[fechaKey]?.local || 'A definir');
-  const visitante = p.equipo_visitante !== 'A definir' ? p.equipo_visitante : (equipos?.[fechaKey]?.visitante || 'A definir');
-  const banderaLocal = BANDERAS_EQUIPOS[local] ?? p.bandera_local ?? '';
-  const banderaVisitante = BANDERAS_EQUIPOS[visitante] ?? p.bandera_visitante ?? '';
-
-  const TeamRow = ({
-    nombre, bandera, goles, ganador,
-  }: { nombre: string; bandera: string | null; goles: number | null; ganador: boolean }) => (
-    <div
-      className="flex items-center justify-between px-2.5 py-2 gap-1"
-      style={{ background: ganador ? 'rgba(234,88,12,0.13)' : 'transparent' }}
-    >
+// ── TeamRow ───────────────────────────────────────────────────────────────────
+function TeamRow({ nombre, bandera, goles, winner }: {
+  nombre: string; bandera: string; goles: number | null; winner: boolean;
+}) {
+  const isDef = !nombre || nombre === 'A definir';
+  return (
+    <div className="flex items-center justify-between px-2 py-1.5 gap-1"
+      style={{ background: winner ? 'rgba(234,88,12,0.14)' : 'transparent' }}>
       <div className="flex items-center gap-1.5 min-w-0">
-        {bandera && <Bandera emoji={bandera} nombre={nombre} size="sm" />}
-        <span
-          className="text-[11px] leading-tight truncate"
-          style={{
-            fontFamily: 'var(--font-rajdhani)',
-            fontWeight: ganador ? 700 : 400,
-            color: ganador ? 'var(--accent-gold)' : nombre ? 'var(--text-primary)' : 'var(--text-secondary)',
-          }}
-        >
-          {nombre || 'Por definir'}
+        {bandera && !isDef && <Bandera emoji={bandera} nombre={nombre} size="sm" />}
+        <span className="text-[11px] truncate leading-tight" style={{
+          fontFamily: 'var(--font-rajdhani)',
+          fontWeight: winner ? 700 : 400,
+          color: isDef ? '#334155' : winner ? '#fb923c' : '#e2e8f0',
+        }}>
+          {isDef ? 'Por definir' : nombre}
         </span>
       </div>
-      {(fin || vivo) && goles !== null && (
-        <span
-          className="text-sm shrink-0"
-          style={{
-            fontFamily: 'var(--font-bebas)',
-            color: ganador ? 'var(--accent-gold)' : 'var(--text-primary)',
-          }}
-        >
-          {goles}
-        </span>
+      {goles !== null && (
+        <span className="text-sm shrink-0" style={{
+          fontFamily: 'var(--font-bebas)',
+          color: winner ? '#fb923c' : '#cbd5e1',
+        }}>{goles}</span>
       )}
     </div>
   );
+}
+
+// ── MatchCard ─────────────────────────────────────────────────────────────────
+function MatchCard({ partido, isFinal }: { partido: Partido | null; isFinal?: boolean }) {
+  if (!partido) {
+    return (
+      <div style={{
+        width: isFinal ? CARD_W + 20 : CARD_W,
+        height: CARD_H,
+        background: '#0d1526',
+        border: '1px dashed rgba(255,255,255,0.07)',
+        borderRadius: 8,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <span style={{ fontSize: 10, color: '#1e3a5f', fontFamily: 'var(--font-rajdhani)' }}>—</span>
+      </div>
+    );
+  }
+
+  const fin   = partido.estado === 'finalizado';
+  const vivo  = partido.estado === 'en_curso';
+  const gl    = partido.goles_local  ?? 0;
+  const gv    = partido.goles_visitante ?? 0;
+  const wL    = fin && gl > gv;
+  const wV    = fin && gv > gl;
+
+  const fk    = getFechaKey(partido.fecha_hora);
+  const local = (partido.equipo_local && partido.equipo_local !== 'A definir')
+    ? partido.equipo_local : (equiposE32[fk]?.local || 'A definir');
+  const visit = (partido.equipo_visitante && partido.equipo_visitante !== 'A definir')
+    ? partido.equipo_visitante : (equiposE32[fk]?.visitante || 'A definir');
+  const bL    = BANDERAS_EQUIPOS[local]  ?? partido.bandera_local  ?? '';
+  const bV    = BANDERAS_EQUIPOS[visit] ?? partido.bandera_visitante ?? '';
 
   return (
-    <div
-      className="rounded-xl overflow-hidden"
-      style={{
-        border: `1px solid ${vivo ? 'rgba(234,88,12,0.6)' : 'var(--border)'}`,
-        background: 'var(--bg-card)',
-        width: compact ? 148 : 164,
-        boxShadow: vivo ? '0 0 12px rgba(234,88,12,0.25)' : 'none',
-      }}
-    >
+    <div style={{
+      width: isFinal ? CARD_W + 20 : CARD_W,
+      background: '#1e293b',
+      border: `1px solid ${vivo ? 'rgba(234,88,12,0.6)' : isFinal ? 'rgba(234,88,12,0.35)' : 'rgba(255,255,255,0.09)'}`,
+      borderRadius: 8,
+      overflow: 'hidden',
+      boxShadow: isFinal
+        ? '0 0 24px rgba(234,88,12,0.18), 0 0 2px rgba(234,88,12,0.4)'
+        : vivo ? '0 0 12px rgba(234,88,12,0.25)' : undefined,
+    }}>
       {vivo && (
-        <div className="px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest"
-          style={{ background: 'rgba(234,88,12,0.2)', color: 'var(--accent-gold)' }}>
+        <div style={{ padding: '2px 8px', background: 'rgba(234,88,12,0.2)', fontSize: 9, color: '#fb923c', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
           🔴 En vivo
         </div>
       )}
-      <TeamRow
-        nombre={local}
-        bandera={banderaLocal}
-        goles={p.goles_local}
-        ganador={ganadorLocal}
-      />
-      <div style={{ height: 1, background: 'var(--border)' }} />
-      <TeamRow
-        nombre={visitante}
-        bandera={banderaVisitante}
-        goles={p.goles_visitante}
-        ganador={ganadorVisitante}
-      />
-      {p.estado === 'pendiente' && p.equipo_local && (
-        <div className="px-2.5 py-1" style={{ borderTop: '1px solid var(--border)', background: 'var(--bg-card-hover)' }}>
-          <p className="text-[9px]" style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-rajdhani)' }}>
-            {formatearFechaCDMX(p.fecha_hora)}
-          </p>
-        </div>
-      )}
-      {cruce && (local === 'A definir' || !local) && (
-        <div className="px-2.5 py-1.5 text-center" style={{ borderTop: '1px solid var(--border)', background: 'var(--bg-card-hover)' }}>
-          <p className="text-[9px] leading-snug" style={{ color: '#475569', fontFamily: 'var(--font-rajdhani)' }}>
-            {cruce}
-          </p>
-        </div>
-      )}
-      {p.estadio && (
-        <div className="px-2.5 py-1.5 text-center space-y-0.5" style={{ borderTop: '1px solid var(--border)', background: 'var(--bg-card-hover)' }}>
-          <p className="text-[10px] text-slate-500" style={{ fontFamily: 'var(--font-rajdhani)' }}>
-            🏟️ {p.estadio}
-          </p>
-          <p className="text-[10px] text-slate-600" style={{ fontFamily: 'var(--font-rajdhani)' }}>
-            {p.ciudad} · {p.pais_sede}
-          </p>
-          {p.tv_abierta && (
-            <p className="text-[10px] text-green-500" style={{ fontFamily: 'var(--font-rajdhani)' }}>
-              📺 {p.tv_abierta}
-            </p>
-          )}
-          {p.tv_paga && (
-            <p className="text-[10px] text-blue-500" style={{ fontFamily: 'var(--font-rajdhani)' }}>
-              📡 {p.tv_paga}
-            </p>
-          )}
-          {p.streaming && (
-            <p className="text-[10px] text-purple-500" style={{ fontFamily: 'var(--font-rajdhani)' }}>
-              📱 {p.streaming}
-            </p>
-          )}
-        </div>
-      )}
+      <TeamRow nombre={local} bandera={bL} goles={fin || vivo ? gl : null} winner={wL} />
+      <div style={{ height: 1, background: 'rgba(255,255,255,0.06)' }} />
+      <TeamRow nombre={visit} bandera={bV} goles={fin || vivo ? gv : null} winner={wV} />
     </div>
   );
 }
 
-// ── Columna de ronda ────────────────────────────────────────────────────────
-function Columna({ label, partidos, crucesMap, equipos }: { label: string; partidos: Partido[]; crucesMap?: Record<string, string>; equipos?: Record<string, { local: string; visitante: string }> }) {
+// ── BracketColumn (absolute-positioned) ──────────────────────────────────────
+function BracketColumn({ roundIdx, items }: { roundIdx: number; items: (Partido | null)[] }) {
   return (
-    <div className="flex flex-col shrink-0" style={{ width: 172 }}>
-      <p
-        className="text-[10px] font-bold uppercase tracking-widest text-center mb-3 px-1"
-        style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}
-      >
-        {label}
-      </p>
-      <div className="flex flex-col gap-3">
-        {partidos.length === 0 ? (
-          <div className="rounded-xl px-3 py-4 text-center text-[10px]"
-            style={{ border: '1px dashed var(--border)', color: 'var(--text-secondary)', fontFamily: 'var(--font-rajdhani)' }}>
-            Próximamente
-          </div>
-        ) : (
-          partidos.map(p => (
-              <PartidoCard
-                key={p.id}
-                p={p}
-                cruce={crucesMap ? crucesMap[getFechaKey(p.fecha_hora)] : undefined}
-                equipos={equipos}
-              />
-          ))
-        )}
-      </div>
+    <div style={{ width: CARD_W, height: BH, position: 'relative', flexShrink: 0 }}>
+      {items.map((p, i) => (
+        <div key={i} style={{ position: 'absolute', top: itemTop(roundIdx, i), left: 0 }}>
+          <MatchCard partido={p} />
+        </div>
+      ))}
     </div>
   );
 }
 
-// ── Página principal ────────────────────────────────────────────────────────
+// ── ConnectorL: lines flow left→right (E32 side left, SEMI side right) ───────
+function ConnectorL({ fromRound, pairs }: { fromRound: number; pairs: number }) {
+  const paths: string[] = [];
+  for (let i = 0; i < pairs; i++) {
+    const y1   = itemCenter(fromRound, 2 * i);
+    const y2   = itemCenter(fromRound, 2 * i + 1);
+    const yMid = (y1 + y2) / 2;
+    paths.push(`M0,${y1} H${CONN_W / 2} V${y2} H0`);
+    paths.push(`M${CONN_W / 2},${yMid} H${CONN_W}`);
+  }
+  return (
+    <svg width={CONN_W} height={BH} style={{ display: 'block', flexShrink: 0 }}>
+      {paths.map((d, i) => (
+        <path key={i} d={d} fill="none" stroke="#1e3a5f" strokeWidth={1.5} strokeLinecap="round" />
+      ))}
+    </svg>
+  );
+}
+
+// ── ConnectorR: mirror of L (SEMI side left, E32 side right) ─────────────────
+function ConnectorR({ fromRound, pairs }: { fromRound: number; pairs: number }) {
+  const paths: string[] = [];
+  for (let i = 0; i < pairs; i++) {
+    const y1   = itemCenter(fromRound, 2 * i);
+    const y2   = itemCenter(fromRound, 2 * i + 1);
+    const yMid = (y1 + y2) / 2;
+    paths.push(`M${CONN_W},${y1} H${CONN_W / 2} V${y2} H${CONN_W}`);
+    paths.push(`M${CONN_W / 2},${yMid} H0`);
+  }
+  return (
+    <svg width={CONN_W} height={BH} style={{ display: 'block', flexShrink: 0 }}>
+      {paths.map((d, i) => (
+        <path key={i} d={d} fill="none" stroke="#1e3a5f" strokeWidth={1.5} strokeLinecap="round" />
+      ))}
+    </svg>
+  );
+}
+
+// ── Round label pill ──────────────────────────────────────────────────────────
+function RoundLabel({ label, w }: { label: string; w: number }) {
+  return (
+    <div style={{
+      width: w, flexShrink: 0, textAlign: 'center',
+      fontSize: 10, fontWeight: 700,
+      fontFamily: 'var(--font-rajdhani)',
+      letterSpacing: '0.1em', textTransform: 'uppercase',
+      color: '#ea580c', paddingBottom: 10,
+    }}>
+      {label}
+    </div>
+  );
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────────
 export default function BracketPage() {
   const [partidos, setPartidos] = useState<Partido[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading]   = useState(true);
 
   useEffect(() => {
-    const cargar = async () => {
-      const { data } = await supabase
-        .from('quiniela_partidos')
-        .select('*')
-        .in('grupo', ['E32', 'OCT', 'CUA', 'SEMI', '3ER', 'FIN'])
-        .order('fecha_hora', { ascending: true });
-      setPartidos(data || []);
-      setLoading(false);
-    };
-    cargar();
+    supabase
+      .from('quiniela_partidos')
+      .select('*')
+      .in('grupo', ['E32', 'OCT', 'CUA', 'SEMI', 'FIN', '3ER'])
+      .order('fecha_hora', { ascending: true })
+      .then(({ data }) => {
+        setPartidos(data || []);
+        setLoading(false);
+      });
   }, []);
 
-  const porRonda = (key: string) =>
-    partidos.filter(p => p.grupo === key);
+  const byGrupo = (g: string) => partidos.filter(p => p.grupo === g);
 
-  const tercerLugar = porRonda('3ER');
-  const final       = porRonda('FIN');
+  const e32   = byGrupo('E32');
+  const oct   = byGrupo('OCT');
+  const cua   = byGrupo('CUA');
+  const semi  = byGrupo('SEMI');
+  const fin   = byGrupo('FIN');
+  const tercer = byGrupo('3ER');
+
+  const pad = (arr: Partido[], n: number): (Partido | null)[] =>
+    [...arr, ...Array(Math.max(0, n - arr.length)).fill(null)];
+
+  // Left bracket: first half; Right bracket: second half
+  const LE32  = pad(e32.slice(0, 8),  8);
+  const RE32  = pad(e32.slice(8, 16), 8);
+  const LOct  = pad(oct.slice(0, 4),  4);
+  const ROct  = pad(oct.slice(4, 8),  4);
+  const LCua  = pad(cua.slice(0, 2),  2);
+  const RCua  = pad(cua.slice(2, 4),  2);
+  const LSemi = pad(semi.slice(0, 1), 1);
+  const RSemi = pad(semi.slice(1, 2), 1);
+  const finalP = fin[0] ?? null;
+
+  const FINAL_W = CARD_W + 48; // center column width
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0f172a' }}>
+        <p style={{ color: '#475569', fontFamily: 'var(--font-rajdhani)' }}>Cargando bracket...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen pt-6 pb-28" style={{ background: 'var(--bg-base)' }}>
+    <div className="min-h-screen pb-28" style={{ background: '#0f172a' }}>
       {/* Header */}
-      <div className="px-4 mb-5">
+      <div className="px-4 pt-6 pb-3">
         <h1 style={{
           fontFamily: 'var(--font-bebas)',
           fontSize: '2rem',
-          color: 'var(--accent-gold)',
+          color: '#ea580c',
           letterSpacing: '0.05em',
         }}>
-          🏆 CUADRO ELIMINATORIO
+          🏆 DIECISEISAVOS DE FINAL
         </h1>
-        <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-rajdhani)' }}>
-          Mundial 2026 · desliza para ver el bracket completo →
+        <p className="text-xs mt-0.5" style={{ color: '#475569', fontFamily: 'var(--font-rajdhani)' }}>
+          Mundial 2026 · Cuadro eliminatorio · desliza para ver completo →
         </p>
       </div>
 
-      {loading ? (
-        <p className="text-center py-16" style={{ color: 'var(--text-secondary)' }}>Cargando...</p>
-      ) : (
-        <>
-          {/* Bracket principal — scroll horizontal */}
-          <div className="overflow-x-auto pb-4" style={{ scrollbarWidth: 'thin' }}>
-            <div className="flex gap-4 px-4" style={{ minWidth: 'max-content' }}>
-              {RONDAS.map(r => (
-                <Columna
-                  key={r.key}
-                  label={r.label}
-                  partidos={porRonda(r.key)}
-                  crucesMap={r.key === 'E32' ? crucesE32 : undefined}
-                  equipos={r.key === 'E32' ? equiposE32 : undefined}
-                />
-              ))}
-            </div>
+      {/* Bracket — horizontal scroll */}
+      <div className="overflow-x-auto pb-6" style={{ scrollbarWidth: 'thin' }}>
+        <div style={{ padding: '0 16px 0 16px', minWidth: 'max-content' }}>
+
+          {/* ── Round labels ── */}
+          <div className="flex">
+            {/* Left labels: E32, OCT, CUA, SEMI */}
+            {(['Dieciseisavos', 'Octavos', 'Cuartos', 'Semifinal'] as const).map((label, i) => (
+              <RoundLabel key={label} label={label}
+                w={i < 3 ? CARD_W + CONN_W : CARD_W}
+              />
+            ))}
+            {/* Final */}
+            <RoundLabel label="Final" w={FINAL_W} />
+            {/* Right labels: SEMI, CUA, OCT, E32 */}
+            {(['Semifinal', 'Cuartos', 'Octavos', 'Dieciseisavos'] as const).map((label, i) => (
+              <RoundLabel key={label + 'R'} label={label}
+                w={i === 0 ? CARD_W : CARD_W + CONN_W}
+              />
+            ))}
           </div>
 
-          {/* Tercer lugar y Final — fijados abajo del bracket */}
-          {(tercerLugar.length > 0 || final.length > 0) && (
-            <div className="px-4 mt-6">
-              <div className="flex gap-4">
-                {tercerLugar.length > 0 && (
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest mb-2"
-                      style={{ color: '#64748b', fontFamily: 'var(--font-rajdhani)' }}>
-                      🥉 {getNombreJornada(8)}
-                    </p>
-                    <PartidoCard p={tercerLugar[0]} />
-                  </div>
-                )}
-                {final.length > 0 && (
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest mb-2"
-                      style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
-                      🏆 {getNombreJornada(9)}
-                    </p>
-                    <PartidoCard p={final[0]} />
-                  </div>
-                )}
+          {/* ── Bracket body ── */}
+          <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+            {/* ── LEFT SIDE ── */}
+            <BracketColumn roundIdx={0} items={LE32} />
+            <ConnectorL fromRound={0} pairs={4} />
+            <BracketColumn roundIdx={1} items={LOct} />
+            <ConnectorL fromRound={1} pairs={2} />
+            <BracketColumn roundIdx={2} items={LCua} />
+            <ConnectorL fromRound={2} pairs={1} />
+            <BracketColumn roundIdx={3} items={LSemi} />
+
+            {/* ── FINAL CENTER ── */}
+            <div style={{ width: FINAL_W, height: BH, flexShrink: 0, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {/* Connector from left semi */}
+              <svg width={FINAL_W / 2} height={BH}
+                style={{ position: 'absolute', left: 0, top: 0, pointerEvents: 'none' }}>
+                <line x1={0} y1={BH / 2} x2={FINAL_W / 2} y2={BH / 2}
+                  stroke="#1e3a5f" strokeWidth={1.5} />
+              </svg>
+              {/* Connector from right semi */}
+              <svg width={FINAL_W / 2} height={BH}
+                style={{ position: 'absolute', right: 0, top: 0, pointerEvents: 'none' }}>
+                <line x1={FINAL_W / 2} y1={BH / 2} x2={0} y2={BH / 2}
+                  stroke="#1e3a5f" strokeWidth={1.5} />
+              </svg>
+              <div style={{ position: 'relative', zIndex: 1 }}>
+                <div style={{
+                  textAlign: 'center', fontSize: 9, fontWeight: 700,
+                  letterSpacing: '0.12em', textTransform: 'uppercase',
+                  color: '#ea580c', fontFamily: 'var(--font-rajdhani)',
+                  marginBottom: 6,
+                }}>
+                  🏆 GRAN FINAL
+                </div>
+                <MatchCard partido={finalP} isFinal />
               </div>
             </div>
-          )}
 
-          {/* Estado vacío */}
-          {partidos.length === 0 && (
-            <div className="mx-4 rounded-2xl p-10 text-center"
-              style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-              <p className="text-4xl mb-3">⏳</p>
-              <p style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-rajdhani)', fontSize: '0.95rem' }}>
-                El cuadro eliminatorio se publicará al finalizar la fase de grupos
-              </p>
-            </div>
-          )}
-        </>
+            {/* ── RIGHT SIDE (SEMI → E32, left to right from center) ── */}
+            <BracketColumn roundIdx={3} items={RSemi} />
+            <ConnectorR fromRound={2} pairs={1} />
+            <BracketColumn roundIdx={2} items={RCua} />
+            <ConnectorR fromRound={1} pairs={2} />
+            <BracketColumn roundIdx={1} items={ROct} />
+            <ConnectorR fromRound={0} pairs={4} />
+            <BracketColumn roundIdx={0} items={RE32} />
+          </div>
+        </div>
+      </div>
+
+      {/* Tercer lugar */}
+      {tercer.length > 0 && (
+        <div className="px-4 mt-2">
+          <p style={{
+            fontSize: 10, fontWeight: 700, letterSpacing: '0.1em',
+            textTransform: 'uppercase', color: '#64748b',
+            fontFamily: 'var(--font-rajdhani)', marginBottom: 8,
+          }}>
+            🥉 Tercer lugar
+          </p>
+          <MatchCard partido={tercer[0]} />
+        </div>
+      )}
+
+      {/* Empty state */}
+      {partidos.length === 0 && (
+        <div className="mx-4 rounded-2xl p-10 text-center"
+          style={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.07)' }}>
+          <p className="text-4xl mb-3">⏳</p>
+          <p style={{ color: '#475569', fontFamily: 'var(--font-rajdhani)', fontSize: '0.95rem' }}>
+            El cuadro eliminatorio se publicará al finalizar la fase de grupos
+          </p>
+        </div>
       )}
     </div>
   );
