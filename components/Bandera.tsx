@@ -13,9 +13,16 @@ const EMOJI_A_CODIGO: Record<string, string> = {
   '🇸🇳': 'sn', '🇮🇶': 'iq', '🇳🇴': 'no', '🇦🇷': 'ar',
   '🇩🇿': 'dz', '🇦🇹': 'at', '🇯🇴': 'jo', '🇵🇹': 'pt',
   '🇨🇩': 'cd', '🇺🇿': 'uz', '🇨🇴': 'co', '🇵🇦': 'pa',
-  '🇬🇭': 'gh', '🇭🇷': 'hr', '🇮🇹': 'it',
+  '🇬🇭': 'gh', '🇭🇷': 'hr', '🇮🇹': 'it', '🇸🇻': 'sv',
+  '🇭🇺': 'hu', '🇸🇮': 'si', '🇬🇪': 'ge', '🇸🇰': 'sk',
+  '🇦🇱': 'al', '🇷🇸': 'rs', '🇷🇴': 'ro', '🇵🇱': 'pl',
+  '🇩🇰': 'dk', '🇨🇲': 'cm', '🇳🇬': 'ng', '🇧🇴': 'bo',
+  '🇻🇪': 've', '🇨🇱': 'cl', '🇵🇪': 'pe', '🇬🇹': 'gt',
+  '🇯🇲': 'jm', '🇭🇳': 'hn', '🇨🇷': 'cr', '🇹🇹': 'tt',
+  '🇺🇦': 'ua', '🇨🇺': 'cu', '🇰🇿': 'kz',
   '🏴󠁧󠁢󠁥󠁮󠁧󠁿': 'gb-eng',
   '🏴󠁧󠁢󠁳󠁣󠁴󠁿': 'gb-sct',
+  '🏴󠁧󠁢󠁷󠁬󠁳󠁿': 'gb-wls',
 };
 
 const sizeMap = {
@@ -32,7 +39,8 @@ interface BanderaProps {
 
 export function Bandera({ emoji, nombre, size = 'md' }: BanderaProps) {
   const [error, setError] = useState(false);
-  const codigo = EMOJI_A_CODIGO[emoji];
+  // Handle both flag emojis ('🇨🇦') and raw ISO-2 codes ('CA') stored in DB
+  const codigo = EMOJI_A_CODIGO[emoji] ?? (/^[A-Z]{2}$/.test(emoji) ? emoji.toLowerCase() : undefined);
   const { w, h } = sizeMap[size];
 
   if (!codigo || error) {
