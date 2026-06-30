@@ -416,9 +416,25 @@ export default function DashboardPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { cargarRanking(); }, [jornadaSeleccionada]);
 
-  const jornadasDisponibles = pozos.length > 0
-    ? [...new Set([...pozos.map(p => p.jornada), 4, 5])]
-    : [1, 2, 3, 4, 5, 6, 7, 8, 9];
+  const jornadasConPozo = new Set(pozos.map(p => p.jornada));
+  const pozosCompletos: Pozo[] = [...pozos];
+  for (let j = 1; j <= 5; j++) {
+    if (!jornadasConPozo.has(j)) {
+      pozosCompletos.push({
+        id: `synthetic-${j}`,
+        jornada: j,
+        total_mxn: 0,
+        participantes: 0,
+        ganador_id: null,
+        ganador_nombre: null,
+        estado: 'abierto',
+        created_at: new Date().toISOString(),
+      });
+    }
+  }
+  pozosCompletos.sort((a, b) => a.jornada - b.jornada);
+
+  const jornadasDisponibles = [...new Set(pozosCompletos.map(p => p.jornada))];
 
   const compartirRanking = () => {
     const texto = ranking
@@ -531,12 +547,12 @@ export default function DashboardPage() {
       )}
 
       {/* Pozos por jornada */}
-      {pozos.length > 0 && (
+      {pozosCompletos.length > 0 && (
         <div className="space-y-3" style={{ animation: 'fadeInUp 0.5s ease-out 0.25s both' }}>
           <p className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: 'var(--text-secondary)' }}>
             Pozos acumulados
           </p>
-          {pozos.map(pozo => <PozoCard key={pozo.id} pozo={pozo} />)}
+          {pozosCompletos.map(pozo => <PozoCard key={pozo.id} pozo={pozo} />)}
         </div>
       )}
 

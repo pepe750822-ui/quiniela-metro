@@ -7,7 +7,7 @@ import { Bandera } from '@/components/Bandera';
 import { getNombreJornada, BANDERAS_EQUIPOS } from '@/lib/utils';
 
 export default function TablaPage() {
-  const [jornada, setJornada]           = useState(4);
+  const [jornada, setJornada]           = useState(5);
   const [partidos, setPartidos]         = useState<any[]>([]);
   const [jugadores, setJugadores]       = useState<any[]>([]);
   const [predicciones, setPredicciones] = useState<any[]>([]);
@@ -626,14 +626,8 @@ export default function TablaPage() {
         <span style={{ color: '#fb923c' }}>■ 1pt resultado</span>
         <span style={{ color: '#f87171' }}>■ 0pts fallo</span>
         <span style={{ color: '#64748b' }}>■ predicción pendiente</span>
+        {jornada >= 5 && <span style={{ color: '#94a3b8' }}>⏱️ Regla · ⏩ Prórroga · 🥅 Penales</span>}
       </div>
-      {jornada >= 5 && (
-        <div className="px-4 mt-1 flex flex-wrap gap-4 text-xs leyenda" style={{ color: '#475569' }}>
-          <span>⏱️ Reglamentario</span>
-          <span>⏩ Prórroga</span>
-          <span>🥅 Penales</span>
-        </div>
-      )}
 
       {/* Tablas para impresión — ocultas en pantalla */}
       <div className="hidden print:block">
