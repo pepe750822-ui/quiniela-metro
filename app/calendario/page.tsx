@@ -24,6 +24,8 @@ interface Partido {
   tv_abierta?: string | null;
   tv_paga?: string | null;
   streaming?: string | null;
+  clasificado?: string | null;
+  como_termino?: string | null;
 }
 
 export default function CalendarioPage() {
@@ -177,6 +179,12 @@ export default function CalendarioPage() {
                         <span className="text-sm font-bold text-center text-slate-900 dark:text-white">{partido.equipo_visitante}</span>
                       </div>
                     </div>
+
+                    {partido.estado === 'finalizado' && partido.clasificado && partido.como_termino && partido.como_termino !== 'reglamentario' && (
+                      <div className="mt-2 text-center text-xs font-semibold" style={{ color: '#94a3b8', fontFamily: 'var(--font-rajdhani)' }}>
+                        {partido.como_termino === 'penales' ? '🥅' : '⏱️'} {partido.clasificado} avanza{partido.como_termino === 'penales' ? ' en penales' : ' en prórroga'}
+                      </div>
+                    )}
 
                     {partido.estadio && (
                       <div className="mt-2 text-xs text-slate-500 text-center space-y-0.5">

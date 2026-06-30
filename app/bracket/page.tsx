@@ -65,12 +65,13 @@ function MatchCard({ partido, isFinal }: { partido: Partido | null; isFinal?: bo
     );
   }
 
-  const fin   = partido.estado === 'finalizado';
-  const vivo  = partido.estado === 'en_curso';
-  const gl    = partido.goles_local  ?? 0;
-  const gv    = partido.goles_visitante ?? 0;
-  const wL    = fin && gl > gv;
-  const wV    = fin && gv > gl;
+  const fin         = partido.estado === 'finalizado';
+  const vivo        = partido.estado === 'en_curso';
+  const gl          = partido.goles_local  ?? 0;
+  const gv          = partido.goles_visitante ?? 0;
+  const clasificado = partido.clasificado ?? null;
+  const comoTermino = partido.como_termino ?? null;
+  const extraTime   = !!(fin && clasificado && comoTermino && comoTermino !== 'reglamentario');
 
   const fk    = getFechaKey(partido.fecha_hora);
   const local = (partido.equipo_local && partido.equipo_local !== 'A definir')
@@ -79,6 +80,10 @@ function MatchCard({ partido, isFinal }: { partido: Partido | null; isFinal?: bo
     ? partido.equipo_visitante : (equiposE32[fk]?.visitante || 'A definir');
   const bL    = BANDERAS_EQUIPOS[local]  ?? partido.bandera_local  ?? '';
   const bV    = BANDERAS_EQUIPOS[visit] ?? partido.bandera_visitante ?? '';
+
+  // Winner highlight: goals first, then clasificado (for draws/penalties)
+  const wL = fin && (gl > gv || (extraTime && clasificado === local));
+  const wV = fin && (gv > gl || (extraTime && clasificado === visit));
 
   return (
     <div style={{
@@ -99,6 +104,20 @@ function MatchCard({ partido, isFinal }: { partido: Partido | null; isFinal?: bo
       <TeamRow nombre={local} bandera={bL} goles={fin || vivo ? gl : null} winner={wL} />
       <div style={{ height: 1, background: 'rgba(255,255,255,0.06)' }} />
       <TeamRow nombre={visit} bandera={bV} goles={fin || vivo ? gv : null} winner={wV} />
+      {extraTime && (
+        <div style={{
+          padding: '2px 6px',
+          borderTop: '1px solid rgba(255,255,255,0.06)',
+          background: 'rgba(0,0,0,0.25)',
+          fontSize: 9,
+          color: '#94a3b8',
+          textAlign: 'center',
+          fontFamily: 'var(--font-rajdhani)',
+          letterSpacing: '0.04em',
+        }}>
+          {comoTermino === 'penales' ? '🥅' : '⏱️'} {clasificado} avanza{comoTermino === 'penales' ? ' en penales' : ' en prórroga'}
+        </div>
+      )}
     </div>
   );
 }
