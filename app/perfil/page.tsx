@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { getMontoJornada } from '@/lib/utils';
 
 export default function PerfilPage() {
   const router = useRouter();
@@ -176,7 +177,7 @@ export default function PerfilPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-lg" style={{ fontFamily: 'var(--font-bebas)', color: '#ea580c' }}>
-                      $50 MXN
+                      ${getMontoJornada(part.jornada)} MXN
                     </p>
                     {part.pagado ? (
                       <span className="text-xs px-2 py-0.5 rounded-full" style={{ color: '#34d399', background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.2)' }}>
