@@ -648,11 +648,25 @@ export default function TablaPage() {
 
       {/* Leyenda */}
       <div className="px-4 mt-4 flex flex-wrap gap-4 text-xs leyenda" style={{ color: '#475569' }}>
-        <span style={{ color: '#34d399' }}>■ 3pts exacto</span>
-        <span style={{ color: '#fb923c' }}>■ 1pt resultado</span>
-        <span style={{ color: '#f87171' }}>■ 0pts fallo</span>
-        <span style={{ color: '#64748b' }}>■ predicción pendiente</span>
-        {jornada >= 5 && <span style={{ color: '#94a3b8' }}>⏱️ Regla · ⏩ Prórroga · 🥅 Penales</span>}
+        {jornada < 5 ? (
+          <>
+            <span style={{ color: '#34d399' }}>■ 3pts exacto</span>
+            <span style={{ color: '#fb923c' }}>■ 1pt resultado</span>
+            <span style={{ color: '#f87171' }}>■ 0pts fallo</span>
+            <span style={{ color: '#64748b' }}>■ predicción pendiente</span>
+          </>
+        ) : (
+          <>
+            <span style={{ color: '#eab308' }}>■ 5pts</span>
+            <span style={{ color: '#9333ea' }}>■ 4pts</span>
+            <span style={{ color: '#059669' }}>■ 3pts</span>
+            <span style={{ color: '#2563eb' }}>■ 2pts</span>
+            <span style={{ color: '#f97316' }}>■ 1pt</span>
+            <span style={{ color: '#b91c1c' }}>■ 0pts</span>
+            <span style={{ color: '#64748b' }}>■ pendiente</span>
+            <span style={{ color: '#94a3b8' }}>⏱️ Regla · ⏩ Prórroga · 🥅 Penales</span>
+          </>
+        )}
       </div>
 
       {/* Tablas para impresión — ocultas en pantalla */}
