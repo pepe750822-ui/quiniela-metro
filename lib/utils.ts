@@ -144,6 +144,5 @@ export const BANDERAS_EQUIPOS: Record<string, string> = {
   'Eslovaquia': '🇸🇰',
   'Albania': '🇦🇱',
   'Austria': '🇦🇹',
-  'Ucrania': '🇺🇦',
   'Kazakhstan': '🇰🇿',
 };
