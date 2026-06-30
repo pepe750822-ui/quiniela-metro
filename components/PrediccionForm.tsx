@@ -55,6 +55,10 @@ export default function PrediccionForm({ partido, userId, quinielaExtraId, predi
   const [loading,         setLoading]         = useState(false);
 
   const handleGuardar = async () => {
+    if (partido.jornada >= 5 && (!clasificadoPred || !comoTerminaPred)) {
+      toast.error('Debes seleccionar quién clasifica y cómo termina el partido');
+      return;
+    }
     setLoading(true);
 
     // Verificar si ya existe participación para esta jornada + quiniela
