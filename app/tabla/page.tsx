@@ -41,6 +41,7 @@ export default function TablaPage() {
   const [jugadores, setJugadores]       = useState<any[]>([]);
   const [predicciones, setPredicciones] = useState<any[]>([]);
   const [participaciones, setParticipaciones] = useState<any[]>([]);
+  const [pozoParticipantes, setPozoParticipantes] = useState<number | null>(null);
   const [esAdmin, setEsAdmin]           = useState(false);
   const [loading, setLoading]           = useState(false);
   const tablaRef = useRef<HTMLDivElement>(null);
@@ -118,6 +119,14 @@ export default function TablaPage() {
     ]);
     const allPreds = [...(preds1 || []), ...(preds2 || [])];
     setPredicciones(allPreds);
+
+    const { data: pozoDat } = await supabase
+      .from('quiniela_pozo')
+      .select('participantes')
+      .eq('jornada', jornada)
+      .single();
+    setPozoParticipantes(pozoDat?.participantes ?? null);
+
     setLoading(false);
   };
 
@@ -459,6 +468,25 @@ export default function TablaPage() {
       {/* Banner reglas J5+ — colapsable */}
       {jornada >= 5 && <ReglasBanner />}
 
+      {/* Indicador comparativo Pozo vs Tabla */}
+      <div className="px-4 mb-2 print:hidden">
+        <div className="inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg"
+          style={{ background: 'rgba(234,88,12,0.06)', border: '1px solid rgba(234,88,12,0.2)' }}>
+          <span style={{ color: '#94a3b8' }}>
+            {'👥 Pozo: '}
+            <strong style={{ color: '#e2e8f0' }}>{pozoParticipantes ?? '…'}</strong>
+            {' · Tabla: '}
+            <strong style={{ color: '#e2e8f0' }}>{participaciones.length}</strong>
+            {' '}
+          </span>
+          {pozoParticipantes !== null && (
+            pozoParticipantes === participaciones.length
+              ? <span style={{ color: '#22c55e' }}>✅</span>
+              : <span style={{ color: '#f59e0b' }}>⚠️</span>
+          )}
+        </div>
+      </div>
+
       {/* Tabla horizontal scrollable — oculta al imprimir */}
       <div ref={tablaRef} className="overflow-x-auto overflow-y-auto px-2 print:hidden" style={{ maxHeight: 'calc(100vh - 160px)' }}>
         <table className="min-w-max print:min-w-0 print:w-full text-sm border-collapse">
@@ -525,7 +553,7 @@ export default function TablaPage() {
             </tr>
           </thead>
           <tbody>
-            {participacionesOrdenadas.map(part => {
+            {participacionesOrdenadas.map((part, idx) => {
               const jugador = jugadores.find((j: any) => j.id === part.user_id);
               const predsFiltradas = predicciones.filter((p: any) =>
                 p.user_id === part.user_id &&
@@ -547,6 +575,9 @@ export default function TablaPage() {
                 <tr key={part.id}>
                   <td className="sticky left-0 z-10 px-3 py-3" style={{ background: 'var(--bg-base)', borderBottom: '1px solid var(--border-color)' }}>
                     <div className="flex items-center gap-2">
+                      <span className="text-xs text-slate-500 dark:text-slate-600 w-4 text-right shrink-0 tabular-nums">
+                        {idx + 1}
+                      </span>
                       <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
                         style={{ background: 'rgba(234,88,12,0.2)', border: '1px solid rgba(234,88,12,0.3)', color: '#fb923c' }}>
                         {iniciales(part.user_id)}
