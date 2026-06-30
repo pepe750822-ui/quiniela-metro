@@ -423,7 +423,7 @@ export default function DashboardPage() {
       pozosCompletos.push({
         id: `synthetic-${j}`,
         jornada: j,
-        total_mxn: 0,
+        total_mxn: getMontoJornada(j),
         participantes: 0,
         ganador_id: null,
         ganador_nombre: null,
