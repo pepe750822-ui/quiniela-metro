@@ -134,6 +134,12 @@ export default function TablaPage() {
     return '';
   };
 
+  const getBanderaClasificado = (clasificadoPred: string, partido: any): string => {
+    if (partido.equipo_local === clasificadoPred) return partido.bandera_local || BANDERAS_EQUIPOS[clasificadoPred] || clasificadoPred;
+    if (partido.equipo_visitante === clasificadoPred) return partido.bandera_visitante || BANDERAS_EQUIPOS[clasificadoPred] || clasificadoPred;
+    return BANDERAS_EQUIPOS[clasificadoPred] || clasificadoPred;
+  };
+
   const descargarCSV = () => {
     const ahora = new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' });
 
@@ -540,7 +546,7 @@ export default function TablaPage() {
                     const pts = pred?.puntos_ganados ?? null;
                     if (partido.jornada >= 5) {
                       const bandera = pred?.clasificado_pred
-                        ? (BANDERAS_EQUIPOS[pred.clasificado_pred] || pred.clasificado_pred)
+                        ? getBanderaClasificado(pred.clasificado_pred, partido)
                         : null;
                       const emojiTermina = pred?.como_termina_pred === 'reglamentario' ? '⏱️'
                         : pred?.como_termina_pred === 'tiempo_extra' ? '⏩'
@@ -607,7 +613,7 @@ export default function TablaPage() {
                             {partido.jornada >= 5 && (pred.clasificado_pred || pred.como_termina_pred) && (
                               <div className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>
                                 {[
-                                  pred.clasificado_pred ? (BANDERAS_EQUIPOS[pred.clasificado_pred] || pred.clasificado_pred) : null,
+                                  pred.clasificado_pred ? getBanderaClasificado(pred.clasificado_pred, partido) : null,
                                   pred.como_termina_pred === 'reglamentario' ? '⏱️'
                                     : pred.como_termina_pred === 'tiempo_extra' ? '⏩'
                                     : pred.como_termina_pred === 'penales' ? '🥅' : null,
