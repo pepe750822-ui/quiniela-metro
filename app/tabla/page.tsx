@@ -551,13 +551,13 @@ export default function TablaPage() {
                       const emojiTermina = pred?.como_termina_pred === 'reglamentario' ? '⏱️'
                         : pred?.como_termina_pred === 'tiempo_extra' ? '⏩'
                         : pred?.como_termina_pred === 'penales' ? '🥅' : '';
-                      const ptsJ5Class = pts === 5
-                        ? 'font-bold text-sm text-yellow-500 dark:text-yellow-400'
-                        : pts === 3
-                          ? 'font-bold text-sm text-emerald-700 dark:text-emerald-400'
-                          : pts !== null && pts >= 1
-                            ? 'font-bold text-sm text-blue-600 dark:text-blue-400'
-                            : 'text-sm text-red-700 dark:text-red-400';
+                      const ptsJ5Class =
+                        pts === 5 ? 'font-bold text-sm text-yellow-500 dark:text-yellow-400'
+                        : pts === 4 ? 'font-bold text-sm text-purple-600 dark:text-purple-400'
+                        : pts === 3 ? 'font-bold text-sm text-emerald-700 dark:text-emerald-400'
+                        : pts === 2 ? 'font-bold text-sm text-blue-600 dark:text-blue-400'
+                        : pts === 1 ? 'font-bold text-sm text-orange-500 dark:text-orange-400'
+                        : 'text-sm text-red-700 dark:text-red-400';
                       return (
                         <td key={partido.id}
                           className="px-1 py-2 text-center"
