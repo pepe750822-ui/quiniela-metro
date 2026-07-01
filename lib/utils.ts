@@ -60,14 +60,14 @@ export const getFechaKey = (fecha: string) => {
 };
 
 export const equiposE32: Record<string, { local: string; visitante: string }> = {
-  '2026-06-28T19:00': { local: 'Sudáfrica',     visitante: 'Canadá' },
-  '2026-06-29T17:00': { local: 'Brasil',        visitante: '' },
-  '2026-06-29T20:30': { local: 'Alemania',      visitante: '' },
-  '2026-06-30T01:00': { local: 'Marruecos',     visitante: '' },
-  '2026-07-01T01:00': { local: 'México',        visitante: '' },
-  '2026-07-02T00:00': { local: 'Estados Unidos', visitante: '' },
-  '2026-07-03T03:00': { local: 'Suiza',         visitante: '' },
-  '2026-07-03T22:00': { local: 'Argentina',     visitante: '' },
+  '2026-06-28T19:00': { local: 'Sudáfrica',      visitante: 'Canadá' },
+  '2026-06-29T17:00': { local: 'Brasil',          visitante: 'Japón' },
+  '2026-06-29T20:30': { local: 'Alemania',        visitante: 'Paraguay' },
+  '2026-06-30T01:00': { local: 'Países Bajos',    visitante: 'Marruecos' },
+  '2026-07-01T01:00': { local: 'México',          visitante: 'Ecuador' },
+  '2026-07-02T00:00': { local: 'Estados Unidos',  visitante: 'Bosnia y Herzegovina' },
+  '2026-07-03T03:00': { local: 'Suiza',           visitante: 'Argelia' },
+  '2026-07-03T22:00': { local: 'Argentina',       visitante: 'Cabo Verde' },
 };
 
 export const BANDERAS_EQUIPOS: Record<string, string> = {

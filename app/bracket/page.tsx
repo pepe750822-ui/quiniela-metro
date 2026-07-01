@@ -188,6 +188,74 @@ function RoundLabel({ label, w }: { label: string; w: number }) {
   );
 }
 
+// ── Correct E32 bracket order (slot 0-7 = left side, 8-15 = right side) ─────
+const E32_BRACKET: [string, string][] = [
+  ['Alemania',        'Paraguay'],
+  ['Francia',         'Suecia'],
+  ['Sudáfrica',       'Canadá'],
+  ['Países Bajos',    'Marruecos'],
+  ['Portugal',        'Croacia'],
+  ['España',          'Austria'],
+  ['Estados Unidos',  'Bosnia'],
+  ['Bélgica',         'Senegal'],
+  ['Brasil',          'Japón'],
+  ['Costa de Marfil', 'Noruega'],
+  ['México',          'Ecuador'],
+  ['Inglaterra',      'RD Congo'],
+  ['Argentina',       'Cabo Verde'],
+  ['Australia',       'Egipto'],
+  ['Suiza',           'Argelia'],
+  ['Colombia',        'Ghana'],
+];
+
+// eslint-disable-next-line no-control-regex
+const DIACRITICS_RE = /[̀-ͯ]/g;
+
+function normalizeTeam(s: string): string {
+  return s.toLowerCase().normalize('NFD').replace(DIACRITICS_RE, '').replace(/[^a-z\s]/g, '').trim();
+}
+
+function teamsMatch(a: string, b: string): boolean {
+  const na = normalizeTeam(a);
+  const nb = normalizeTeam(b);
+  return na === nb || na.includes(nb) || nb.includes(na);
+}
+
+function sortE32ByBracket(partidos: Partido[]): (Partido | null)[] {
+  const result: (Partido | null)[] = new Array(16).fill(null);
+  const used = new Set<number>();
+
+  for (let slot = 0; slot < E32_BRACKET.length; slot++) {
+    const [bL, bV] = E32_BRACKET[slot];
+    for (let pi = 0; pi < partidos.length; pi++) {
+      if (used.has(pi)) continue;
+      const p = partidos[pi];
+      const fk = getFechaKey(p.fecha_hora);
+      const fb = equiposE32[fk];
+      const local = p.equipo_local !== 'A definir' ? p.equipo_local : (fb?.local ?? 'A definir');
+      const visit = p.equipo_visitante !== 'A definir' ? p.equipo_visitante : (fb?.visitante ?? 'A definir');
+      if (local === 'A definir' && visit === 'A definir') continue;
+      if (
+        (teamsMatch(local, bL) && teamsMatch(visit, bV)) ||
+        (teamsMatch(local, bV) && teamsMatch(visit, bL))
+      ) {
+        result[slot] = p;
+        used.add(pi);
+        break;
+      }
+    }
+  }
+
+  // Fill remaining null slots with unmatched partidos in original order
+  const unmatched = partidos.filter((_, i) => !used.has(i));
+  let ui = 0;
+  for (let i = 0; i < 16 && ui < unmatched.length; i++) {
+    if (result[i] === null) result[i] = unmatched[ui++];
+  }
+
+  return result;
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function BracketPage() {
   const [partidos, setPartidos] = useState<Partido[]>([]);
@@ -217,9 +285,10 @@ export default function BracketPage() {
   const pad = (arr: Partido[], n: number): (Partido | null)[] =>
     [...arr, ...Array(Math.max(0, n - arr.length)).fill(null)];
 
-  // Left bracket: first half; Right bracket: second half
-  const LE32  = pad(e32.slice(0, 8),  8);
-  const RE32  = pad(e32.slice(8, 16), 8);
+  // Sorted by official bracket position
+  const e32Ordered = sortE32ByBracket(e32);
+  const LE32 = e32Ordered.slice(0, 8);
+  const RE32 = e32Ordered.slice(8, 16);
   const LOct  = pad(oct.slice(0, 4),  4);
   const ROct  = pad(oct.slice(4, 8),  4);
   const LCua  = pad(cua.slice(0, 2),  2);
