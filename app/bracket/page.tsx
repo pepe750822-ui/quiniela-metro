@@ -214,6 +214,24 @@ function sortE32ByBracket(partidos: Partido[]): (Partido | null)[] {
   );
 }
 
+// ── OCT slot order by exact Supabase ID prefix (slot 0-3 = left, 4-7 = right) ─
+const OCT_SLOT_IDS: string[] = [
+  '7b870446', // slot 0 — Francia vs Paraguay (G0 vs G1)
+  '54d43cf5', // slot 1 — Canadá vs Marruecos (G2 vs G3)
+  'ca03402a', // slot 2 — G4 vs G5
+  '58fc08fc', // slot 3 — G6 vs G7
+  '096db262', // slot 4 — Brasil vs Noruega (G8 vs G9)
+  'e59a2e9d', // slot 5 — G10 vs G11
+  '467600a3', // slot 6 — G12 vs G13
+  'aebc9abe', // slot 7 — G14 vs G15
+];
+
+function sortOCTByBracket(partidos: Partido[]): (Partido | null)[] {
+  return OCT_SLOT_IDS.map(prefix =>
+    partidos.find(p => p.id.startsWith(prefix)) ?? null
+  );
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function BracketPage() {
   const [partidos, setPartidos] = useState<Partido[]>([]);
@@ -247,8 +265,9 @@ export default function BracketPage() {
   const e32Ordered = sortE32ByBracket(e32);
   const LE32 = e32Ordered.slice(0, 8);
   const RE32 = e32Ordered.slice(8, 16);
-  const LOct  = pad(oct.slice(0, 4),  4);
-  const ROct  = pad(oct.slice(4, 8),  4);
+  const octOrdered = sortOCTByBracket(oct);
+  const LOct = octOrdered.slice(0, 4);
+  const ROct = octOrdered.slice(4, 8);
   const LCua  = pad(cua.slice(0, 2),  2);
   const RCua  = pad(cua.slice(2, 4),  2);
   const LSemi = pad(semi.slice(0, 1), 1);
