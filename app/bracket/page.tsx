@@ -188,72 +188,30 @@ function RoundLabel({ label, w }: { label: string; w: number }) {
   );
 }
 
-// ── Correct E32 bracket order (slot 0-7 = left side, 8-15 = right side) ─────
-const E32_BRACKET: [string, string][] = [
-  ['Alemania',        'Paraguay'],
-  ['Francia',         'Suecia'],
-  ['Sudáfrica',       'Canadá'],
-  ['Países Bajos',    'Marruecos'],
-  ['Portugal',        'Croacia'],
-  ['España',          'Austria'],
-  ['Estados Unidos',  'Bosnia'],
-  ['Bélgica',         'Senegal'],
-  ['Brasil',          'Japón'],
-  ['Costa de Marfil', 'Noruega'],
-  ['México',          'Ecuador'],
-  ['Inglaterra',      'RD Congo'],
-  ['Argentina',       'Cabo Verde'],
-  ['Australia',       'Egipto'],
-  ['Suiza',           'Argelia'],
-  ['Colombia',        'Ghana'],
+// ── E32 slot order by exact Supabase ID prefix (slot 0-7 = left, 8-15 = right) ─
+const E32_SLOT_IDS: string[] = [
+  '7932f464', // slot 0  — Alemania vs Paraguay
+  'cf0c326b', // slot 1  — Francia vs Suecia
+  'a6241b5c', // slot 2  — Sudáfrica vs Canadá
+  'f6fa8151', // slot 3  — Países Bajos vs Marruecos
+  '99bbfca0', // slot 4  — Portugal vs Croacia
+  '1898a12a', // slot 5  — España vs Austria
+  '7ddfbb44', // slot 6  — Estados Unidos vs Bosnia y Herzegovina
+  '89ce35d6', // slot 7  — Bélgica vs Senegal
+  '740698dc', // slot 8  — Brasil vs Japón
+  '1f1c5663', // slot 9  — Costa de Marfil vs Noruega
+  '955c309a', // slot 10 — México vs Ecuador
+  '2bbb2a3b', // slot 11 — Inglaterra vs RD Congo
+  '64bb1d55', // slot 12 — Argentina vs Cabo Verde
+  'd433ca27', // slot 13 — Australia vs Egipto
+  'f8275c98', // slot 14 — Suiza vs Argelia
+  '3904746a', // slot 15 — Colombia vs Ghana
 ];
 
-// eslint-disable-next-line no-control-regex
-const DIACRITICS_RE = /[̀-ͯ]/g;
-
-function normalizeTeam(s: string): string {
-  return s.toLowerCase().normalize('NFD').replace(DIACRITICS_RE, '').replace(/[^a-z\s]/g, '').trim();
-}
-
-function teamsMatch(a: string, b: string): boolean {
-  const na = normalizeTeam(a);
-  const nb = normalizeTeam(b);
-  return na === nb || na.includes(nb) || nb.includes(na);
-}
-
 function sortE32ByBracket(partidos: Partido[]): (Partido | null)[] {
-  const result: (Partido | null)[] = new Array(16).fill(null);
-  const used = new Set<number>();
-
-  for (let slot = 0; slot < E32_BRACKET.length; slot++) {
-    const [bL, bV] = E32_BRACKET[slot];
-    for (let pi = 0; pi < partidos.length; pi++) {
-      if (used.has(pi)) continue;
-      const p = partidos[pi];
-      const fk = getFechaKey(p.fecha_hora);
-      const fb = equiposE32[fk];
-      const local = p.equipo_local !== 'A definir' ? p.equipo_local : (fb?.local ?? 'A definir');
-      const visit = p.equipo_visitante !== 'A definir' ? p.equipo_visitante : (fb?.visitante ?? 'A definir');
-      if (local === 'A definir' && visit === 'A definir') continue;
-      if (
-        (teamsMatch(local, bL) && teamsMatch(visit, bV)) ||
-        (teamsMatch(local, bV) && teamsMatch(visit, bL))
-      ) {
-        result[slot] = p;
-        used.add(pi);
-        break;
-      }
-    }
-  }
-
-  // Fill remaining null slots with unmatched partidos in original order
-  const unmatched = partidos.filter((_, i) => !used.has(i));
-  let ui = 0;
-  for (let i = 0; i < 16 && ui < unmatched.length; i++) {
-    if (result[i] === null) result[i] = unmatched[ui++];
-  }
-
-  return result;
+  return E32_SLOT_IDS.map(prefix =>
+    partidos.find(p => p.id.startsWith(prefix)) ?? null
+  );
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
