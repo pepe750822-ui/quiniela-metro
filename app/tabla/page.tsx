@@ -28,7 +28,7 @@ function ReglasBanner() {
             <span><span className="text-yellow-400 font-bold">+1 pt</span> clasificado correcto</span>
             <span><span className="text-yellow-400 font-bold">+1 pt</span> cómo termina correcto</span>
           </div>
-          <p>Máximo <span className="text-yellow-400 font-bold">5 pts</span> por partido · ⏱️ Regla · ⏩ Prórroga · 🥅 Penales</p>
+          <p>Máximo <span className="text-yellow-400 font-bold">5 pts</span> por partido · ⏱️ T. Reglamentario · ⏩ Prórroga · 🥅 Penales</p>
         </div>
       )}
     </div>
@@ -727,7 +727,7 @@ export default function TablaPage() {
             <span style={{ color: '#f97316' }}>■ 1pt</span>
             <span style={{ color: '#b91c1c' }}>■ 0pts</span>
             <span style={{ color: '#64748b' }}>■ pendiente</span>
-            <span style={{ color: '#94a3b8' }}>⏱️ Regla · ⏩ Prórroga · 🥅 Penales</span>
+            <span style={{ color: '#94a3b8' }}>⏱️ T. Reglamentario · ⏩ Prórroga · 🥅 Penales</span>
           </>
         )}
       </div>
