@@ -633,7 +633,7 @@ export default function TablaPage() {
                                 </div>
                               )}
                               <div style={{ color: ptsBase >= 3 ? '#10b981' : ptsBase >= 1 ? '#f97316' : '#ef4444' }}>
-                                {ptsBase >= 3 ? '⭐⭐⭐' : ptsBase >= 1 ? '⭐' : '✗'} {ptsBase}pt{ptsBase !== 1 ? 's' : ''}
+                                {ptsBase >= 3 ? '⚽⚽⚽' : ptsBase >= 1 ? '⚽' : '✗'} {ptsBase}pt{ptsBase !== 1 ? 's' : ''}
                               </div>
                               {partido.clasificado && (
                                 <div style={{ color: ptsClasif ? '#10b981' : '#ef4444' }}>
