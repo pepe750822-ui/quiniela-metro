@@ -49,6 +49,10 @@ export default function AdminPage() {
   const [adminId, setAdminId]     = useState<string | null>(null);
   const [resultados, setResultados] = useState<Record<string, { local: number; visitante: number }>>({});
   const [guardando, setGuardando]   = useState<string | null>(null);
+  const [extras, setExtras] = useState<Record<string, {
+    clasificado: string;
+    como_termino: 'reglamentario' | 'tiempo_extra' | 'penales';
+  }>>({});
 
   // Apodos
   const [jugadores, setJugadores] = useState<Jugador[]>([]);
@@ -382,17 +386,28 @@ export default function AdminPage() {
       return;
     }
     setGuardando(partidoId);
-    console.log('Guardando resultado:', partidoId, resultado.local, resultado.visitante);
+    const partidoObj = partidos.find(p => p.id === partidoId);
+    const ext = extras[partidoId];
+    const esElim = (partidoObj?.jornada ?? 0) >= 5;
+    const updatePayload: Record<string, unknown> = {
+      goles_local: resultado.local,
+      goles_visitante: resultado.visitante,
+      estado: 'finalizado',
+    };
+    if (esElim) {
+      updatePayload.clasificado  = ext?.clasificado  || null;
+      updatePayload.como_termino = ext?.como_termino || 'reglamentario';
+    }
+    console.log('Guardando resultado:', partidoId, updatePayload);
     const { error } = await supabase
       .from('quiniela_partidos')
-      .update({ goles_local: resultado.local, goles_visitante: resultado.visitante, estado: 'finalizado' })
+      .update(updatePayload)
       .eq('id', partidoId);
     console.log('Resultado de UPDATE:', error);
     setGuardando(null);
     if (error) {
       toast.error('Error: ' + error.message);
     } else {
-      const partidoObj = partidos.find(p => p.id === partidoId);
       toast.success('✅ Resultado guardado');
       setResultados(prev => { const n = { ...prev }; delete n[partidoId]; return n; });
       await cargarPartidos();
@@ -414,11 +429,12 @@ export default function AdminPage() {
     if (!confirm('¿Limpiar el resultado de este partido?')) return;
     const { error } = await supabase
       .from('quiniela_partidos')
-      .update({ goles_local: null, goles_visitante: null, estado: 'pendiente' })
+      .update({ goles_local: null, goles_visitante: null, estado: 'pendiente', clasificado: null, como_termino: null })
       .eq('id', partidoId);
     if (error) {
       toast.error('Error: ' + error.message);
     } else {
+      setExtras(prev => { const n = { ...prev }; delete n[partidoId]; return n; });
       toast.success('🔄 Resultado limpiado');
       await cargarPartidos();
     }
@@ -1527,38 +1543,68 @@ export default function AdminPage() {
                   <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
                 </p>
                 {partido.estado !== 'finalizado' && (
-                  <div className="flex items-center justify-center gap-3 mt-1">
-                    <input id={`local-${partido.id}`} name={`local-${partido.id}`}
-                      type="number" min="0" max="20" placeholder="0"
-                      value={res?.local ?? ''}
-                      onChange={e => setResultados(prev => ({
-                        ...prev,
-                        [partido.id]: { local: parseInt(e.target.value) || 0, visitante: prev[partido.id]?.visitante ?? 0 },
-                      }))}
-                      className="w-14 h-12 text-center text-xl font-bold rounded-xl outline-none"
-                      style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontFamily: 'var(--font-bebas)' }} />
-                    <span className="text-xl font-bold" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-bebas)' }}>–</span>
-                    <input id={`visitante-${partido.id}`} name={`visitante-${partido.id}`}
-                      type="number" min="0" max="20" placeholder="0"
-                      value={res?.visitante ?? ''}
-                      onChange={e => setResultados(prev => ({
-                        ...prev,
-                        [partido.id]: { local: prev[partido.id]?.local ?? 0, visitante: parseInt(e.target.value) || 0 },
-                      }))}
-                      className="w-14 h-12 text-center text-xl font-bold rounded-xl outline-none"
-                      style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontFamily: 'var(--font-bebas)' }} />
-                    <button onClick={() => handleGuardar(partido.id)}
-                      disabled={guardando === partido.id}
-                      className="h-12 px-4 rounded-xl font-bold text-sm disabled:opacity-40 transition-all active:scale-95"
-                      style={{ background: '#10b981', color: '#000' }}>
-                      {guardando === partido.id ? '…' : 'Guardar ✓'}
-                    </button>
-                    <button onClick={() => handleLimpiar(partido.id)}
-                      className="h-12 px-3 rounded-xl text-sm transition-all active:scale-95"
-                      style={{ background: '#334155', color: '#94a3b8' }}
-                      title="Limpiar resultado">
-                      🔄
-                    </button>
+                  <div className="space-y-3 mt-1">
+                    <div className="flex items-center justify-center gap-3">
+                      <input id={`local-${partido.id}`} name={`local-${partido.id}`}
+                        type="number" min="0" max="20" placeholder="0"
+                        value={res?.local ?? ''}
+                        onChange={e => setResultados(prev => ({
+                          ...prev,
+                          [partido.id]: { local: parseInt(e.target.value) || 0, visitante: prev[partido.id]?.visitante ?? 0 },
+                        }))}
+                        className="w-14 h-12 text-center text-xl font-bold rounded-xl outline-none"
+                        style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontFamily: 'var(--font-bebas)' }} />
+                      <span className="text-xl font-bold" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-bebas)' }}>–</span>
+                      <input id={`visitante-${partido.id}`} name={`visitante-${partido.id}`}
+                        type="number" min="0" max="20" placeholder="0"
+                        value={res?.visitante ?? ''}
+                        onChange={e => setResultados(prev => ({
+                          ...prev,
+                          [partido.id]: { local: prev[partido.id]?.local ?? 0, visitante: parseInt(e.target.value) || 0 },
+                        }))}
+                        className="w-14 h-12 text-center text-xl font-bold rounded-xl outline-none"
+                        style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontFamily: 'var(--font-bebas)' }} />
+                      <button onClick={() => handleGuardar(partido.id)}
+                        disabled={guardando === partido.id}
+                        className="h-12 px-4 rounded-xl font-bold text-sm disabled:opacity-40 transition-all active:scale-95"
+                        style={{ background: '#10b981', color: '#000' }}>
+                        {guardando === partido.id ? '…' : 'Guardar ✓'}
+                      </button>
+                      <button onClick={() => handleLimpiar(partido.id)}
+                        className="h-12 px-3 rounded-xl text-sm transition-all active:scale-95"
+                        style={{ background: '#334155', color: '#94a3b8' }}
+                        title="Limpiar resultado">
+                        🔄
+                      </button>
+                    </div>
+                    {partido.jornada >= 5 && (
+                      <div className="flex flex-col sm:flex-row gap-2 px-1">
+                        <div className="flex-1">
+                          <label className="block text-xs mb-1" style={{ color: '#64748b' }}>¿Quién clasificó?</label>
+                          <select
+                            value={extras[partido.id]?.clasificado ?? ''}
+                            onChange={e => setExtras(prev => ({ ...prev, [partido.id]: { ...prev[partido.id], clasificado: e.target.value, como_termino: prev[partido.id]?.como_termino ?? 'reglamentario' } }))}
+                            className="w-full rounded-lg px-2 py-1.5 text-sm outline-none"
+                            style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}>
+                            <option value="">— seleccionar —</option>
+                            <option value={partido.equipo_local}>{partido.equipo_local}</option>
+                            <option value={partido.equipo_visitante}>{partido.equipo_visitante}</option>
+                          </select>
+                        </div>
+                        <div className="flex-1">
+                          <label className="block text-xs mb-1" style={{ color: '#64748b' }}>¿Cómo terminó?</label>
+                          <select
+                            value={extras[partido.id]?.como_termino ?? 'reglamentario'}
+                            onChange={e => setExtras(prev => ({ ...prev, [partido.id]: { ...prev[partido.id], clasificado: prev[partido.id]?.clasificado ?? '', como_termino: e.target.value as 'reglamentario' | 'tiempo_extra' | 'penales' } }))}
+                            className="w-full rounded-lg px-2 py-1.5 text-sm outline-none"
+                            style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}>
+                            <option value="reglamentario">⏱️ Tiempo reglamentario</option>
+                            <option value="tiempo_extra">⏩ Tiempo extra</option>
+                            <option value="penales">🥅 Penales</option>
+                          </select>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
                 {partido.estado === 'finalizado' && (
