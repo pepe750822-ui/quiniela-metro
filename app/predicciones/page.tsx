@@ -238,6 +238,9 @@ export default function PrediccionesPage() {
       .select()
       .single();
     if (!error && data) {
+      await supabase
+        .from('quiniela_participaciones')
+        .insert({ user_id: userId, jornada, pagado: false, publicado: false, quiniela_extra_id: data.id });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setQuinielasExtra((prev: any[]) => [...prev, data]);
       setQuinielaSeleccionada(data.id);
