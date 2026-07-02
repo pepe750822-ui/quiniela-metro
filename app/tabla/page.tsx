@@ -608,35 +608,64 @@ export default function TablaPage() {
                     const pred = getPred(part.user_id, partido.id, part.quiniela_extra_id);
                     const pts = pred?.puntos_ganados ?? null;
                     if (partido.jornada >= 5) {
+                      // ── desglose J5+ ─────────────────────────────
+                      if (pts !== null && pred) {
+                        const ptsClasif = (partido.clasificado && pred.clasificado_pred === partido.clasificado) ? 1 : 0;
+                        const ptsComo   = (partido.como_termino && pred.como_termina_pred === partido.como_termino) ? 1 : 0;
+                        const ptsBase   = Math.max(0, pts - ptsClasif - ptsComo);
+                        const emojiPartidoComo = partido.como_termino === 'penales' ? '🥅'
+                          : partido.como_termino === 'tiempo_extra' ? '⏩' : '⏱️';
+                        const banderaClasif = pred.clasificado_pred
+                          ? getBanderaClasificado(pred.clasificado_pred, partido) : null;
+                        const totalColor = pts >= 4 ? '#eab308' : pts === 3 ? '#10b981'
+                          : pts === 2 ? '#60a5fa' : pts === 1 ? '#f97316' : '#ef4444';
+                        return (
+                          <td key={partido.id}
+                            className="px-1 py-1 text-center"
+                            style={{ borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)', minWidth: 64 }}>
+                            <div style={{ fontSize: 9, lineHeight: '1.55', color: '#94a3b8' }}>
+                              <div>{pred.goles_local_pred}-{pred.goles_visitante_pred}</div>
+                              <div style={{ color: ptsBase >= 3 ? '#10b981' : ptsBase >= 1 ? '#f97316' : '#ef4444' }}>
+                                {ptsBase >= 3 ? '⭐⭐⭐' : ptsBase >= 1 ? '⭐' : '✗'} {ptsBase}pt{ptsBase !== 1 ? 's' : ''}
+                              </div>
+                              {partido.clasificado && (
+                                <div style={{ color: ptsClasif ? '#10b981' : '#ef4444' }}>
+                                  {banderaClasif ?? '?'} {ptsClasif ? '+1pt' : '+0'}
+                                </div>
+                              )}
+                              {partido.como_termino && (
+                                <div style={{ color: ptsComo ? '#10b981' : '#ef4444' }}>
+                                  {emojiPartidoComo} {ptsComo ? '+1pt' : '+0'}
+                                </div>
+                              )}
+                              <div style={{ borderTop: '1px solid rgba(148,163,184,0.2)', marginTop: 2, paddingTop: 2, fontWeight: 700, fontSize: 11, color: totalColor }}>
+                                {pts}pts
+                              </div>
+                            </div>
+                          </td>
+                        );
+                      }
+                      // J5+ sin puntos aún (partido no finalizado o sin pred)
                       const bandera = pred?.clasificado_pred
-                        ? getBanderaClasificado(pred.clasificado_pred, partido)
-                        : null;
+                        ? getBanderaClasificado(pred.clasificado_pred, partido) : null;
                       const emojiTermina = pred?.como_termina_pred === 'reglamentario' ? '⏱️'
                         : pred?.como_termina_pred === 'tiempo_extra' ? '⏩'
                         : pred?.como_termina_pred === 'penales' ? '🥅' : '';
-                      const ptsJ5Class =
-                        pts === 5 ? 'font-bold text-sm text-yellow-500 dark:text-yellow-400'
-                        : pts === 4 ? 'font-bold text-sm text-purple-600 dark:text-purple-400'
-                        : pts === 3 ? 'font-bold text-sm text-emerald-700 dark:text-emerald-400'
-                        : pts === 2 ? 'font-bold text-sm text-blue-600 dark:text-blue-400'
-                        : pts === 1 ? 'font-bold text-sm text-orange-500 dark:text-orange-400'
-                        : 'text-sm text-red-700 dark:text-red-400';
                       return (
                         <td key={partido.id}
                           className="px-1 py-2 text-center"
                           style={{ borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
-                          {pred && (
-                            <div className="text-xs text-slate-600 dark:text-slate-400">
-                              {pred.goles_local_pred}-{pred.goles_visitante_pred}
-                            </div>
-                          )}
-                          {pred && (bandera || emojiTermina) && (
-                            <div className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>
-                              {[bandera, emojiTermina].filter(Boolean).join(' ')}
-                            </div>
-                          )}
-                          {pts !== null ? (
-                            <div className={ptsJ5Class}>{pts}pts</div>
+                          {pred ? (
+                            <>
+                              <div className="text-xs text-slate-600 dark:text-slate-400">
+                                {pred.goles_local_pred}-{pred.goles_visitante_pred}
+                              </div>
+                              {(bandera || emojiTermina) && (
+                                <div className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>
+                                  {[bandera, emojiTermina].filter(Boolean).join(' ')}
+                                </div>
+                              )}
+                            </>
                           ) : (
                             <div className="text-sm text-slate-400 dark:text-slate-600">–</div>
                           )}
