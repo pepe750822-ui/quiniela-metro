@@ -115,7 +115,7 @@ function MatchCard({ partido, isFinal }: { partido: Partido | null; isFinal?: bo
           fontFamily: 'var(--font-rajdhani)',
           letterSpacing: '0.04em',
         }}>
-          {comoTermino === 'penales' ? '🥅' : comoTermino === 'tiempo_extra' ? '⏩' : '⏱️'}{partido.marcador_penales ? ` ${partido.marcador_penales}` : ''} · {clasificado}
+          {comoTermino === 'penales' ? '🥅' : comoTermino === 'tiempo_extra' ? '⏩' : '⏱️'}{comoTermino === 'penales' && partido.marcador_penales ? ` ${partido.marcador_penales}` : comoTermino === 'tiempo_extra' && partido.marcador_tiempo_extra ? ` ${partido.marcador_tiempo_extra}` : ''} · {clasificado}
         </div>
       )}
     </div>
