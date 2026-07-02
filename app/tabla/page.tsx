@@ -625,6 +625,13 @@ export default function TablaPage() {
                             style={{ borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)', minWidth: 64 }}>
                             <div style={{ fontSize: 9, lineHeight: '1.55', color: '#94a3b8' }}>
                               <div>{pred.goles_local_pred}-{pred.goles_visitante_pred}</div>
+                              {(pred.clasificado_pred || pred.como_termina_pred) && (
+                                <div style={{ color: '#64748b' }}>
+                                  {pred.clasificado_pred ? getBanderaClasificado(pred.clasificado_pred, partido) : ''}
+                                  {pred.clasificado_pred && pred.como_termina_pred ? ' ' : ''}
+                                  {pred.como_termina_pred === 'reglamentario' ? '⏱️' : pred.como_termina_pred === 'tiempo_extra' ? '⏩' : pred.como_termina_pred === 'penales' ? '🥅' : ''}
+                                </div>
+                              )}
                               <div style={{ color: ptsBase >= 3 ? '#10b981' : ptsBase >= 1 ? '#f97316' : '#ef4444' }}>
                                 {ptsBase >= 3 ? '⭐⭐⭐' : ptsBase >= 1 ? '⭐' : '✗'} {ptsBase}pt{ptsBase !== 1 ? 's' : ''}
                               </div>
