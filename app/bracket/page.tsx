@@ -218,12 +218,12 @@ function sortE32ByBracket(partidos: Partido[]): (Partido | null)[] {
 const OCT_SLOT_IDS: string[] = [
   '7b870446', // slot 0 — Francia vs Paraguay (G0 vs G1)
   '54d43cf5', // slot 1 — Canadá vs Marruecos (G2 vs G3)
-  '58fc08fc', // slot 2 — G4 vs G5 (Portugal/España)
-  'ca03402a', // slot 3 — Bélgica vs EUA/Bosnia (G6 vs G7)
+  'aebc9abe', // slot 2 — España vs A definir (G4 vs G5)
+  'ca03402a', // slot 3 — Bélgica vs EUA (G6 vs G7)
   '096db262', // slot 4 — Brasil vs Noruega (G8 vs G9)
   'e59a2e9d', // slot 5 — México vs Inglaterra (G10 vs G11)
   '467600a3', // slot 6 — G12 vs G13 (Argentina/Australia)
-  'aebc9abe', // slot 7 — G14 vs G15 (Suiza/Colombia)
+  '58fc08fc', // slot 7 — G14 vs G15 (Portugal/España)
 ];
 
 function sortOCTByBracket(partidos: Partido[]): (Partido | null)[] {
