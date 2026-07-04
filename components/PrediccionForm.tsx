@@ -167,27 +167,23 @@ export default function PrediccionForm({ partido, userId, quinielaExtraId, predi
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)' }}
       onClick={onCancelar}
     >
       <div
-        className="w-full sm:max-w-sm rounded-t-2xl sm:rounded-2xl flex flex-col overflow-hidden"
+        className="w-full max-w-sm rounded-2xl overflow-y-auto"
         style={{
           background: 'var(--bg-surface)',
           border: '1px solid rgba(234,88,12,0.3)',
           animation: 'fadeIn 0.2s ease-out',
-          maxHeight: 'calc(100dvh - env(safe-area-inset-top, 20px))',
+          maxHeight: '85vh',
         }}
         onClick={e => e.stopPropagation()}
       >
-        {/* Drag handle */}
-        <div className="flex-shrink-0 pt-3 pb-1">
+        <div className="px-4 pt-6 space-y-4" style={{ paddingBottom: '80px' }}>
           <div className="w-10 h-1 rounded-full mx-auto" style={{ background: 'var(--border)' }} />
-        </div>
 
-        {/* Scrollable content */}
-        <div className="overflow-y-auto flex-1 px-4 pt-3 pb-2 space-y-4">
           <div className="text-center space-y-1">
             <p className="text-xs uppercase tracking-widest font-semibold" style={{ color: 'var(--text-secondary)' }}>
               Tu predicción
@@ -280,34 +276,26 @@ export default function PrediccionForm({ partido, userId, quinielaExtraId, predi
               </div>
             </div>
           )}
-        </div>
 
-        {/* Botones — sticky al fondo, siempre visibles */}
-        <div
-          className="flex-shrink-0 flex gap-3 px-4 pt-3"
-          style={{
-            borderTop: '1px solid var(--border)',
-            paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom, 0px))',
-            background: 'var(--bg-surface)',
-          }}
-        >
-          <button
-            type="button"
-            onClick={onCancelar}
-            className="flex-1 py-3 rounded-2xl font-semibold min-h-[48px] transition-all active:scale-95"
-            style={{ border: '1px solid var(--border)', color: 'var(--text-secondary)' }}
-          >
-            Cancelar
-          </button>
-          <button
-            type="button"
-            onClick={handleGuardar}
-            disabled={loading}
-            className="flex-1 py-3 rounded-2xl font-bold min-h-[48px] transition-all active:scale-95 disabled:opacity-50"
-            style={{ background: 'var(--accent-gold)', color: '#000', fontFamily: 'var(--font-rajdhani)' }}
-          >
-            {loading ? 'Guardando…' : prediccionExistente ? 'Actualizar' : 'Guardar predicción'}
-          </button>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={onCancelar}
+              className="flex-1 py-3 rounded-2xl font-semibold min-h-[48px] transition-all active:scale-95"
+              style={{ border: '1px solid var(--border)', color: 'var(--text-secondary)' }}
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={handleGuardar}
+              disabled={loading}
+              className="flex-1 py-3 rounded-2xl font-bold min-h-[48px] transition-all active:scale-95 disabled:opacity-50"
+              style={{ background: 'var(--accent-gold)', color: '#000', fontFamily: 'var(--font-rajdhani)' }}
+            >
+              {loading ? 'Guardando…' : prediccionExistente ? 'Actualizar' : 'Guardar predicción'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
