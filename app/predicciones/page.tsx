@@ -107,6 +107,19 @@ export default function PrediccionesPage() {
     setPozo(pz as Pozo ?? null);
     setParticipando(part?.pagado ?? null);
     setPublicado(part?.publicado ?? false);
+
+    if (!part) {
+      await supabase
+        .from('quiniela_participaciones')
+        .insert({
+          user_id:           uid,
+          jornada:           j,
+          pagado:            false,
+          publicado:         false,
+          quiniela_extra_id: quinielaSeleccionada ?? null,
+        });
+      setParticipando(false);
+    }
   }, [quinielaSeleccionada]);
 
   const cargarPartidos = useCallback(async () => {
