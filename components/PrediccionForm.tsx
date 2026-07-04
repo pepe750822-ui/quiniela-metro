@@ -167,111 +167,130 @@ export default function PrediccionForm({ partido, userId, quinielaExtraId, predi
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
       style={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)' }}
       onClick={onCancelar}
     >
       <div
-        className="w-full max-w-sm rounded-2xl px-4 pt-6 pb-8 space-y-6"
-        style={{ background: 'var(--bg-surface)', border: '1px solid rgba(234,88,12,0.3)', animation: 'fadeIn 0.2s ease-out' }}
+        className="w-full sm:max-w-sm rounded-t-2xl sm:rounded-2xl flex flex-col overflow-hidden"
+        style={{
+          background: 'var(--bg-surface)',
+          border: '1px solid rgba(234,88,12,0.3)',
+          animation: 'fadeIn 0.2s ease-out',
+          maxHeight: 'calc(100dvh - env(safe-area-inset-top, 20px))',
+        }}
         onClick={e => e.stopPropagation()}
       >
-        <div className="w-10 h-1 rounded-full mx-auto" style={{ background: 'var(--border)' }} />
-
-        <div className="text-center space-y-1">
-          <p className="text-xs uppercase tracking-widest font-semibold" style={{ color: 'var(--text-secondary)' }}>
-            Tu predicción
-          </p>
-          <p className="font-semibold flex items-center justify-center gap-1.5 flex-wrap" style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--text-primary)' }}>
-            <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
-            {partido.equipo_local} vs {partido.equipo_visitante}
-            <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
-          </p>
-          <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-            Grupo {partido.grupo} · Jornada {partido.jornada}
-          </p>
+        {/* Drag handle */}
+        <div className="flex-shrink-0 pt-3 pb-1">
+          <div className="w-10 h-1 rounded-full mx-auto" style={{ background: 'var(--border)' }} />
         </div>
 
-        {partido.jornada >= 5 && (
-          <p className="text-xs text-center font-semibold" style={{ color: 'var(--text-secondary)' }}>
-            ⏱️ Marcador a 90 minutos (tiempo reglamentario)
-          </p>
-        )}
+        {/* Scrollable content */}
+        <div className="overflow-y-auto flex-1 px-4 pt-3 pb-2 space-y-4">
+          <div className="text-center space-y-1">
+            <p className="text-xs uppercase tracking-widest font-semibold" style={{ color: 'var(--text-secondary)' }}>
+              Tu predicción
+            </p>
+            <p className="text-sm font-semibold flex items-center justify-center gap-1.5 flex-wrap" style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--text-primary)' }}>
+              <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
+              {partido.equipo_local} vs {partido.equipo_visitante}
+              <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
+            </p>
+            <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+              Grupo {partido.grupo} · Jornada {partido.jornada}
+            </p>
+          </div>
 
-        <div className="flex items-center justify-around py-2">
-          <div className="flex flex-col items-center gap-3">
-            <span className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>{partido.equipo_local}</span>
-            <Contador value={local} onChange={setLocal} />
+          {partido.jornada >= 5 && (
+            <p className="text-xs text-center font-semibold" style={{ color: 'var(--text-secondary)' }}>
+              ⏱️ Marcador a 90 minutos (tiempo reglamentario)
+            </p>
+          )}
+
+          <div className="flex items-center justify-around py-1">
+            <div className="flex flex-col items-center gap-2">
+              <span className="text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>{partido.equipo_local}</span>
+              <Contador value={local} onChange={setLocal} />
+            </div>
+            <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '2rem', color: 'var(--border)' }}>–</span>
+            <div className="flex flex-col items-center gap-2">
+              <span className="text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>{partido.equipo_visitante}</span>
+              <Contador value={visita} onChange={setVisita} />
+            </div>
           </div>
-          <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '2rem', color: 'var(--border)' }}>–</span>
-          <div className="flex flex-col items-center gap-3">
-            <span className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>{partido.equipo_visitante}</span>
-            <Contador value={visita} onChange={setVisita} />
-          </div>
+
+          {partido.jornada >= 5 && (
+            <p className="text-[11px] text-center leading-relaxed" style={{ color: '#64748b' }}>
+              Empate a 90 min y predijiste empate = 1pt, aunque continúe a prórroga o penales.
+            </p>
+          )}
+
+          {partido.jornada >= 5 && (
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <p className="text-xs text-center uppercase tracking-widest font-semibold" style={{ color: 'var(--text-secondary)' }}>
+                  ¿Quién clasifica?
+                </p>
+                <p className="text-[11px] text-center" style={{ color: '#64748b' }}>
+                  Independiente del marcador a 90 min
+                </p>
+                <div className="flex gap-2">
+                  {[partido.equipo_local, partido.equipo_visitante]
+                    .filter(e => e && e !== 'A definir')
+                    .map(equipo => (
+                    <button
+                      key={equipo}
+                      type="button"
+                      onClick={() => setClasificadoPred(equipo)}
+                      className="flex-1 py-2 rounded-xl text-xs font-semibold transition-all active:scale-95"
+                      style={{
+                        background: clasificadoPred === equipo ? 'var(--accent-gold)' : 'var(--bg-card-hover)',
+                        color: clasificadoPred === equipo ? '#000' : 'var(--text-secondary)',
+                        border: `1px solid ${clasificadoPred === equipo ? 'var(--accent-gold)' : 'var(--border)'}`,
+                      }}
+                    >
+                      {equipo}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <p className="text-xs text-center uppercase tracking-widest font-semibold" style={{ color: 'var(--text-secondary)' }}>
+                  ¿Cómo termina?
+                </p>
+                <div className="flex gap-1.5">
+                  {(['reglamentario', 'tiempo_extra', 'penales'] as const).map(opcion => (
+                    <button
+                      key={opcion}
+                      type="button"
+                      onClick={() => setComoTerminaPred(opcion)}
+                      className="flex-1 py-2 rounded-xl font-semibold transition-all active:scale-95"
+                      style={{
+                        fontSize: '0.65rem',
+                        background: comoTerminaPred === opcion ? 'var(--accent-gold)' : 'var(--bg-card-hover)',
+                        color: comoTerminaPred === opcion ? '#000' : 'var(--text-secondary)',
+                        border: `1px solid ${comoTerminaPred === opcion ? 'var(--accent-gold)' : 'var(--border)'}`,
+                      }}
+                    >
+                      {opcion === 'reglamentario' ? '⏱️ 90 min' : opcion === 'tiempo_extra' ? '⏩ Prórroga' : '🥅 Penales'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-        {partido.jornada >= 5 && (
-          <p className="text-xs text-center leading-relaxed" style={{ color: '#64748b' }}>
-            Si hay empate en 90 min y predijiste empate = 1pt,
-            aunque el partido continúe a prórroga o penales.
-          </p>
-        )}
-
-        {partido.jornada >= 5 && (
-          <div className="space-y-3">
-            <div className="space-y-1.5">
-              <p className="text-xs text-center uppercase tracking-widest font-semibold" style={{ color: 'var(--text-secondary)' }}>
-                ¿Quién clasifica?
-              </p>
-              <p className="text-xs text-center" style={{ color: '#64748b' }}>
-                Independiente del marcador a 90 min
-              </p>
-              <div className="flex gap-2">
-                {[partido.equipo_local, partido.equipo_visitante]
-                  .filter(e => e && e !== 'A definir')
-                  .map(equipo => (
-                  <button
-                    key={equipo}
-                    type="button"
-                    onClick={() => setClasificadoPred(equipo)}
-                    className="flex-1 py-2 rounded-xl text-sm font-semibold transition-all active:scale-95"
-                    style={{
-                      background: clasificadoPred === equipo ? 'var(--accent-gold)' : 'var(--bg-card-hover)',
-                      color: clasificadoPred === equipo ? '#000' : 'var(--text-secondary)',
-                      border: `1px solid ${clasificadoPred === equipo ? 'var(--accent-gold)' : 'var(--border)'}`,
-                    }}
-                  >
-                    {equipo}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <p className="text-xs text-center uppercase tracking-widest font-semibold" style={{ color: 'var(--text-secondary)' }}>
-                ¿Cómo termina?
-              </p>
-              <div className="flex gap-2">
-                {(['reglamentario', 'tiempo_extra', 'penales'] as const).map(opcion => (
-                  <button
-                    key={opcion}
-                    type="button"
-                    onClick={() => setComoTerminaPred(opcion)}
-                    className="flex-1 py-2 rounded-xl text-xs font-semibold transition-all active:scale-95"
-                    style={{
-                      background: comoTerminaPred === opcion ? 'var(--accent-gold)' : 'var(--bg-card-hover)',
-                      color: comoTerminaPred === opcion ? '#000' : 'var(--text-secondary)',
-                      border: `1px solid ${comoTerminaPred === opcion ? 'var(--accent-gold)' : 'var(--border)'}`,
-                    }}
-                  >
-                    {opcion === 'reglamentario' ? '⏱️ Tiempo reglamentario' : opcion === 'tiempo_extra' ? '⏩ Prórroga' : '🥅 Penales'}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="flex gap-3">
+        {/* Botones — sticky al fondo, siempre visibles */}
+        <div
+          className="flex-shrink-0 flex gap-3 px-4 pt-3"
+          style={{
+            borderTop: '1px solid var(--border)',
+            paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom, 0px))',
+            background: 'var(--bg-surface)',
+          }}
+        >
           <button
             type="button"
             onClick={onCancelar}
