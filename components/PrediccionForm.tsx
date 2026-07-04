@@ -27,18 +27,18 @@ function Contador({ value, onChange }: { value: number; onChange: (v: number) =>
       <button
         type="button"
         onClick={() => onChange(Math.max(0, value - 1))}
-        className="w-10 h-10 rounded-full font-bold text-xl transition-all active:scale-90 min-h-[44px] min-w-[44px]"
+        className="w-9 h-9 rounded-full font-bold text-lg transition-all active:scale-90 min-h-[40px] min-w-[40px]"
         style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
       >
         −
       </button>
-      <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '3rem', color: 'var(--text-primary)', lineHeight: 1, minWidth: '2rem', textAlign: 'center' }}>
+      <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '2.5rem', color: 'var(--text-primary)', lineHeight: 1, minWidth: '1.75rem', textAlign: 'center' }}>
         {value}
       </span>
       <button
         type="button"
         onClick={() => onChange(value + 1)}
-        className="w-10 h-10 rounded-full font-bold text-xl transition-all active:scale-90 min-h-[44px] min-w-[44px]"
+        className="w-9 h-9 rounded-full font-bold text-lg transition-all active:scale-90 min-h-[40px] min-w-[40px]"
         style={{ background: 'var(--accent-gold)', color: '#000' }}
       >
         +
@@ -177,11 +177,11 @@ export default function PrediccionForm({ partido, userId, quinielaExtraId, predi
           background: 'var(--bg-surface)',
           border: '1px solid rgba(234,88,12,0.3)',
           animation: 'fadeIn 0.2s ease-out',
-          maxHeight: '85vh',
+          maxHeight: '90vh',
         }}
         onClick={e => e.stopPropagation()}
       >
-        <div className="px-4 pt-6 space-y-4" style={{ paddingBottom: '80px' }}>
+        <div className="px-3 pt-4 space-y-3" style={{ paddingBottom: '80px' }}>
           <div className="w-10 h-1 rounded-full mx-auto" style={{ background: 'var(--border)' }} />
 
           <div className="text-center space-y-1">
