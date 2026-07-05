@@ -97,6 +97,29 @@ export default function PartidoCard({ partido, prediccion, participacionPagada, 
         </div>
       </div>
 
+      {partido.jornada >= 5 && partido.estado === 'finalizado' && partido.clasificado && (
+        <div className="px-4 pb-2 flex items-center gap-1.5 flex-wrap" style={{ borderTop: '1px solid var(--border)', paddingTop: '0.375rem' }}>
+          <Bandera
+            emoji={partido.equipo_local === partido.clasificado ? (partido.bandera_local ?? '') : (partido.bandera_visitante ?? '')}
+            nombre={partido.clasificado}
+            size="sm"
+          />
+          <span className="text-xs" style={{ color: '#94a3b8' }}>
+            {partido.clasificado} clasifica
+          </span>
+          {partido.como_termino && (
+            <>
+              <span className="text-xs" style={{ color: '#475569' }}>·</span>
+              <span className="text-xs" style={{ color: '#94a3b8' }}>
+                {partido.como_termino === 'reglamentario' ? '⏱️ Tiempo reglamentario'
+                  : partido.como_termino === 'tiempo_extra' ? '⏩ Prórroga'
+                  : '🥅 Penales'}
+              </span>
+            </>
+          )}
+        </div>
+      )}
+
       {prediccion && (
         <div className="px-4 pb-3 pt-1 border-t space-y-1.5" style={{ borderColor: 'var(--border)' }}>
           <div className="flex items-center justify-between">
