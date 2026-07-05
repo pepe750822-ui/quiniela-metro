@@ -7,6 +7,7 @@ interface Props {
   ranking: RankingConJugador[];
   userId?: string;
   pendienteIds?: string[];
+  jornada?: number | 'general';
 }
 
 const mostrarNombre = (j?: Jugador | null) =>
@@ -30,7 +31,9 @@ function Iniciales({ jugador }: { jugador?: Jugador | null }) {
 
 const podiumMedal = ['🥇', '🥈', '🥉'];
 
-export default function RankingTable({ ranking, userId, pendienteIds }: Props) {
+export default function RankingTable({ ranking, userId, pendienteIds, jornada }: Props) {
+  const esJornadaAlta = typeof jornada === 'number' && jornada >= 5;
+
   if (ranking.length === 0) {
     return (
       <p className="text-center py-12 text-sm" style={{ color: 'var(--text-secondary)' }}>
@@ -73,7 +76,7 @@ export default function RankingTable({ ranking, userId, pendienteIds }: Props) {
                     🏆 {entry.jugador.badge_campeon}
                   </span>
                 )}
-                {entry.jugador?.campeon_pick && (
+                {!esJornadaAlta && entry.jugador?.campeon_pick && (
                   <span className="text-[9px] px-1.5 py-0.5 rounded-full"
                     style={{ background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', color: '#4ade80' }}>
                     ⚽ {entry.jugador.campeon_pick}
@@ -87,7 +90,7 @@ export default function RankingTable({ ranking, userId, pendienteIds }: Props) {
                 <p style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.75rem', color: 'var(--accent-gold)', lineHeight: 1 }}>
                   {entry.puntos_total}
                 </p>
-                <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>{entry.exactos} exactos</p>
+                <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>{entry.exactos} {esJornadaAlta ? 'con 5pts' : 'exactos'}</p>
               </div>
             );
           })}
@@ -130,7 +133,7 @@ export default function RankingTable({ ranking, userId, pendienteIds }: Props) {
                         🏆 {entry.jugador.badge_campeon}
                       </span>
                     )}
-                    {entry.jugador?.campeon_pick && (
+                    {!esJornadaAlta && entry.jugador?.campeon_pick && (
                       <span className="text-[10px] px-1.5 py-0.5 rounded-full"
                         style={{ background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', color: '#4ade80' }}>
                         ⚽ {entry.jugador.campeon_pick}
@@ -143,7 +146,7 @@ export default function RankingTable({ ranking, userId, pendienteIds }: Props) {
                     </span>
                   )}
                   <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                    {entry.exactos} exactos ✅
+                    {entry.exactos} {esJornadaAlta ? 'con 5pts' : 'exactos ✅'}
                     {pendienteIds?.includes(entry.user_id) && <span className="ml-1 text-orange-500">· Pago pendiente</span>}
                   </p>
                   {entry.jugador?.email && (
@@ -198,7 +201,7 @@ export default function RankingTable({ ranking, userId, pendienteIds }: Props) {
                         🏆 {entry.jugador.badge_campeon}
                       </span>
                     )}
-                    {entry.jugador?.campeon_pick && (
+                    {!esJornadaAlta && entry.jugador?.campeon_pick && (
                       <span className="text-[10px] px-1.5 py-0.5 rounded-full"
                         style={{ background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', color: '#4ade80' }}>
                         ⚽ {entry.jugador.campeon_pick}
@@ -211,7 +214,7 @@ export default function RankingTable({ ranking, userId, pendienteIds }: Props) {
                     </span>
                   )}
                   <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                    {entry.exactos} exactos ✅
+                    {entry.exactos} {esJornadaAlta ? 'con 5pts' : 'exactos ✅'}
                     {pendienteIds?.includes(entry.user_id) && <span className="ml-1 text-orange-500">· Pago pendiente</span>}
                   </p>
                   {entry.jugador?.email && (

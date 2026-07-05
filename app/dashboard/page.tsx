@@ -631,7 +631,7 @@ export default function DashboardPage() {
           </div>
         ) : ranking.length > 0 ? (
           <>
-            <RankingTable ranking={ranking} userId={userId} pendienteIds={pendienteIds.filter(id => !pagadosIds.includes(id))} />
+            <RankingTable ranking={ranking} userId={userId} pendienteIds={pendienteIds.filter(id => !pagadosIds.includes(id))} jornada={jornadaSeleccionada} />
             <button
               onClick={compartirRanking}
               className="w-full mt-4 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all hover:opacity-80 active:scale-95"
