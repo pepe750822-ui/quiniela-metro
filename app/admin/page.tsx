@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Partido, Jugador, Pozo, Participacion } from '@/types';
-import { emailCorto, mostrarNombre, getNombreJornada, getMontoJornada } from '@/lib/utils';
+import { emailCorto, mostrarNombre, getNombreJornada, getMontoJornada, BANDERAS_EQUIPOS } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Bandera } from '@/components/Bandera';
 
@@ -385,10 +385,16 @@ export default function AdminPage() {
       toast.error('Ingresa los marcadores primero');
       return;
     }
-    setGuardando(partidoId);
     const partidoObj = partidos.find(p => p.id === partidoId);
     const ext = extras[partidoId];
     const esElim = (partidoObj?.jornada ?? 0) >= 5;
+
+    if (esElim && (!ext?.clasificado || !ext?.como_termino)) {
+      toast.error('Debes seleccionar quién clasificó y cómo terminó');
+      return;
+    }
+
+    setGuardando(partidoId);
     const updatePayload: Record<string, unknown> = {
       goles_local: resultado.local,
       goles_visitante: resultado.visitante,
@@ -1564,12 +1570,14 @@ export default function AdminPage() {
                         }))}
                         className="w-14 h-12 text-center text-xl font-bold rounded-xl outline-none"
                         style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontFamily: 'var(--font-bebas)' }} />
-                      <button onClick={() => handleGuardar(partido.id)}
-                        disabled={guardando === partido.id}
-                        className="h-12 px-4 rounded-xl font-bold text-sm disabled:opacity-40 transition-all active:scale-95"
-                        style={{ background: '#10b981', color: '#000' }}>
-                        {guardando === partido.id ? '…' : 'Guardar ✓'}
-                      </button>
+                      {partido.jornada < 5 && (
+                        <button onClick={() => handleGuardar(partido.id)}
+                          disabled={guardando === partido.id}
+                          className="h-12 px-4 rounded-xl font-bold text-sm disabled:opacity-40 transition-all active:scale-95"
+                          style={{ background: '#10b981', color: '#000' }}>
+                          {guardando === partido.id ? '…' : 'Guardar ✓'}
+                        </button>
+                      )}
                       <button onClick={() => handleLimpiar(partido.id)}
                         className="h-12 px-3 rounded-xl text-sm transition-all active:scale-95"
                         style={{ background: '#334155', color: '#94a3b8' }}
@@ -1594,10 +1602,11 @@ export default function AdminPage() {
                         <div className="flex-1">
                           <label className="block text-xs mb-1" style={{ color: '#64748b' }}>¿Cómo terminó?</label>
                           <select
-                            value={extras[partido.id]?.como_termino ?? 'reglamentario'}
+                            value={extras[partido.id]?.como_termino ?? ''}
                             onChange={e => setExtras(prev => ({ ...prev, [partido.id]: { ...prev[partido.id], clasificado: prev[partido.id]?.clasificado ?? '', como_termino: e.target.value as 'reglamentario' | 'tiempo_extra' | 'penales' } }))}
                             className="w-full rounded-lg px-2 py-1.5 text-sm outline-none"
                             style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}>
+                            <option value="">— seleccionar —</option>
                             <option value="reglamentario">⏱️ Tiempo reglamentario</option>
                             <option value="tiempo_extra">⏩ Tiempo extra</option>
                             <option value="penales">🥅 Penales</option>
@@ -1605,12 +1614,33 @@ export default function AdminPage() {
                         </div>
                       </div>
                     )}
+                    {partido.jornada >= 5 && (
+                      <button onClick={() => handleGuardar(partido.id)}
+                        disabled={guardando === partido.id}
+                        className="w-full h-12 rounded-xl font-bold text-sm disabled:opacity-40 transition-all active:scale-95"
+                        style={{ background: '#10b981', color: '#000' }}>
+                        {guardando === partido.id ? '…' : 'Guardar ✓'}
+                      </button>
+                    )}
                   </div>
                 )}
                 {partido.estado === 'finalizado' && (
-                  <p className="text-center font-bold text-lg" style={{ fontFamily: 'var(--font-bebas)', color: 'var(--accent-gold)' }}>
-                    {partido.goles_local} – {partido.goles_visitante}
-                  </p>
+                  <div className="text-center space-y-1">
+                    <p className="font-bold text-lg" style={{ fontFamily: 'var(--font-bebas)', color: 'var(--accent-gold)' }}>
+                      {partido.goles_local} – {partido.goles_visitante}
+                    </p>
+                    {partido.jornada >= 5 && (partido as any).clasificado && (
+                      <p className="text-xs flex items-center justify-center gap-1.5" style={{ color: '#94a3b8' }}>
+                        <Bandera emoji={BANDERAS_EQUIPOS[(partido as any).clasificado] ?? ''} nombre={(partido as any).clasificado} size="sm" />
+                        {(partido as any).clasificado}
+                        {(partido as any).como_termino && (
+                          <span>·{' '}
+                            {(partido as any).como_termino === 'reglamentario' ? '⏱️' : (partido as any).como_termino === 'tiempo_extra' ? '⏩' : '🥅'}
+                          </span>
+                        )}
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
             );
