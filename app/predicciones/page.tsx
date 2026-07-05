@@ -651,7 +651,7 @@ export default function PrediccionesPage() {
       )}
 
       {/* ── PREDICCIÓN CAMPEÓN ── */}
-      <div
+      {jornada !== 6 && <div
         className="rounded-2xl p-4 space-y-3"
         style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', animation: 'fadeInUp 0.4s ease-out 0.03s both' }}
       >
@@ -752,10 +752,10 @@ export default function PrediccionesPage() {
             </>
           )}
         </>)}
-      </div>
+      </div>}
 
       {/* ── RESUMEN DE PREDICCIONES DE CAMPEÓN ── */}
-      {todosMisPicksCampeon.length > 0 && (
+      {jornada !== 6 && todosMisPicksCampeon.length > 0 && (
         <div
           className="rounded-2xl p-4 space-y-2"
           style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', animation: 'fadeInUp 0.4s ease-out 0.05s both' }}
