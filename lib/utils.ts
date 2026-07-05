@@ -45,10 +45,7 @@ export const getFechaCDMX = (fechaHora: string) => {
 export const getNombreJornada = (j: number) => {
   if (j === 4) return 'Dieciseisavos';
   if (j === 5) return 'Octavos de final';
-  if (j === 6) return 'Cuartos de final';
-  if (j === 7) return 'Semifinales';
-  if (j === 8) return '3er Lugar';
-  if (j === 9) return 'Final';
+  if (j === 6) return 'Fase Final';
   return `J${j}`;
 };
 

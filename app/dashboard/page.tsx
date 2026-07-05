@@ -418,7 +418,7 @@ export default function DashboardPage() {
 
   const jornadasConPozo = new Set(pozos.map(p => p.jornada));
   const pozosCompletos: Pozo[] = [...pozos];
-  for (let j = 1; j <= 5; j++) {
+  for (let j = 1; j <= 6; j++) {
     if (!jornadasConPozo.has(j)) {
       pozosCompletos.push({
         id: `synthetic-${j}`,
