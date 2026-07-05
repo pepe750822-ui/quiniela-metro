@@ -166,7 +166,7 @@ export default function TablaPage() {
   };
 
   const emojiComoTermino = (como: string | null | undefined) => {
-    if (como === 'reglamentario') return '⚽';
+    if (como === 'reglamentario') return '⏱️';
     if (como === 'tiempo_extra')  return '⏱️';
     if (como === 'penales')       return '🥅';
     return '';
