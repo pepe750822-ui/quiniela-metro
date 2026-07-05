@@ -55,6 +55,12 @@ export default function PrediccionesPage() {
   const [campeonDeclarado, setCampeonDeclarado] = useState<string | null>(null);
   const [todosMisPicksCampeon, setTodosMisPicksCampeon] = useState<{ quiniela_extra_id: string | null; equipo: string }[]>([]);
 
+  // Predicción campeón J6 (Cuartos de Final)
+  const [j6Equipos, setJ6Equipos]     = useState<string[]>([]);
+  const [j6Pick, setJ6Pick]           = useState<string | null>(null);
+  const [j6PickTemp, setJ6PickTemp]   = useState<string | null>(null);
+  const [j6Guardando, setJ6Guardando] = useState(false);
+
   // Múltiples quinielas
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [quinielasExtra, setQuinielasExtra]             = useState<any[]>([]);
@@ -190,6 +196,25 @@ export default function PrediccionesPage() {
     );
   }, [userId, quinielaSeleccionada]);
 
+  const cargarJ6Campeon = useCallback(async () => {
+    if (!userId) return;
+    const [{ data: partidos6 }, { data: pick }] = await Promise.all([
+      supabase.from('quiniela_partidos').select('equipo_local, equipo_visitante').eq('jornada', 6).order('fecha_hora'),
+      (quinielaSeleccionada === null
+        ? supabase.from('quiniela_prediccion_campeon').select('equipo').eq('user_id', userId).eq('jornada', 6).is('quiniela_extra_id', null).maybeSingle()
+        : supabase.from('quiniela_prediccion_campeon').select('equipo').eq('user_id', userId).eq('jornada', 6).eq('quiniela_extra_id', quinielaSeleccionada).maybeSingle()),
+    ]);
+    const equipos: string[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (partidos6 ?? []).forEach((p: any) => {
+      if (p.equipo_local    && p.equipo_local    !== 'A definir') equipos.push(p.equipo_local);
+      if (p.equipo_visitante && p.equipo_visitante !== 'A definir') equipos.push(p.equipo_visitante);
+    });
+    setJ6Equipos([...new Set(equipos)]);
+    setJ6Pick(pick?.equipo ?? null);
+    setJ6PickTemp(pick?.equipo ?? null);
+  }, [userId, quinielaSeleccionada]);
+
   useEffect(() => { cargarPartidos(); }, [cargarPartidos]);
   useEffect(() => {
     if (userId) {
@@ -197,8 +222,9 @@ export default function PrediccionesPage() {
       cargarPredicciones();
       cargarCampeon();
       cargarPozoYParticipacion(userId, jornada);
+      if (jornada === 6) cargarJ6Campeon();
     }
-  }, [userId, jornada, cargarQuinielas, cargarPredicciones, cargarCampeon, cargarPozoYParticipacion]);
+  }, [userId, jornada, cargarQuinielas, cargarPredicciones, cargarCampeon, cargarPozoYParticipacion, cargarJ6Campeon]);
 
   useEffect(() => {
     if (partidos.length === 0) return;
@@ -278,6 +304,43 @@ export default function PrediccionesPage() {
     } else {
       setMiCampeonPick(campeonPickTemp);
       toast.success('🏆 ¡Campeón guardado!');
+    }
+  };
+
+  const guardarJ6Pick = async () => {
+    if (!userId || !j6PickTemp) return;
+    setJ6Guardando(true);
+    // SELECT-then-UPDATE/INSERT para no depender del unique constraint existente
+    const baseSelect = supabase
+      .from('quiniela_prediccion_campeon')
+      .select('user_id')
+      .eq('user_id', userId)
+      .eq('jornada', 6);
+    const { data: existing } = await (quinielaSeleccionada === null
+      ? baseSelect.is('quiniela_extra_id', null).maybeSingle()
+      : baseSelect.eq('quiniela_extra_id', quinielaSeleccionada).maybeSingle());
+
+    let error;
+    if (existing) {
+      const baseUpdate = supabase
+        .from('quiniela_prediccion_campeon')
+        .update({ equipo: j6PickTemp, updated_at: new Date().toISOString() })
+        .eq('user_id', userId)
+        .eq('jornada', 6);
+      ({ error } = await (quinielaSeleccionada === null
+        ? baseUpdate.is('quiniela_extra_id', null)
+        : baseUpdate.eq('quiniela_extra_id', quinielaSeleccionada)));
+    } else {
+      ({ error } = await supabase
+        .from('quiniela_prediccion_campeon')
+        .insert({ user_id: userId, equipo: j6PickTemp, quiniela_extra_id: quinielaSeleccionada, jornada: 6 }));
+    }
+    setJ6Guardando(false);
+    if (error) {
+      toast.error('Error al guardar: ' + error.message);
+    } else {
+      setJ6Pick(j6PickTemp);
+      toast.success('🏆 ¡Pick de Cuartos guardado!');
     }
   };
 
@@ -714,6 +777,75 @@ export default function PrediccionesPage() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* ── PREDICCIÓN CAMPEÓN J6 — CUARTOS DE FINAL ── */}
+      {jornada === 6 && (
+        <div
+          className="rounded-2xl p-4 space-y-3"
+          style={{ background: 'var(--bg-card)', border: '1px solid rgba(234,88,12,0.3)', animation: 'fadeInUp 0.4s ease-out 0.03s both' }}
+        >
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
+              🏆 ¿Quién será el Campeón Mundial?
+            </p>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+              Elige entre los 8 clasificados a Cuartos · +5 pts si aciertas
+            </p>
+          </div>
+
+          {j6Equipos.length === 0 ? (
+            <p className="text-xs text-center py-2" style={{ color: '#64748b' }}>
+              Equipos pendientes de definirse
+            </p>
+          ) : new Date() > DEADLINE_J6 ? (
+            j6Pick ? (
+              <div className="rounded-xl p-3 flex items-center gap-2"
+                style={{ background: 'rgba(100,116,139,0.08)', border: '1px solid rgba(100,116,139,0.2)' }}>
+                <span>🔒</span>
+                <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                  Tu pick: <strong style={{ color: '#fbbf24' }}>{j6Pick}</strong>
+                </span>
+              </div>
+            ) : (
+              <p className="text-sm text-center" style={{ color: 'var(--text-secondary)' }}>No hiciste una predicción 🔒</p>
+            )
+          ) : (
+            <>
+              {j6Pick && (
+                <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                  Pick actual: <strong style={{ color: '#fbbf24' }}>{j6Pick}</strong>
+                </p>
+              )}
+              <div className="grid grid-cols-2 gap-2">
+                {j6Equipos.map(equipo => (
+                  <button
+                    key={equipo}
+                    onClick={() => setJ6PickTemp(equipo)}
+                    className="py-2 px-2 rounded-lg text-xs font-semibold text-center transition-all active:scale-95 flex items-center justify-center gap-1.5"
+                    style={{
+                      background: j6PickTemp === equipo ? '#ea580c' : 'var(--bg-card-hover)',
+                      color: j6PickTemp === equipo ? '#fff' : 'var(--text-secondary)',
+                      border: `1px solid ${j6PickTemp === equipo ? '#ea580c' : 'var(--border)'}`,
+                      fontFamily: 'var(--font-rajdhani)',
+                    }}
+                  >
+                    <span>{BANDERAS_EQUIPOS[equipo] ?? ''}</span>
+                    <span>{equipo}</span>
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={guardarJ6Pick}
+                disabled={!j6PickTemp || j6Guardando || j6PickTemp === j6Pick}
+                className="w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-40"
+                style={{ background: '#ea580c', color: '#fff', fontFamily: 'var(--font-rajdhani)' }}
+              >
+                {j6Guardando ? '⏳ Guardando...' : j6Pick ? '🔄 Actualizar pick' : '🏆 Guardar pick de Campeón'}
+              </button>
+            </>
+          )}
         </div>
       )}
 
