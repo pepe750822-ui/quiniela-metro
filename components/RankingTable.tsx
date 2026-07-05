@@ -90,7 +90,7 @@ export default function RankingTable({ ranking, userId, pendienteIds, jornada }:
                 <p style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.75rem', color: 'var(--accent-gold)', lineHeight: 1 }}>
                   {entry.puntos_total}
                 </p>
-                <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>{entry.exactos} {esJornadaAlta ? 'con 5pts' : 'exactos'}</p>
+                {!esJornadaAlta && <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>{entry.exactos} exactos</p>}
               </div>
             );
           })}
@@ -146,7 +146,7 @@ export default function RankingTable({ ranking, userId, pendienteIds, jornada }:
                     </span>
                   )}
                   <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                    {entry.exactos} {esJornadaAlta ? 'con 5pts' : 'exactos ✅'}
+                    {!esJornadaAlta && `${entry.exactos} exactos ✅`}
                     {pendienteIds?.includes(entry.user_id) && <span className="ml-1 text-orange-500">· Pago pendiente</span>}
                   </p>
                   {entry.jugador?.email && (
@@ -214,7 +214,7 @@ export default function RankingTable({ ranking, userId, pendienteIds, jornada }:
                     </span>
                   )}
                   <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                    {entry.exactos} {esJornadaAlta ? 'con 5pts' : 'exactos ✅'}
+                    {!esJornadaAlta && `${entry.exactos} exactos ✅`}
                     {pendienteIds?.includes(entry.user_id) && <span className="ml-1 text-orange-500">· Pago pendiente</span>}
                   </p>
                   {entry.jugador?.email && (
