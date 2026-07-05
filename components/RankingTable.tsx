@@ -64,7 +64,7 @@ export default function RankingTable({ ranking, userId, pendienteIds, jornada }:
                 <p className="text-xs font-semibold text-center leading-tight" style={{ color: 'var(--text-primary)' }}>
                   {mostrarNombre(entry.jugador)}
                 </p>
-                {entry.jugador?.badge_ultimo && (
+                {!esJornadaAlta && entry.jugador?.badge_ultimo && (
                   <span className="text-[9px] px-1.5 py-0.5 rounded-full"
                     style={{ background: 'rgba(202,138,4,0.15)', border: '1px solid rgba(202,138,4,0.3)', color: '#facc15' }}>
                     🤡 Último J{entry.jugador.badge_ultimo.replace('J', '')}
@@ -121,7 +121,7 @@ export default function RankingTable({ ranking, userId, pendienteIds, jornada }:
                     {mostrarNombre(entry.jugador)}
                     {esYo && <span className="text-[9px] bg-orange-600 text-black px-1.5 py-0.5 rounded-full font-black">TÚ</span>}
                     {pendienteIds?.includes(entry.user_id) && <span className="text-[10px] text-orange-500">⏳</span>}
-                    {entry.jugador?.badge_ultimo && (
+                    {!esJornadaAlta && entry.jugador?.badge_ultimo && (
                       <span className="text-[10px] px-1.5 py-0.5 rounded-full"
                         style={{ background: 'rgba(202,138,4,0.15)', border: '1px solid rgba(202,138,4,0.3)', color: '#facc15' }}>
                         🤡 Último J{entry.jugador.badge_ultimo.replace('J', '')}
@@ -189,7 +189,7 @@ export default function RankingTable({ ranking, userId, pendienteIds, jornada }:
                     {mostrarNombre(entry.jugador)}
                     {esYo && <span className="text-[9px] bg-orange-600 text-black px-1.5 py-0.5 rounded-full font-black">TÚ</span>}
                     {pendienteIds?.includes(entry.user_id) && <span className="text-[10px] text-orange-500">⏳</span>}
-                    {entry.jugador?.badge_ultimo && (
+                    {!esJornadaAlta && entry.jugador?.badge_ultimo && (
                       <span className="text-[10px] px-1.5 py-0.5 rounded-full"
                         style={{ background: 'rgba(202,138,4,0.15)', border: '1px solid rgba(202,138,4,0.3)', color: '#facc15' }}>
                         🤡 Último J{entry.jugador.badge_ultimo.replace('J', '')}
