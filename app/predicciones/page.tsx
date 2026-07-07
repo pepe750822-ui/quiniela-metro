@@ -138,6 +138,11 @@ export default function PrediccionesPage() {
   const [bracketVisible, setBracketVisible] = useState(false);
   const [bracketPartidos, setBracketPartidos] = useState<Partido[]>([]);
 
+  // Auto-expandir bracket en J6
+  useEffect(() => {
+    if (jornada === 6) setBracketVisible(true);
+  }, [jornada]);
+
   // Múltiples quinielas
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [quinielasExtra, setQuinielasExtra]             = useState<any[]>([]);
@@ -308,7 +313,7 @@ export default function PrediccionesPage() {
     supabase
       .from('quiniela_partidos')
       .select('*')
-      .in('jornada', [6, 7, 8, 9])
+      .gte('jornada', 6)
       .order('jornada')
       .order('fecha_hora')
       .then(({ data }) => setBracketPartidos((data as Partido[]) ?? []));
