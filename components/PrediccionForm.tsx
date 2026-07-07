@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Partido } from '@/types';
+import { DraftPrediccion, Partido } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Bandera } from '@/components/Bandera';
@@ -19,6 +19,7 @@ interface Props {
   } | null;
   onGuardado: () => void;
   onCancelar: () => void;
+  onGuardadoBorrador?: (partidoId: string, data: DraftPrediccion) => void;
 }
 
 function Contador({ value, onChange }: { value: number; onChange: (v: number) => void }) {
@@ -47,7 +48,7 @@ function Contador({ value, onChange }: { value: number; onChange: (v: number) =>
   );
 }
 
-export default function PrediccionForm({ partido, userId, quinielaExtraId, prediccionExistente, onGuardado, onCancelar }: Props) {
+export default function PrediccionForm({ partido, userId, quinielaExtraId, prediccionExistente, onGuardado, onCancelar, onGuardadoBorrador }: Props) {
   const [local,           setLocal]           = useState(prediccionExistente?.goles_local_pred ?? 0);
   const [visita,          setVisita]          = useState(prediccionExistente?.goles_visitante_pred ?? 0);
   const [clasificadoPred, setClasificadoPred] = useState<string | null>(prediccionExistente?.clasificado_pred ?? null);
@@ -60,6 +61,21 @@ export default function PrediccionForm({ partido, userId, quinielaExtraId, predi
       return;
     }
     setLoading(true);
+
+    // Modo draft (J6) — guarda en local state en vez de BD
+    if (onGuardadoBorrador) {
+      onGuardadoBorrador(partido.id, {
+        goles_local_pred: local,
+        goles_visitante_pred: visita,
+        clasificado_pred: clasificadoPred,
+        como_termina_pred: comoTerminaPred,
+        puntos_ganados: 0,
+      });
+      setLoading(false);
+      toast.success('¡Predicción guardada en borrador! ⚽');
+      onGuardado();
+      return;
+    }
 
     // Verificar si ya existe participación para esta jornada + quiniela
     const basePartQuery = supabase

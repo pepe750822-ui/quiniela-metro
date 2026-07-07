@@ -27,7 +27,7 @@ export default function ReglasFaseFinal() {
         <div className="flex items-start gap-2">
           <span>⏰</span>
           <span>
-            <strong>Deadline por ronda:</strong> revisa antes de cada fase
+            <strong>Deadline por ronda:</strong> Cada ronda tiene su propio deadline — Cuartos, Semifinales y Final se cierran antes de su primer partido.
           </span>
         </div>
       </div>

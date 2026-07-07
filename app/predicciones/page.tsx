@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Partido, Prediccion, Pozo } from '@/types';
+import { Partido, Prediccion, DraftPrediccion, Pozo } from '@/types';
 import { getNombreJornada, getFechaKey, equiposE32, BANDERAS_EQUIPOS, getMontoJornada } from '@/lib/utils';
 import { Bandera } from '@/components/Bandera';
 import PartidoCard from '@/components/PartidoCard';
@@ -291,6 +291,9 @@ export default function PrediccionesPage() {
   const [publicado, setPublicado]         = useState<boolean>(false);
   const [publicando, setPublicando]       = useState<boolean>(false);
 
+  // J6 — borradores locales por ronda (no persistidos hasta publicar ronda)
+  const [prediccionesBorrador, setPrediccionesBorrador] = useState<Record<string, DraftPrediccion>>({});
+
   // Predicción campeón mundial
   const [campeonEquipos, setCampeonEquipos]     = useState<string[]>([]);
   const [miCampeonPick, setMiCampeonPick]       = useState<string | null>(null);
@@ -553,6 +556,90 @@ export default function PrediccionesPage() {
       toast.success(`🎫 Quiniela "${data.nombre}" creada`);
     }
   };
+  
+  // J6 — helpers de ronda
+  function rondaPartidos(ronda: 'cuartos' | 'semis' | 'final'): Partido[] {
+    if (ronda === 'cuartos') return partidos.filter(p => p.jornada === 6);
+    if (ronda === 'semis') return partidos.filter(p => p.jornada === 7);
+    return partidos.filter(p => p.jornada === 8 || p.jornada === 9);
+  }
+
+  function rondaPublicada(ronda: 'cuartos' | 'semis' | 'final'): boolean {
+    return rondaPartidos(ronda).every(p => predicciones[p.id]?.publicado === true);
+  }
+
+  function rondaCompletaBorrador(ronda: 'cuartos' | 'semis' | 'final'): boolean {
+    return rondaPartidos(ronda).every(p => prediccionesBorrador[p.id] !== undefined);
+  }
+
+  function rondaCompletados(ronda: 'cuartos' | 'semis' | 'final'): number {
+    return rondaPartidos(ronda).filter(p => prediccionesBorrador[p.id] !== undefined).length;
+  }
+
+  function rondaTotal(ronda: 'cuartos' | 'semis' | 'final'): number {
+    return rondaPartidos(ronda).length;
+  }
+
+  const handleGuardadoBorrador = (partidoId: string, data: DraftPrediccion) => {
+    setPrediccionesBorrador(prev => ({ ...prev, [partidoId]: data }));
+  };
+
+  const handlePublicarRonda = async (ronda: 'cuartos' | 'semis' | 'final') => {
+    if (!userId) return;
+    const rondaLabel = ronda === 'cuartos' ? 'Cuartos' : ronda === 'semis' ? 'Semifinales' : 'Final';
+    setPublicando(true);
+
+    const promises = rondaPartidos(ronda).map(async (p) => {
+      const borrador = prediccionesBorrador[p.id];
+      if (!borrador) return;
+
+      const predPayload = {
+        goles_local_pred: borrador.goles_local_pred,
+        goles_visitante_pred: borrador.goles_visitante_pred,
+        clasificado_pred: borrador.clasificado_pred,
+        como_termina_pred: borrador.como_termina_pred,
+        publicado: true,
+        updated_at: new Date().toISOString(),
+      };
+
+      const baseExistingQuery = supabase
+        .from('quiniela_predicciones')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('partido_id', p.id);
+
+      const { data: existing } = await (quinielaSeleccionada === null
+        ? baseExistingQuery.is('quiniela_extra_id', null).maybeSingle()
+        : baseExistingQuery.eq('quiniela_extra_id', quinielaSeleccionada).maybeSingle());
+
+      if (existing) {
+        await supabase.from('quiniela_predicciones').update(predPayload).eq('id', existing.id);
+      } else {
+        await supabase.from('quiniela_predicciones').insert({
+          user_id: userId,
+          partido_id: p.id,
+          quiniela_extra_id: quinielaSeleccionada || null,
+          ...predPayload,
+        });
+      }
+    });
+
+    try {
+      await Promise.all(promises);
+      const idsRonda = rondaPartidos(ronda).map(p => p.id);
+      setPrediccionesBorrador(prev => {
+        const next = { ...prev };
+        idsRonda.forEach(id => delete next[id]);
+        return next;
+      });
+      await cargarPredicciones();
+      toast.success(`📢 ¡${rondaLabel} publicados exitosamente!`);
+    } catch {
+      toast.error(`Error al publicar ${rondaLabel}`);
+    }
+
+    setPublicando(false);
+  };
 
   const guardarCampeonPick = async () => {
     if (!userId || !campeonPickTemp) return;
@@ -615,8 +702,15 @@ export default function PrediccionesPage() {
   const porcentaje = totalEnJornada > 0 ? Math.round((predichasEnJornada / totalEnJornada) * 100) : 0;
   const jornadaCompleta = predichasEnJornada >= totalEnJornada && totalEnJornada > 0;
 
-  const estaBloquado = (partido: Partido) =>
-    partido.estado === 'finalizado' || new Date() > getDeadline(jornada);
+  const estaBloquado = (partido: Partido) => {
+    if (partido.estado === 'finalizado') return true;
+    if (new Date() > getDeadline(jornada)) return true;
+    if (jornada === 6) {
+      const ronda = partido.jornada === 6 ? 'cuartos' : partido.jornada === 7 ? 'semis' : 'final';
+      if (rondaPublicada(ronda)) return true;
+    }
+    return false;
+  };
 
   // Resolver nombres de equipos conocidos para Dieciseisavos
   const resolvedPartidos = partidos.map(p => {
@@ -865,7 +959,57 @@ export default function PrediccionesPage() {
             <MiniBracket partidos={bracketPartidos} visible={bracketVisible} onPredicir={(p) => { if (!estaBloquado(p)) setPartidoActivo(p); }} />
           </div>
 
-          <div className="space-y-3" style={{ animation: 'fadeInUp 0.4s ease-out 0.2s both' }}>
+          {/* ── Progreso Fase Final + Publicar por ronda ──────────── */}
+          {jornada === 6 && (
+            <div className="rounded-xl p-3 space-y-2" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', animation: 'fadeInUp 0.4s ease-out 0.2s both' }}>
+              <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
+                📊 Progreso Fase Final
+              </p>
+              {(['cuartos', 'semis', 'final'] as const).map(ronda => {
+                const label = ronda === 'cuartos' ? 'Cuartos' : ronda === 'semis' ? 'Semifinales' : 'Final + 3er Lugar';
+                const pub = rondaPublicada(ronda);
+                const ok = rondaCompletaBorrador(ronda);
+                const hechos = rondaCompletados(ronda);
+                const total = rondaTotal(ronda);
+                const bloqueada = ronda === 'semis' ? !rondaPublicada('cuartos') : ronda === 'final' ? !rondaPublicada('semis') : false;
+                return (
+                  <div key={ronda} className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span style={{ fontSize: 11, color: pub ? '#22c55e' : 'var(--text-secondary)' }}>
+                        {pub ? '✅' : '📋'}
+                      </span>
+                      <span className="text-xs font-semibold truncate" style={{ color: pub ? '#22c55e' : 'var(--text-primary)' }}>
+                        {label}
+                      </span>
+                      {!pub && (
+                        <span className="text-[10px] shrink-0" style={{ color: ok ? '#fbbf24' : '#64748b', fontFamily: 'var(--font-rajdhani)' }}>
+                          {hechos}/{total}
+                        </span>
+                      )}
+                    </div>
+                    {pub ? (
+                      <span className="text-[10px] font-semibold shrink-0" style={{ color: '#22c55e' }}>Publicado</span>
+                    ) : bloqueada ? (
+                      <span className="text-[10px] shrink-0" style={{ color: '#64748b' }}>🔒 Bloqueado</span>
+                    ) : ok ? (
+                      <button
+                        onClick={() => handlePublicarRonda(ronda)}
+                        disabled={publicando}
+                        className="text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg shrink-0 transition-all active:scale-95 disabled:opacity-50"
+                        style={{ background: 'var(--accent-gold)', color: '#000' }}
+                      >
+                        {publicando ? '⏳' : `Publicar ${label.split(' +')[0]}`}
+                      </button>
+                    ) : (
+                      <span className="text-[10px] shrink-0" style={{ color: '#64748b' }}>Pendiente</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="space-y-3" style={{ animation: 'fadeInUp 0.4s ease-out 0.25s both' }}>
           {todosSinResolver ? (
             <div
               className="rounded-2xl p-6 text-center space-y-2"
@@ -884,7 +1028,7 @@ export default function PrediccionesPage() {
               <div key={partido.id} id={`partido-${partido.id}`}>
                 <PartidoCard
                   partido={partido}
-                  prediccion={predicciones[partido.id] ?? null}
+                  prediccion={prediccionesBorrador[partido.id] ?? predicciones[partido.id] ?? null}
                   participacionPagada={predicciones[partido.id] ? participando : undefined}
                   onPredicir={estaBloquado(partido) ? undefined : setPartidoActivo}
                 />
@@ -1141,9 +1285,10 @@ export default function PrediccionesPage() {
           partido={partidoActivo}
           userId={userId}
           quinielaExtraId={quinielaSeleccionada}
-          prediccionExistente={predicciones[partidoActivo.id] ?? null}
+          prediccionExistente={prediccionesBorrador[partidoActivo.id] ?? predicciones[partidoActivo.id] ?? null}
           onGuardado={handleGuardado}
           onCancelar={() => setPartidoActivo(null)}
+          onGuardadoBorrador={jornada === 6 && !estaBloquado(partidoActivo) ? handleGuardadoBorrador : undefined}
         />
       )}
 

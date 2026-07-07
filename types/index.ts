@@ -35,9 +35,18 @@ export interface Prediccion {
   quiniela_extra_id?: string | null;
   clasificado_pred?: string | null;
   como_termina_pred?: string | null;
+  publicado?: boolean;
   created_at: string;
   updated_at: string;
   partido?: Partido;
+}
+
+export interface DraftPrediccion {
+  goles_local_pred: number;
+  goles_visitante_pred: number;
+  puntos_ganados: number;
+  clasificado_pred: string | null;
+  como_termina_pred: string | null;
 }
 
 export interface Jugador {
