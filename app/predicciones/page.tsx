@@ -40,6 +40,9 @@ function MiniBracket({ partidos, visible }: { partidos: Partido[]; visible: bool
   const j8 = partidos.filter(p => p.jornada === 8);
   const j9 = partidos.filter(p => p.jornada === 9);
 
+  const CARD_W = 130;
+  const CARD_H = 50;
+
   const teamName = (p: Partido, local: boolean) => {
     const name = local ? p.equipo_local : p.equipo_visitante;
     if (name && name !== 'A definir') return name;
@@ -48,59 +51,165 @@ function MiniBracket({ partidos, visible }: { partidos: Partido[]; visible: bool
     if (!eq) return 'A definir';
     return local ? (eq.local || 'A definir') : (eq.visitante || 'A definir');
   };
+  const getBandera = (p: Partido, local: boolean) => {
+    const name = teamName(p, local);
+    const b = local ? p.bandera_local : p.bandera_visitante;
+    return BANDERAS_EQUIPOS[name] ?? b ?? '';
+  };
 
-  const Match = ({ p }: { p: Partido }) => {
-    const local = teamName(p, true);
-    const visit = teamName(p, false);
-    const isDef = (s: string) => s === 'A definir' || !s;
+  const isDef = (s: string) => !s || s === 'A definir';
+
+  function TeamRow({ nombre, bandera, goles, winner }: {
+    nombre: string; bandera: string; goles: number | null; winner: boolean;
+  }) {
     return (
-      <div className="flex items-center gap-1 py-0.5">
-        {!isDef(local) && <Bandera emoji={BANDERAS_EQUIPOS[local] ?? ''} nombre={local} size="sm" />}
-        <span style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 10, fontWeight: 600, color: isDef(local) ? '#475569' : 'var(--text-primary)' }}>
-          {isDef(local) ? '???' : local}
-        </span>
-        <span style={{ color: '#475569', fontSize: 8 }}>vs</span>
-        {!isDef(visit) && <Bandera emoji={BANDERAS_EQUIPOS[visit] ?? ''} nombre={visit} size="sm" />}
-        <span style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 10, fontWeight: 600, color: isDef(visit) ? '#475569' : 'var(--text-primary)' }}>
-          {isDef(visit) ? '???' : visit}
-        </span>
-        {p.estado === 'finalizado' && (
-          <span style={{ fontFamily: 'var(--font-bebas)', fontSize: 11, color: '#fb923c', marginLeft: 2 }}>
-            {p.goles_local}-{p.goles_visitante}
+      <div className="flex items-center justify-between px-2 py-1 gap-1"
+        style={{ background: winner ? 'rgba(234,88,12,0.14)' : 'transparent' }}>
+        <div className="flex items-center gap-1.5 min-w-0">
+          {bandera && !isDef(nombre) && <Bandera emoji={bandera} nombre={nombre} size="sm" />}
+          <span className="text-[10px] truncate leading-tight" style={{
+            fontFamily: 'var(--font-rajdhani)',
+            fontWeight: winner ? 700 : 400,
+            color: isDef(nombre) ? '#475569' : winner ? '#fb923c' : 'var(--text-primary)',
+          }}>
+            {isDef(nombre) ? '???' : nombre}
           </span>
+        </div>
+        {goles !== null && (
+          <span className="text-xs shrink-0" style={{
+            fontFamily: 'var(--font-bebas)',
+            color: winner ? '#fb923c' : 'var(--text-secondary)',
+          }}>{goles}</span>
         )}
       </div>
     );
-  };
+  }
+
+  function MatchCard({ p }: { p: Partido }) {
+    const local = teamName(p, true);
+    const visit = teamName(p, false);
+    const bL = getBandera(p, true);
+    const bV = getBandera(p, false);
+    const fin = p.estado === 'finalizado';
+    const vivo = p.estado === 'en_curso';
+    const gl = p.goles_local ?? 0;
+    const gv = p.goles_visitante ?? 0;
+    const wL = fin && gl > gv;
+    const wV = fin && gv > gl;
+
+    return (
+      <div style={{
+        width: CARD_W,
+        background: 'var(--bg-surface)',
+        border: `1px solid ${vivo ? 'rgba(234,88,12,0.6)' : 'var(--border)'}`,
+        borderRadius: 6,
+        overflow: 'hidden',
+      }}>
+        <TeamRow nombre={local} bandera={bL} goles={fin || vivo ? gl : null} winner={wL} />
+        <div style={{ height: 1, background: 'var(--border)' }} />
+        <TeamRow nombre={visit} bandera={bV} goles={fin || vivo ? gv : null} winner={wV} />
+      </div>
+    );
+  }
+
+  function Connector({ pairs, left }: { pairs: number; left: boolean }) {
+    const H = pairs * CARD_H + (pairs - 1) * 8;
+    const gap = CARD_H + 8;
+    const paths: string[] = [];
+    for (let i = 0; i < pairs; i++) {
+      const y1 = i * gap + CARD_H / 2;
+      const y2 = (i + 1) * gap - CARD_H / 2;
+      const yM = (y1 + y2) / 2;
+      const w = 14;
+      if (left) {
+        paths.push(`M0,${y1} H${w/2} V${y2} H0`);
+        paths.push(`M${w/2},${yM} H${w}`);
+      } else {
+        paths.push(`M${w},${y1} H${w/2} V${y2} H${w}`);
+        paths.push(`M${w/2},${yM} H0`);
+      }
+    }
+    return (
+      <svg width={16} height={H} style={{ display: 'block', flexShrink: 0, marginTop: 4 }}>
+        {paths.map((d, i) => (
+          <path key={i} d={d} fill="none" stroke="var(--border)" strokeWidth={1.5} strokeLinecap="round" />
+        ))}
+      </svg>
+    );
+  }
 
   if (!visible) return null;
 
+  const allEmpty = j6.length === 0 && j7.length === 0 && j8.length === 0 && j9.length === 0;
+
   return (
-    <div className="rounded-xl p-3 space-y-2" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', animation: 'fadeIn 0.2s ease-out' }}>
-      <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
+    <div className="rounded-xl p-3" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', animation: 'fadeIn 0.2s ease-out' }}>
+      <p className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
         🏆 Fase Final
       </p>
 
-      <p className="text-[9px] font-semibold uppercase" style={{ color: '#64748b' }}>Cuartos</p>
-      {j6.map(p => <Match key={p.id} p={p} />)}
+      {allEmpty ? (
+        <p style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 11, color: '#475569', textAlign: 'center', padding: '12px 0' }}>
+          Cargando bracket...
+        </p>
+      ) : (
+        <div className="overflow-x-auto pb-1" style={{ scrollbarWidth: 'thin' }}>
+          <div className="flex items-start gap-0" style={{ minWidth: 'max-content' }}>
+            {/* Cuartos */}
+            <div className="flex flex-col gap-1">
+              <p className="text-[8px] font-bold uppercase tracking-wider text-center pb-1" style={{ color: '#64748b' }}>
+                Cuartos
+              </p>
+              {j6.map(p => <MatchCard key={p.id} p={p} />)}
+            </div>
 
-      <div style={{ borderTop: '1px dashed rgba(148,163,184,0.25)', marginTop: 4, paddingTop: 4 }}>
-        <p className="text-[9px] font-semibold uppercase" style={{ color: '#64748b' }}>Semifinales</p>
-        {j7.map(p => <Match key={p.id} p={p} />)}
-      </div>
+            <Connector pairs={j6.length / 2} left />
 
-      <div style={{ borderTop: '1px dashed rgba(148,163,184,0.25)', marginTop: 4, paddingTop: 4 }}>
-        <div className="flex gap-6">
-          <div>
-            <p className="text-[9px] font-semibold uppercase" style={{ color: '#64748b' }}>3er Lugar</p>
-            {j8.map(p => <Match key={p.id} p={p} />)}
-          </div>
-          <div>
-            <p className="text-[9px] font-semibold uppercase" style={{ color: '#ea580c' }}>Final</p>
-            {j9.map(p => <Match key={p.id} p={p} />)}
+            {/* Semifinales */}
+            <div className="flex flex-col gap-1">
+              <p className="text-[8px] font-bold uppercase tracking-wider text-center pb-1" style={{ color: '#64748b' }}>
+                Semifinales
+              </p>
+              {j7.map(p => <MatchCard key={p.id} p={p} />)}
+              {Array.from({ length: Math.max(0, 2 - j7.length) }).map((_, i) => (
+                <div key={`semi-empty-${i}`} style={{
+                  width: CARD_W, height: CARD_H,
+                  border: '1px dashed var(--border)', borderRadius: 6,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <span style={{ fontSize: 9, color: '#475569', fontFamily: 'var(--font-rajdhani)' }}>—</span>
+                </div>
+              ))}
+            </div>
+
+            <Connector pairs={1} left />
+
+            {/* Final */}
+            <div className="flex flex-col items-center">
+              <p className="text-[8px] font-bold uppercase tracking-wider text-center pb-1" style={{ color: '#ea580c' }}>
+                🏆 Final
+              </p>
+              {j9.length > 0 ? j9.map(p => <MatchCard key={p.id} p={p} />) : (
+                <div style={{
+                  width: CARD_W, height: CARD_H,
+                  border: '1px dashed var(--border)', borderRadius: 6,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <span style={{ fontSize: 9, color: '#475569', fontFamily: 'var(--font-rajdhani)' }}>—</span>
+                </div>
+              )}
+              {j8.length > 0 && (
+                <div style={{ marginTop: 8 }}>
+                  <p className="text-[8px] font-bold uppercase tracking-wider text-center pb-1" style={{ color: '#64748b' }}>
+                    🥉 3er Lugar
+                  </p>
+                  {j8.map(p => <MatchCard key={p.id} p={p} />)}
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
