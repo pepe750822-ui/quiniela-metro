@@ -485,12 +485,6 @@ export default function TablaPage() {
                 style={{ background: 'var(--bg-base)', borderBottom: '1px solid var(--border-color)' }}>
                 <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>Jugador</span>
               </th>
-              {jornada === 6 && (
-                <th className="px-3 py-2 text-center min-w-[55px]"
-                  style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '0.8rem', color: '#ea580c' }}>
-                  🏆 Campeón
-                </th>
-              )}
                <th className="sticky left-[130px] z-20 px-3 py-2 text-center min-w-[55px]"
                 style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
                 PTS
