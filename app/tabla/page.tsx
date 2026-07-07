@@ -5,35 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Bandera } from '@/components/Bandera';
 import { getNombreJornada, BANDERAS_EQUIPOS } from '@/lib/utils';
-
-function ReglasBanner() {
-  const [abierto, setAbierto] = useState(false);
-  return (
-    <div className="mx-2 mb-2 rounded-xl print:hidden" style={{ background: '#1e293b', border: '1px solid #475569' }}>
-      <button
-        onClick={() => setAbierto(v => !v)}
-        className="w-full flex items-center justify-between px-4 py-2.5 text-left"
-      >
-        <span className="text-xs font-semibold text-white" style={{ fontFamily: 'var(--font-rajdhani)' }}>
-          📋 Reglas para Octavos en adelante
-        </span>
-        <span className="text-xs text-slate-300">{abierto ? '▲' : '▼'}</span>
-      </button>
-      {abierto && (
-        <div className="px-4 pb-3 space-y-1.5 text-xs text-slate-200">
-          <p>Predices <span className="text-white font-semibold">3 cosas</span>: marcador a 90 min, quién clasifica y cómo termina.</p>
-          <div className="flex flex-wrap gap-x-4 gap-y-1 pt-0.5">
-            <span><span className="text-yellow-400 font-bold">3 pts</span> marcador exacto</span>
-            <span><span className="text-yellow-400 font-bold">1 pt</span> resultado correcto</span>
-            <span><span className="text-yellow-400 font-bold">+1 pt</span> clasificado correcto</span>
-            <span><span className="text-yellow-400 font-bold">+1 pt</span> cómo termina correcto</span>
-          </div>
-          <p>Máximo <span className="text-yellow-400 font-bold">5 pts</span> por partido · ⏱️ T. Reglamentario · ⏩ Prórroga · 🥅 Penales</p>
-        </div>
-      )}
-    </div>
-  );
-}
+import ReglasFaseFinal from '@/components/ReglasFaseFinal';
 
 export default function TablaPage() {
   const [jornada, setJornada]           = useState(5);
@@ -465,8 +437,12 @@ export default function TablaPage() {
         </div>
       </div>
 
-      {/* Banner reglas J5+ — colapsable */}
-      {jornada >= 5 && <ReglasBanner />}
+      {/* Reglas Fase Final — solo J6 */}
+      {jornada === 6 && (
+        <div className="mb-2">
+          <ReglasFaseFinal />
+        </div>
+      )}
 
       {/* Indicador comparativo Pozo vs Tabla */}
       <div className="px-4 mb-2 print:hidden">

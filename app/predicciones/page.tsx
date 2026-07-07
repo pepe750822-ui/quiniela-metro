@@ -8,6 +8,7 @@ import { getNombreJornada, getFechaKey, equiposE32, BANDERAS_EQUIPOS, getMontoJo
 import { Bandera } from '@/components/Bandera';
 import PartidoCard from '@/components/PartidoCard';
 import PrediccionForm from '@/components/PrediccionForm';
+import ReglasFaseFinal from '@/components/ReglasFaseFinal';
 import { toast } from 'sonner';
 
 
@@ -843,6 +844,11 @@ export default function PrediccionesPage() {
           )}
 
           {/* Bracket Fase Final colapsable */}
+          {jornada === 6 && (
+            <div style={{ animation: 'fadeInUp 0.4s ease-out 0.1s both', marginBottom: 8 }}>
+              <ReglasFaseFinal />
+            </div>
+          )}
           <div style={{ animation: 'fadeInUp 0.4s ease-out 0.15s both' }}>
             <button
               onClick={() => setBracketVisible(v => !v)}
