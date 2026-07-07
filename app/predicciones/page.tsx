@@ -252,16 +252,24 @@ function MiniBracket({ partidos, visible, onPredicir }: { partidos: Partido[]; v
           </div>
 
           {/* ── 3er Lugar (abajo, separado) ──────────────────────── */}
-          {tercerCard && (
-            <div style={{ marginTop: 12, borderTop: '1px solid var(--border)', paddingTop: 10 }}>
+            <div style={{ marginTop: 48, borderTop: '1px solid var(--border)', paddingTop: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <span className="text-[8px] font-bold uppercase tracking-wider shrink-0" style={{ color: '#64748b' }}>
                   🥉 3er Lugar
                 </span>
-                <MatchCard p={tercerCard} onClick={onPredicir ? () => onPredicir(tercerCard) : undefined} />
+                {tercerCard ? (
+                  <MatchCard p={tercerCard} onClick={onPredicir ? () => onPredicir(tercerCard) : undefined} />
+                ) : (
+                  <div style={{
+                    width: CARD_W, height: CARD_H,
+                    border: '1px dashed var(--border)', borderRadius: 6,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <span style={{ fontSize: 9, color: '#475569', fontFamily: 'var(--font-rajdhani)' }}>—</span>
+                  </div>
+                )}
               </div>
             </div>
-          )}
         </>
       )}
     </div>
