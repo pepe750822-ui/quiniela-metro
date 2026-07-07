@@ -34,7 +34,7 @@ const getDeadline = (jornada: number) => {
 };
 
 // ── Mini bracket Fase Final (J6–J9) ───────────────────────────────────────
-function MiniBracket({ partidos, visible }: { partidos: Partido[]; visible: boolean }) {
+function MiniBracket({ partidos, visible, onPredicir }: { partidos: Partido[]; visible: boolean; onPredicir?: (p: Partido) => void }) {
   const j6 = partidos.filter(p => p.jornada === 6);
   const j7 = partidos.filter(p => p.jornada === 7);
   const j8 = partidos.filter(p => p.jornada === 8);
@@ -101,7 +101,7 @@ function MiniBracket({ partidos, visible }: { partidos: Partido[]; visible: bool
         </p>
         {items.map((p, i) =>
           p ? <div key={p.id} style={{ position: 'absolute', top: itemCenter(i) - CARD_H / 2, left: 0 }}>
-              <MatchCard p={p} />
+              <MatchCard p={p} onClick={onPredicir ? () => onPredicir(p) : undefined} />
             </div>
           : <div key={`empty-${i}`} style={{
               position: 'absolute', top: itemCenter(i) - CARD_H / 2, left: 0,
@@ -116,7 +116,7 @@ function MiniBracket({ partidos, visible }: { partidos: Partido[]; visible: bool
     );
   }
 
-  function MatchCard({ p }: { p: Partido }) {
+  function MatchCard({ p, onClick }: { p: Partido; onClick?: () => void }) {
     const local = teamName(p, true);
     const visit = teamName(p, false);
     const bL = getBandera(p, true);
@@ -129,13 +129,18 @@ function MiniBracket({ partidos, visible }: { partidos: Partido[]; visible: bool
     const wV = fin && gv > gl;
 
     return (
-      <div style={{
+      <div onClick={onClick} style={{
         width: CARD_W,
         background: 'var(--bg-surface)',
         border: `1px solid ${vivo ? 'rgba(234,88,12,0.6)' : 'var(--border)'}`,
         borderRadius: 6,
         overflow: 'hidden',
-      }}>
+        cursor: onClick ? 'pointer' : undefined,
+        transition: 'opacity 0.15s',
+      }}
+        onMouseEnter={e => { if (onClick) (e.currentTarget as HTMLElement).style.opacity = '0.8'; }}
+        onMouseLeave={e => { if (onClick) (e.currentTarget as HTMLElement).style.opacity = '1'; }}
+      >
         <TeamRow nombre={local} bandera={bL} goles={fin || vivo ? gl : null} winner={wL} />
         <div style={{ height: 1, background: 'var(--border)' }} />
         <TeamRow nombre={visit} bandera={bV} goles={fin || vivo ? gv : null} winner={wV} />
@@ -205,7 +210,7 @@ function MiniBracket({ partidos, visible }: { partidos: Partido[]; visible: bool
                 <p className="text-[8px] font-bold uppercase tracking-wider mb-1" style={{ color: '#ea580c' }}>
                   🏆 Final
                 </p>
-                {finalCard ? <MatchCard p={finalCard} /> : (
+                {finalCard ? <MatchCard p={finalCard} onClick={onPredicir ? () => onPredicir(finalCard) : undefined} /> : (
                   <div style={{
                     width: CARD_W, height: CARD_H,
                     border: '1px dashed var(--border)', borderRadius: 6,
@@ -219,7 +224,7 @@ function MiniBracket({ partidos, visible }: { partidos: Partido[]; visible: bool
                     <p className="text-[8px] font-bold uppercase tracking-wider mb-1" style={{ color: '#64748b' }}>
                       🥉 3er Lugar
                     </p>
-                    <MatchCard p={tercerCard} />
+                    <MatchCard p={tercerCard} onClick={onPredicir ? () => onPredicir(tercerCard) : undefined} />
                   </div>
                 )}
               </div>
@@ -811,7 +816,7 @@ export default function PrediccionesPage() {
                 {bracketVisible ? '▲ Ocultar' : '▼ Ver bracket'}
               </span>
             </button>
-            <MiniBracket partidos={bracketPartidos} visible={bracketVisible} />
+            <MiniBracket partidos={bracketPartidos} visible={bracketVisible} onPredicir={(p) => { if (!estaBloquado(p)) setPartidoActivo(p); }} />
           </div>
 
           <div className="space-y-3" style={{ animation: 'fadeInUp 0.4s ease-out 0.2s both' }}>
