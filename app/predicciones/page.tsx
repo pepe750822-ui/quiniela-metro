@@ -557,19 +557,22 @@ export default function PrediccionesPage() {
     }
   };
   
-  // J6 — helpers de ronda
+  // J6 — helpers de ronda (usa bracketPartidos que carga J6-J9 completo)
   function rondaPartidos(ronda: 'cuartos' | 'semis' | 'final'): Partido[] {
-    if (ronda === 'cuartos') return partidos.filter(p => p.jornada === 6);
-    if (ronda === 'semis') return partidos.filter(p => p.jornada === 7);
-    return partidos.filter(p => p.jornada === 8 || p.jornada === 9);
+    const fuente = bracketPartidos.length > 0 ? bracketPartidos : partidos;
+    if (ronda === 'cuartos') return fuente.filter(p => p.jornada === 6);
+    if (ronda === 'semis') return fuente.filter(p => p.jornada === 7);
+    return fuente.filter(p => p.jornada === 8 || p.jornada === 9);
   }
 
   function rondaPublicada(ronda: 'cuartos' | 'semis' | 'final'): boolean {
-    return rondaPartidos(ronda).every(p => predicciones[p.id]?.publicado === true);
+    const ps = rondaPartidos(ronda);
+    return ps.length > 0 && ps.every(p => predicciones[p.id]?.publicado === true);
   }
 
   function rondaCompletaBorrador(ronda: 'cuartos' | 'semis' | 'final'): boolean {
-    return rondaPartidos(ronda).every(p => prediccionesBorrador[p.id] !== undefined);
+    const ps = rondaPartidos(ronda);
+    return ps.length > 0 && ps.every(p => prediccionesBorrador[p.id] !== undefined);
   }
 
   function rondaCompletados(ronda: 'cuartos' | 'semis' | 'final'): number {
