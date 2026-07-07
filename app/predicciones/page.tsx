@@ -44,7 +44,7 @@ function MiniBracket({ partidos, visible, onPredicir }: { partidos: Partido[]; v
   const CARD_H = 48;
   const SLOT_H = 56;
   const BH = 4 * SLOT_H;
-  const CONN_W = 18;
+  const CONN_W = 24;
 
   const itemCenter = (idx: number) => (idx + 0.5) * SLOT_H;
 
@@ -90,32 +90,6 @@ function MiniBracket({ partidos, visible, onPredicir }: { partidos: Partido[]; v
     );
   }
 
-  function Column({ items, label, labelColor }: {
-    items: (Partido | null)[]; label: string; labelColor?: string;
-  }) {
-    return (
-      <div style={{ width: CARD_W, height: BH, position: 'relative', flexShrink: 0 }}>
-        <p className="text-[8px] font-bold uppercase tracking-wider text-center"
-          style={{ color: labelColor ?? '#64748b', paddingBottom: 4 }}>
-          {label}
-        </p>
-        {items.map((p, i) =>
-          p ? <div key={p.id} style={{ position: 'absolute', top: itemCenter(i) - CARD_H / 2, left: 0 }}>
-              <MatchCard p={p} onClick={onPredicir ? () => onPredicir(p) : undefined} />
-            </div>
-          : <div key={`empty-${i}`} style={{
-              position: 'absolute', top: itemCenter(i) - CARD_H / 2, left: 0,
-              width: CARD_W, height: CARD_H,
-              border: '1px dashed var(--border)', borderRadius: 6,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-            <span style={{ fontSize: 9, color: '#475569', fontFamily: 'var(--font-rajdhani)' }}>—</span>
-          </div>
-        )}
-      </div>
-    );
-  }
-
   function MatchCard({ p, onClick }: { p: Partido; onClick?: () => void }) {
     const local = teamName(p, true);
     const visit = teamName(p, false);
@@ -148,38 +122,64 @@ function MiniBracket({ partidos, visible, onPredicir }: { partidos: Partido[]; v
     );
   }
 
-  function ConnectorL({ fromRound }: { fromRound: 0 | 1 }) {
-    const pairs = fromRound === 0 ? 2 : 1;
-    const gap = SLOT_H;
-    const paths: string[] = [];
-    for (let i = 0; i < pairs; i++) {
-      const y1 = (2 * i + 0.5) * gap;
-      const y2 = (2 * i + 1.5) * gap;
-      const yM = (y1 + y2) / 2;
-      paths.push(`M0,${y1} H${CONN_W/2} V${y2} H0`);
-      paths.push(`M${CONN_W/2},${yM} H${CONN_W}`);
-    }
+  /* ── SVG connectors ─────────────────────────────────────────────── */
+
+  /** 4‑to‑2 fork: Cuartos → Semifinales */
+  function ConnectorCuaToSemi() {
+    const h = CONN_W / 2;
     return (
       <svg width={CONN_W} height={BH} style={{ display: 'block', flexShrink: 0 }}>
-        {paths.map((d,i) => <path key={i} d={d} fill="none" stroke="var(--border)" strokeWidth={1.5} strokeLinecap="round" />)}
+        <path d={`M0,28 H${h} V56 H${CONN_W}`} fill="none" stroke="var(--border)" strokeWidth={1.5} />
+        <path d={`M0,84 H${h} V56 H${CONN_W}`} fill="none" stroke="var(--border)" strokeWidth={1.5} />
+        <path d={`M0,140 H${h} V168 H${CONN_W}`} fill="none" stroke="var(--border)" strokeWidth={1.5} />
+        <path d={`M0,196 H${h} V168 H${CONN_W}`} fill="none" stroke="var(--border)" strokeWidth={1.5} />
       </svg>
     );
   }
 
+  /** 2‑to‑1 fork: Semifinales → Final */
+  function ConnectorSemiToFinal() {
+    const h = CONN_W / 2;
+    return (
+      <svg width={CONN_W} height={BH} style={{ display: 'block', flexShrink: 0 }}>
+        <path d={`M0,56 H${h} V112 H${CONN_W}`} fill="none" stroke="var(--border)" strokeWidth={1.5} />
+        <path d={`M0,168 H${h} V112 H${CONN_W}`} fill="none" stroke="var(--border)" strokeWidth={1.5} />
+      </svg>
+    );
+  }
+
+  /* ── Helpers ──────────────────────────────────────────────────── */
+
+  function slot(...items: (Partido | null)[]) {
+    const r: (Partido | null)[] = [];
+    for (const x of items) r.push(x);
+    while (r.length < 4) r.push(null);
+    return r;
+  }
+
+  function emptySlot(key: string, top: number) {
+    return (
+      <div key={key} style={{
+        position: 'absolute', top: top - CARD_H / 2, left: 0,
+        width: CARD_W, height: CARD_H,
+        border: '1px dashed var(--border)', borderRadius: 6,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <span style={{ fontSize: 9, color: '#475569', fontFamily: 'var(--font-rajdhani)' }}>—</span>
+      </div>
+    );
+  }
+
+  /* ── Render ───────────────────────────────────────────────────── */
+
   if (!visible) return null;
 
   const allEmpty = j6.length === 0 && j7.length === 0 && j8.length === 0 && j9.length === 0;
-  const pad = (arr: Partido[], n: number) => {
-    const r: (Partido | null)[] = [...arr];
-    while (r.length < n) r.push(null);
-    return r;
-  };
 
-  const cuaCol = pad(j6.slice(0, 4), 4);
-  const semiCol = pad(j7.slice(0, 2), 2);
+  const cuaSlots = slot(j6[0], j6[1], j6[2], j6[3]);
+  const semiSlots = [j7[0] ?? null, j7[1] ?? null];
   const finalCard = j9[0] ?? null;
   const tercerCard = j8[0] ?? null;
-  const FINAL_W = CARD_W + 40;
 
   return (
     <div className="rounded-xl p-3" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', animation: 'fadeIn 0.2s ease-out' }}>
@@ -192,25 +192,53 @@ function MiniBracket({ partidos, visible, onPredicir }: { partidos: Partido[]; v
           Cargando bracket...
         </p>
       ) : (
-        <div className="overflow-x-auto pb-1" style={{ scrollbarWidth: 'thin' }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', minWidth: 'max-content' }}>
-            <Column items={cuaCol} label="Cuartos" />
-            <ConnectorL fromRound={0} />
-            <Column items={semiCol} label="Semifinales" />
-            <ConnectorL fromRound={1} />
+        <>
+          <div className="overflow-x-auto pb-1" style={{ scrollbarWidth: 'thin' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', minWidth: 'max-content' }}>
 
-            {/* Final + 3er Lugar */}
-            <div style={{ width: FINAL_W, height: BH, flexShrink: 0, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg width={FINAL_W / 2} height={BH}
-                style={{ position: 'absolute', left: 0, top: 0, pointerEvents: 'none' }}>
-                <line x1={0} y1={BH / 2} x2={FINAL_W / 2} y2={BH / 2}
-                  stroke="var(--border)" strokeWidth={1.5} />
-              </svg>
-              <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
+              {/* ── Cuartos ───────────────────────────────────────── */}
+              <div style={{ width: CARD_W, height: BH, position: 'relative', flexShrink: 0 }}>
+                <p className="text-[8px] font-bold uppercase tracking-wider text-center"
+                  style={{ color: '#64748b', paddingBottom: 4 }}>
+                  Cuartos
+                </p>
+                {cuaSlots.map((p, i) =>
+                  p ? (
+                    <div key={p.id} style={{ position: 'absolute', top: itemCenter(i) - CARD_H / 2, left: 0 }}>
+                      <MatchCard p={p} onClick={onPredicir ? () => onPredicir(p) : undefined} />
+                    </div>
+                  ) : emptySlot(`cua-${i}`, itemCenter(i))
+                )}
+              </div>
+
+              <ConnectorCuaToSemi />
+
+              {/* ── Semifinales ─────────────────────────────────────── */}
+              <div style={{ width: CARD_W, height: BH, position: 'relative', flexShrink: 0 }}>
+                <p className="text-[8px] font-bold uppercase tracking-wider text-center"
+                  style={{ color: '#64748b', paddingBottom: 4 }}>
+                  Semifinales
+                </p>
+                {semiSlots.map((p, i) => {
+                  const y = (i * 2 + 1) * SLOT_H; // 56, 168
+                  return p ? (
+                    <div key={p.id} style={{ position: 'absolute', top: y - CARD_H / 2, left: 0 }}>
+                      <MatchCard p={p} onClick={onPredicir ? () => onPredicir(p) : undefined} />
+                    </div>
+                  ) : emptySlot(`semi-${i}`, y);
+                })}
+              </div>
+
+              <ConnectorSemiToFinal />
+
+              {/* ── Final ──────────────────────────────────────────── */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: BH, flexShrink: 0 }}>
                 <p className="text-[8px] font-bold uppercase tracking-wider mb-1" style={{ color: '#ea580c' }}>
                   🏆 Final
                 </p>
-                {finalCard ? <MatchCard p={finalCard} onClick={onPredicir ? () => onPredicir(finalCard) : undefined} /> : (
+                {finalCard ? (
+                  <MatchCard p={finalCard} onClick={onPredicir ? () => onPredicir(finalCard) : undefined} />
+                ) : (
                   <div style={{
                     width: CARD_W, height: CARD_H,
                     border: '1px dashed var(--border)', borderRadius: 6,
@@ -219,18 +247,22 @@ function MiniBracket({ partidos, visible, onPredicir }: { partidos: Partido[]; v
                     <span style={{ fontSize: 9, color: '#475569', fontFamily: 'var(--font-rajdhani)' }}>—</span>
                   </div>
                 )}
-                {tercerCard && (
-                  <div style={{ marginTop: 8 }}>
-                    <p className="text-[8px] font-bold uppercase tracking-wider mb-1" style={{ color: '#64748b' }}>
-                      🥉 3er Lugar
-                    </p>
-                    <MatchCard p={tercerCard} onClick={onPredicir ? () => onPredicir(tercerCard) : undefined} />
-                  </div>
-                )}
               </div>
             </div>
           </div>
-        </div>
+
+          {/* ── 3er Lugar (abajo, separado) ──────────────────────── */}
+          {tercerCard && (
+            <div style={{ marginTop: 12, borderTop: '1px solid var(--border)', paddingTop: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span className="text-[8px] font-bold uppercase tracking-wider shrink-0" style={{ color: '#64748b' }}>
+                  🥉 3er Lugar
+                </span>
+                <MatchCard p={tercerCard} onClick={onPredicir ? () => onPredicir(tercerCard) : undefined} />
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
