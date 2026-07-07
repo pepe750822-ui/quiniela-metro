@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Partido, Prediccion, Pozo } from '@/types';
 import { getNombreJornada, getFechaKey, equiposE32, BANDERAS_EQUIPOS, getMontoJornada } from '@/lib/utils';
+import { Bandera } from '@/components/Bandera';
 import PartidoCard from '@/components/PartidoCard';
 import PrediccionForm from '@/components/PrediccionForm';
 import { toast } from 'sonner';
@@ -31,6 +32,78 @@ const getDeadline = (jornada: number) => {
   if (jornada === 8) return DEADLINE_J8;
   return DEADLINE_J9;
 };
+
+// ── Mini bracket Fase Final (J6–J9) ───────────────────────────────────────
+function MiniBracket({ partidos, visible }: { partidos: Partido[]; visible: boolean }) {
+  const j6 = partidos.filter(p => p.jornada === 6);
+  const j7 = partidos.filter(p => p.jornada === 7);
+  const j8 = partidos.filter(p => p.jornada === 8);
+  const j9 = partidos.filter(p => p.jornada === 9);
+
+  const teamName = (p: Partido, local: boolean) => {
+    const name = local ? p.equipo_local : p.equipo_visitante;
+    if (name && name !== 'A definir') return name;
+    const fk = getFechaKey(p.fecha_hora);
+    const eq = equiposE32[fk];
+    if (!eq) return 'A definir';
+    return local ? (eq.local || 'A definir') : (eq.visitante || 'A definir');
+  };
+
+  const Match = ({ p }: { p: Partido }) => {
+    const local = teamName(p, true);
+    const visit = teamName(p, false);
+    const isDef = (s: string) => s === 'A definir' || !s;
+    return (
+      <div className="flex items-center gap-1 py-0.5">
+        {!isDef(local) && <Bandera emoji={BANDERAS_EQUIPOS[local] ?? ''} nombre={local} size="sm" />}
+        <span style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 10, fontWeight: 600, color: isDef(local) ? '#475569' : 'var(--text-primary)' }}>
+          {isDef(local) ? '???' : local}
+        </span>
+        <span style={{ color: '#475569', fontSize: 8 }}>vs</span>
+        {!isDef(visit) && <Bandera emoji={BANDERAS_EQUIPOS[visit] ?? ''} nombre={visit} size="sm" />}
+        <span style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 10, fontWeight: 600, color: isDef(visit) ? '#475569' : 'var(--text-primary)' }}>
+          {isDef(visit) ? '???' : visit}
+        </span>
+        {p.estado === 'finalizado' && (
+          <span style={{ fontFamily: 'var(--font-bebas)', fontSize: 11, color: '#fb923c', marginLeft: 2 }}>
+            {p.goles_local}-{p.goles_visitante}
+          </span>
+        )}
+      </div>
+    );
+  };
+
+  if (!visible) return null;
+
+  return (
+    <div className="rounded-xl p-3 space-y-2" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', animation: 'fadeIn 0.2s ease-out' }}>
+      <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
+        🏆 Fase Final
+      </p>
+
+      <p className="text-[9px] font-semibold uppercase" style={{ color: '#64748b' }}>Cuartos</p>
+      {j6.map(p => <Match key={p.id} p={p} />)}
+
+      <div style={{ borderTop: '1px dashed rgba(148,163,184,0.25)', marginTop: 4, paddingTop: 4 }}>
+        <p className="text-[9px] font-semibold uppercase" style={{ color: '#64748b' }}>Semifinales</p>
+        {j7.map(p => <Match key={p.id} p={p} />)}
+      </div>
+
+      <div style={{ borderTop: '1px dashed rgba(148,163,184,0.25)', marginTop: 4, paddingTop: 4 }}>
+        <div className="flex gap-6">
+          <div>
+            <p className="text-[9px] font-semibold uppercase" style={{ color: '#64748b' }}>3er Lugar</p>
+            {j8.map(p => <Match key={p.id} p={p} />)}
+          </div>
+          <div>
+            <p className="text-[9px] font-semibold uppercase" style={{ color: '#ea580c' }}>Final</p>
+            {j9.map(p => <Match key={p.id} p={p} />)}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function PrediccionesPage() {
   const router = useRouter();
@@ -60,6 +133,10 @@ export default function PrediccionesPage() {
   const [j6Pick, setJ6Pick]           = useState<string | null>(null);
   const [j6PickTemp, setJ6PickTemp]   = useState<string | null>(null);
   const [j6Guardando, setJ6Guardando] = useState(false);
+
+  // Bracket visual J6-J9
+  const [bracketVisible, setBracketVisible] = useState(false);
+  const [bracketPartidos, setBracketPartidos] = useState<Partido[]>([]);
 
   // Múltiples quinielas
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -225,6 +302,17 @@ export default function PrediccionesPage() {
       if (jornada === 6) cargarJ6Campeon();
     }
   }, [userId, jornada, cargarQuinielas, cargarPredicciones, cargarCampeon, cargarPozoYParticipacion, cargarJ6Campeon]);
+
+  // Cargar partidos J6-J9 para el bracket visual
+  useEffect(() => {
+    supabase
+      .from('quiniela_partidos')
+      .select('*')
+      .in('jornada', [6, 7, 8, 9])
+      .order('jornada')
+      .order('fecha_hora')
+      .then(({ data }) => setBracketPartidos((data as Partido[]) ?? []));
+  }, []);
 
   useEffect(() => {
     if (partidos.length === 0) return;
@@ -577,6 +665,23 @@ export default function PrediccionesPage() {
               <span>🥅 Penales</span>
             </div>
           )}
+
+          {/* Bracket Fase Final colapsable */}
+          <div style={{ animation: 'fadeInUp 0.4s ease-out 0.15s both' }}>
+            <button
+              onClick={() => setBracketVisible(v => !v)}
+              className="w-full flex items-center justify-between rounded-xl px-4 py-2.5 transition-all active:scale-[0.99]"
+              style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
+            >
+              <span className="text-xs font-bold uppercase tracking-wider" style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--accent-gold)' }}>
+                🏆 Bracket Fase Final
+              </span>
+              <span style={{ color: 'var(--text-secondary)', fontSize: 10 }}>
+                {bracketVisible ? '▲ Ocultar' : '▼ Ver bracket'}
+              </span>
+            </button>
+            <MiniBracket partidos={bracketPartidos} visible={bracketVisible} />
+          </div>
 
           <div className="space-y-3" style={{ animation: 'fadeInUp 0.4s ease-out 0.2s both' }}>
           {todosSinResolver ? (
