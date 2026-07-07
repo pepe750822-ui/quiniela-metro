@@ -40,8 +40,13 @@ function MiniBracket({ partidos, visible }: { partidos: Partido[]; visible: bool
   const j8 = partidos.filter(p => p.jornada === 8);
   const j9 = partidos.filter(p => p.jornada === 9);
 
-  const CARD_W = 130;
-  const CARD_H = 50;
+  const CARD_W = 126;
+  const CARD_H = 48;
+  const SLOT_H = 56;
+  const BH = 4 * SLOT_H;
+  const CONN_W = 18;
+
+  const itemCenter = (idx: number) => (idx + 0.5) * SLOT_H;
 
   const teamName = (p: Partido, local: boolean) => {
     const name = local ? p.equipo_local : p.equipo_visitante;
@@ -64,7 +69,7 @@ function MiniBracket({ partidos, visible }: { partidos: Partido[]; visible: bool
   }) {
     return (
       <div className="flex items-center justify-between px-2 py-1 gap-1"
-        style={{ background: winner ? 'rgba(234,88,12,0.14)' : 'transparent' }}>
+        style={{ background: winner ? 'rgba(234,88,12,0.14)' : 'transparent', height: 24 }}>
         <div className="flex items-center gap-1.5 min-w-0">
           {bandera && !isDef(nombre) && <Bandera emoji={bandera} nombre={nombre} size="sm" />}
           <span className="text-[10px] truncate leading-tight" style={{
@@ -80,6 +85,32 @@ function MiniBracket({ partidos, visible }: { partidos: Partido[]; visible: bool
             fontFamily: 'var(--font-bebas)',
             color: winner ? '#fb923c' : 'var(--text-secondary)',
           }}>{goles}</span>
+        )}
+      </div>
+    );
+  }
+
+  function Column({ items, label, labelColor }: {
+    items: (Partido | null)[]; label: string; labelColor?: string;
+  }) {
+    return (
+      <div style={{ width: CARD_W, height: BH, position: 'relative', flexShrink: 0 }}>
+        <p className="text-[8px] font-bold uppercase tracking-wider text-center"
+          style={{ color: labelColor ?? '#64748b', paddingBottom: 4 }}>
+          {label}
+        </p>
+        {items.map((p, i) =>
+          p ? <div key={p.id} style={{ position: 'absolute', top: itemCenter(i) - CARD_H / 2, left: 0 }}>
+              <MatchCard p={p} />
+            </div>
+          : <div key={`empty-${i}`} style={{
+              position: 'absolute', top: itemCenter(i) - CARD_H / 2, left: 0,
+              width: CARD_W, height: CARD_H,
+              border: '1px dashed var(--border)', borderRadius: 6,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+            <span style={{ fontSize: 9, color: '#475569', fontFamily: 'var(--font-rajdhani)' }}>—</span>
+          </div>
         )}
       </div>
     );
@@ -112,28 +143,20 @@ function MiniBracket({ partidos, visible }: { partidos: Partido[]; visible: bool
     );
   }
 
-  function Connector({ pairs, left }: { pairs: number; left: boolean }) {
-    const H = pairs * CARD_H + (pairs - 1) * 8;
-    const gap = CARD_H + 8;
+  function ConnectorL({ fromRound }: { fromRound: 0 | 1 }) {
+    const pairs = fromRound === 0 ? 2 : 1;
+    const gap = SLOT_H;
     const paths: string[] = [];
     for (let i = 0; i < pairs; i++) {
-      const y1 = i * gap + CARD_H / 2;
-      const y2 = (i + 1) * gap - CARD_H / 2;
+      const y1 = (2 * i + 0.5) * gap;
+      const y2 = (2 * i + 1.5) * gap;
       const yM = (y1 + y2) / 2;
-      const w = 14;
-      if (left) {
-        paths.push(`M0,${y1} H${w/2} V${y2} H0`);
-        paths.push(`M${w/2},${yM} H${w}`);
-      } else {
-        paths.push(`M${w},${y1} H${w/2} V${y2} H${w}`);
-        paths.push(`M${w/2},${yM} H0`);
-      }
+      paths.push(`M0,${y1} H${CONN_W/2} V${y2} H0`);
+      paths.push(`M${CONN_W/2},${yM} H${CONN_W}`);
     }
     return (
-      <svg width={16} height={H} style={{ display: 'block', flexShrink: 0, marginTop: 4 }}>
-        {paths.map((d, i) => (
-          <path key={i} d={d} fill="none" stroke="var(--border)" strokeWidth={1.5} strokeLinecap="round" />
-        ))}
+      <svg width={CONN_W} height={BH} style={{ display: 'block', flexShrink: 0 }}>
+        {paths.map((d,i) => <path key={i} d={d} fill="none" stroke="var(--border)" strokeWidth={1.5} strokeLinecap="round" />)}
       </svg>
     );
   }
@@ -141,10 +164,21 @@ function MiniBracket({ partidos, visible }: { partidos: Partido[]; visible: bool
   if (!visible) return null;
 
   const allEmpty = j6.length === 0 && j7.length === 0 && j8.length === 0 && j9.length === 0;
+  const pad = (arr: Partido[], n: number) => {
+    const r: (Partido | null)[] = [...arr];
+    while (r.length < n) r.push(null);
+    return r;
+  };
+
+  const cuaCol = pad(j6.slice(0, 4), 4);
+  const semiCol = pad(j7.slice(0, 2), 2);
+  const finalCard = j9[0] ?? null;
+  const tercerCard = j8[0] ?? null;
+  const FINAL_W = CARD_W + 40;
 
   return (
     <div className="rounded-xl p-3" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', animation: 'fadeIn 0.2s ease-out' }}>
-      <p className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
+      <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
         🏆 Fase Final
       </p>
 
@@ -154,58 +188,41 @@ function MiniBracket({ partidos, visible }: { partidos: Partido[]; visible: bool
         </p>
       ) : (
         <div className="overflow-x-auto pb-1" style={{ scrollbarWidth: 'thin' }}>
-          <div className="flex items-start gap-0" style={{ minWidth: 'max-content' }}>
-            {/* Cuartos */}
-            <div className="flex flex-col gap-1">
-              <p className="text-[8px] font-bold uppercase tracking-wider text-center pb-1" style={{ color: '#64748b' }}>
-                Cuartos
-              </p>
-              {j6.map(p => <MatchCard key={p.id} p={p} />)}
-            </div>
+          <div style={{ display: 'flex', alignItems: 'flex-start', minWidth: 'max-content' }}>
+            <Column items={cuaCol} label="Cuartos" />
+            <ConnectorL fromRound={0} />
+            <Column items={semiCol} label="Semifinales" />
+            <ConnectorL fromRound={1} />
 
-            <Connector pairs={j6.length / 2} left />
-
-            {/* Semifinales */}
-            <div className="flex flex-col gap-1">
-              <p className="text-[8px] font-bold uppercase tracking-wider text-center pb-1" style={{ color: '#64748b' }}>
-                Semifinales
-              </p>
-              {j7.map(p => <MatchCard key={p.id} p={p} />)}
-              {Array.from({ length: Math.max(0, 2 - j7.length) }).map((_, i) => (
-                <div key={`semi-empty-${i}`} style={{
-                  width: CARD_W, height: CARD_H,
-                  border: '1px dashed var(--border)', borderRadius: 6,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <span style={{ fontSize: 9, color: '#475569', fontFamily: 'var(--font-rajdhani)' }}>—</span>
-                </div>
-              ))}
-            </div>
-
-            <Connector pairs={1} left />
-
-            {/* Final */}
-            <div className="flex flex-col items-center">
-              <p className="text-[8px] font-bold uppercase tracking-wider text-center pb-1" style={{ color: '#ea580c' }}>
-                🏆 Final
-              </p>
-              {j9.length > 0 ? j9.map(p => <MatchCard key={p.id} p={p} />) : (
-                <div style={{
-                  width: CARD_W, height: CARD_H,
-                  border: '1px dashed var(--border)', borderRadius: 6,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <span style={{ fontSize: 9, color: '#475569', fontFamily: 'var(--font-rajdhani)' }}>—</span>
-                </div>
-              )}
-              {j8.length > 0 && (
-                <div style={{ marginTop: 8 }}>
-                  <p className="text-[8px] font-bold uppercase tracking-wider text-center pb-1" style={{ color: '#64748b' }}>
-                    🥉 3er Lugar
-                  </p>
-                  {j8.map(p => <MatchCard key={p.id} p={p} />)}
-                </div>
-              )}
+            {/* Final + 3er Lugar */}
+            <div style={{ width: FINAL_W, height: BH, flexShrink: 0, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg width={FINAL_W / 2} height={BH}
+                style={{ position: 'absolute', left: 0, top: 0, pointerEvents: 'none' }}>
+                <line x1={0} y1={BH / 2} x2={FINAL_W / 2} y2={BH / 2}
+                  stroke="var(--border)" strokeWidth={1.5} />
+              </svg>
+              <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
+                <p className="text-[8px] font-bold uppercase tracking-wider mb-1" style={{ color: '#ea580c' }}>
+                  🏆 Final
+                </p>
+                {finalCard ? <MatchCard p={finalCard} /> : (
+                  <div style={{
+                    width: CARD_W, height: CARD_H,
+                    border: '1px dashed var(--border)', borderRadius: 6,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <span style={{ fontSize: 9, color: '#475569', fontFamily: 'var(--font-rajdhani)' }}>—</span>
+                  </div>
+                )}
+                {tercerCard && (
+                  <div style={{ marginTop: 8 }}>
+                    <p className="text-[8px] font-bold uppercase tracking-wider mb-1" style={{ color: '#64748b' }}>
+                      🥉 3er Lugar
+                    </p>
+                    <MatchCard p={tercerCard} />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
