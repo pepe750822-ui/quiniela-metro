@@ -15,6 +15,7 @@ export default function TablaPage() {
   const [participaciones, setParticipaciones] = useState<any[]>([]);
   const [pozoParticipantes, setPozoParticipantes] = useState<number | null>(null);
   const [esAdmin, setEsAdmin]           = useState(false);
+  const [campeonPicks, setCampeonPicks] = useState<Record<string, string>>({});
   const [loading, setLoading]           = useState(false);
   const tablaRef = useRef<HTMLDivElement>(null);
 
@@ -98,6 +99,18 @@ export default function TablaPage() {
       .eq('jornada', jornada)
       .single();
     setPozoParticipantes(pozoDat?.participantes ?? null);
+
+    // Campeón elegido (solo J6)
+    const picksMap: Record<string, string> = {};
+    if (jornada === 6 && userIds.length) {
+      const { data: picks } = await supabase
+        .from('quiniela_prediccion_campeon')
+        .select('user_id, equipo')
+        .eq('jornada', 6)
+        .in('user_id', userIds);
+      (picks || []).forEach((p: any) => { picksMap[p.user_id] = p.equipo; });
+    }
+    setCampeonPicks(picksMap);
 
     setLoading(false);
   };
@@ -472,6 +485,12 @@ export default function TablaPage() {
                 style={{ background: 'var(--bg-base)', borderBottom: '1px solid var(--border-color)' }}>
                 <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>Jugador</span>
               </th>
+              {jornada === 6 && (
+                <th className="px-3 py-2 text-center min-w-[55px]"
+                  style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '0.8rem', color: '#ea580c' }}>
+                  🏆 Campeón
+                </th>
+              )}
                <th className="sticky left-[130px] z-20 px-3 py-2 text-center min-w-[55px]"
                 style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
                 PTS
@@ -526,6 +545,12 @@ export default function TablaPage() {
                 style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
                 PTS
               </th>
+              {jornada === 6 && (
+                <th className="px-3 py-2 text-center min-w-[70px]"
+                  style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '0.75rem', color: '#ea580c' }}>
+                  🏆
+                </th>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -708,6 +733,21 @@ export default function TablaPage() {
                     style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
                     {totalPuntos}
                   </td>
+                  {jornada === 6 && (
+                    <td className="px-3 py-2 text-center"
+                      style={{ borderBottom: '1px solid var(--border-color)' }}>
+                      {campeonPicks[part.user_id] ? (
+                        <div className="flex items-center justify-center gap-1">
+                          <Bandera emoji={BANDERAS_EQUIPOS[campeonPicks[part.user_id]] ?? ''} nombre={campeonPicks[part.user_id]} size="sm" />
+                          <span style={{ fontSize: '0.65rem', color: 'var(--text-primary)' }}>
+                            {campeonPicks[part.user_id]}
+                          </span>
+                        </div>
+                      ) : (
+                        <span style={{ fontSize: '0.65rem', color: '#475569' }}>—</span>
+                      )}
+                    </td>
+                  )}
                 </tr>
               );
             })}
