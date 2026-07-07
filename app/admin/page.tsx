@@ -65,6 +65,9 @@ export default function AdminPage() {
   const [declarandoUltimo, setDeclarandoUltimo] = useState<number | null>(null);
   const [declarandoCampeon, setDeclarandoCampeon] = useState(false);
   const [equipoCampeonManual, setEquipoCampeonManual] = useState('');
+  const [bonoCampeonLoading, setBonoCampeonLoading] = useState(false);
+  const [bonoCampeonResult, setBonoCampeonResult] = useState<string | null>(null);
+  const [confirmandoBono, setConfirmandoBono] = useState(false);
 
   // Registrar pago manual
   const [pagoJugadorId, setPagoJugadorId] = useState('');
@@ -103,6 +106,7 @@ export default function AdminPage() {
     resultados: false,
     notas: false,
     campeon: false,
+    bonoCampeon: false,
     magicLink: false,
     grupos: false,
   });
@@ -716,6 +720,28 @@ export default function AdminPage() {
       toast.error('Error: ' + (e as Error).message);
     }
     setDeclarandoCampeon(false);
+  };
+
+  const aplicarBonoCampeon = async () => {
+    setConfirmandoBono(false);
+    setBonoCampeonLoading(true);
+    setBonoCampeonResult(null);
+    try {
+      const res = await fetch('/api/admin/bono-campeon', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ secret: process.env.NEXT_PUBLIC_CLEANUP_SECRET || 'quiniela-metro-cleanup-2026' }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error);
+      setBonoCampeonResult('✅ Bono de campeón aplicado correctamente');
+      toast.success('🏆 +5 pts a quienes acertaron el campeón');
+    } catch (e: unknown) {
+      const msg = (e as Error).message;
+      setBonoCampeonResult(`❌ Error: ${msg}`);
+      toast.error(msg);
+    }
+    setBonoCampeonLoading(false);
   };
 
   const registrarPago = async () => {
@@ -1750,6 +1776,73 @@ export default function AdminPage() {
             >
               {declarandoCampeon ? '⏳ Declarando...' : '🏆 Declarar campeón'}
             </button>
+          </div>
+        )}
+      </section>
+
+      {/* ── BONO CAMPEÓN +5 PTS ── */}
+      <section className="space-y-1">
+        <button
+          onClick={() => toggleSeccion('bonoCampeon')}
+          className="w-full flex items-center justify-between px-4 py-4 rounded-xl hover:border-orange-500/30 transition-all"
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: 'var(--accent-gold)' }}>
+            🏆 BONO CAMPEÓN — sumar +5 pts
+          </span>
+          <span style={{ color: '#64748b' }}>{seccionesAbiertas.bonoCampeon ? '▲' : '▼'}</span>
+        </button>
+        {seccionesAbiertas.bonoCampeon && (
+          <div className="rounded-2xl p-4 space-y-3" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+            <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+              Ejecuta esta acción para sumar <strong>+5 pts</strong> a quienes acertaron el campeón.
+              Solo debe ejecutarse <strong>después de la Final</strong>.
+            </p>
+            <div className="rounded-xl p-3 text-xs flex items-start gap-2"
+              style={{ background: 'rgba(234,88,12,0.1)', border: '1px solid rgba(234,88,12,0.25)', color: '#f97316' }}>
+              <span>⚠️</span>
+              <span>Esta acción es irreversible. Verifica que el campeón ya esté declarado antes de ejecutar.</span>
+            </div>
+            {bonoCampeonResult && (
+              <div className="rounded-xl p-3 text-xs font-semibold"
+                style={{
+                  background: bonoCampeonResult.startsWith('✅') ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
+                  border: `1px solid ${bonoCampeonResult.startsWith('✅') ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                  color: bonoCampeonResult.startsWith('✅') ? '#22c55e' : '#ef4444',
+                }}>
+                {bonoCampeonResult}
+              </div>
+            )}
+            <div className="flex gap-2">
+              {confirmandoBono ? (
+                <>
+                  <button
+                    onClick={aplicarBonoCampeon}
+                    disabled={bonoCampeonLoading}
+                    className="flex-1 py-3 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-40"
+                    style={{ background: 'rgba(239,68,68,0.2)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.4)', fontFamily: 'var(--font-rajdhani)' }}
+                  >
+                    {bonoCampeonLoading ? '⏳ Aplicando...' : '⚠️ Confirmar'}
+                  </button>
+                  <button
+                    onClick={() => setConfirmandoBono(false)}
+                    disabled={bonoCampeonLoading}
+                    className="flex-1 py-3 rounded-xl font-bold text-sm transition-all active:scale-95"
+                    style={{ border: '1px solid var(--border)', color: 'var(--text-secondary)', fontFamily: 'var(--font-rajdhani)' }}
+                  >
+                    Cancelar
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => setConfirmandoBono(true)}
+                  disabled={bonoCampeonLoading}
+                  className="w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-40"
+                  style={{ background: 'rgba(251,191,36,0.2)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.4)', fontFamily: 'var(--font-rajdhani)' }}
+                >
+                  {bonoCampeonLoading ? '⏳ Aplicando...' : '🏆 Aplicar Bono a Campeón'}
+                </button>
+              )}
+            </div>
           </div>
         )}
       </section>
