@@ -570,11 +570,6 @@ export default function PrediccionesPage() {
     return ps.length > 0 && ps.every(p => predicciones[p.id]?.publicado === true);
   }
 
-  function rondaCompletaBorrador(ronda: 'cuartos' | 'semis' | 'final'): boolean {
-    const ps = rondaPartidos(ronda);
-    return ps.length > 0 && ps.every(p => prediccionesBorrador[p.id] !== undefined);
-  }
-
   function rondaCompletados(ronda: 'cuartos' | 'semis' | 'final'): number {
     return rondaPartidos(ronda).filter(p => prediccionesBorrador[p.id] !== undefined).length;
   }
@@ -708,12 +703,7 @@ export default function PrediccionesPage() {
   const estaBloquado = (partido: Partido) => {
     if (partido.estado === 'finalizado') return true;
     if (jornada === 6) {
-      const ronda = partido.jornada === 6 ? 'cuartos' : partido.jornada === 7 ? 'semis' : 'final';
-      if (rondaPublicada(ronda)) return true;
-      const deadlineRonda = getDeadline(partido.jornada);
-      if (new Date() > deadlineRonda) return true;
-      if (ronda === 'semis' && !rondaPublicada('cuartos')) return true;
-      if (ronda === 'final' && !rondaPublicada('semis')) return true;
+      if (new Date() > getDeadline(partido.jornada)) return true;
       return false;
     }
     if (new Date() > getDeadline(jornada)) return true;
@@ -976,10 +966,8 @@ export default function PrediccionesPage() {
               {(['cuartos', 'semis', 'final'] as const).map(ronda => {
                 const label = ronda === 'cuartos' ? 'Cuartos' : ronda === 'semis' ? 'Semifinales' : 'Final + 3er Lugar';
                 const pub = rondaPublicada(ronda);
-                const ok = rondaCompletaBorrador(ronda);
                 const hechos = rondaCompletados(ronda);
                 const total = rondaTotal(ronda);
-                const bloqueada = ronda === 'semis' ? !rondaPublicada('cuartos') : ronda === 'final' ? !rondaPublicada('semis') : false;
                 return (
                   <div key={ronda} className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
@@ -989,17 +977,11 @@ export default function PrediccionesPage() {
                       <span className="text-xs font-semibold truncate" style={{ color: pub ? '#22c55e' : 'var(--text-primary)' }}>
                         {label}
                       </span>
-                      {!pub && (
-                        <span className="text-[10px] shrink-0" style={{ color: ok ? '#fbbf24' : '#64748b', fontFamily: 'var(--font-rajdhani)' }}>
-                          {hechos}/{total}
-                        </span>
-                      )}
+                      <span className="text-[10px] shrink-0" style={{ color: hechos > 0 ? '#fbbf24' : '#64748b', fontFamily: 'var(--font-rajdhani)' }}>
+                        {hechos}/{total}
+                      </span>
                     </div>
-                    {pub ? (
-                      <span className="text-[10px] font-semibold shrink-0" style={{ color: '#22c55e' }}>Publicado</span>
-                    ) : bloqueada ? (
-                      <span className="text-[10px] shrink-0" style={{ color: '#64748b' }}>🔒 Bloqueado</span>
-                    ) : ok ? (
+                    {hechos > 0 ? (
                       <button
                         onClick={() => handlePublicarRonda(ronda)}
                         disabled={publicando}
@@ -1008,6 +990,8 @@ export default function PrediccionesPage() {
                       >
                         {publicando ? '⏳' : `Publicar ${label.split(' +')[0]}`}
                       </button>
+                    ) : pub ? (
+                      <span className="text-[10px] font-semibold shrink-0" style={{ color: '#22c55e' }}>Publicado</span>
                     ) : (
                       <span className="text-[10px] shrink-0" style={{ color: '#64748b' }}>Pendiente</span>
                     )}
