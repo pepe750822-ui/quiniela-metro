@@ -36,6 +36,15 @@ export default function TablaPage() {
   useEffect(() => { refreshData(); }, [jornada]);
 
   useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') refreshData();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     if (partidos.length === 0) return;
     if (tablaRef.current) {
       setTimeout(() => {
