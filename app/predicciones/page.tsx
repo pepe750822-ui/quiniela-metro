@@ -1349,7 +1349,7 @@ export default function PrediccionesPage() {
           prediccionExistente={prediccionesBorrador[partidoActivo.id] ?? predicciones[partidoActivo.id] ?? null}
           onGuardado={handleGuardado}
           onCancelar={() => setPartidoActivo(null)}
-          onGuardadoBorrador={jornada === 6 && !estaBloquado(partidoActivo) ? handleGuardadoBorrador : undefined}
+          onGuardadoBorrador={jornada === 6 && !estaBloquado(partidoActivo) && !publicado ? handleGuardadoBorrador : undefined}
         />
       )}
 
