@@ -571,7 +571,9 @@ export default function PrediccionesPage() {
   }
 
   function rondaCompletados(ronda: 'cuartos' | 'semis' | 'final'): number {
-    return rondaPartidos(ronda).filter(p => prediccionesBorrador[p.id] !== undefined).length;
+    return rondaPartidos(ronda).filter(p =>
+      prediccionesBorrador[p.id] !== undefined || predicciones[p.id] !== undefined
+    ).length;
   }
 
   function rondaTotal(ronda: 'cuartos' | 'semis' | 'final'): number {
@@ -580,6 +582,42 @@ export default function PrediccionesPage() {
 
   const handleGuardadoBorrador = (partidoId: string, data: DraftPrediccion) => {
     setPrediccionesBorrador(prev => ({ ...prev, [partidoId]: data }));
+  };
+
+  const handleActualizar = async () => {
+    if (!userId) return;
+    setPublicando(true);
+    const promises = Object.entries(prediccionesBorrador).map(async ([partidoId, borrador]) => {
+      const predPayload = {
+        goles_local_pred: borrador.goles_local_pred,
+        goles_visitante_pred: borrador.goles_visitante_pred,
+        clasificado_pred: borrador.clasificado_pred,
+        como_termina_pred: borrador.como_termina_pred,
+        publicado: true,
+        updated_at: new Date().toISOString(),
+      };
+      const baseQ = supabase.from('quiniela_predicciones').select('id').eq('user_id', userId).eq('partido_id', partidoId);
+      const { data: existing } = await (quinielaSeleccionada === null
+        ? baseQ.is('quiniela_extra_id', null).maybeSingle()
+        : baseQ.eq('quiniela_extra_id', quinielaSeleccionada).maybeSingle());
+      if (existing) {
+        await supabase.from('quiniela_predicciones').update(predPayload).eq('id', existing.id);
+      } else {
+        await supabase.from('quiniela_predicciones').insert({ user_id: userId, partido_id: partidoId, quiniela_extra_id: quinielaSeleccionada || null, ...predPayload });
+      }
+    });
+    try {
+      await Promise.all(promises);
+      const baseUpdate = supabase.from('quiniela_participaciones').update({ publicado: true }).eq('user_id', userId).eq('jornada', jornada);
+      await (quinielaSeleccionada === null ? baseUpdate.is('quiniela_extra_id', null) : baseUpdate.eq('quiniela_extra_id', quinielaSeleccionada));
+      setPrediccionesBorrador({});
+      setPublicado(true);
+      await cargarPredicciones();
+      toast.success('🔄 ¡Predicciones actualizadas!');
+    } catch {
+      toast.error('Error al actualizar predicciones');
+    }
+    setPublicando(false);
   };
 
   const handlePublicarRonda = async (ronda: 'cuartos' | 'semis' | 'final') => {
@@ -922,9 +960,21 @@ export default function PrediccionesPage() {
             </div>
           )}
           {jornadaCompleta && publicado && (
-            <p className="text-xs mt-1" style={{ color: '#10b981' }}>
-              Tus predicciones ya son visibles para todos los participantes
-            </p>
+            <div>
+              <p className="text-xs mt-1" style={{ color: '#10b981' }}>
+                Tus predicciones ya son visibles para todos los participantes
+              </p>
+              {Object.keys(prediccionesBorrador).length > 0 && (
+                <button
+                  onClick={handleActualizar}
+                  disabled={publicando}
+                  className="w-full mt-2 py-2.5 rounded-xl font-bold transition-all active:scale-95 disabled:opacity-50"
+                  style={{ background: '#ea580c', color: '#fff', fontFamily: 'var(--font-rajdhani)' }}
+                >
+                  {publicando ? 'Actualizando...' : '🔄 Actualizar predicciones'}
+                </button>
+              )}
+            </div>
           )}
         </div>
       )}
@@ -977,20 +1027,21 @@ export default function PrediccionesPage() {
                 const pub = rondaPublicada(ronda);
                 const hechos = rondaCompletados(ronda);
                 const total = rondaTotal(ronda);
+                const tieneBorrador = rondaPartidos(ronda).some(p => prediccionesBorrador[p.id] !== undefined);
                 return (
                   <div key={ronda} className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span style={{ fontSize: 11, color: pub ? '#22c55e' : 'var(--text-secondary)' }}>
-                        {pub ? '✅' : '📋'}
+                      <span style={{ fontSize: 11, color: pub && !tieneBorrador ? '#22c55e' : 'var(--text-secondary)' }}>
+                        {pub && !tieneBorrador ? '✅' : '📋'}
                       </span>
-                      <span className="text-xs font-semibold truncate" style={{ color: pub ? '#22c55e' : 'var(--text-primary)' }}>
+                      <span className="text-xs font-semibold truncate" style={{ color: pub && !tieneBorrador ? '#22c55e' : 'var(--text-primary)' }}>
                         {label}
                       </span>
                       <span className="text-[10px] shrink-0" style={{ color: hechos > 0 ? '#fbbf24' : '#64748b', fontFamily: 'var(--font-rajdhani)' }}>
                         {hechos}/{total}
                       </span>
                     </div>
-                    {hechos > 0 ? (
+                    {tieneBorrador ? (
                       <button
                         onClick={() => handlePublicarRonda(ronda)}
                         disabled={publicando}
@@ -1001,6 +1052,15 @@ export default function PrediccionesPage() {
                       </button>
                     ) : pub ? (
                       <span className="text-[10px] font-semibold shrink-0" style={{ color: '#22c55e' }}>Publicado</span>
+                    ) : hechos > 0 ? (
+                      <button
+                        onClick={() => handlePublicarRonda(ronda)}
+                        disabled={publicando}
+                        className="text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg shrink-0 transition-all active:scale-95 disabled:opacity-50"
+                        style={{ background: 'var(--accent-gold)', color: '#000' }}
+                      >
+                        {publicando ? '⏳' : `Publicar ${label.split(' +')[0]}`}
+                      </button>
                     ) : (
                       <span className="text-[10px] shrink-0" style={{ color: '#64748b' }}>Pendiente</span>
                     )}
