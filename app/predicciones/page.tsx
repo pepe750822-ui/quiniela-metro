@@ -606,19 +606,28 @@ export default function PrediccionesPage() {
         .eq('user_id', userId)
         .eq('partido_id', p.id);
 
-      const { data: existing } = await (quinielaSeleccionada === null
+      const { data: existing, error: selectError } = await (quinielaSeleccionada === null
         ? baseExistingQuery.is('quiniela_extra_id', null).maybeSingle()
         : baseExistingQuery.eq('quiniela_extra_id', quinielaSeleccionada).maybeSingle());
 
+      if (selectError) throw new Error(`Error al buscar predicción: ${selectError.message}`);
+
       if (existing) {
-        await supabase.from('quiniela_predicciones').update(predPayload).eq('id', existing.id);
+        const { error: updateError } = await supabase
+          .from('quiniela_predicciones')
+          .update(predPayload)
+          .eq('id', existing.id);
+        if (updateError) throw new Error(`Error al actualizar: ${updateError.message}`);
       } else {
-        await supabase.from('quiniela_predicciones').insert({
-          user_id: userId,
-          partido_id: p.id,
-          quiniela_extra_id: quinielaSeleccionada || null,
-          ...predPayload,
-        });
+        const { error: insertError } = await supabase
+          .from('quiniela_predicciones')
+          .insert({
+            user_id: userId,
+            partido_id: p.id,
+            quiniela_extra_id: quinielaSeleccionada || null,
+            ...predPayload,
+          });
+        if (insertError) throw new Error(`Error al insertar: ${insertError.message}`);
       }
     });
 
