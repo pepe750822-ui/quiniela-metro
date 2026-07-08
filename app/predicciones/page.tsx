@@ -1027,21 +1027,20 @@ export default function PrediccionesPage() {
                 const pub = rondaPublicada(ronda);
                 const hechos = rondaCompletados(ronda);
                 const total = rondaTotal(ronda);
-                const tieneBorrador = rondaPartidos(ronda).some(p => prediccionesBorrador[p.id] !== undefined);
                 return (
                   <div key={ronda} className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span style={{ fontSize: 11, color: pub && !tieneBorrador ? '#22c55e' : 'var(--text-secondary)' }}>
-                        {pub && !tieneBorrador ? '✅' : '📋'}
+                      <span style={{ fontSize: 11, color: pub ? '#22c55e' : 'var(--text-secondary)' }}>
+                        {pub ? '✅' : '📋'}
                       </span>
-                      <span className="text-xs font-semibold truncate" style={{ color: pub && !tieneBorrador ? '#22c55e' : 'var(--text-primary)' }}>
+                      <span className="text-xs font-semibold truncate" style={{ color: pub ? '#22c55e' : 'var(--text-primary)' }}>
                         {label}
                       </span>
                       <span className="text-[10px] shrink-0" style={{ color: hechos > 0 ? '#fbbf24' : '#64748b', fontFamily: 'var(--font-rajdhani)' }}>
                         {hechos}/{total}
                       </span>
                     </div>
-                    {tieneBorrador ? (
+                    {hechos === total ? (
                       <button
                         onClick={() => handlePublicarRonda(ronda)}
                         disabled={publicando}
@@ -1052,17 +1051,8 @@ export default function PrediccionesPage() {
                       </button>
                     ) : pub ? (
                       <span className="text-[10px] font-semibold shrink-0" style={{ color: '#22c55e' }}>Publicado</span>
-                    ) : hechos > 0 ? (
-                      <button
-                        onClick={() => handlePublicarRonda(ronda)}
-                        disabled={publicando}
-                        className="text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg shrink-0 transition-all active:scale-95 disabled:opacity-50"
-                        style={{ background: 'var(--accent-gold)', color: '#000' }}
-                      >
-                        {publicando ? '⏳' : `Publicar ${label.split(' +')[0]}`}
-                      </button>
                     ) : (
-                      <span className="text-[10px] shrink-0" style={{ color: '#64748b' }}>Pendiente</span>
+                      <span className="text-[10px] shrink-0" style={{ color: '#64748b' }}>{hechos > 0 ? `${hechos}/${total}` : 'Pendiente'}</span>
                     )}
                   </div>
                 );
