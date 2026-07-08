@@ -8,7 +8,7 @@ import { getNombreJornada, BANDERAS_EQUIPOS } from '@/lib/utils';
 import ReglasFaseFinal from '@/components/ReglasFaseFinal';
 
 export default function TablaPage() {
-  const [jornada, setJornada]           = useState(5);
+  const [jornada, setJornada]           = useState(6);
   const [partidos, setPartidos]         = useState<any[]>([]);
   const [jugadores, setJugadores]       = useState<any[]>([]);
   const [predicciones, setPredicciones] = useState<any[]>([]);
