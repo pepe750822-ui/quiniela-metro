@@ -103,7 +103,8 @@ export default function AdminPage() {
 
   // Acordeones
   const [seccionesAbiertas, setSeccionesAbiertas] = useState({
-    pago: true,
+    faseFinalJ6: true,
+    pago: false,
     pozos: false,
     apodos: false,
     usuarios: false,
@@ -1043,6 +1044,223 @@ export default function AdminPage() {
           {actualizando ? '⏳ Actualizando...' : '🔄 Actualizar resultados'}
         </button>
       </div>
+
+      {/* ── FASE FINAL J6 — CUARTOS DE FINAL ── */}
+      <section className="space-y-1">
+        <button
+          onClick={() => toggleSeccion('faseFinalJ6')}
+          className="w-full flex items-center justify-between px-4 py-4 rounded-xl hover:border-orange-500/50 transition-all"
+          style={{ background: 'linear-gradient(135deg, rgba(234,88,12,0.18), rgba(251,191,36,0.08))', border: '2px solid rgba(234,88,12,0.5)' }}>
+          <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.2rem', color: 'var(--accent-gold)' }}>
+            🏆 FASE FINAL J6 — Cuartos de Final
+          </span>
+          <span style={{ color: '#64748b' }}>{seccionesAbiertas.faseFinalJ6 ? '▲' : '▼'}</span>
+        </button>
+        {seccionesAbiertas.faseFinalJ6 && (
+          <div className="space-y-4">
+
+            {/* Pozo J6 */}
+            {(() => {
+              const pozoJ6 = pozos.find(p => p.jornada === 6);
+              return pozoJ6 ? (
+                <div className="rounded-2xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                  <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>💰 Pozo J6</p>
+                  <div className="flex items-center justify-between">
+                    <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.8rem', color: '#ea580c' }}>${pozoJ6.total_mxn} MXN</span>
+                    <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>👥 {pozoJ6.participantes} participantes</span>
+                  </div>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full mt-1 inline-block font-bold uppercase"
+                    style={{ background: 'rgba(234,88,12,0.15)', color: '#ea580c' }}>
+                    {pozoJ6.estado}
+                  </span>
+                </div>
+              ) : null;
+            })()}
+
+            {/* Participantes J6 */}
+            {(() => {
+              const partsJ6 = participaciones.filter(p => p.jornada === 6);
+              const pagados = partsJ6.filter(p => p.pagado);
+              const pendientes = partsJ6.filter(p => !p.pagado);
+              if (partsJ6.length === 0) return null;
+              return (
+                <div className="rounded-2xl p-4 space-y-2" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                  <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
+                    👥 Participantes J6 — <span style={{ color: '#10b981' }}>{pagados.length} pagados</span> · <span style={{ color: '#ea580c' }}>{pendientes.length} pendientes</span>
+                  </p>
+                  {pagados.map(p => (
+                    <div key={p.id} className="flex items-center justify-between text-xs py-0.5">
+                      <span style={{ color: 'var(--text-primary)' }}>{mostrarNombreParticipante(p)}</span>
+                      <span style={{ color: '#10b981' }}>✅</span>
+                    </div>
+                  ))}
+                  {pendientes.map(p => (
+                    <div key={p.id} className="flex items-center justify-between text-xs py-0.5">
+                      <span style={{ color: 'var(--text-secondary)' }}>{mostrarNombreParticipante(p)}</span>
+                      <span style={{ color: '#ea580c' }}>⏳</span>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+
+            {/* Partidos J6 con resultado */}
+            <div className="space-y-3">
+              <p className="text-xs font-bold uppercase tracking-widest px-1" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
+                ⚽ Partidos de Cuartos (J6)
+              </p>
+              {partidos.filter(p => p.jornada === 6).length === 0 ? (
+                <p className="text-sm text-center py-4 rounded-xl" style={{ color: '#64748b', background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                  Sin partidos J6 cargados aún
+                </p>
+              ) : (
+                partidos.filter(p => p.jornada === 6).map(partido => {
+                  const res = resultados[partido.id];
+                  return (
+                    <div key={partido.id} className="rounded-2xl p-4 space-y-3"
+                      style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                      <div className="flex items-center justify-between text-xs" style={{ color: 'var(--text-secondary)' }}>
+                        <span>{new Date(partido.fecha_hora).toLocaleString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'America/Mexico_City' })}</span>
+                        <span className="px-2 py-0.5 rounded-full font-bold uppercase text-[10px]"
+                          style={{
+                            background: partido.estado === 'finalizado' ? 'rgba(100,116,139,0.15)' : 'rgba(234,88,12,0.15)',
+                            color:      partido.estado === 'finalizado' ? '#64748b' : 'var(--accent-gold)',
+                          }}>
+                          {partido.estado}
+                        </span>
+                      </div>
+                      <p className="text-sm font-bold text-center" style={{ color: 'var(--text-primary)' }}>
+                        {partido.equipo_local} vs {partido.equipo_visitante}
+                      </p>
+                      {partido.estado !== 'finalizado' && (
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-center gap-3">
+                            <input type="number" min="0" max="20" placeholder="0"
+                              value={res?.local ?? ''}
+                              onChange={e => setResultados(prev => ({ ...prev, [partido.id]: { local: parseInt(e.target.value) || 0, visitante: prev[partido.id]?.visitante ?? 0 } }))}
+                              className="w-14 h-12 text-center text-xl font-bold rounded-xl outline-none"
+                              style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontFamily: 'var(--font-bebas)' }} />
+                            <span className="text-xl font-bold" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-bebas)' }}>–</span>
+                            <input type="number" min="0" max="20" placeholder="0"
+                              value={res?.visitante ?? ''}
+                              onChange={e => setResultados(prev => ({ ...prev, [partido.id]: { local: prev[partido.id]?.local ?? 0, visitante: parseInt(e.target.value) || 0 } }))}
+                              className="w-14 h-12 text-center text-xl font-bold rounded-xl outline-none"
+                              style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontFamily: 'var(--font-bebas)' }} />
+                          </div>
+                          <div className="flex flex-col sm:flex-row gap-2">
+                            <div className="flex-1">
+                              <label className="block text-xs mb-1" style={{ color: '#64748b' }}>¿Quién clasificó?</label>
+                              <select
+                                value={extras[partido.id]?.clasificado ?? ''}
+                                onChange={e => setExtras(prev => ({ ...prev, [partido.id]: { ...prev[partido.id], clasificado: e.target.value, como_termino: prev[partido.id]?.como_termino ?? 'reglamentario' } }))}
+                                className="w-full rounded-lg px-2 py-1.5 text-sm outline-none"
+                                style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}>
+                                <option value="">— seleccionar —</option>
+                                <option value={partido.equipo_local}>{partido.equipo_local}</option>
+                                <option value={partido.equipo_visitante}>{partido.equipo_visitante}</option>
+                              </select>
+                            </div>
+                            <div className="flex-1">
+                              <label className="block text-xs mb-1" style={{ color: '#64748b' }}>¿Cómo terminó?</label>
+                              <select
+                                value={extras[partido.id]?.como_termino ?? ''}
+                                onChange={e => setExtras(prev => ({ ...prev, [partido.id]: { ...prev[partido.id], clasificado: prev[partido.id]?.clasificado ?? '', como_termino: e.target.value as 'reglamentario' | 'tiempo_extra' | 'penales' } }))}
+                                className="w-full rounded-lg px-2 py-1.5 text-sm outline-none"
+                                style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}>
+                                <option value="">— seleccionar —</option>
+                                <option value="reglamentario">⏱️ Tiempo reglamentario</option>
+                                <option value="tiempo_extra">⏩ Tiempo extra</option>
+                                <option value="penales">🥅 Penales</option>
+                              </select>
+                            </div>
+                          </div>
+                          <button onClick={() => handleGuardar(partido.id)}
+                            disabled={guardando === partido.id}
+                            className="w-full h-12 rounded-xl font-bold text-sm disabled:opacity-40 transition-all active:scale-95"
+                            style={{ background: '#10b981', color: '#000' }}>
+                            {guardando === partido.id ? '…' : 'Guardar ✓'}
+                          </button>
+                        </div>
+                      )}
+                      {partido.estado === 'finalizado' && (
+                        <div className="text-center space-y-1">
+                          <p className="font-bold text-lg" style={{ fontFamily: 'var(--font-bebas)', color: 'var(--accent-gold)' }}>
+                            {partido.goles_local} – {partido.goles_visitante}
+                          </p>
+                          {(partido as Partido & { clasificado?: string; como_termino?: string }).clasificado && (
+                            <p className="text-xs" style={{ color: '#94a3b8' }}>
+                              ✅ {(partido as Partido & { clasificado?: string; como_termino?: string }).clasificado}
+                              {(partido as Partido & { clasificado?: string; como_termino?: string }).como_termino === 'tiempo_extra' ? ' · ⏩' : (partido as Partido & { clasificado?: string; como_termino?: string }).como_termino === 'penales' ? ' · 🥅' : ''}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Declarar campeón J6 inline */}
+            <div className="rounded-2xl p-4 space-y-3" style={{ background: 'var(--bg-card)', border: '1px solid rgba(251,191,36,0.3)' }}>
+              <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
+                🏆 Declarar Campeón J6 y dar +5 pts
+              </p>
+              <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                Otorga +5 pts a quienes acertaron el pick de Cuartos. Acción idempotente.
+              </p>
+              <select
+                value={campeonJ6Equipo}
+                onChange={e => setCampeonJ6Equipo(e.target.value)}
+                className="w-full rounded-xl px-3 py-2.5 text-sm outline-none"
+                style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: campeonJ6Equipo ? 'var(--text-primary)' : 'var(--text-secondary)', fontFamily: 'var(--font-rajdhani)' }}>
+                <option value="">Seleccionar equipo campeón J6...</option>
+                {[...new Set(
+                  partidos.filter(p => p.jornada === 6)
+                    .flatMap(p => [p.equipo_local, p.equipo_visitante])
+                    .filter(e => e && e !== 'A definir')
+                )].sort().map(eq => (
+                  <option key={eq} value={eq}>{eq}</option>
+                ))}
+              </select>
+              {campeonJ6Result && (
+                <div className="rounded-xl p-3 text-xs font-semibold"
+                  style={{
+                    background: campeonJ6Result.startsWith('✅') ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
+                    border: `1px solid ${campeonJ6Result.startsWith('✅') ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                    color: campeonJ6Result.startsWith('✅') ? '#22c55e' : '#ef4444',
+                  }}>
+                  {campeonJ6Result}
+                </div>
+              )}
+              <div className="flex gap-2">
+                {confirmandoCampeonJ6 ? (
+                  <>
+                    <button onClick={declararCampeonJ6} disabled={campeonJ6Loading}
+                      className="flex-1 py-3 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-40"
+                      style={{ background: 'rgba(239,68,68,0.2)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.4)', fontFamily: 'var(--font-rajdhani)' }}>
+                      {campeonJ6Loading ? '⏳ Aplicando...' : '⚠️ Confirmar'}
+                    </button>
+                    <button onClick={() => setConfirmandoCampeonJ6(false)} disabled={campeonJ6Loading}
+                      className="flex-1 py-3 rounded-xl font-bold text-sm transition-all active:scale-95"
+                      style={{ border: '1px solid var(--border)', color: 'var(--text-secondary)', fontFamily: 'var(--font-rajdhani)' }}>
+                      Cancelar
+                    </button>
+                  </>
+                ) : (
+                  <button onClick={() => setConfirmandoCampeonJ6(true)}
+                    disabled={!campeonJ6Equipo || campeonJ6Loading}
+                    className="w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-40"
+                    style={{ background: 'rgba(251,191,36,0.2)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.4)', fontFamily: 'var(--font-rajdhani)' }}>
+                    {campeonJ6Loading ? '⏳ Aplicando...' : '🏆 Declarar Campeón J6 y dar +5 pts'}
+                  </button>
+                )}
+              </div>
+            </div>
+
+          </div>
+        )}
+      </section>
 
       {/* ── REGISTRAR PAGO ── */}
       <section className="space-y-1">
