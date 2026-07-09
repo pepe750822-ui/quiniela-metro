@@ -283,6 +283,19 @@ export default function DashboardPage() {
       if (pred.puntos_ganados === 3) puntajes[key].exactos++;
     });
 
+    // Bono +5 pts por pick de campeón J6
+    if (j === 6) {
+      const { data: bonosJ6 } = await supabase
+        .from('quiniela_bono_campeon')
+        .select('user_id, quiniela_extra_id, puntos')
+        .eq('jornada', 6);
+      (bonosJ6 ?? []).forEach((b: { user_id: string; quiniela_extra_id: string | null; puntos: number }) => {
+        const key = `${b.user_id}:${b.quiniela_extra_id ?? 'null'}`;
+        if (!puntajes[key]) puntajes[key] = { puntos: 0, exactos: 0 };
+        puntajes[key].puntos += b.puntos;
+      });
+    }
+
     // Incluir todos los pagados+publicados aunque tengan 0 pts
     const rankingOrdenado = pagadosEntries
       .map(p => {

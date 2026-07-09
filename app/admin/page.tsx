@@ -68,6 +68,10 @@ export default function AdminPage() {
   const [bonoCampeonLoading, setBonoCampeonLoading] = useState(false);
   const [bonoCampeonResult, setBonoCampeonResult] = useState<string | null>(null);
   const [confirmandoBono, setConfirmandoBono] = useState(false);
+  const [campeonJ6Equipo, setCampeonJ6Equipo] = useState('');
+  const [campeonJ6Loading, setCampeonJ6Loading] = useState(false);
+  const [campeonJ6Result, setCampeonJ6Result] = useState<string | null>(null);
+  const [confirmandoCampeonJ6, setConfirmandoCampeonJ6] = useState(false);
 
   // Registrar pago manual
   const [pagoJugadorId, setPagoJugadorId] = useState('');
@@ -107,6 +111,7 @@ export default function AdminPage() {
     notas: false,
     campeon: false,
     bonoCampeon: false,
+    campeonJ6: false,
     magicLink: false,
     grupos: false,
   });
@@ -742,6 +747,52 @@ export default function AdminPage() {
       toast.error(msg);
     }
     setBonoCampeonLoading(false);
+  };
+
+  const declararCampeonJ6 = async () => {
+    if (!campeonJ6Equipo) return;
+    setConfirmandoCampeonJ6(false);
+    setCampeonJ6Loading(true);
+    setCampeonJ6Result(null);
+    try {
+      await supabase
+        .from('quiniela_pozo')
+        .update({ campeon_j6: campeonJ6Equipo })
+        .eq('jornada', 6);
+
+      const { data: picks, error: pickErr } = await supabase
+        .from('quiniela_prediccion_campeon')
+        .select('user_id, quiniela_extra_id')
+        .eq('jornada', 6)
+        .eq('equipo', campeonJ6Equipo);
+      if (pickErr) throw pickErr;
+
+      await supabase.from('quiniela_bono_campeon').delete().eq('jornada', 6);
+
+      if (picks && picks.length > 0) {
+        const { error: insErr } = await supabase
+          .from('quiniela_bono_campeon')
+          .insert(
+            (picks as { user_id: string; quiniela_extra_id: string | null }[]).map(p => ({
+              user_id: p.user_id,
+              quiniela_extra_id: p.quiniela_extra_id ?? null,
+              jornada: 6,
+              equipo: campeonJ6Equipo,
+              puntos: 5,
+            }))
+          );
+        if (insErr) throw insErr;
+      }
+
+      const n = picks?.length ?? 0;
+      setCampeonJ6Result(`✅ Campeón J6 declarado — ${n} usuario${n !== 1 ? 's' : ''} recibe${n !== 1 ? 'n' : ''} +5 pts`);
+      toast.success(`🏆 +5 pts para ${n} usuario${n !== 1 ? 's' : ''} que acertaron en J6`);
+    } catch (e: unknown) {
+      const msg = (e as Error).message;
+      setCampeonJ6Result(`❌ Error: ${msg}`);
+      toast.error(msg);
+    }
+    setCampeonJ6Loading(false);
   };
 
   const registrarPago = async () => {
@@ -1840,6 +1891,96 @@ export default function AdminPage() {
                   style={{ background: 'rgba(251,191,36,0.2)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.4)', fontFamily: 'var(--font-rajdhani)' }}
                 >
                   {bonoCampeonLoading ? '⏳ Aplicando...' : '🏆 Aplicar Bono a Campeón'}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* ── CAMPEÓN J6 — CUARTOS DE FINAL +5 PTS ── */}
+      <section className="space-y-1">
+        <button
+          onClick={() => toggleSeccion('campeonJ6')}
+          className="w-full flex items-center justify-between px-4 py-4 rounded-xl hover:border-orange-500/30 transition-all"
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: 'var(--accent-gold)' }}>
+            🏆 CAMPEÓN J6 (CUARTOS) — declarar y dar +5 pts
+          </span>
+          <span style={{ color: '#64748b' }}>{seccionesAbiertas.campeonJ6 ? '▲' : '▼'}</span>
+        </button>
+        {seccionesAbiertas.campeonJ6 && (
+          <div className="rounded-2xl p-4 space-y-3" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+            <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+              Declara el campeón del pick de J6. Otorga <strong>+5 pts</strong> a quienes
+              acertaron en <code>quiniela_prediccion_campeon</code> con jornada=6.
+              Acción idempotente — puedes corregirla si es necesario.
+            </p>
+            <div>
+              <label className="text-xs uppercase tracking-widest font-semibold block mb-1.5"
+                style={{ color: 'var(--text-secondary)' }}>
+                Equipo campeón (J6)
+              </label>
+              <select
+                value={campeonJ6Equipo}
+                onChange={e => setCampeonJ6Equipo(e.target.value)}
+                className="w-full rounded-xl px-3 py-2.5 text-sm outline-none"
+                style={{
+                  background: 'var(--bg-card-hover)',
+                  border: '1px solid var(--border)',
+                  color: campeonJ6Equipo ? 'var(--text-primary)' : 'var(--text-secondary)',
+                  fontFamily: 'var(--font-rajdhani)',
+                }}
+              >
+                <option value="">Seleccionar equipo de Cuartos...</option>
+                {[...new Set(
+                  partidos
+                    .filter(p => p.jornada === 6)
+                    .flatMap(p => [p.equipo_local, p.equipo_visitante])
+                    .filter(e => e && e !== 'A definir')
+                )].sort().map(eq => (
+                  <option key={eq} value={eq}>{eq}</option>
+                ))}
+              </select>
+            </div>
+            {campeonJ6Result && (
+              <div className="rounded-xl p-3 text-xs font-semibold"
+                style={{
+                  background: campeonJ6Result.startsWith('✅') ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
+                  border: `1px solid ${campeonJ6Result.startsWith('✅') ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                  color: campeonJ6Result.startsWith('✅') ? '#22c55e' : '#ef4444',
+                }}>
+                {campeonJ6Result}
+              </div>
+            )}
+            <div className="flex gap-2">
+              {confirmandoCampeonJ6 ? (
+                <>
+                  <button
+                    onClick={declararCampeonJ6}
+                    disabled={campeonJ6Loading}
+                    className="flex-1 py-3 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-40"
+                    style={{ background: 'rgba(239,68,68,0.2)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.4)', fontFamily: 'var(--font-rajdhani)' }}
+                  >
+                    {campeonJ6Loading ? '⏳ Aplicando...' : '⚠️ Confirmar'}
+                  </button>
+                  <button
+                    onClick={() => setConfirmandoCampeonJ6(false)}
+                    disabled={campeonJ6Loading}
+                    className="flex-1 py-3 rounded-xl font-bold text-sm transition-all active:scale-95"
+                    style={{ border: '1px solid var(--border)', color: 'var(--text-secondary)', fontFamily: 'var(--font-rajdhani)' }}
+                  >
+                    Cancelar
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => setConfirmandoCampeonJ6(true)}
+                  disabled={!campeonJ6Equipo || campeonJ6Loading}
+                  className="w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-40"
+                  style={{ background: 'rgba(251,191,36,0.2)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.4)', fontFamily: 'var(--font-rajdhani)' }}
+                >
+                  {campeonJ6Loading ? '⏳ Aplicando...' : '🏆 Declarar Campeón J6 y dar +5 pts'}
                 </button>
               )}
             </div>
