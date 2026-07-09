@@ -74,10 +74,11 @@ const estadoColor: Record<string, string> = {
   pagado:   '#10b981',
 };
 
-function PozoCard({ pozo }: { pozo: Pozo }) {
+function PozoCard({ pozo, id }: { pozo: Pozo; id?: string }) {
   const ganoAlguien = (pozo.estado === 'cerrado' || pozo.estado === 'pagado') && pozo.ganador_nombre;
   return (
     <div
+      id={id}
       className="rounded-2xl p-4 space-y-3 transition-all"
       style={{
         background: estadoBg[pozo.estado],
@@ -416,6 +417,18 @@ export default function DashboardPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { cargarRanking(); }, [jornadaSeleccionada]);
 
+  useEffect(() => {
+    setTimeout(() => {
+      const el = document.getElementById('pozo-j6');
+      if (el) {
+        el.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }
+    }, 800);
+  }, [pozos]);
+
   const jornadasConPozo = new Set(pozos.map(p => p.jornada));
   const pozosCompletos: Pozo[] = [...pozos];
   for (let j = 1; j <= 6; j++) {
@@ -552,7 +565,9 @@ export default function DashboardPage() {
           <p className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: 'var(--text-secondary)' }}>
             Pozos acumulados
           </p>
-          {pozosCompletos.map(pozo => <PozoCard key={pozo.id} pozo={pozo} />)}
+          {pozosCompletos.map(pozo => (
+            <PozoCard key={pozo.id} pozo={pozo} id={pozo.jornada === 6 ? 'pozo-j6' : undefined} />
+          ))}
         </div>
       )}
 
