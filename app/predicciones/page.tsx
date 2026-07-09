@@ -17,7 +17,10 @@ const DEADLINE_J2 = new Date('2026-06-18T16:00:00Z'); // 18 jun 10:00 a.m. CDMX 
 const DEADLINE_J3 = new Date('2026-06-24T19:00:00Z'); // 24 jun 13:00 CDMX — primer partido J3
 const DEADLINE_J4 = new Date('2026-06-28T19:00:00Z');
 const DEADLINE_J5 = new Date('2026-07-04T17:00:00Z'); // 4 jul 11:00 CDMX — primer partido J5 ya jugado
-const DEADLINE_J6 = new Date('2026-07-09T19:00:00Z'); // 9 jul 14:00 CDMX — Cuartos
+const DEADLINE_J6      = new Date('2026-07-09T19:00:00Z'); // 9 jul 14:00 CDMX — Cuartos
+const DEADLINE_SEMIS   = new Date('2026-07-14T19:00:00Z'); // 14 jul 14:00 CDMX — Semifinales
+const DEADLINE_TERCERO = new Date('2026-07-18T20:00:00Z'); // 18 jul 15:00 CDMX — 3er Lugar
+const DEADLINE_FINAL   = new Date('2026-07-19T19:00:00Z'); // 19 jul 14:00 CDMX — Final
 const DEADLINE_J7 = new Date('2026-07-14T21:00:00Z'); // 14 jul 15:00 CDMX — Semifinales
 const DEADLINE_J8 = new Date('2026-07-18T21:00:00Z'); // 18 jul 15:00 CDMX — 3er Lugar
 const DEADLINE_J9 = new Date('2026-07-19T21:00:00Z'); // 19 jul 15:00 CDMX — Final
@@ -750,8 +753,11 @@ export default function PrediccionesPage() {
   const estaBloquado = (partido: Partido) => {
     if (partido.estado === 'finalizado') return true;
     if (jornada === 6) {
-      if (new Date() > getDeadline(partido.jornada)) return true;
-      return false;
+      const fechaPartido = new Date(partido.fecha_hora);
+      if (fechaPartido >= new Date('2026-07-19T00:00:00Z')) return new Date() > DEADLINE_FINAL;
+      if (fechaPartido >= new Date('2026-07-18T00:00:00Z')) return new Date() > DEADLINE_TERCERO;
+      if (fechaPartido >= new Date('2026-07-14T00:00:00Z')) return new Date() > DEADLINE_SEMIS;
+      return new Date() > DEADLINE_J6;
     }
     if (new Date() > getDeadline(jornada)) return true;
     return false;
