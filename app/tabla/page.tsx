@@ -16,6 +16,7 @@ export default function TablaPage() {
   const [pozoParticipantes, setPozoParticipantes] = useState<number | null>(null);
   const [esAdmin, setEsAdmin]           = useState(false);
   const [campeonPicks, setCampeonPicks] = useState<Record<string, string>>({});
+  const [bonosCampeon, setBonosCampeon] = useState<Record<string, number>>({});
   const [loading, setLoading]           = useState(false);
   const tablaRef = useRef<HTMLDivElement>(null);
 
@@ -122,6 +123,21 @@ export default function TablaPage() {
       (picks || []).forEach((p: any) => { picksMap[`${p.user_id}:${p.quiniela_extra_id ?? 'null'}`] = p.equipo; });
     }
     setCampeonPicks(picksMap);
+
+    // Bonos de campeón (solo J6)
+    const bonosMap: Record<string, number> = {};
+    if (jornada === 6 && userIds.length) {
+      const { data: bonos } = await supabase
+        .from('quiniela_bono_campeon')
+        .select('user_id, quiniela_extra_id, puntos')
+        .eq('jornada', 6)
+        .in('user_id', userIds);
+      (bonos || []).forEach((b: any) => {
+        const k = `${b.user_id}:${b.quiniela_extra_id ?? 'null'}`;
+        bonosMap[k] = (bonosMap[k] || 0) + b.puntos;
+      });
+    }
+    setBonosCampeon(bonosMap);
 
     setLoading(false);
   };
@@ -294,24 +310,24 @@ export default function TablaPage() {
     toast.success('✅ CSV descargado con respaldo completo');
   };
 
+  const calcTotal = (part: any) => {
+    const own = predicciones.filter((p: any) =>
+      p.user_id === part.user_id &&
+      (p.quiniela_extra_id === part.quiniela_extra_id ||
+        (!p.quiniela_extra_id && !part.quiniela_extra_id))
+    );
+    const pool = (own.length === 0 && part.quiniela_extra_id)
+      ? predicciones.filter((p: any) => p.user_id === part.user_id && !p.quiniela_extra_id)
+      : own;
+    const base = pool
+      .filter((p: any) => partidos.find((partido: any) => partido.id === p.partido_id && partido.estado === 'finalizado'))
+      .reduce((sum: number, p: any) => sum + (p.puntos_ganados || 0), 0);
+    const bono = jornada === 6 ? (bonosCampeon[`${part.user_id}:${part.quiniela_extra_id ?? 'null'}`] || 0) : 0;
+    return base + bono;
+  };
+
   const participacionesOrdenadas = participaciones
-    .map(part => {
-      const predsFiltradas = predicciones.filter((p: any) =>
-        p.user_id === part.user_id &&
-        (p.quiniela_extra_id === part.quiniela_extra_id ||
-          (!p.quiniela_extra_id && !part.quiniela_extra_id))
-      );
-      // Quinielas extra sin predicciones propias heredan el slot principal
-      const predsEfectivas = (predsFiltradas.length === 0 && part.quiniela_extra_id)
-        ? predicciones.filter((p: any) => p.user_id === part.user_id && !p.quiniela_extra_id)
-        : predsFiltradas;
-      const puntosTotal = predsEfectivas
-        .filter((p: any) => partidos.find((partido: any) =>
-          partido.id === p.partido_id && partido.estado === 'finalizado'
-        ))
-        .reduce((sum: number, p: any) => sum + (p.puntos_ganados || 0), 0);
-      return { ...part, puntosTotal };
-    })
+    .map(part => ({ ...part, puntosTotal: calcTotal(part) }))
     .sort((a, b) => b.puntosTotal - a.puntosTotal);
 
   const participacionesConPrediccion = participacionesOrdenadas
@@ -331,19 +347,6 @@ export default function TablaPage() {
   const finalizados = partidos.filter((p: any) => p.estado === 'finalizado');
   const pendientes  = partidos.filter((p: any) => p.estado !== 'finalizado');
 
-  const calcTotal = (part: any) => {
-    const own = predicciones.filter((p: any) =>
-      p.user_id === part.user_id &&
-      (p.quiniela_extra_id === part.quiniela_extra_id ||
-        (!p.quiniela_extra_id && !part.quiniela_extra_id))
-    );
-    const pool = (own.length === 0 && part.quiniela_extra_id)
-      ? predicciones.filter((p: any) => p.user_id === part.user_id && !p.quiniela_extra_id)
-      : own;
-    return pool
-      .filter((p: any) => partidos.find((partido: any) => partido.id === p.partido_id && partido.estado === 'finalizado'))
-      .reduce((sum: number, p: any) => sum + (p.puntos_ganados || 0), 0);
-  };
 
   const renderFilasPrint = (mitad: any[]) =>
     participacionesConPrediccion.map((part: any) => {
@@ -561,21 +564,7 @@ export default function TablaPage() {
           <tbody>
             {participacionesOrdenadas.map((part, idx) => {
               const jugador = jugadores.find((j: any) => j.id === part.user_id);
-              const predsFiltradas = predicciones.filter((p: any) =>
-                p.user_id === part.user_id &&
-                (p.quiniela_extra_id === part.quiniela_extra_id ||
-                  (!p.quiniela_extra_id && !part.quiniela_extra_id))
-              );
-              const predsEfectivas = (predsFiltradas.length === 0 && part.quiniela_extra_id)
-                ? predicciones.filter((p: any) => p.user_id === part.user_id && !p.quiniela_extra_id)
-                : predsFiltradas;
-              const totalPuntos = predsEfectivas
-                .filter((p: any) =>
-                  partidos.find((partido: any) =>
-                    partido.id === p.partido_id && partido.estado === 'finalizado'
-                  )
-                )
-                .reduce((sum: number, p: any) => sum + (p.puntos_ganados || 0), 0);
+              const totalPuntos = calcTotal(part);
 
               return (
                 <tr key={part.id}>

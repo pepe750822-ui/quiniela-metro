@@ -950,7 +950,7 @@ export default function PrediccionesPage() {
               }}
             />
           </div>
-          {jornadaCompleta && !publicado && (
+          {jornada !== 6 && jornadaCompleta && !publicado && (
             <div className="pt-2">
               <button
                 onClick={handlePublicar}
@@ -965,7 +965,7 @@ export default function PrediccionesPage() {
               </p>
             </div>
           )}
-          {jornadaCompleta && publicado && (
+          {jornada !== 6 && jornadaCompleta && publicado && (
             <div>
               <p className="text-xs mt-1" style={{ color: '#10b981' }}>
                 Tus predicciones ya son visibles para todos los participantes
@@ -1067,7 +1067,49 @@ export default function PrediccionesPage() {
           )}
 
           <div className="space-y-3" style={{ animation: 'fadeInUp 0.4s ease-out 0.25s both' }}>
-          {todosSinResolver ? (
+          {jornada === 6 ? (
+            (['cuartos', 'semis', 'final'] as const).map(ronda => {
+              const ps = rondaPartidos(ronda);
+              if (ps.length === 0) return null;
+              const pub = rondaPublicada(ronda);
+              const hechos = rondaCompletados(ronda);
+              const total = rondaTotal(ronda);
+              const label = ronda === 'cuartos' ? 'Cuartos de Final' : ronda === 'semis' ? 'Semifinales' : 'Final + 3er Lugar';
+              return (
+                <div key={ronda} className="space-y-3">
+                  <div className="flex items-center justify-between pt-1">
+                    <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
+                      {label}
+                    </p>
+                    {pub ? (
+                      <span className="text-[10px] font-semibold" style={{ color: '#22c55e' }}>✅ Publicado</span>
+                    ) : hechos === total && total > 0 ? (
+                      <button
+                        onClick={() => handlePublicarRonda(ronda)}
+                        disabled={publicando}
+                        className="text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg shrink-0 transition-all active:scale-95 disabled:opacity-50"
+                        style={{ background: 'var(--accent-gold)', color: '#000', fontFamily: 'var(--font-rajdhani)' }}
+                      >
+                        {publicando ? '⏳' : 'Publicar'}
+                      </button>
+                    ) : (
+                      <span className="text-[10px]" style={{ color: '#64748b' }}>{hechos}/{total}</span>
+                    )}
+                  </div>
+                  {ps.map(partido => (
+                    <div key={partido.id} id={`partido-${partido.id}`}>
+                      <PartidoCard
+                        partido={partido}
+                        prediccion={prediccionesBorrador[partido.id] ?? predicciones[partido.id] ?? null}
+                        participacionPagada={predicciones[partido.id] ? participando : undefined}
+                        onPredicir={estaBloquado(partido) ? undefined : setPartidoActivo}
+                      />
+                    </div>
+                  ))}
+                </div>
+              );
+            })
+          ) : todosSinResolver ? (
             <div
               className="rounded-2xl p-6 text-center space-y-2"
               style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
@@ -1093,8 +1135,8 @@ export default function PrediccionesPage() {
             ))
           )}
 
-          {/* Progreso bottom */}
-          {totalEnJornada > 0 && (
+          {/* Progreso bottom — solo jornadas 1-5 */}
+          {jornada !== 6 && totalEnJornada > 0 && (
             <div className="mt-6 mb-2">
               <div className="flex justify-between text-xs text-slate-500 mb-2">
                 <span>Progreso {getNombreJornada(jornada)}</span>
@@ -1114,8 +1156,8 @@ export default function PrediccionesPage() {
             </div>
           )}
 
-          {/* Botón publicar bottom */}
-          {jornadaCompleta && !publicado && (
+          {/* Botón publicar bottom — solo jornadas 1-5 */}
+          {jornada !== 6 && jornadaCompleta && !publicado && (
             <button
               onClick={handlePublicar}
               disabled={publicando}
@@ -1126,7 +1168,7 @@ export default function PrediccionesPage() {
             </button>
           )}
 
-          {jornadaCompleta && publicado && (
+          {jornada !== 6 && jornadaCompleta && publicado && (
             <div
               className="w-full py-4 rounded-xl text-center font-bold text-lg mt-2"
               style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#34d399', fontFamily: 'var(--font-rajdhani)' }}
