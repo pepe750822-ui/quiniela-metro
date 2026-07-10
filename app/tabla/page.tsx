@@ -502,7 +502,7 @@ export default function TablaPage() {
                 style={{ background: 'var(--bg-base)', borderBottom: '1px solid var(--border-color)' }}>
                 <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>Jugador</span>
               </th>
-               <th className="sticky left-[130px] z-20 px-3 py-2 text-center min-w-[55px]"
+              <th className="sticky left-[130px] z-20 px-3 py-2 text-center min-w-[55px]"
                 style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
                 PTS
               </th>
@@ -552,14 +552,22 @@ export default function TablaPage() {
                   )}
                 </th>
               ))}
-              <th className="px-3 py-2 text-center min-w-[55px]"
-                style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
-                PTS
-              </th>
+              {jornada !== 6 && (
+                <th className="px-3 py-2 text-center min-w-[55px]"
+                  style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
+                  PTS
+                </th>
+              )}
               {jornada === 6 && (
                 <th className="px-3 py-2 text-center min-w-[72px]"
                   style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(251,191,36,0.4)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '0.75rem', color: '#fbbf24' }}>
                   🏆 +5
+                </th>
+              )}
+              {jornada === 6 && (
+                <th className="px-3 py-2 text-center min-w-[55px]"
+                  style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
+                  PTS
                 </th>
               )}
             </tr>
@@ -731,10 +739,12 @@ export default function TablaPage() {
                       </td>
                     );
                   })}
-                  <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
-                    style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
-                    {totalPuntos}
-                  </td>
+                  {jornada !== 6 && (
+                    <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
+                      style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
+                      {totalPuntos}
+                    </td>
+                  )}
                   {jornada === 6 && (
                     <td className="px-2 py-2 text-center"
                       style={{ borderLeft: '1px solid rgba(251,191,36,0.3)', borderBottom: '1px solid var(--border-color)', minWidth: 72 }}>
@@ -761,6 +771,12 @@ export default function TablaPage() {
                       ) : (
                         <span style={{ fontSize: '0.65rem', color: '#475569' }}>—</span>
                       )}
+                    </td>
+                  )}
+                  {jornada === 6 && (
+                    <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
+                      style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
+                      {totalPuntos}
                     </td>
                   )}
                 </tr>
