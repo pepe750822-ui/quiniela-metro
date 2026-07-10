@@ -116,10 +116,10 @@ export default function TablaPage() {
     if (jornada === 6 && userIds.length) {
       const { data: picks } = await supabase
         .from('quiniela_prediccion_campeon')
-        .select('user_id, equipo')
+        .select('user_id, quiniela_extra_id, equipo')
         .eq('jornada', 6)
         .in('user_id', userIds);
-      (picks || []).forEach((p: any) => { picksMap[p.user_id] = p.equipo; });
+      (picks || []).forEach((p: any) => { picksMap[`${p.user_id}:${p.quiniela_extra_id ?? 'null'}`] = p.equipo; });
     }
     setCampeonPicks(picksMap);
 
@@ -741,11 +741,11 @@ export default function TablaPage() {
                   {jornada === 6 && (
                     <td className="px-3 py-2 text-center"
                       style={{ borderBottom: '1px solid var(--border-color)' }}>
-                      {campeonPicks[part.user_id] ? (
+                      {campeonPicks[`${part.user_id}:${part.quiniela_extra_id ?? 'null'}`] ? (
                         <div className="flex items-center justify-center gap-1">
-                          <Bandera emoji={BANDERAS_EQUIPOS[campeonPicks[part.user_id]] ?? ''} nombre={campeonPicks[part.user_id]} size="sm" />
+                          <Bandera emoji={BANDERAS_EQUIPOS[campeonPicks[`${part.user_id}:${part.quiniela_extra_id ?? 'null'}`]] ?? ''} nombre={campeonPicks[`${part.user_id}:${part.quiniela_extra_id ?? 'null'}`]} size="sm" />
                           <span style={{ fontSize: '0.65rem', color: 'var(--text-primary)' }}>
-                            {campeonPicks[part.user_id]}
+                            {campeonPicks[`${part.user_id}:${part.quiniela_extra_id ?? 'null'}`]}
                           </span>
                         </div>
                       ) : (
