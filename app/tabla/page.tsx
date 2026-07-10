@@ -14,6 +14,7 @@ export default function TablaPage() {
   const [predicciones, setPredicciones] = useState<any[]>([]);
   const [participaciones, setParticipaciones] = useState<any[]>([]);
   const [pozoParticipantes, setPozoParticipantes] = useState<number | null>(null);
+  const [campeonJ6Declarado, setCampeonJ6Declarado] = useState<string | null>(null);
   const [esAdmin, setEsAdmin]           = useState(false);
   const [campeonPicks, setCampeonPicks] = useState<Record<string, string>>({});
   const [bonosCampeon, setBonosCampeon] = useState<Record<string, number>>({});
@@ -107,10 +108,11 @@ export default function TablaPage() {
 
     const { data: pozoDat } = await supabase
       .from('quiniela_pozo')
-      .select('participantes')
+      .select('participantes, campeon_j6')
       .eq('jornada', jornada)
       .single();
     setPozoParticipantes(pozoDat?.participantes ?? null);
+    setCampeonJ6Declarado(pozoDat?.campeon_j6 ?? null);
 
     // Campeón elegido (solo J6)
     const picksMap: Record<string, string> = {};
@@ -348,7 +350,7 @@ export default function TablaPage() {
   const pendientes  = partidos.filter((p: any) => p.estado !== 'finalizado');
 
   // Campeón declarado cuando la Final (J9) está finalizada
-  const campeonDeclarado = jornada === 6 && partidos.some((p: any) => p.jornada === 9 && p.estado === 'finalizado');
+  const campeonDeclarado = jornada === 6 && campeonJ6Declarado !== null;
 
 
   const renderFilasPrint = (mitad: any[]) =>
