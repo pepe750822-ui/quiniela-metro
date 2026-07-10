@@ -2074,9 +2074,9 @@ export default function AdminPage() {
             {bonoCampeonResult && (
               <div className="rounded-xl p-3 text-xs font-semibold"
                 style={{
-                  background: bonoCampeonResult.startsWith('✅') ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
-                  border: `1px solid ${bonoCampeonResult.startsWith('✅') ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
-                  color: bonoCampeonResult.startsWith('✅') ? '#22c55e' : '#ef4444',
+                  background: bonoCampeonResult?.startsWith('✅') ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
+                  border: `1px solid ${bonoCampeonResult?.startsWith('✅') ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                  color: bonoCampeonResult?.startsWith('✅') ? '#22c55e' : '#ef4444',
                 }}>
                 {bonoCampeonResult}
               </div>
