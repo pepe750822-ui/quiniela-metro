@@ -153,7 +153,7 @@ export default function PerfilPage() {
           </p>
         ) : (
           <div className="space-y-3">
-            {participaciones.map(part => (
+            {participaciones.filter(part => part.jornada <= 6).map(part => (
               <div key={part.id}
                 className="rounded-xl p-4"
                 style={{ background: '#0a0a0a', border: '1px solid #1e1e2e' }}
