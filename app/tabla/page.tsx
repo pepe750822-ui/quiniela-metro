@@ -58,11 +58,13 @@ export default function TablaPage() {
 
   const refreshData = async () => {
     setLoading(true);
-    const { data: parts } = await supabase
+    const partidosQuery = supabase
       .from('quiniela_partidos')
       .select('id, jornada, equipo_local, equipo_visitante, bandera_local, bandera_visitante, goles_local, goles_visitante, estado, grupo, fecha_hora, clasificado, como_termino')
-      .eq('jornada', jornada)
       .order('fecha_hora');
+    const { data: parts } = jornada === 6
+      ? await partidosQuery.gte('jornada', 6)
+      : await partidosQuery.eq('jornada', jornada);
     setPartidos(parts || []);
 
     const { data: partics } = await supabase
