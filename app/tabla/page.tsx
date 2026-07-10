@@ -749,9 +749,15 @@ export default function TablaPage() {
                     <td className="px-2 py-2 text-center"
                       style={{ borderLeft: '1px solid rgba(251,191,36,0.3)', borderBottom: '1px solid var(--border-color)', minWidth: 72 }}>
                       {campAcerto ? (
-                        <div>
+                        <div className="flex flex-col items-center gap-0.5">
                           <div style={{ fontSize: 14, lineHeight: 1 }}>✅</div>
-                          <div style={{ fontSize: 9, color: '#22c55e', fontWeight: 700, marginTop: 2 }}>+5pts</div>
+                          <div style={{ fontSize: 9, color: '#22c55e', fontWeight: 700 }}>+5pts</div>
+                          {campPick && (
+                            <div className="flex items-center justify-center gap-0.5">
+                              <Bandera emoji={BANDERAS_EQUIPOS[campPick] ?? ''} nombre={campPick} size="sm" />
+                              <span style={{ fontSize: '0.6rem', color: '#22c55e' }}>{campPick}</span>
+                            </div>
+                          )}
                         </div>
                       ) : campFallo ? (
                         <div>
