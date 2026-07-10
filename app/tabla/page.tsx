@@ -347,6 +347,9 @@ export default function TablaPage() {
   const finalizados = partidos.filter((p: any) => p.estado === 'finalizado');
   const pendientes  = partidos.filter((p: any) => p.estado !== 'finalizado');
 
+  // Campeón declarado cuando la Final (J9) está finalizada
+  const campeonDeclarado = jornada === 6 && partidos.some((p: any) => p.jornada === 9 && p.estado === 'finalizado');
+
 
   const renderFilasPrint = (mitad: any[]) =>
     participacionesConPrediccion.map((part: any) => {
@@ -554,9 +557,9 @@ export default function TablaPage() {
                 PTS
               </th>
               {jornada === 6 && (
-                <th className="px-3 py-2 text-center min-w-[70px]"
-                  style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '0.75rem', color: '#ea580c' }}>
-                  🏆
+                <th className="px-3 py-2 text-center min-w-[72px]"
+                  style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(251,191,36,0.4)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '0.75rem', color: '#fbbf24' }}>
+                  🏆 +5
                 </th>
               )}
             </tr>
@@ -565,6 +568,11 @@ export default function TablaPage() {
             {participacionesOrdenadas.map((part, idx) => {
               const jugador = jugadores.find((j: any) => j.id === part.user_id);
               const totalPuntos = calcTotal(part);
+              const campKey   = `${part.user_id}:${part.quiniela_extra_id ?? 'null'}`;
+              const campPick  = campeonPicks[campKey];
+              const campBono  = bonosCampeon[campKey];
+              const campAcerto = campBono !== undefined && campBono > 0;
+              const campFallo  = campeonDeclarado && !campAcerto;
 
               return (
                 <tr key={part.id}>
@@ -728,14 +736,27 @@ export default function TablaPage() {
                     {totalPuntos}
                   </td>
                   {jornada === 6 && (
-                    <td className="px-3 py-2 text-center"
-                      style={{ borderBottom: '1px solid var(--border-color)' }}>
-                      {campeonPicks[`${part.user_id}:${part.quiniela_extra_id ?? 'null'}`] ? (
-                        <div className="flex items-center justify-center gap-1">
-                          <Bandera emoji={BANDERAS_EQUIPOS[campeonPicks[`${part.user_id}:${part.quiniela_extra_id ?? 'null'}`]] ?? ''} nombre={campeonPicks[`${part.user_id}:${part.quiniela_extra_id ?? 'null'}`]} size="sm" />
-                          <span style={{ fontSize: '0.65rem', color: 'var(--text-primary)' }}>
-                            {campeonPicks[`${part.user_id}:${part.quiniela_extra_id ?? 'null'}`]}
-                          </span>
+                    <td className="px-2 py-2 text-center"
+                      style={{ borderLeft: '1px solid rgba(251,191,36,0.3)', borderBottom: '1px solid var(--border-color)', minWidth: 72 }}>
+                      {campAcerto ? (
+                        <div>
+                          <div style={{ fontSize: 14, lineHeight: 1 }}>✅</div>
+                          <div style={{ fontSize: 9, color: '#22c55e', fontWeight: 700, marginTop: 2 }}>+5pts</div>
+                        </div>
+                      ) : campFallo ? (
+                        <div>
+                          <div style={{ fontSize: 13, color: '#ef4444', fontWeight: 700 }}>✗</div>
+                          {campPick && (
+                            <div className="flex items-center justify-center gap-0.5 mt-0.5">
+                              <Bandera emoji={BANDERAS_EQUIPOS[campPick] ?? ''} nombre={campPick} size="sm" />
+                              <span style={{ fontSize: '0.6rem', color: '#64748b' }}>{campPick}</span>
+                            </div>
+                          )}
+                        </div>
+                      ) : campPick ? (
+                        <div className="flex flex-col items-center gap-0.5">
+                          <Bandera emoji={BANDERAS_EQUIPOS[campPick] ?? ''} nombre={campPick} size="sm" />
+                          <span style={{ fontSize: '0.6rem', color: 'var(--text-primary)' }}>{campPick}</span>
                         </div>
                       ) : (
                         <span style={{ fontSize: '0.65rem', color: '#475569' }}>—</span>
