@@ -900,7 +900,7 @@ export default function PrediccionesPage() {
 
       {/* Selector jornada */}
       <div className="flex gap-2 overflow-x-auto pb-1" style={{ animation: 'fadeInUp 0.4s ease-out 0.15s both' }}>
-        {jornadas.map(j => {
+        {jornadas.filter(j => j <= 6).map(j => {
           const cerrada = j < 2 || new Date() > getDeadline(j);
           const activa  = jornada === j;
           return (
