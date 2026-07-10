@@ -1201,62 +1201,6 @@ export default function AdminPage() {
               )}
             </div>
 
-            {/* Declarar campeón J6 inline */}
-            <div className="rounded-2xl p-4 space-y-3" style={{ background: 'var(--bg-card)', border: '1px solid rgba(251,191,36,0.3)' }}>
-              <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
-                🏆 Declarar Campeón J6 y dar +5 pts
-              </p>
-              <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                Otorga +5 pts a quienes acertaron el pick de Cuartos. Acción idempotente.
-              </p>
-              <select
-                value={campeonJ6Equipo}
-                onChange={e => setCampeonJ6Equipo(e.target.value)}
-                className="w-full rounded-xl px-3 py-2.5 text-sm outline-none"
-                style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: campeonJ6Equipo ? 'var(--text-primary)' : 'var(--text-secondary)', fontFamily: 'var(--font-rajdhani)' }}>
-                <option value="">Seleccionar equipo campeón J6...</option>
-                {[...new Set(
-                  partidos.filter(p => p.jornada === 6)
-                    .flatMap(p => [p.equipo_local, p.equipo_visitante])
-                    .filter(e => e && e !== 'A definir')
-                )].sort().map(eq => (
-                  <option key={eq} value={eq}>{eq}</option>
-                ))}
-              </select>
-              {campeonJ6Result && (
-                <div className="rounded-xl p-3 text-xs font-semibold"
-                  style={{
-                    background: campeonJ6Result.startsWith('✅') ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
-                    border: `1px solid ${campeonJ6Result.startsWith('✅') ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
-                    color: campeonJ6Result.startsWith('✅') ? '#22c55e' : '#ef4444',
-                  }}>
-                  {campeonJ6Result}
-                </div>
-              )}
-              <div className="flex gap-2">
-                {confirmandoCampeonJ6 ? (
-                  <>
-                    <button onClick={declararCampeonJ6} disabled={campeonJ6Loading}
-                      className="flex-1 py-3 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-40"
-                      style={{ background: 'rgba(239,68,68,0.2)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.4)', fontFamily: 'var(--font-rajdhani)' }}>
-                      {campeonJ6Loading ? '⏳ Aplicando...' : '⚠️ Confirmar'}
-                    </button>
-                    <button onClick={() => setConfirmandoCampeonJ6(false)} disabled={campeonJ6Loading}
-                      className="flex-1 py-3 rounded-xl font-bold text-sm transition-all active:scale-95"
-                      style={{ border: '1px solid var(--border)', color: 'var(--text-secondary)', fontFamily: 'var(--font-rajdhani)' }}>
-                      Cancelar
-                    </button>
-                  </>
-                ) : (
-                  <button onClick={() => setConfirmandoCampeonJ6(true)}
-                    disabled={!campeonJ6Equipo || campeonJ6Loading}
-                    className="w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-40"
-                    style={{ background: 'rgba(251,191,36,0.2)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.4)', fontFamily: 'var(--font-rajdhani)' }}>
-                    {campeonJ6Loading ? '⏳ Aplicando...' : '🏆 Declarar Campeón J6 y dar +5 pts'}
-                  </button>
-                )}
-              </div>
-            </div>
 
           </div>
         )}
