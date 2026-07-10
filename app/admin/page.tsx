@@ -1999,7 +1999,7 @@ export default function AdminPage() {
         )}
       </section>
 
-      {/* ── CAMPEÓN MUNDIAL ── */}
+      {/* ── CAMPEÓN MUNDIAL ── */}{false && (
       <section className="space-y-1">
         <button
           onClick={() => toggleSeccion('campeon')}
@@ -2047,9 +2047,9 @@ export default function AdminPage() {
             </button>
           </div>
         )}
-      </section>
+      </section>)}
 
-      {/* ── BONO CAMPEÓN +5 PTS ── */}
+      {/* ── BONO CAMPEÓN +5 PTS ── */}{false && (
       <section className="space-y-1">
         <button
           onClick={() => toggleSeccion('bonoCampeon')}
@@ -2114,7 +2114,7 @@ export default function AdminPage() {
             </div>
           </div>
         )}
-      </section>
+      </section>)}
 
       {/* ── CAMPEÓN J6 — CUARTOS DE FINAL +5 PTS ── */}
       <section className="space-y-1">
