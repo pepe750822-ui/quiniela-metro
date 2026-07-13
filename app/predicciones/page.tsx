@@ -1096,7 +1096,9 @@ export default function PrediccionesPage() {
                     <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
                       {label}
                     </p>
-                    {pub ? (
+                    {ronda === 'cuartos' && !pub ? (
+                      <span className="text-[10px] font-semibold" style={{ color: '#64748b' }}>✅ Cuartos cerrados</span>
+                    ) : pub ? (
                       <span className="text-[10px] font-semibold" style={{ color: '#22c55e' }}>✅ Publicado</span>
                     ) : hechos === total && total > 0 ? (
                       <button
@@ -1111,6 +1113,11 @@ export default function PrediccionesPage() {
                       <span className="text-[10px]" style={{ color: '#64748b' }}>{hechos}/{total}</span>
                     )}
                   </div>
+                  {ronda === 'semis' && (
+                    <p className="text-[11px] rounded-lg px-3 py-2" style={{ background: 'rgba(251,191,36,0.08)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.2)' }}>
+                      ⚠️ Recuerda: después de llenar tus predicciones de Semifinales, presiona el botón <strong>PUBLICAR SEMIFINALES</strong> para que aparezcan en la tabla.
+                    </p>
+                  )}
                   {ps.map(partido => (
                     <div key={partido.id} id={`partido-${partido.id}`}>
                       <PartidoCard
