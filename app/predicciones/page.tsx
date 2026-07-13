@@ -510,6 +510,15 @@ export default function PrediccionesPage() {
     }
   }, [partidos]);
 
+  useEffect(() => {
+    if (jornada !== 6) return;
+    const timer = setTimeout(() => {
+      const el = document.getElementById('semifinales-section');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [jornada, partidos]);
+
   const handleGuardado = () => {
     setPartidoActivo(null);
     cargarPredicciones();
@@ -1034,7 +1043,7 @@ export default function PrediccionesPage() {
                 const hechos = rondaCompletados(ronda);
                 const total = rondaTotal(ronda);
                 return (
-                  <div key={ronda} className="flex items-center justify-between gap-2">
+                  <div key={ronda} className="flex items-center justify-between gap-2" id={ronda === 'semis' ? 'publicar-semis-section' : undefined}>
                     <div className="flex items-center gap-2 min-w-0">
                       <span style={{ fontSize: 11, color: pub ? '#22c55e' : 'var(--text-secondary)' }}>
                         {pub ? '✅' : '📋'}
@@ -1076,7 +1085,7 @@ export default function PrediccionesPage() {
               const total = rondaTotal(ronda);
               const label = ronda === 'cuartos' ? 'Cuartos de Final' : ronda === 'semis' ? 'Semifinales' : 'Final + 3er Lugar';
               return (
-                <div key={ronda} className="space-y-3">
+                <div key={ronda} className="space-y-3" id={ronda === 'semis' ? 'semifinales-section' : undefined}>
                   <div className="flex items-center justify-between pt-1">
                     <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
                       {label}
