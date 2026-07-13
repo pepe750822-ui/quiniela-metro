@@ -169,35 +169,12 @@ export default function TablaPage() {
   };
 
   const getPred = (userId: string, partidoId: string, quinielaExtraId: string | null) => {
-    const partido = partidos.find(p => p.id === partidoId);
-    
-    // Para J7 (Semifinales), buscar con fallback por quiniela_extra_id
-    if (partido?.jornada === 7) {
-      // 1. Buscar por user_id + partido_id
-      let pred = predicciones.find((p: any) =>
-        p.user_id === userId && p.partido_id === partidoId
-      );
-      
-      // 2. Si no, buscar por quiniela_extra_id + partido_id
-      if (!pred && quinielaExtraId) {
-        pred = predicciones.find((p: any) =>
-          p.quiniela_extra_id === quinielaExtraId &&
-          p.partido_id === partidoId
-        );
-      }
-      
-      // ❌ ELIMINADO: nivel 3 (buscar solo por partido_id — devolvía predicciones de otro usuario)
-      
-      return pred ?? null;
-    }
-    
-    // Para otras jornadas, comportamiento normal
     let pred = predicciones.find((p: any) =>
       p.user_id === userId &&
       p.partido_id === partidoId &&
       p.quiniela_extra_id === quinielaExtraId
     );
-    if (!pred) {
+    if (!pred && quinielaExtraId === null) {
       pred = predicciones.find((p: any) =>
         p.user_id === userId &&
         p.partido_id === partidoId
