@@ -117,10 +117,10 @@ export default function TablaPage() {
     const partidoIds = parts?.map((p: any) => p.id) || [];
     const selectPreds = 'user_id, partido_id, goles_local_pred, goles_visitante_pred, puntos_ganados, quiniela_extra_id, clasificado_pred, como_termina_pred';
     const [{ data: preds1 }, { data: preds2 }, { data: preds3 }, { data: preds4 }] = await Promise.all([
-      supabase.from('quiniela_predicciones').select(selectPreds).in('partido_id', partidoIds).range(0, 999),
-      supabase.from('quiniela_predicciones').select(selectPreds).in('partido_id', partidoIds).range(1000, 1999),
-      supabase.from('quiniela_predicciones').select(selectPreds).in('partido_id', partidoIds).range(2000, 2999),
-      supabase.from('quiniela_predicciones').select(selectPreds).in('partido_id', partidoIds).range(3000, 3999),
+      supabase.from('quiniela_predicciones').select(selectPreds).in('partido_id', partidoIds).order('id').range(0, 999),
+      supabase.from('quiniela_predicciones').select(selectPreds).in('partido_id', partidoIds).order('id').range(1000, 1999),
+      supabase.from('quiniela_predicciones').select(selectPreds).in('partido_id', partidoIds).order('id').range(2000, 2999),
+      supabase.from('quiniela_predicciones').select(selectPreds).in('partido_id', partidoIds).order('id').range(3000, 3999),
     ]);
     const allPreds = [...(preds1 || []), ...(preds2 || []), ...(preds3 || []), ...(preds4 || [])];
     setPredicciones(allPreds);
