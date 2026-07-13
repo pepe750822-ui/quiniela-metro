@@ -1072,6 +1072,8 @@ export default function PrediccionesPage() {
                       >
                         {publicando ? '⏳' : pub ? 'Actualizar Semifinales' : 'Publicar Semifinales'}
                       </button>
+                    ) : ronda === 'semis' ? (
+                      <span className="text-[10px] font-semibold shrink-0" style={{ color: '#64748b' }}>🔒 Semifinales cerradas</span>
                     ) : hechos === total && !pub ? (
                       <button
                         onClick={() => handlePublicarRonda(ronda)}
@@ -1118,6 +1120,8 @@ export default function PrediccionesPage() {
                       >
                         {publicando ? '⏳' : pub ? 'Actualizar Semifinales' : 'Publicar Semifinales'}
                       </button>
+                    ) : ronda === 'semis' ? (
+                      <span className="text-[10px] font-semibold" style={{ color: '#64748b' }}>🔒 Semifinales cerradas</span>
                     ) : pub ? (
                       <span className="text-[10px] font-semibold" style={{ color: '#22c55e' }}>✅ Publicado</span>
                     ) : hechos === total && total > 0 ? (
@@ -1135,7 +1139,7 @@ export default function PrediccionesPage() {
                   </div>
                   {ronda === 'semis' && (
                     <p className="text-[11px] rounded-lg px-3 py-2" style={{ background: 'rgba(251,191,36,0.08)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.2)' }}>
-                      ⚠️ Recuerda: después de llenar tus predicciones de Semifinales, presiona el botón <strong>PUBLICAR SEMIFINALES</strong> para que aparezcan en la tabla.
+                      ⚽ ¡Llena tus predicciones y presiona <strong>PUBLICAR</strong> o <strong>ACTUALIZAR</strong> para que se reflejen en la tabla!
                     </p>
                   )}
                   {ps.map(partido => (
