@@ -520,6 +520,12 @@ export default function PrediccionesPage() {
   }, [jornada, partidos]);
 
   const handleGuardado = () => {
+    if (partidoActivo?.jornada === 7) {
+      setTimeout(() => {
+        const el = document.getElementById('publicar-semis-section');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 500);
+    }
     setPartidoActivo(null);
     cargarPredicciones();
     if (userId) cargarPozoYParticipacion(userId, jornada);
