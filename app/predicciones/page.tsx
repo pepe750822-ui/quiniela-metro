@@ -1061,7 +1061,9 @@ export default function PrediccionesPage() {
                         {hechos}/{total}
                       </span>
                     </div>
-                    {hechos === total ? (
+                    {ronda === 'cuartos' && !pub ? (
+                      <span className="text-[10px] font-semibold shrink-0" style={{ color: '#64748b' }}>✅ Cuartos cerrados</span>
+                    ) : hechos === total && !pub ? (
                       <button
                         onClick={() => handlePublicarRonda(ronda)}
                         disabled={publicando}
