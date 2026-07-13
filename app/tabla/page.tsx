@@ -125,13 +125,6 @@ export default function TablaPage() {
     const allPreds = [...(preds1 || []), ...(preds2 || []), ...(preds3 || []), ...(preds4 || [])];
     setPredicciones(allPreds);
 
-    console.log('🔍 [refreshData] Partidos cargados:', parts?.length);
-    console.log('🔍 [refreshData] Partidos J7:', parts?.filter(p => p.jornada === 7));
-    console.log('🔍 [refreshData] Predicciones cargadas:', allPreds?.length);
-    console.log('🔍 [refreshData] Predicciones J7:', allPreds?.filter(p => 
-      parts?.some(part => part.id === p.partido_id && part.jornada === 7)
-    ));
-
     const { data: pozoDat } = await supabase
       .from('quiniela_pozo')
       .select('participantes, campeon_j6')
@@ -176,22 +169,21 @@ export default function TablaPage() {
   };
 
   const getPred = (userId: string, partidoId: string, quinielaExtraId: string | null) => {
+    // 1. Buscar coincidencia exacta (user_id + partido_id + quiniela_extra_id)
     let pred = predicciones.find((p: any) =>
       p.user_id === userId &&
       p.partido_id === partidoId &&
       p.quiniela_extra_id === quinielaExtraId
     );
-    if (!pred && quinielaExtraId === null) {
+    
+    // 2. Si no, buscar SOLO por user_id + partido_id (ignorar quiniela_extra_id)
+    if (!pred) {
       pred = predicciones.find((p: any) =>
         p.user_id === userId &&
         p.partido_id === partidoId
       );
     }
-    const isJ7 = partidos.find((p: any) => p.id === partidoId)?.jornada === 7;
-    if (isJ7) {
-      console.log('🔍 [getPred] Buscando:', { userId, partidoId, quinielaExtraId });
-      console.log('🔍 [getPred] Encontrado:', pred);
-    }
+    
     return pred ?? null;
   };
 
@@ -742,10 +734,6 @@ export default function TablaPage() {
                   </td>
                   {pendientes.map(partido => {
                     const pred = getPred(part.user_id, partido.id, part.quiniela_extra_id);
-                    if (partido.jornada === 7) {
-                      console.log('🔍 [render] Partido J7:', partido.equipo_local, 'vs', partido.equipo_visitante);
-                      console.log('🔍 [render] Predicción encontrada:', pred);
-                    }
                     return (
                       <td key={partido.id}
                         className="px-1 py-2 text-center"
