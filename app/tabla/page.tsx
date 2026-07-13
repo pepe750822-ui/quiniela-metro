@@ -115,22 +115,15 @@ export default function TablaPage() {
     setJugadores(jugs || []);
 
     const partidoIds = parts?.map((p: any) => p.id) || [];
-    const selectPreds = 'user_id, partido_id, goles_local_pred, goles_visitante_pred, puntos_ganados, quiniela_extra_id, clasificado_pred, como_termina_pred';
-    const [{ data: preds1 }, { data: preds2 }, { data: preds3 }, { data: preds4 }] = await Promise.all([
-      supabase.from('quiniela_predicciones').select(selectPreds).in('partido_id', partidoIds).order('id').range(0, 999),
-      supabase.from('quiniela_predicciones').select(selectPreds).in('partido_id', partidoIds).order('id').range(1000, 1999),
-      supabase.from('quiniela_predicciones').select(selectPreds).in('partido_id', partidoIds).order('id').range(2000, 2999),
-      supabase.from('quiniela_predicciones').select(selectPreds).in('partido_id', partidoIds).order('id').range(3000, 3999),
-    ]);
-    const allPreds = [...(preds1 || []), ...(preds2 || []), ...(preds3 || []), ...(preds4 || [])];
-    setPredicciones(allPreds);
 
-    // 🔍 DIAGNÓSTICO: ¿Qué predicciones J7 llegaron realmente?
-    const j7PartidoIds = (parts || []).filter((p: any) => p.jornada === 7).map((p: any) => p.id);
-    const predsJ7 = allPreds.filter((p: any) => j7PartidoIds.includes(p.partido_id));
-    console.log('🔍 [STATE] Predicciones J7 en state:', predsJ7.length);
-    console.log('🔍 [STATE] User IDs con predicciones J7:', [...new Set(predsJ7.map((p: any) => p.user_id))]);
-    console.log('🔍 [STATE] Detalle J7:', predsJ7.map((p: any) => ({ user_id: p.user_id, partido_id: p.partido_id, quiniela_extra_id: p.quiniela_extra_id })));
+    // Usar API route con service_role para bypassear RLS y ver predicciones de todos los usuarios
+    const predsRes = await fetch('/api/predicciones-tabla', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ partidoIds }),
+    });
+    const { predicciones: allPreds = [] } = await predsRes.json();
+    setPredicciones(allPreds);
 
     const { data: pozoDat } = await supabase
       .from('quiniela_pozo')
@@ -195,7 +188,6 @@ export default function TablaPage() {
       
       // ❌ ELIMINADO: nivel 3 (buscar solo por partido_id — devolvía predicciones de otro usuario)
       
-      console.log(`🔍 [getPred J7] userId: ${userId}, partidoId: ${partidoId}, encontrado:`, !!pred);
       return pred ?? null;
     }
     
