@@ -167,22 +167,18 @@ export default function TablaPage() {
   };
 
   const getPred = (userId: string, partidoId: string, quinielaExtraId: string | null) => {
-    const direct = predicciones.find((p: any) =>
+    let pred = predicciones.find((p: any) =>
       p.user_id === userId &&
       p.partido_id === partidoId &&
-      (p.quiniela_extra_id === quinielaExtraId ||
-        (!p.quiniela_extra_id && !quinielaExtraId))
+      p.quiniela_extra_id === quinielaExtraId
     );
-    if (direct) return direct;
-    // Quinielas extra sin predicciones propias heredan el slot principal
-    if (quinielaExtraId) {
-      return predicciones.find((p: any) =>
+    if (!pred && quinielaExtraId === null) {
+      pred = predicciones.find((p: any) =>
         p.user_id === userId &&
-        p.partido_id === partidoId &&
-        !p.quiniela_extra_id
-      ) ?? null;
+        p.partido_id === partidoId
+      );
     }
-    return null;
+    return pred ?? null;
   };
 
   const iniciales = (userId: string) => {
