@@ -1063,6 +1063,15 @@ export default function PrediccionesPage() {
                     </div>
                     {ronda === 'cuartos' && !pub ? (
                       <span className="text-[10px] font-semibold shrink-0" style={{ color: '#64748b' }}>✅ Cuartos cerrados</span>
+                    ) : ronda === 'semis' && new Date() <= DEADLINE_SEMIS ? (
+                      <button
+                        onClick={() => handlePublicarRonda(ronda)}
+                        disabled={publicando || hechos < total}
+                        className="text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg shrink-0 transition-all active:scale-95 disabled:opacity-50"
+                        style={{ background: pub ? '#3b82f6' : 'var(--accent-gold)', color: pub ? '#fff' : '#000' }}
+                      >
+                        {publicando ? '⏳' : pub ? 'Actualizar Semifinales' : 'Publicar Semifinales'}
+                      </button>
                     ) : hechos === total && !pub ? (
                       <button
                         onClick={() => handlePublicarRonda(ronda)}
@@ -1100,6 +1109,15 @@ export default function PrediccionesPage() {
                     </p>
                     {ronda === 'cuartos' && !pub ? (
                       <span className="text-[10px] font-semibold" style={{ color: '#64748b' }}>✅ Cuartos cerrados</span>
+                    ) : ronda === 'semis' && new Date() <= DEADLINE_SEMIS ? (
+                      <button
+                        onClick={() => handlePublicarRonda(ronda)}
+                        disabled={publicando || hechos < total}
+                        className="text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg shrink-0 transition-all active:scale-95 disabled:opacity-50"
+                        style={{ background: pub ? '#3b82f6' : 'var(--accent-gold)', color: pub ? '#fff' : '#000', fontFamily: 'var(--font-rajdhani)' }}
+                      >
+                        {publicando ? '⏳' : pub ? 'Actualizar Semifinales' : 'Publicar Semifinales'}
+                      </button>
                     ) : pub ? (
                       <span className="text-[10px] font-semibold" style={{ color: '#22c55e' }}>✅ Publicado</span>
                     ) : hechos === total && total > 0 ? (
