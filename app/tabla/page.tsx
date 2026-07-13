@@ -69,11 +69,28 @@ export default function TablaPage() {
       : await partidosQuery.eq('jornada', jornada);
     setPartidos(parts || []);
 
-    const { data: partics } = await supabase
+    // Para J6 (Fase Final), incluir participaciones de J7+ igual que partidos
+    const particsQuery = supabase
       .from('quiniela_participaciones')
-      .select('id, user_id, pagado, publicado, quiniela_extra_id')
-      .eq('jornada', jornada)
+      .select('id, user_id, pagado, publicado, quiniela_extra_id, jornada')
       .eq('pagado', true);
+    const { data: particsRaw } = jornada === 6
+      ? await particsQuery.gte('jornada', 6)
+      : await particsQuery.eq('jornada', jornada);
+    // Deduplicar por (user_id, quiniela_extra_id) manteniendo la participación de menor jornada
+    let partics: any[] = [];
+    if (jornada === 6) {
+      const seen = new Map<string, any>();
+      for (const p of (particsRaw || [])) {
+        const key = `${p.user_id}:${p.quiniela_extra_id ?? 'null'}`;
+        if (!seen.has(key) || seen.get(key).jornada > p.jornada) {
+          seen.set(key, p);
+        }
+      }
+      partics = [...seen.values()];
+    } else {
+      partics = particsRaw || [];
+    }
 
     // Cargar nombres de quinielas extra
     const quinielaIds = [...new Set(
