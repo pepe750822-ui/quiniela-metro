@@ -186,12 +186,7 @@ export default function TablaPage() {
         );
       }
       
-      // 3. Si no, buscar SOLO por partido_id (último recurso)
-      if (!pred) {
-        pred = predicciones.find((p: any) =>
-          p.partido_id === partidoId
-        );
-      }
+      // ❌ ELIMINADO: nivel 3 (buscar solo por partido_id — devolvía predicciones de otro usuario)
       
       console.log(`🔍 [getPred J7] userId: ${userId}, partidoId: ${partidoId}, encontrado:`, !!pred);
       return pred ?? null;
