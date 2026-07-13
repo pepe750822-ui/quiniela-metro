@@ -18,10 +18,10 @@ export async function POST(request: Request) {
 
   // Fetch en chunks de 1000 con service_role (sin RLS)
   const [{ data: preds1 }, { data: preds2 }, { data: preds3 }, { data: preds4 }] = await Promise.all([
-    supabaseAdmin.from('quiniela_predicciones').select(selectPreds).in('partido_id', partidoIds).eq('publicado', true).order('id').range(0, 999),
-    supabaseAdmin.from('quiniela_predicciones').select(selectPreds).in('partido_id', partidoIds).eq('publicado', true).order('id').range(1000, 1999),
-    supabaseAdmin.from('quiniela_predicciones').select(selectPreds).in('partido_id', partidoIds).eq('publicado', true).order('id').range(2000, 2999),
-    supabaseAdmin.from('quiniela_predicciones').select(selectPreds).in('partido_id', partidoIds).eq('publicado', true).order('id').range(3000, 3999),
+    supabaseAdmin.from('quiniela_predicciones').select(selectPreds).in('partido_id', partidoIds).order('id').range(0, 999),
+    supabaseAdmin.from('quiniela_predicciones').select(selectPreds).in('partido_id', partidoIds).order('id').range(1000, 1999),
+    supabaseAdmin.from('quiniela_predicciones').select(selectPreds).in('partido_id', partidoIds).order('id').range(2000, 2999),
+    supabaseAdmin.from('quiniela_predicciones').select(selectPreds).in('partido_id', partidoIds).order('id').range(3000, 3999),
   ]);
 
   const allPreds = [...(preds1 || []), ...(preds2 || []), ...(preds3 || []), ...(preds4 || [])];
