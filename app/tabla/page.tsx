@@ -169,33 +169,46 @@ export default function TablaPage() {
   };
 
   const getPred = (userId: string, partidoId: string, quinielaExtraId: string | null) => {
-    // Para J7 (Semifinales), ignorar quiniela_extra_id completamente
     const partido = partidos.find(p => p.id === partidoId);
+    
+    // Para J7 (Semifinales), buscar con fallback por quiniela_extra_id
     if (partido?.jornada === 7) {
-      const pred = predicciones.find((p: any) =>
-        p.user_id === userId &&
-        p.partido_id === partidoId
+      // 1. Buscar por user_id + partido_id
+      let pred = predicciones.find((p: any) =>
+        p.user_id === userId && p.partido_id === partidoId
       );
+      
+      // 2. Si no, buscar por quiniela_extra_id + partido_id
+      if (!pred && quinielaExtraId) {
+        pred = predicciones.find((p: any) =>
+          p.quiniela_extra_id === quinielaExtraId &&
+          p.partido_id === partidoId
+        );
+      }
+      
+      // 3. Si no, buscar SOLO por partido_id (último recurso)
+      if (!pred) {
+        pred = predicciones.find((p: any) =>
+          p.partido_id === partidoId
+        );
+      }
+      
       console.log(`🔍 [getPred J7] userId: ${userId}, partidoId: ${partidoId}, encontrado:`, !!pred);
       return pred ?? null;
     }
     
     // Para otras jornadas, comportamiento normal
-    // 1. Buscar coincidencia exacta (user_id + partido_id + quiniela_extra_id)
     let pred = predicciones.find((p: any) =>
       p.user_id === userId &&
       p.partido_id === partidoId &&
       p.quiniela_extra_id === quinielaExtraId
     );
-    
-    // 2. Si no, buscar SOLO por user_id + partido_id (ignorar quiniela_extra_id)
     if (!pred) {
       pred = predicciones.find((p: any) =>
         p.user_id === userId &&
         p.partido_id === partidoId
       );
     }
-    
     return pred ?? null;
   };
 
