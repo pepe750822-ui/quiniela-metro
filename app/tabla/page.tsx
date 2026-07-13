@@ -125,6 +125,13 @@ export default function TablaPage() {
     const allPreds = [...(preds1 || []), ...(preds2 || []), ...(preds3 || []), ...(preds4 || [])];
     setPredicciones(allPreds);
 
+    // 🔍 DIAGNÓSTICO: ¿Qué predicciones J7 llegaron realmente?
+    const j7PartidoIds = (parts || []).filter((p: any) => p.jornada === 7).map((p: any) => p.id);
+    const predsJ7 = allPreds.filter((p: any) => j7PartidoIds.includes(p.partido_id));
+    console.log('🔍 [STATE] Predicciones J7 en state:', predsJ7.length);
+    console.log('🔍 [STATE] User IDs con predicciones J7:', [...new Set(predsJ7.map((p: any) => p.user_id))]);
+    console.log('🔍 [STATE] Detalle J7:', predsJ7.map((p: any) => ({ user_id: p.user_id, partido_id: p.partido_id, quiniela_extra_id: p.quiniela_extra_id })));
+
     const { data: pozoDat } = await supabase
       .from('quiniela_pozo')
       .select('participantes, campeon_j6')
