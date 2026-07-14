@@ -261,139 +261,147 @@ export default function PrediccionForm({
         exit={{ opacity: 0, y: '100%' }}
         transition={{ type: 'spring', damping: 30, stiffness: 280 }}
       >
-        <div className="px-5 pt-5 pb-8 space-y-5">
-          {/* Handle */}
-          <div
-            className="w-10 h-1 rounded-full mx-auto"
-            style={{ background: 'rgba(255,255,255,0.12)' }}
-          />
+          {/* ── Scrollable content ── */}
+          <div className="px-5 pt-5 pb-4 space-y-5">
+            {/* Handle */}
+            <div
+              className="w-10 h-1 rounded-full mx-auto"
+              style={{ background: 'rgba(255,255,255,0.12)' }}
+            />
 
-          {/* Title */}
-          <div className="text-center space-y-1.5">
-            <p
-              className="text-[10px] uppercase tracking-widest font-bold"
-              style={{ color: 'var(--text-secondary)' }}
-            >
-              Tu predicción
-            </p>
-            <p
-              className="text-sm font-semibold flex items-center justify-center gap-2 flex-wrap"
-              style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--text-primary)' }}
-            >
-              <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
-              {partido.equipo_local}
-              <span style={{ color: 'rgba(255,255,255,0.2)' }}>vs</span>
-              {partido.equipo_visitante}
-              <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
-            </p>
-            {partido.jornada >= 5 && (
-              <p className="text-[11px]" style={{ color: '#64748b' }}>
-                ⏱️ Marcador a 90 minutos (tiempo reglamentario)
+            {/* Title */}
+            <div className="text-center space-y-1.5">
+              <p
+                className="text-[10px] uppercase tracking-widest font-bold"
+                style={{ color: 'var(--text-secondary)' }}
+              >
+                Tu predicción
               </p>
+              <p
+                className="text-sm font-semibold flex items-center justify-center gap-2 flex-wrap"
+                style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--text-primary)' }}
+              >
+                <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
+                {partido.equipo_local}
+                <span style={{ color: 'rgba(255,255,255,0.2)' }}>vs</span>
+                {partido.equipo_visitante}
+                <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
+              </p>
+              {partido.jornada >= 5 && (
+                <p className="text-[11px]" style={{ color: '#64748b' }}>
+                  ⏱️ Marcador a 90 minutos (tiempo reglamentario)
+                </p>
+              )}
+            </div>
+
+            {/* Score counters */}
+            <div
+              className="flex items-center justify-around py-3 rounded-2xl"
+              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}
+            >
+              <Contador value={local}  onChange={setLocal}  label={partido.equipo_local}     />
+              <span
+                style={{
+                  fontFamily: 'var(--font-bebas)',
+                  fontSize: '2.5rem',
+                  color: 'rgba(255,255,255,0.1)',
+                  lineHeight: 1,
+                  marginTop: '1.5rem',
+                }}
+              >
+                –
+              </span>
+              <Contador value={visita} onChange={setVisita} label={partido.equipo_visitante} />
+            </div>
+
+            {partido.jornada >= 5 && (
+              <p className="text-[10px] text-center leading-relaxed" style={{ color: '#475569' }}>
+                Empate a 90 min y predijiste empate = 1pt, aunque continúe a prórroga o penales.
+              </p>
+            )}
+
+            {/* Clasificado + Cómo termina */}
+            {partido.jornada >= 5 && (
+              <div className="space-y-4">
+                {/* Clasificado */}
+                <div className="space-y-2">
+                  <p
+                    className="text-[10px] text-center uppercase tracking-widest font-bold"
+                    style={{ color: 'var(--text-secondary)' }}
+                  >
+                    ¿Quién clasifica?
+                  </p>
+                  <p className="text-[10px] text-center" style={{ color: '#475569' }}>
+                    Independiente del marcador a 90 min
+                  </p>
+                  <div className="flex gap-2">
+                    {equiposParaClasificar.map((equipo) => (
+                      <motion.button
+                        key={equipo}
+                        whileTap={{ scale: 0.95 }}
+                        type="button"
+                        onClick={() => setClasificadoPred(equipo)}
+                        className="flex-1 py-2.5 rounded-xl text-xs font-bold cursor-pointer"
+                        style={{
+                          background: clasificadoPred === equipo
+                            ? 'linear-gradient(135deg, #ea580c, #f97316)'
+                            : 'rgba(255,255,255,0.04)',
+                          color: clasificadoPred === equipo ? '#fff' : 'var(--text-secondary)',
+                          border: `1px solid ${clasificadoPred === equipo ? 'transparent' : 'rgba(255,255,255,0.07)'}`,
+                          fontFamily: 'var(--font-rajdhani)',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        {equipo}
+                      </motion.button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Cómo termina */}
+                <div className="space-y-2">
+                  <p
+                    className="text-[10px] text-center uppercase tracking-widest font-bold"
+                    style={{ color: 'var(--text-secondary)' }}
+                  >
+                    ¿Cómo termina?
+                  </p>
+                  <div className="flex gap-2">
+                    {terminaciones.map(({ key, label }) => (
+                      <motion.button
+                        key={key}
+                        whileTap={{ scale: 0.95 }}
+                        type="button"
+                        onClick={() => setComoTerminaPred(key)}
+                        className="flex-1 py-2.5 rounded-xl font-bold cursor-pointer"
+                        style={{
+                          fontSize: '0.62rem',
+                          background: comoTerminaPred === key
+                            ? 'linear-gradient(135deg, #ea580c, #f97316)'
+                            : 'rgba(255,255,255,0.04)',
+                          color: comoTerminaPred === key ? '#fff' : 'var(--text-secondary)',
+                          border: `1px solid ${comoTerminaPred === key ? 'transparent' : 'rgba(255,255,255,0.07)'}`,
+                          fontFamily: 'var(--font-rajdhani)',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        {label}
+                      </motion.button>
+                    ))}
+                  </div>
+                </div>
+              </div>
             )}
           </div>
 
-          {/* Score counters */}
+          {/* ── Sticky action bar ── */}
           <div
-            className="flex items-center justify-around py-3 rounded-2xl"
-            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}
+            className="sticky bottom-0 px-5 pt-3 pb-6 flex gap-3"
+            style={{
+              background: 'var(--bg-surface)',
+              borderTop: '1px solid rgba(255,255,255,0.06)',
+            }}
           >
-            <Contador value={local}  onChange={setLocal}  label={partido.equipo_local}     />
-            <span
-              style={{
-                fontFamily: 'var(--font-bebas)',
-                fontSize: '2.5rem',
-                color: 'rgba(255,255,255,0.1)',
-                lineHeight: 1,
-                marginTop: '1.5rem',
-              }}
-            >
-              –
-            </span>
-            <Contador value={visita} onChange={setVisita} label={partido.equipo_visitante} />
-          </div>
-
-          {partido.jornada >= 5 && (
-            <p className="text-[10px] text-center leading-relaxed" style={{ color: '#475569' }}>
-              Empate a 90 min y predijiste empate = 1pt, aunque continúe a prórroga o penales.
-            </p>
-          )}
-
-          {/* Clasificado + Cómo termina */}
-          {partido.jornada >= 5 && (
-            <div className="space-y-4">
-              {/* Clasificado */}
-              <div className="space-y-2">
-                <p
-                  className="text-[10px] text-center uppercase tracking-widest font-bold"
-                  style={{ color: 'var(--text-secondary)' }}
-                >
-                  ¿Quién clasifica?
-                </p>
-                <p className="text-[10px] text-center" style={{ color: '#475569' }}>
-                  Independiente del marcador a 90 min
-                </p>
-                <div className="flex gap-2">
-                  {equiposParaClasificar.map((equipo) => (
-                    <motion.button
-                      key={equipo}
-                      whileTap={{ scale: 0.95 }}
-                      type="button"
-                      onClick={() => setClasificadoPred(equipo)}
-                      className="flex-1 py-2.5 rounded-xl text-xs font-bold cursor-pointer"
-                      style={{
-                        background: clasificadoPred === equipo
-                          ? 'linear-gradient(135deg, #ea580c, #f97316)'
-                          : 'rgba(255,255,255,0.04)',
-                        color: clasificadoPred === equipo ? '#fff' : 'var(--text-secondary)',
-                        border: `1px solid ${clasificadoPred === equipo ? 'transparent' : 'rgba(255,255,255,0.07)'}`,
-                        fontFamily: 'var(--font-rajdhani)',
-                        transition: 'all 0.15s ease',
-                      }}
-                    >
-                      {equipo}
-                    </motion.button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Cómo termina */}
-              <div className="space-y-2">
-                <p
-                  className="text-[10px] text-center uppercase tracking-widest font-bold"
-                  style={{ color: 'var(--text-secondary)' }}
-                >
-                  ¿Cómo termina?
-                </p>
-                <div className="flex gap-2">
-                  {terminaciones.map(({ key, label }) => (
-                    <motion.button
-                      key={key}
-                      whileTap={{ scale: 0.95 }}
-                      type="button"
-                      onClick={() => setComoTerminaPred(key)}
-                      className="flex-1 py-2.5 rounded-xl font-bold cursor-pointer"
-                      style={{
-                        fontSize: '0.62rem',
-                        background: comoTerminaPred === key
-                          ? 'linear-gradient(135deg, #ea580c, #f97316)'
-                          : 'rgba(255,255,255,0.04)',
-                        color: comoTerminaPred === key ? '#fff' : 'var(--text-secondary)',
-                        border: `1px solid ${comoTerminaPred === key ? 'transparent' : 'rgba(255,255,255,0.07)'}`,
-                        fontFamily: 'var(--font-rajdhani)',
-                        transition: 'all 0.15s ease',
-                      }}
-                    >
-                      {label}
-                    </motion.button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Actions */}
-          <div className="flex gap-3 pt-1">
             <motion.button
               whileTap={{ scale: 0.97 }}
               type="button"
@@ -432,7 +440,6 @@ export default function PrediccionForm({
                 : 'Guardar predicción'}
             </motion.button>
           </div>
-        </div>
       </motion.div>
     </motion.div>
   );
