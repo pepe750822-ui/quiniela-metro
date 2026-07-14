@@ -2,7 +2,17 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
+
+const loginStagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.1, delayChildren: 0.15 } },
+};
+const loginItem = {
+  hidden: { opacity: 0, y: 22 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.38, ease: [0.25, 0.46, 0.45, 0.94] as const } },
+};
 
 type Mode = 'login' | 'register';
 
@@ -198,9 +208,14 @@ export default function LoginPage() {
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-80 h-80 rounded-full pointer-events-none"
         style={{ background: 'radial-gradient(circle, rgba(234,88,12,0.08) 0%, transparent 70%)' }} />
 
-      <div className="relative z-10 w-full max-w-sm space-y-6">
+      <motion.div
+        className="relative z-10 w-full max-w-sm space-y-6"
+        initial="hidden"
+        animate="visible"
+        variants={loginStagger}
+      >
         {/* Header */}
-        <div className="text-center">
+        <motion.div className="text-center" variants={loginItem}>
           <img src="/icons/icon-192.png" alt="Quiniela Metro" className="w-20 h-20 rounded-2xl mx-auto mb-3 shadow-lg shadow-orange-500/30" />
           <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: '3rem', color: 'var(--accent-gold)', lineHeight: 1, letterSpacing: '0.05em' }}>
             QUINIELA METRO
@@ -208,28 +223,31 @@ export default function LoginPage() {
           <p className="mt-1 text-sm font-semibold" style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--text-secondary)' }}>
             Mundial 2026 🏆
           </p>
-        </div>
+        </motion.div>
 
         {/* Google */}
-        <button
+        <motion.button
+          variants={loginItem}
           onClick={handleGoogle}
           disabled={googleLoading}
-          className="w-full flex items-center justify-center gap-3 py-3.5 px-6 rounded-2xl font-semibold text-sm transition-all active:scale-95 disabled:opacity-60"
+          className="w-full flex items-center justify-center gap-3 py-3.5 px-6 rounded-2xl font-semibold text-sm disabled:opacity-60"
           style={{ background: '#fff', color: '#111', fontFamily: 'var(--font-rajdhani)' }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
         >
           {googleLoading ? <Spinner /> : <GoogleIcon />}
           {googleLoading ? 'Redirigiendo…' : 'Continuar con Google'}
-        </button>
+        </motion.button>
 
         {/* Divider */}
-        <div className="flex items-center gap-3">
+        <motion.div className="flex items-center gap-3" variants={loginItem}>
           <div className="flex-1 h-px" style={{ background: 'var(--border-color)' }} />
           <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>o</span>
           <div className="flex-1 h-px" style={{ background: 'var(--border-color)' }} />
-        </div>
+        </motion.div>
 
         {/* Email + Password card */}
-        <div className="rounded-2xl p-5 space-y-4" style={cardStyle}>
+        <motion.div className="rounded-2xl p-5 space-y-4" style={cardStyle} variants={loginItem}>
           {/* Tab toggle */}
           <div className="flex rounded-xl overflow-hidden border" style={{ borderColor: 'var(--border-color)' }}>
             {(['login', 'register'] as Mode[]).map((m) => (
@@ -372,10 +390,10 @@ export default function LoginPage() {
               )}
             </div>
           )}
-        </div>
+        </motion.div>
 
         {/* Magic Link — colapsable */}
-        <div className="rounded-2xl overflow-hidden" style={cardStyle}>
+        <motion.div className="rounded-2xl overflow-hidden" style={cardStyle} variants={loginItem}>
           <button
             onClick={() => setShowMagic(v => !v)}
             className="w-full flex items-center justify-between px-5 py-3.5 text-sm font-semibold transition-colors"
@@ -418,12 +436,12 @@ export default function LoginPage() {
               )}
             </div>
           )}
-        </div>
+        </motion.div>
 
-        <p className="text-center text-xs" style={{ color: 'var(--text-muted)' }}>
+        <motion.p className="text-center text-xs" style={{ color: 'var(--text-muted)' }} variants={loginItem}>
           ¡Predice, compite y gana! 🏆
-        </p>
-      </div>
+        </motion.p>
+      </motion.div>
     </main>
   );
 }

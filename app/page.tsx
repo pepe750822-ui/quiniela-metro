@@ -3,7 +3,29 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
+import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
+
+const letterVariants = {
+  hidden: { opacity: 0, y: 18, filter: 'blur(4px)' },
+  visible: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.22 } },
+};
+const titleH1Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.045, delayChildren: 0.6 } },
+};
+const titleH2Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.045, delayChildren: 1.05 } },
+};
+const featureContainer = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.1, delayChildren: 1.5 } },
+};
+const featureCard = {
+  hidden: { opacity: 0, y: 20, scale: 0.88 },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] as const } },
+};
 
 const LandingCanvas = dynamic(
   () => import('@/components/LandingCanvas'),
@@ -51,23 +73,62 @@ export default function LandingPage() {
       {/* Contenido */}
       <div className="relative z-20 flex flex-col items-center justify-center flex-1 px-6 py-16 text-center">
 
+        {/* Balón rodando */}
+        <motion.div
+          initial={{ x: -280, rotate: -540, opacity: 0 }}
+          animate={{ x: 0, rotate: 0, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 55, damping: 10, delay: 0.1 }}
+          className="text-5xl mb-4"
+          style={{ filter: 'drop-shadow(0 0 18px rgba(234,88,12,0.55))' }}
+        >
+          ⚽
+        </motion.div>
+
         {/* Badge */}
-        <div className="inline-flex items-center gap-2 bg-orange-600/10 border border-orange-600/30 rounded-full px-4 py-2 mb-8 animate-pulse">
-          <span className="w-2 h-2 rounded-full bg-orange-500" />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.55, duration: 0.35 }}
+          className="inline-flex items-center gap-2 bg-orange-600/10 border border-orange-600/30 rounded-full px-4 py-2 mb-8"
+        >
+          <motion.span
+            className="w-2 h-2 rounded-full bg-orange-500"
+            animate={{ opacity: [1, 0.25, 1] }}
+            transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+          />
           <span className="text-orange-400 text-sm">STC Metro CDMX · Mundial 2026</span>
-        </div>
+        </motion.div>
 
-        {/* Título */}
-        <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: 'clamp(4rem,20vw,7rem)', color: 'white', letterSpacing: '0.05em', lineHeight: 1, textShadow: '0 0 30px rgba(234,88,12,0.3)' }}>
-          QUINIELA
-        </h1>
-        <h2 style={{ fontFamily: 'var(--font-bebas)', fontSize: 'clamp(3.5rem,18vw,6rem)', color: '#ea580c', letterSpacing: '0.05em', lineHeight: 1, marginBottom: '1.5rem', textShadow: '0 0 20px rgba(234,88,12,0.5)' }}>
-          METRO 2026
-        </h2>
+        {/* Título letra por letra */}
+        <motion.h1
+          style={{ fontFamily: 'var(--font-bebas)', fontSize: 'clamp(4rem,20vw,7rem)', color: 'white', letterSpacing: '0.05em', lineHeight: 1, textShadow: '0 0 30px rgba(234,88,12,0.3)' }}
+          initial="hidden"
+          animate="visible"
+          variants={titleH1Variants}
+        >
+          {'QUINIELA'.split('').map((char, i) => (
+            <motion.span key={i} variants={letterVariants} style={{ display: 'inline-block' }}>{char}</motion.span>
+          ))}
+        </motion.h1>
+        <motion.h2
+          style={{ fontFamily: 'var(--font-bebas)', fontSize: 'clamp(3.5rem,18vw,6rem)', color: '#ea580c', letterSpacing: '0.05em', lineHeight: 1, marginBottom: '1.5rem', textShadow: '0 0 20px rgba(234,88,12,0.5)' }}
+          initial="hidden"
+          animate="visible"
+          variants={titleH2Variants}
+        >
+          {'METRO 2026'.split('').map((char, i) => (
+            <motion.span key={i} variants={letterVariants} style={{ display: 'inline-block' }}>{char}</motion.span>
+          ))}
+        </motion.h2>
 
-        <p className="text-slate-400 text-base max-w-xs leading-relaxed mb-10">
+        <motion.p
+          className="text-slate-400 text-base max-w-xs leading-relaxed mb-10"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.55, duration: 0.45 }}
+        >
           Predice, compite y gana el pozo entre compañeros del Metro.
-        </p>
+        </motion.p>
 
         {/* Countdown */}
         <div className="mb-10">
@@ -97,52 +158,70 @@ export default function LandingPage() {
         <div className="flex flex-col gap-3 w-full max-w-xs">
           {user ? (
             <Link href="/dashboard" className="block w-full">
-              <button
-                className="w-full text-white py-4 rounded-xl font-bold text-lg hover:opacity-90 active:scale-95 transition-all"
-                style={{ background: '#ea580c', fontFamily: 'var(--font-rajdhani)', boxShadow: '0 0 30px rgba(234,88,12,0.3)' }}
+              <motion.button
+                className="w-full text-white py-4 rounded-xl font-bold text-lg"
+                style={{ background: '#ea580c', fontFamily: 'var(--font-rajdhani)' }}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.96 }}
+                animate={{ boxShadow: ['0 0 20px rgba(234,88,12,0.4)', '0 0 45px rgba(234,88,12,0.75)', '0 0 20px rgba(234,88,12,0.4)'] }}
+                transition={{ boxShadow: { duration: 2.2, repeat: Infinity, ease: 'easeInOut' }, scale: { duration: 0.12 } }}
               >
                 Ir a mi quiniela 🏆
-              </button>
+              </motion.button>
             </Link>
           ) : (
             <Link href="/login" className="block w-full">
-              <button
-                className="w-full text-white py-4 rounded-xl font-bold text-lg hover:opacity-90 active:scale-95 transition-all"
-                style={{ background: '#ea580c', fontFamily: 'var(--font-rajdhani)', boxShadow: '0 0 30px rgba(234,88,12,0.3)' }}
+              <motion.button
+                className="w-full text-white py-4 rounded-xl font-bold text-lg"
+                style={{ background: '#ea580c', fontFamily: 'var(--font-rajdhani)' }}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.96 }}
+                animate={{ boxShadow: ['0 0 20px rgba(234,88,12,0.4)', '0 0 45px rgba(234,88,12,0.75)', '0 0 20px rgba(234,88,12,0.4)'] }}
+                transition={{ boxShadow: { duration: 2.2, repeat: Infinity, ease: 'easeInOut' }, scale: { duration: 0.12 } }}
               >
                 Entrar a jugar ⚽
-              </button>
+              </motion.button>
             </Link>
           )}
           <Link href="/instrucciones" className="block w-full">
-            <button
-              className="w-full py-4 rounded-xl font-bold text-lg transition-all"
+            <motion.button
+              className="w-full py-4 rounded-xl font-bold text-lg"
               style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.1)', color: '#cbd5e1', fontFamily: 'var(--font-rajdhani)' }}
+              whileHover={{ scale: 1.02, borderColor: 'rgba(255,255,255,0.25)' }}
+              whileTap={{ scale: 0.97 }}
             >
               Cómo funciona 📖
-            </button>
+            </motion.button>
           </Link>
         </div>
       </div>
 
       {/* Features */}
       <div className="relative z-20 px-6 pb-12">
-        <div className="grid grid-cols-3 gap-3 max-w-sm mx-auto">
+        <motion.div
+          className="grid grid-cols-3 gap-3 max-w-sm mx-auto"
+          initial="hidden"
+          animate="visible"
+          variants={featureContainer}
+        >
           {[
             { icon: '🏆', titulo: 'Pozo Real',  desc: '$50 MXN por jornada' },
             { icon: '📊', titulo: 'Ranking',    desc: 'Tiempo real'         },
             { icon: '🎫', titulo: 'Familiar',   desc: 'Varias quinielas'    },
           ].map(({ icon, titulo, desc }) => (
-            <div key={titulo}
+            <motion.div
+              key={titulo}
               className="text-center rounded-xl p-3"
               style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.08)' }}
+              variants={featureCard}
+              whileHover={{ scale: 1.06, y: -3 }}
             >
               <div className="text-xl mb-1">{icon}</div>
               <p style={{ fontFamily: 'var(--font-rajdhani)', fontWeight: 'bold', color: 'white', fontSize: '0.75rem' }}>{titulo}</p>
               <p className="text-slate-500 text-[10px] mt-0.5">{desc}</p>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
 
       {/* Footer */}
