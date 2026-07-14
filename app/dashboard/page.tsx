@@ -1,12 +1,22 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { RankingConJugador, Pozo } from '@/types';
 import RankingTable from '@/components/RankingTable';
 import { getNombreJornada, getMontoJornada } from '@/lib/utils';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
+
+const cardVariants = {
+  hidden: { opacity: 0, scale: 0.95, y: 16 },
+  visible: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' } },
+};
+const staggerContainer = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.1 } },
+};
 
 const JugadorAnimado = dynamic(
   () => import('@/components/JugadorAnimado'),
@@ -77,15 +87,18 @@ const estadoColor: Record<string, string> = {
 function PozoCard({ pozo, id }: { pozo: Pozo; id?: string }) {
   const ganoAlguien = (pozo.estado === 'cerrado' || pozo.estado === 'pagado') && pozo.ganador_nombre;
   return (
-    <div
+    <motion.div
       id={id}
-      className="rounded-2xl p-4 space-y-3 transition-all"
+      className="rounded-2xl p-4 space-y-3"
       style={{
         background: estadoBg[pozo.estado],
         border: `1px solid ${estadoBorderColor[pozo.estado]}`,
         borderLeftWidth: '4px',
         borderLeftColor: estadoBorderColor[pozo.estado],
       }}
+      variants={cardVariants}
+      whileHover={{ scale: 1.015 }}
+      whileTap={{ scale: 0.98 }}
     >
       <div className="flex items-center justify-between">
         <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--text-secondary)' }}>
@@ -123,7 +136,7 @@ function PozoCard({ pozo, id }: { pozo: Pozo; id?: string }) {
           <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>💰 Premio: ${pozo.total_mxn} MXN</p>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
 
@@ -574,14 +587,14 @@ export default function DashboardPage() {
 
       {/* Pozos por jornada */}
       {pozosCompletos.length > 0 && (
-        <div className="space-y-3" style={{ animation: 'fadeInUp 0.5s ease-out 0.25s both' }}>
+        <motion.div className="space-y-3" initial="hidden" animate="visible" variants={staggerContainer}>
           <p className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: 'var(--text-secondary)' }}>
             Pozos acumulados
           </p>
           {pozosCompletos.map(pozo => (
             <PozoCard key={pozo.id} pozo={pozo} id={pozo.jornada === 6 ? 'pozo-j6' : undefined} />
           ))}
-        </div>
+        </motion.div>
       )}
 
       {/* Solo visible para el usuario actual si tiene pago pendiente */}

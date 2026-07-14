@@ -1,11 +1,21 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Bandera } from '@/components/Bandera';
 import { getNombreJornada, BANDERAS_EQUIPOS } from '@/lib/utils';
 import ReglasFaseFinal from '@/components/ReglasFaseFinal';
+
+const tableBodyVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.06 } },
+};
+const tableRowVariants = {
+  hidden: { opacity: 0, x: -12 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.25, ease: 'easeOut' } },
+};
 
 export default function TablaPage() {
   const [jornada, setJornada]           = useState(6);
@@ -589,7 +599,7 @@ export default function TablaPage() {
               )}
             </tr>
           </thead>
-          <tbody>
+          <motion.tbody initial="hidden" animate="visible" variants={tableBodyVariants}>
             {participacionesOrdenadas.map((part, idx) => {
               const jugador = jugadores.find((j: any) => j.id === part.user_id);
               const totalPuntos = calcTotal(part);
@@ -600,7 +610,7 @@ export default function TablaPage() {
               const campFallo  = campeonDeclarado && !campAcerto;
 
               return (
-                <tr key={part.id}>
+                <motion.tr key={part.id} variants={tableRowVariants}>
                   <td className="sticky left-0 z-10 px-3 py-3" style={{ background: 'var(--bg-base)', borderBottom: '1px solid var(--border-color)' }}>
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-slate-500 dark:text-slate-600 w-4 text-right shrink-0 tabular-nums">
@@ -802,10 +812,10 @@ export default function TablaPage() {
                       {totalPuntos}
                     </td>
                   )}
-                </tr>
+                </motion.tr>
               );
             })}
-          </tbody>
+          </motion.tbody>
         </table>
 
         {participaciones.length === 0 && (

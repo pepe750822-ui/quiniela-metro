@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { DraftPrediccion, Partido } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -182,20 +183,26 @@ export default function PrediccionForm({ partido, userId, quinielaExtraId, predi
   };
 
   return (
-    <div
+    <motion.div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)' }}
       onClick={onCancelar}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
     >
-      <div
+      <motion.div
         className="w-full max-w-sm rounded-2xl overflow-y-auto"
         style={{
           background: 'var(--bg-surface)',
           border: '1px solid rgba(234,88,12,0.3)',
-          animation: 'fadeIn 0.2s ease-out',
           maxHeight: '90vh',
         }}
         onClick={e => e.stopPropagation()}
+        initial={{ opacity: 0, y: 60, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
       >
         <div className="px-3 pt-4 space-y-3" style={{ paddingBottom: '80px' }}>
           <div className="w-10 h-1 rounded-full mx-auto" style={{ background: 'var(--border)' }} />
@@ -313,7 +320,7 @@ export default function PrediccionForm({ partido, userId, quinielaExtraId, predi
             </button>
           </div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
