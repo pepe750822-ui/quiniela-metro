@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { Partido, Prediccion, DraftPrediccion, Pozo } from '@/types';
 import { getNombreJornada, getFechaKey, equiposE32, BANDERAS_EQUIPOS, getMontoJornada } from '@/lib/utils';
@@ -13,17 +14,17 @@ import { toast } from 'sonner';
 
 
 const DEADLINE_J1 = new Date('2026-06-11T05:59:00Z');
-const DEADLINE_J2 = new Date('2026-06-18T16:00:00Z'); // 18 jun 10:00 a.m. CDMX — primer partido J2
-const DEADLINE_J3 = new Date('2026-06-24T19:00:00Z'); // 24 jun 13:00 CDMX — primer partido J3
+const DEADLINE_J2 = new Date('2026-06-18T16:00:00Z');
+const DEADLINE_J3 = new Date('2026-06-24T19:00:00Z');
 const DEADLINE_J4 = new Date('2026-06-28T19:00:00Z');
-const DEADLINE_J5 = new Date('2026-07-04T17:00:00Z'); // 4 jul 11:00 CDMX — primer partido J5 ya jugado
-const DEADLINE_J6      = new Date('2026-07-09T19:00:00Z'); // 9 jul 14:00 CDMX — Cuartos
-const DEADLINE_SEMIS   = new Date('2026-07-14T19:00:00Z'); // 14 jul 13:00 CDMX — Semifinales
-const DEADLINE_TERCERO = new Date('2026-07-18T21:00:00Z'); // 18 jul 15:00 CDMX — 3er Lugar
-const DEADLINE_FINAL   = new Date('2026-07-19T19:00:00Z'); // 19 jul 13:00 CDMX — Final
-const DEADLINE_J7 = new Date('2026-07-14T19:00:00Z'); // 14 jul 13:00 CDMX — Semifinales
-const DEADLINE_J8 = new Date('2026-07-18T21:00:00Z'); // 18 jul 15:00 CDMX — 3er Lugar
-const DEADLINE_J9 = new Date('2026-07-19T19:00:00Z'); // 19 jul 13:00 CDMX — Final
+const DEADLINE_J5 = new Date('2026-07-04T17:00:00Z');
+const DEADLINE_J6      = new Date('2026-07-09T19:00:00Z');
+const DEADLINE_SEMIS   = new Date('2026-07-14T19:00:00Z');
+const DEADLINE_TERCERO = new Date('2026-07-18T21:00:00Z');
+const DEADLINE_FINAL   = new Date('2026-07-19T19:00:00Z');
+const DEADLINE_J7 = new Date('2026-07-14T19:00:00Z');
+const DEADLINE_J8 = new Date('2026-07-18T21:00:00Z');
+const DEADLINE_J9 = new Date('2026-07-19T19:00:00Z');
 
 const getDeadline = (jornada: number) => {
   if (jornada === 1) return DEADLINE_J1;
@@ -110,7 +111,7 @@ function MiniBracket({ partidos, visible, onPredicir }: { partidos: Partido[]; v
       <div onClick={onClick} style={{
         width: CARD_W,
         background: 'var(--bg-surface)',
-        border: `1px solid ${vivo ? 'rgba(234,88,12,0.6)' : 'var(--border)'}`,
+        border: `1px solid ${vivo ? 'rgba(234,88,12,0.6)' : 'rgba(255,255,255,0.06)'}`,
         borderRadius: 6,
         overflow: 'hidden',
         cursor: onClick ? 'pointer' : undefined,
@@ -120,39 +121,33 @@ function MiniBracket({ partidos, visible, onPredicir }: { partidos: Partido[]; v
         onMouseLeave={e => { if (onClick) (e.currentTarget as HTMLElement).style.opacity = '1'; }}
       >
         <TeamRow nombre={local} bandera={bL} goles={fin || vivo ? gl : null} winner={wL} />
-        <div style={{ height: 1, background: 'var(--border)' }} />
+        <div style={{ height: 1, background: 'rgba(255,255,255,0.05)' }} />
         <TeamRow nombre={visit} bandera={bV} goles={fin || vivo ? gv : null} winner={wV} />
       </div>
     );
   }
 
-  /* ── SVG connectors ─────────────────────────────────────────────── */
-
-  /** 4‑to‑2 fork: Cuartos → Semifinales */
   function ConnectorCuaToSemi() {
     const h = CONN_W / 2;
     return (
       <svg width={CONN_W} height={BH} style={{ display: 'block', flexShrink: 0 }}>
-        <path d={`M0,28 H${h} V56 H${CONN_W}`} fill="none" stroke="var(--border)" strokeWidth={1.5} />
-        <path d={`M0,84 H${h} V56 H${CONN_W}`} fill="none" stroke="var(--border)" strokeWidth={1.5} />
-        <path d={`M0,140 H${h} V168 H${CONN_W}`} fill="none" stroke="var(--border)" strokeWidth={1.5} />
-        <path d={`M0,196 H${h} V168 H${CONN_W}`} fill="none" stroke="var(--border)" strokeWidth={1.5} />
+        <path d={`M0,28 H${h} V56 H${CONN_W}`} fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth={1.5} />
+        <path d={`M0,84 H${h} V56 H${CONN_W}`} fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth={1.5} />
+        <path d={`M0,140 H${h} V168 H${CONN_W}`} fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth={1.5} />
+        <path d={`M0,196 H${h} V168 H${CONN_W}`} fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth={1.5} />
       </svg>
     );
   }
 
-  /** 2‑to‑1 fork: Semifinales → Final */
   function ConnectorSemiToFinal() {
     const h = CONN_W / 2;
     return (
       <svg width={CONN_W} height={BH} style={{ display: 'block', flexShrink: 0 }}>
-        <path d={`M0,56 H${h} V112 H${CONN_W}`} fill="none" stroke="var(--border)" strokeWidth={1.5} />
-        <path d={`M0,168 H${h} V112 H${CONN_W}`} fill="none" stroke="var(--border)" strokeWidth={1.5} />
+        <path d={`M0,56 H${h} V112 H${CONN_W}`} fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth={1.5} />
+        <path d={`M0,168 H${h} V112 H${CONN_W}`} fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth={1.5} />
       </svg>
     );
   }
-
-  /* ── Helpers ──────────────────────────────────────────────────── */
 
   function slot(...items: (Partido | null)[]) {
     const r: (Partido | null)[] = [];
@@ -166,7 +161,7 @@ function MiniBracket({ partidos, visible, onPredicir }: { partidos: Partido[]; v
       <div key={key} style={{
         position: 'absolute', top: top - CARD_H / 2, left: 0,
         width: CARD_W, height: CARD_H,
-        border: '1px dashed var(--border)', borderRadius: 6,
+        border: '1px dashed rgba(255,255,255,0.07)', borderRadius: 6,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
         <span style={{ fontSize: 9, color: '#475569', fontFamily: 'var(--font-rajdhani)' }}>—</span>
@@ -174,19 +169,23 @@ function MiniBracket({ partidos, visible, onPredicir }: { partidos: Partido[]; v
     );
   }
 
-  /* ── Render ───────────────────────────────────────────────────── */
-
   if (!visible) return null;
 
   const allEmpty = j6.length === 0 && j7.length === 0 && j8.length === 0 && j9.length === 0;
-
   const cuaSlots = slot(j6[0], j6[1], j6[2], j6[3]);
   const semiSlots = [j7[0] ?? null, j7[1] ?? null];
   const finalCard = j9[0] ?? null;
   const tercerCard = j8[0] ?? null;
 
   return (
-    <div className="rounded-xl p-3" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', animation: 'fadeIn 0.2s ease-out' }}>
+    <motion.div
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: 'auto' }}
+      exit={{ opacity: 0, height: 0 }}
+      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+      className="rounded-2xl p-3 overflow-hidden"
+      style={{ background: 'var(--bg-card)', border: '1px solid rgba(255,255,255,0.06)' }}
+    >
       <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
         🏆 Fase Final
       </p>
@@ -199,13 +198,8 @@ function MiniBracket({ partidos, visible, onPredicir }: { partidos: Partido[]; v
         <>
           <div className="overflow-x-auto pb-1" style={{ scrollbarWidth: 'thin' }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', minWidth: 'max-content' }}>
-
-              {/* ── Cuartos ───────────────────────────────────────── */}
               <div style={{ width: CARD_W, height: BH, position: 'relative', flexShrink: 0 }}>
-                <p className="text-[8px] font-bold uppercase tracking-wider text-center"
-                  style={{ color: '#64748b', paddingBottom: 4 }}>
-                  Cuartos
-                </p>
+                <p className="text-[8px] font-bold uppercase tracking-wider text-center" style={{ color: '#64748b', paddingBottom: 4 }}>Cuartos</p>
                 {cuaSlots.map((p, i) =>
                   p ? (
                     <div key={p.id} style={{ position: 'absolute', top: itemCenter(i) - CARD_H / 2, left: 0 }}>
@@ -214,17 +208,11 @@ function MiniBracket({ partidos, visible, onPredicir }: { partidos: Partido[]; v
                   ) : emptySlot(`cua-${i}`, itemCenter(i))
                 )}
               </div>
-
               <ConnectorCuaToSemi />
-
-              {/* ── Semifinales ─────────────────────────────────────── */}
               <div style={{ width: CARD_W, height: BH, position: 'relative', flexShrink: 0 }}>
-                <p className="text-[8px] font-bold uppercase tracking-wider text-center"
-                  style={{ color: '#64748b', paddingBottom: 4 }}>
-                  Semifinales
-                </p>
+                <p className="text-[8px] font-bold uppercase tracking-wider text-center" style={{ color: '#64748b', paddingBottom: 4 }}>Semifinales</p>
                 {semiSlots.map((p, i) => {
-                  const y = (i * 2 + 1) * SLOT_H; // 56, 168
+                  const y = (i * 2 + 1) * SLOT_H;
                   return p ? (
                     <div key={p.id} style={{ position: 'absolute', top: y - CARD_H / 2, left: 0 }}>
                       <MatchCard p={p} onClick={onPredicir ? () => onPredicir(p) : undefined} />
@@ -232,22 +220,13 @@ function MiniBracket({ partidos, visible, onPredicir }: { partidos: Partido[]; v
                   ) : emptySlot(`semi-${i}`, y);
                 })}
               </div>
-
               <ConnectorSemiToFinal />
-
-              {/* ── Final ──────────────────────────────────────────── */}
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: BH, flexShrink: 0 }}>
-                <p className="text-[8px] font-bold uppercase tracking-wider mb-1" style={{ color: '#ea580c' }}>
-                  🏆 Final
-                </p>
+                <p className="text-[8px] font-bold uppercase tracking-wider mb-1" style={{ color: '#ea580c' }}>🏆 Final</p>
                 {finalCard ? (
                   <MatchCard p={finalCard} onClick={onPredicir ? () => onPredicir(finalCard) : undefined} />
                 ) : (
-                  <div style={{
-                    width: CARD_W, height: CARD_H,
-                    border: '1px dashed var(--border)', borderRadius: 6,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
+                  <div style={{ width: CARD_W, height: CARD_H, border: '1px dashed rgba(255,255,255,0.07)', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <span style={{ fontSize: 9, color: '#475569', fontFamily: 'var(--font-rajdhani)' }}>—</span>
                   </div>
                 )}
@@ -255,28 +234,65 @@ function MiniBracket({ partidos, visible, onPredicir }: { partidos: Partido[]; v
             </div>
           </div>
 
-          {/* ── 3er Lugar (abajo, separado) ──────────────────────── */}
-            <div style={{ marginTop: 48, borderTop: '1px solid var(--border)', paddingTop: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span className="text-[8px] font-bold uppercase tracking-wider shrink-0" style={{ color: '#64748b' }}>
-                  🥉 3er Lugar
-                </span>
-                {tercerCard ? (
-                  <MatchCard p={tercerCard} onClick={onPredicir ? () => onPredicir(tercerCard) : undefined} />
-                ) : (
-                  <div style={{
-                    width: CARD_W, height: CARD_H,
-                    border: '1px dashed var(--border)', borderRadius: 6,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    <span style={{ fontSize: 9, color: '#475569', fontFamily: 'var(--font-rajdhani)' }}>—</span>
-                  </div>
-                )}
-              </div>
+          <div style={{ marginTop: 48, borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span className="text-[8px] font-bold uppercase tracking-wider shrink-0" style={{ color: '#64748b' }}>🥉 3er Lugar</span>
+              {tercerCard ? (
+                <MatchCard p={tercerCard} onClick={onPredicir ? () => onPredicir(tercerCard) : undefined} />
+              ) : (
+                <div style={{ width: CARD_W, height: CARD_H, border: '1px dashed rgba(255,255,255,0.07)', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: 9, color: '#475569', fontFamily: 'var(--font-rajdhani)' }}>—</span>
+                </div>
+              )}
             </div>
+          </div>
         </>
       )}
-    </div>
+    </motion.div>
+  );
+}
+
+// ── Stagger variants ───────────────────────────────────────────────────────
+const listVariants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.07, delayChildren: 0.05 } },
+};
+const itemVariants = {
+  hidden: { opacity: 0, y: 18 },
+  show:   { opacity: 1, y: 0, transition: { type: 'spring' as const, damping: 26, stiffness: 220 } },
+};
+
+const EXPO_OUT = [0.16, 1, 0.3, 1] as const;
+const fadeUp = (delay = 0) => ({
+  initial: { opacity: 0, y: 14 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.38, ease: EXPO_OUT, delay },
+});
+
+// ── Pill button ────────────────────────────────────────────────────────────
+function Pill({
+  active, onClick, children, faded,
+}: {
+  active: boolean; onClick: () => void; children: React.ReactNode; faded?: boolean;
+}) {
+  return (
+    <motion.button
+      whileTap={{ scale: 0.93 }}
+      onClick={onClick}
+      className="flex-shrink-0 px-3.5 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap cursor-pointer"
+      style={{
+        background: active
+          ? 'linear-gradient(135deg, #ea580c, #f97316)'
+          : 'rgba(255,255,255,0.05)',
+        color: active ? '#fff' : faded ? '#475569' : 'var(--text-secondary)',
+        border: active ? 'none' : '1px solid rgba(255,255,255,0.07)',
+        fontFamily: 'var(--font-rajdhani)',
+        boxShadow: active ? '0 2px 14px rgba(234,88,12,0.25)' : 'none',
+        transition: 'all 0.15s ease',
+      }}
+    >
+      {children}
+    </motion.button>
   );
 }
 
@@ -294,10 +310,8 @@ export default function PrediccionesPage() {
   const [publicado, setPublicado]         = useState<boolean>(false);
   const [publicando, setPublicando]       = useState<boolean>(false);
 
-  // J6 — borradores locales por ronda (no persistidos hasta publicar ronda)
   const [prediccionesBorrador, setPrediccionesBorrador] = useState<Record<string, DraftPrediccion>>({});
 
-  // Predicción campeón mundial
   const [campeonEquipos, setCampeonEquipos]     = useState<string[]>([]);
   const [miCampeonPick, setMiCampeonPick]       = useState<string | null>(null);
   const [campeonPickTemp, setCampeonPickTemp]   = useState<string | null>(null);
@@ -306,22 +320,18 @@ export default function PrediccionesPage() {
   const [campeonDeclarado, setCampeonDeclarado] = useState<string | null>(null);
   const [todosMisPicksCampeon, setTodosMisPicksCampeon] = useState<{ quiniela_extra_id: string | null; equipo: string }[]>([]);
 
-  // Predicción campeón J6 (Cuartos de Final)
   const [j6Equipos, setJ6Equipos]     = useState<string[]>([]);
   const [j6Pick, setJ6Pick]           = useState<string | null>(null);
   const [j6PickTemp, setJ6PickTemp]   = useState<string | null>(null);
   const [j6Guardando, setJ6Guardando] = useState(false);
 
-  // Bracket visual J6-J9
   const [bracketVisible, setBracketVisible] = useState(false);
   const [bracketPartidos, setBracketPartidos] = useState<Partido[]>([]);
 
-  // Auto-expandir bracket en J6
   useEffect(() => {
     if (jornada === 6) setBracketVisible(true);
   }, [jornada]);
 
-  // Múltiples quinielas
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [quinielasExtra, setQuinielasExtra]             = useState<any[]>([]);
   const [quinielaSeleccionada, setQuinielaSeleccionada] = useState<string | null>(null);
@@ -433,7 +443,6 @@ export default function PrediccionesPage() {
 
     const allTeams = (equiposData ?? []).map((p: { equipo: string }) => p.equipo);
     setCampeonEquipos(allTeams);
-
     setMiCampeonPick(pick?.equipo ?? null);
     setCampeonPickTemp(pick?.equipo ?? null);
     setTodosMisPicksCampeon((misPicks ?? []) as { quiniela_extra_id: string | null; equipo: string }[]);
@@ -486,7 +495,6 @@ export default function PrediccionesPage() {
     }
   }, [userId, jornada, cargarQuinielas, cargarPredicciones, cargarCampeon, cargarPozoYParticipacion, cargarJ6Campeon]);
 
-  // Cargar partidos J6-J9 para el bracket visual
   useEffect(() => {
     supabase
       .from('quiniela_partidos')
@@ -503,9 +511,7 @@ export default function PrediccionesPage() {
     if (primerPendiente) {
       setTimeout(() => {
         const el = document.getElementById(`partido-${primerPendiente.id}`);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }, 800);
     }
   }, [partidos]);
@@ -528,20 +534,16 @@ export default function PrediccionesPage() {
   const handlePublicar = async () => {
     if (!userId) return;
     setPublicando(true);
-
     const baseUpdate = supabase
       .from('quiniela_participaciones')
       .update({ publicado: true })
       .eq('user_id', userId)
       .eq('jornada', jornada);
-
     const { error } = await (quinielaSeleccionada === null
       ? baseUpdate.is('quiniela_extra_id', null)
       : baseUpdate.eq('quiniela_extra_id', quinielaSeleccionada));
-
     setPublicando(false);
     if (error) {
-      console.error('Error publicando:', error);
       toast.error('Error al publicar predicciones');
     } else {
       setPublicado(true);
@@ -568,12 +570,11 @@ export default function PrediccionesPage() {
       toast.success(`🎫 Quiniela "${data.nombre}" creada`);
     }
   };
-  
-  // J6 — helpers de ronda (usa bracketPartidos que carga J6-J9 completo)
+
   function rondaPartidos(ronda: 'cuartos' | 'semis' | 'final'): Partido[] {
     const fuente = bracketPartidos.length > 0 ? bracketPartidos : partidos;
     if (ronda === 'cuartos') return fuente.filter(p => p.jornada === 6);
-    if (ronda === 'semis') return fuente.filter(p => p.jornada === 7);
+    if (ronda === 'semis')   return fuente.filter(p => p.jornada === 7);
     return fuente.filter(p => p.jornada === 8 || p.jornada === 9);
   }
 
@@ -636,11 +637,9 @@ export default function PrediccionesPage() {
     if (!userId) return;
     const rondaLabel = ronda === 'cuartos' ? 'Cuartos' : ronda === 'semis' ? 'Semifinales' : 'Final';
     setPublicando(true);
-
     const promises = rondaPartidos(ronda).map(async (p) => {
       const borrador = prediccionesBorrador[p.id];
       if (!borrador) return;
-
       const predPayload = {
         goles_local_pred: borrador.goles_local_pred,
         goles_visitante_pred: borrador.goles_visitante_pred,
@@ -649,38 +648,21 @@ export default function PrediccionesPage() {
         publicado: true,
         updated_at: new Date().toISOString(),
       };
-
-      const baseExistingQuery = supabase
-        .from('quiniela_predicciones')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('partido_id', p.id);
-
+      const baseExistingQuery = supabase.from('quiniela_predicciones').select('id').eq('user_id', userId).eq('partido_id', p.id);
       const { data: existing, error: selectError } = await (quinielaSeleccionada === null
         ? baseExistingQuery.is('quiniela_extra_id', null).maybeSingle()
         : baseExistingQuery.eq('quiniela_extra_id', quinielaSeleccionada).maybeSingle());
-
       if (selectError) throw new Error(`Error al buscar predicción: ${selectError.message}`);
-
       if (existing) {
-        const { error: updateError } = await supabase
-          .from('quiniela_predicciones')
-          .update(predPayload)
-          .eq('id', existing.id);
+        const { error: updateError } = await supabase.from('quiniela_predicciones').update(predPayload).eq('id', existing.id);
         if (updateError) throw new Error(`Error al actualizar: ${updateError.message}`);
       } else {
-        const { error: insertError } = await supabase
-          .from('quiniela_predicciones')
-          .insert({
-            user_id: userId,
-            partido_id: p.id,
-            quiniela_extra_id: quinielaSeleccionada || null,
-            ...predPayload,
-          });
+        const { error: insertError } = await supabase.from('quiniela_predicciones').insert({
+          user_id: userId, partido_id: p.id, quiniela_extra_id: quinielaSeleccionada || null, ...predPayload,
+        });
         if (insertError) throw new Error(`Error al insertar: ${insertError.message}`);
       }
     });
-
     try {
       await Promise.all(promises);
       const idsRonda = rondaPartidos(ronda).map(p => p.id);
@@ -694,7 +676,6 @@ export default function PrediccionesPage() {
     } catch {
       toast.error(`Error al publicar ${rondaLabel}`);
     }
-
     setPublicando(false);
   };
 
@@ -719,7 +700,6 @@ export default function PrediccionesPage() {
   const guardarJ6Pick = async () => {
     if (!userId || !j6PickTemp) return;
     setJ6Guardando(true);
-    // SELECT-then-UPDATE/INSERT para no depender del unique constraint existente
     const baseSelect = supabase
       .from('quiniela_prediccion_campeon')
       .select('user_id')
@@ -728,7 +708,6 @@ export default function PrediccionesPage() {
     const { data: existing } = await (quinielaSeleccionada === null
       ? baseSelect.is('quiniela_extra_id', null).maybeSingle()
       : baseSelect.eq('quiniela_extra_id', quinielaSeleccionada).maybeSingle());
-
     let error;
     if (existing) {
       const baseUpdate = supabase
@@ -753,7 +732,6 @@ export default function PrediccionesPage() {
     }
   };
 
-  // Progreso de predicciones en la jornada actual
   const predichasEnJornada = partidos.filter(p => predicciones[p.id]).length;
   const totalEnJornada = partidos.length;
   const porcentaje = totalEnJornada > 0 ? Math.round((predichasEnJornada / totalEnJornada) * 100) : 0;
@@ -772,7 +750,6 @@ export default function PrediccionesPage() {
     return false;
   };
 
-  // Resolver nombres de equipos conocidos para Dieciseisavos
   const resolvedPartidos = partidos.map(p => {
     if (jornada !== 4) return p;
     const key = getFechaKey(p.fecha_hora);
@@ -794,301 +771,365 @@ export default function PrediccionesPage() {
   const campeonAcerto = campeonDeclarado && miCampeonPick === campeonDeclarado;
   const campeonFallo  = campeonDeclarado && miCampeonPick && miCampeonPick !== campeonDeclarado;
 
+  // ── Shared button style helpers ─────────────────────────────────────────
+  const publishBtn = (disabled: boolean, variant: 'primary' | 'blue' = 'primary') => ({
+    background: disabled ? 'rgba(255,255,255,0.06)' : variant === 'blue' ? '#3b82f6' : 'linear-gradient(135deg, #ea580c, #f97316)',
+    color: disabled ? '#475569' : '#fff',
+    border: 'none',
+    fontFamily: 'var(--font-rajdhani)',
+    boxShadow: disabled ? 'none' : '0 2px 14px rgba(234,88,12,0.25)',
+    cursor: disabled ? 'not-allowed' : 'pointer',
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
   return (
     <main
-      className="max-w-lg mx-auto px-4 pb-24 space-y-4"
+      className="max-w-lg mx-auto px-4 pb-32 space-y-3"
       style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1.5rem)' }}
     >
-      {/* Header */}
-      <div style={{ animation: 'fadeInUp 0.4s ease-out' }}>
-        <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: '2rem', color: 'var(--accent-gold)', lineHeight: 1, letterSpacing: '0.05em' }}>
+      {/* ── HEADER ── */}
+      <motion.div {...fadeUp(0)}>
+        <h1
+          style={{
+            fontFamily: 'var(--font-bebas)',
+            fontSize: '2.6rem',
+            lineHeight: 1,
+            letterSpacing: '0.08em',
+            background: 'linear-gradient(135deg, #f97316 0%, #fbbf24 80%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+          }}
+        >
           PREDICCIONES
         </h1>
-      </div>
+        <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+          {getNombreJornada(jornada)}
+        </p>
+      </motion.div>
 
-      {/* Banner: pago pendiente */}
-      {participando === false && (
-        <div
-          className="rounded-xl p-4 space-y-3"
-          style={{ background: 'rgba(234,88,12,0.08)', border: '1px solid rgba(234,88,12,0.4)', animation: 'fadeInUp 0.4s ease-out 0.05s both' }}
-        >
-          <p className="font-bold" style={{ fontFamily: 'var(--font-rajdhani)', color: '#ea580c', fontSize: '1rem' }}>
-            ⚠️ Tienes predicciones sin pagar en esta jornada
-          </p>
-
-          <p className="text-sm font-mono" style={{ color: 'var(--text-secondary)' }}>
-            💳 CLABE: <strong>014180565546539842</strong>
-            <br />
-            <span style={{ color: 'var(--text-muted)' }}>Monto: </span><strong style={{ color: 'var(--text-primary)' }}>${getMontoJornada(jornada)} MXN</strong>
-          </p>
-
-          <div className="rounded-xl p-3 space-y-2" style={{ background: 'rgba(234,88,12,0.1)', border: '1px solid rgba(234,88,12,0.25)' }}>
-            <p className="font-bold text-sm" style={{ fontFamily: 'var(--font-rajdhani)', color: '#f97316' }}>
-              📱 Envía por WhatsApp al 55 2326 9241:
+      {/* ── BANNER: PAGO PENDIENTE ── */}
+      <AnimatePresence>
+        {participando === false && (
+          <motion.div
+            key="payment-banner"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.28 }}
+            className="rounded-2xl p-4 space-y-3"
+            style={{
+              background: 'linear-gradient(135deg, rgba(234,88,12,0.08) 0%, rgba(249,115,22,0.04) 100%)',
+              border: '1px solid rgba(234,88,12,0.32)',
+              boxShadow: '0 0 28px rgba(234,88,12,0.06)',
+            }}
+          >
+            <p className="font-bold" style={{ fontFamily: 'var(--font-rajdhani)', color: '#f97316', fontSize: '1rem' }}>
+              ⚠️ Tienes predicciones sin pagar en esta jornada
             </p>
-            <ol className="text-sm space-y-1 list-decimal list-inside" style={{ color: 'var(--text-secondary)' }}>
-              <li>Captura del comprobante de pago</li>
-              <li>Tu correo de Google con el que entraste</li>
-              <li>Tu nombre o apodo para el ranking</li>
-            </ol>
-            <p className="text-xs" style={{ color: '#64748b', marginTop: '0.5rem' }}>
-              Tu participación se activará en cuanto confirmemos tu pago ✅
+            <p className="text-sm font-mono" style={{ color: 'var(--text-secondary)' }}>
+              💳 CLABE: <strong style={{ color: 'var(--text-primary)' }}>014180565546539842</strong>
+              <br />
+              <span style={{ color: 'var(--text-secondary)' }}>Monto: </span>
+              <strong style={{ color: '#f97316' }}>${getMontoJornada(jornada)} MXN</strong>
             </p>
-          </div>
-        </div>
-      )}
+            <div className="rounded-xl p-3 space-y-2" style={{ background: 'rgba(234,88,12,0.06)', border: '1px solid rgba(234,88,12,0.16)' }}>
+              <p className="font-bold text-sm" style={{ fontFamily: 'var(--font-rajdhani)', color: '#f97316' }}>
+                📱 Envía por WhatsApp al 55 2326 9241:
+              </p>
+              <ol className="text-sm space-y-1 list-decimal list-inside" style={{ color: 'var(--text-secondary)' }}>
+                <li>Captura del comprobante de pago</li>
+                <li>Tu correo de Google con el que entraste</li>
+                <li>Tu nombre o apodo para el ranking</li>
+              </ol>
+              <p className="text-xs" style={{ color: '#475569', marginTop: '0.5rem' }}>
+                Tu participación se activará en cuanto confirmemos tu pago ✅
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Banner: pozo + estado confirmado */}
+      {/* ── BANNER: POZO ── */}
       {pozo && (
-        <div
+        <motion.div
+          {...fadeUp(0.05)}
           className="rounded-2xl px-4 py-3 space-y-1"
           style={{
-            background: participando === true ? 'rgba(16,185,129,0.08)' : 'rgba(234,88,12,0.06)',
-            border: `1px solid ${participando === true ? 'rgba(16,185,129,0.3)' : 'rgba(234,88,12,0.2)'}`,
-            animation: 'fadeInUp 0.4s ease-out 0.1s both',
+            background: participando === true
+              ? 'linear-gradient(135deg, rgba(16,185,129,0.08), rgba(16,185,129,0.03))'
+              : 'rgba(255,255,255,0.03)',
+            border: `1px solid ${participando === true ? 'rgba(16,185,129,0.22)' : 'rgba(255,255,255,0.06)'}`,
           }}
         >
           <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold" style={{ color: participando === true ? '#10b981' : 'var(--text-secondary)', fontFamily: 'var(--font-rajdhani)' }}>
+            <p className="text-xs font-semibold" style={{
+              color: participando === true ? '#10b981' : 'var(--text-secondary)',
+              fontFamily: 'var(--font-rajdhani)',
+            }}>
               {participando === true
                 ? `✅ Participando en ${getNombreJornada(jornada)}`
                 : `🏆 Pozo ${getNombreJornada(jornada)}`}
             </p>
-            <div className="text-right">
-              <p style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.4rem', color: 'var(--accent-gold)', lineHeight: 1 }}>
-                ${pozo.total_mxn} <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>MXN</span>
-              </p>
-            </div>
+            <p style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.5rem', color: 'var(--accent-gold)', lineHeight: 1 }}>
+              ${pozo.total_mxn} <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>MXN</span>
+            </p>
           </div>
           <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
             👥 {pozo.participantes} participante{pozo.participantes !== 1 ? 's' : ''}
             {pozo.estado !== 'abierto' && pozo.ganador_nombre && ` · 🥇 ${pozo.ganador_nombre}`}
           </p>
-        </div>
+        </motion.div>
       )}
 
-      {/* Selector quiniela */}
-      <div className="flex gap-2 overflow-x-auto pb-2" style={{ animation: 'fadeInUp 0.4s ease-out 0.12s both' }}>
-        <button
-          onClick={() => setQuinielaSeleccionada(null)}
-          className="flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-semibold transition-all"
-          style={{
-            fontFamily: 'var(--font-rajdhani)',
-            background: quinielaSeleccionada === null ? '#ea580c' : 'var(--bg-card)',
-            color: quinielaSeleccionada === null ? '#fff' : 'var(--text-secondary)',
-            border: `1px solid ${quinielaSeleccionada === null ? '#ea580c' : 'var(--border)'}`,
-          }}>
-          👤 Mi quiniela
-        </button>
-        {quinielasExtra.map(q => (
-          <button
-            key={q.id}
-            onClick={() => setQuinielaSeleccionada(q.id)}
-            className="flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-semibold transition-all"
-            style={{
-              fontFamily: 'var(--font-rajdhani)',
-              background: quinielaSeleccionada === q.id ? '#ea580c' : 'var(--bg-card)',
-              color: quinielaSeleccionada === q.id ? '#fff' : 'var(--text-secondary)',
-              border: `1px solid ${quinielaSeleccionada === q.id ? '#ea580c' : 'var(--border)'}`,
-            }}>
-            🎫 {q.nombre}
-          </button>
+      {/* ── SELECTOR QUINIELA ── */}
+      <motion.div
+        {...fadeUp(0.08)}
+        className="flex gap-2 overflow-x-auto pb-1"
+        style={{ scrollbarWidth: 'none' }}
+      >
+        <Pill active={quinielaSeleccionada === null} onClick={() => setQuinielaSeleccionada(null)}>
+          Mi quiniela
+        </Pill>
+        {quinielasExtra.map((q: any) => (
+          <Pill key={q.id} active={quinielaSeleccionada === q.id} onClick={() => setQuinielaSeleccionada(q.id)}>
+            {q.nombre}
+          </Pill>
         ))}
-        <button
+        <motion.button
+          whileTap={{ scale: 0.93 }}
           onClick={() => setShowNuevaQuiniela(true)}
-          className="flex-shrink-0 px-3 py-1.5 rounded-full text-sm transition-all"
+          className="flex-shrink-0 px-3.5 py-1.5 rounded-full text-sm cursor-pointer"
           style={{
+            background: 'transparent',
+            border: '1px dashed rgba(234,88,12,0.35)',
+            color: '#f97316',
             fontFamily: 'var(--font-rajdhani)',
-            background: 'var(--bg-card)',
-            border: '1px dashed rgba(234,88,12,0.4)',
-            color: '#ea580c',
-          }}>
+          }}
+        >
           + Nueva
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
 
-      {/* Selector jornada */}
-      <div className="flex gap-2 overflow-x-auto pb-1" style={{ animation: 'fadeInUp 0.4s ease-out 0.15s both' }}>
+      {/* ── SELECTOR JORNADA ── */}
+      <motion.div
+        {...fadeUp(0.11)}
+        className="flex gap-2 overflow-x-auto pb-1"
+        style={{ scrollbarWidth: 'none' }}
+      >
         {jornadas.filter(j => j <= 6).map(j => {
           const cerrada = j < 2 || new Date() > getDeadline(j);
-          const activa  = jornada === j;
           return (
-            <button key={j} onClick={() => setJornada(j)}
-              className="px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all active:scale-95 min-h-[36px] flex items-center gap-1"
-              style={{
-                background: activa ? 'var(--accent-gold)' : 'var(--bg-card)',
-                color: activa ? '#000' : cerrada ? '#64748b' : 'var(--text-secondary)',
-                border: `1px solid ${activa ? 'var(--accent-gold)' : 'var(--border)'}`,
-                fontFamily: 'var(--font-rajdhani)',
-              }}>
-              {cerrada && !activa && <span style={{ fontSize: '0.6rem' }}>🔒</span>}
+            <Pill key={j} active={jornada === j} onClick={() => setJornada(j)} faded={cerrada && jornada !== j}>
+              {cerrada && jornada !== j && <span style={{ fontSize: '0.55rem', marginRight: 2 }}>🔒</span>}
               {getNombreJornada(j)}
-            </button>
+            </Pill>
           );
         })}
-      </div>
+      </motion.div>
 
-      {/* Barra de progreso */}
+      {/* ── BARRA DE PROGRESO ── */}
       {!loading && totalEnJornada > 0 && (
-        <div
+        <motion.div
+          {...fadeUp(0.14)}
           className="rounded-2xl px-4 py-3 space-y-2"
           style={{
-            background: jornadaCompleta ? 'rgba(16,185,129,0.08)' : 'var(--bg-card)',
-            border: `1px solid ${jornadaCompleta ? 'rgba(16,185,129,0.3)' : 'var(--border)'}`,
-            animation: 'fadeInUp 0.4s ease-out 0.18s both',
+            background: jornadaCompleta ? 'rgba(16,185,129,0.06)' : 'rgba(255,255,255,0.03)',
+            border: `1px solid ${jornadaCompleta ? 'rgba(16,185,129,0.22)' : 'rgba(255,255,255,0.06)'}`,
           }}
         >
           <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold" style={{ fontFamily: 'var(--font-rajdhani)', color: jornadaCompleta ? '#10b981' : 'var(--text-primary)' }}>
+            <p className="text-sm font-semibold" style={{
+              fontFamily: 'var(--font-rajdhani)',
+              color: jornadaCompleta ? '#10b981' : 'var(--text-primary)',
+            }}>
               {jornadaCompleta
-                ? (publicado ? `✅ ¡${getNombreJornada(jornada)} completa y publicada!` : `✅ ¡${getNombreJornada(jornada)} completa!`)
-                : `${getNombreJornada(jornada)}: ${predichasEnJornada}/${totalEnJornada} partidos predichos`}
+                ? (publicado ? `✅ ¡${getNombreJornada(jornada)} publicada!` : `✅ ¡${getNombreJornada(jornada)} completa!`)
+                : `${predichasEnJornada}/${totalEnJornada} partidos predichos`}
             </p>
-            <span className="text-sm font-bold" style={{ fontFamily: 'var(--font-bebas)', color: jornadaCompleta ? '#10b981' : 'var(--accent-gold)' }}>
+            <span style={{
+              fontFamily: 'var(--font-bebas)',
+              fontSize: '1.2rem',
+              color: jornadaCompleta ? '#10b981' : 'var(--accent-gold)',
+              lineHeight: 1,
+            }}>
               {porcentaje}%
             </span>
           </div>
-          <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
-            <div
-              className="h-2 rounded-full transition-all duration-500"
+
+          <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+            <motion.div
+              className="h-1.5 rounded-full"
+              initial={{ width: 0 }}
+              animate={{ width: `${porcentaje}%` }}
+              transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
               style={{
-                width: `${porcentaje}%`,
                 background: jornadaCompleta
                   ? 'linear-gradient(90deg, #10b981, #34d399)'
                   : 'linear-gradient(90deg, #ea580c, #f97316)',
               }}
             />
           </div>
+
           {jornada !== 6 && jornadaCompleta && !publicado && (
-            <div className="pt-2">
-              <button
+            <div className="pt-1 space-y-2">
+              <motion.button
+                whileTap={{ scale: 0.97 }}
                 onClick={handlePublicar}
                 disabled={publicando}
-                className="w-full py-2.5 rounded-xl font-bold transition-all active:scale-95 disabled:opacity-50"
-                style={{ background: '#10b981', color: '#000', fontFamily: 'var(--font-rajdhani)' }}
+                className="w-full py-3 rounded-xl font-bold text-sm"
+                style={publishBtn(publicando)}
               >
                 {publicando ? 'Publicando...' : '📢 Publicar jornada'}
-              </button>
-              <p className="text-xs text-center mt-2" style={{ color: 'var(--text-secondary)' }}>
-                Tus predicciones no serán visibles para los demás hasta que las publiques.
+              </motion.button>
+              <p className="text-[11px] text-center" style={{ color: 'var(--text-secondary)' }}>
+                Tus predicciones no serán visibles hasta que las publiques.
               </p>
             </div>
           )}
+
           {jornada !== 6 && jornadaCompleta && publicado && (
             <div>
-              <p className="text-xs mt-1" style={{ color: '#10b981' }}>
-                Tus predicciones ya son visibles para todos los participantes
+              <p className="text-xs" style={{ color: '#10b981' }}>
+                Tus predicciones ya son visibles para todos ✓
               </p>
               {Object.keys(prediccionesBorrador).length > 0 && (
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
                   onClick={handleActualizar}
                   disabled={publicando}
-                  className="w-full mt-2 py-2.5 rounded-xl font-bold transition-all active:scale-95 disabled:opacity-50"
-                  style={{ background: '#ea580c', color: '#fff', fontFamily: 'var(--font-rajdhani)' }}
+                  className="w-full mt-2 py-3 rounded-xl font-bold text-sm"
+                  style={publishBtn(publicando)}
                 >
                   {publicando ? 'Actualizando...' : '🔄 Actualizar predicciones'}
-                </button>
+                </motion.button>
               )}
             </div>
           )}
-        </div>
+        </motion.div>
       )}
 
+      {/* ── LOADING / PARTIDOS ── */}
       {loading ? (
-        <div className="flex justify-center py-12">
-          <div className="h-8 w-8 border-2 border-t-transparent rounded-full animate-spin"
-            style={{ borderColor: 'var(--accent-gold)', borderTopColor: 'transparent' }} />
+        <div className="flex flex-col items-center py-16 gap-3">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+            className="w-8 h-8 rounded-full border-2"
+            style={{ borderColor: 'rgba(234,88,12,0.15)', borderTopColor: '#ea580c' }}
+          />
+          <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>Cargando partidos…</p>
         </div>
       ) : (
-        <>
+        <div className="space-y-3">
           {jornada >= 5 && (
-            <div className="flex gap-3 text-xs flex-wrap" style={{ color: '#64748b' }}>
+            <motion.div {...fadeUp(0.12)} className="flex gap-3 text-xs flex-wrap" style={{ color: '#64748b' }}>
               <span>⏱️ Tiempo reglamentario</span>
               <span>⏩ Prórroga</span>
               <span>🥅 Penales</span>
-            </div>
+            </motion.div>
           )}
 
-          {/* Bracket Fase Final colapsable */}
+          {/* ── Bracket Fase Final ── */}
           {jornada === 6 && (
-            <div style={{ animation: 'fadeInUp 0.4s ease-out 0.1s both', marginBottom: 8 }}>
-              <ReglasFaseFinal />
-            </div>
-          )}
-          <div style={{ animation: 'fadeInUp 0.4s ease-out 0.15s both' }}>
-            <button
-              onClick={() => setBracketVisible(v => !v)}
-              className="w-full flex items-center justify-between rounded-xl px-4 py-2.5 transition-all active:scale-[0.99]"
-              style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
-            >
-              <span className="text-xs font-bold uppercase tracking-wider" style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--accent-gold)' }}>
-                🏆 Bracket Fase Final
-              </span>
-              <span style={{ color: 'var(--text-secondary)', fontSize: 10 }}>
-                {bracketVisible ? '▲ Ocultar' : '▼ Ver bracket'}
-              </span>
-            </button>
-            <MiniBracket partidos={bracketPartidos} visible={bracketVisible} onPredicir={(p) => { if (!estaBloquado(p)) setPartidoActivo(p); }} />
-          </div>
+            <>
+              <motion.div {...fadeUp(0.1)}>
+                <ReglasFaseFinal />
+              </motion.div>
 
-          {/* ── Progreso Fase Final + Publicar por ronda ──────────── */}
-          {jornada === 6 && (
-            <div className="rounded-xl p-3 space-y-2" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', animation: 'fadeInUp 0.4s ease-out 0.2s both' }}>
-              <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
-                📊 Progreso Fase Final
-              </p>
-              {(['cuartos', 'semis', 'final'] as const).map(ronda => {
-                const label = ronda === 'cuartos' ? 'Cuartos' : ronda === 'semis' ? 'Semifinales' : 'Final + 3er Lugar';
-                const pub = rondaPublicada(ronda);
-                const hechos = rondaCompletados(ronda);
-                const total = rondaTotal(ronda);
-                return (
-                  <div key={ronda} className="flex items-center justify-between gap-2" id={ronda === 'semis' ? 'publicar-semis-section' : undefined}>
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span style={{ fontSize: 11, color: pub ? '#22c55e' : 'var(--text-secondary)' }}>
-                        {pub ? '✅' : '📋'}
-                      </span>
-                      <span className="text-xs font-semibold truncate" style={{ color: pub ? '#22c55e' : 'var(--text-primary)' }}>
-                        {label}
-                      </span>
-                      <span className="text-[10px] shrink-0" style={{ color: hechos > 0 ? '#fbbf24' : '#64748b', fontFamily: 'var(--font-rajdhani)' }}>
-                        {hechos}/{total}
-                      </span>
+              <motion.div {...fadeUp(0.13)}>
+                <motion.button
+                  whileTap={{ scale: 0.99 }}
+                  onClick={() => setBracketVisible(v => !v)}
+                  className="w-full flex items-center justify-between rounded-xl px-4 py-3 cursor-pointer"
+                  style={{
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.07)',
+                  }}
+                >
+                  <span className="text-xs font-bold uppercase tracking-wider" style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--accent-gold)' }}>
+                    🏆 Bracket Fase Final
+                  </span>
+                  <span style={{ color: 'var(--text-secondary)', fontSize: 10 }}>
+                    {bracketVisible ? '▲ Ocultar' : '▼ Ver bracket'}
+                  </span>
+                </motion.button>
+
+                <AnimatePresence>
+                  {bracketVisible && (
+                    <MiniBracket
+                      partidos={bracketPartidos}
+                      visible={bracketVisible}
+                      onPredicir={(p) => { if (!estaBloquado(p)) setPartidoActivo(p); }}
+                    />
+                  )}
+                </AnimatePresence>
+              </motion.div>
+
+              {/* ── Progreso Fase Final ── */}
+              <motion.div
+                {...fadeUp(0.17)}
+                className="rounded-xl p-3 space-y-2"
+                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+              >
+                <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
+                  📊 Progreso Fase Final
+                </p>
+                {(['cuartos', 'semis', 'final'] as const).map(ronda => {
+                  const label = ronda === 'cuartos' ? 'Cuartos' : ronda === 'semis' ? 'Semifinales' : 'Final + 3er Lugar';
+                  const pub = rondaPublicada(ronda);
+                  const hechos = rondaCompletados(ronda);
+                  const total = rondaTotal(ronda);
+                  return (
+                    <div key={ronda} className="flex items-center justify-between gap-2" id={ronda === 'semis' ? 'publicar-semis-section' : undefined}>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span style={{ fontSize: 11, color: pub ? '#22c55e' : 'var(--text-secondary)' }}>
+                          {pub ? '✅' : '📋'}
+                        </span>
+                        <span className="text-xs font-semibold truncate" style={{ color: pub ? '#22c55e' : 'var(--text-primary)' }}>
+                          {label}
+                        </span>
+                        <span className="text-[10px] shrink-0" style={{ color: hechos > 0 ? '#fbbf24' : '#64748b', fontFamily: 'var(--font-rajdhani)' }}>
+                          {hechos}/{total}
+                        </span>
+                      </div>
+                      {ronda === 'cuartos' && !pub ? (
+                        <span className="text-[10px] font-semibold shrink-0" style={{ color: '#64748b' }}>✅ Cuartos cerrados</span>
+                      ) : ronda === 'semis' && new Date() <= DEADLINE_SEMIS ? (
+                        <motion.button
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => handlePublicarRonda(ronda)}
+                          disabled={publicando || hechos < total}
+                          className="text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg shrink-0"
+                          style={publishBtn(publicando || hechos < total, pub ? 'blue' : 'primary')}
+                        >
+                          {publicando ? '⏳' : pub ? 'Actualizar' : 'Publicar'}
+                        </motion.button>
+                      ) : ronda === 'semis' ? (
+                        <span className="text-[10px] font-semibold shrink-0" style={{ color: '#64748b' }}>🔒 Cerradas</span>
+                      ) : hechos === total && !pub ? (
+                        <motion.button
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => handlePublicarRonda(ronda)}
+                          disabled={publicando}
+                          className="text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg shrink-0"
+                          style={publishBtn(publicando)}
+                        >
+                          {publicando ? '⏳' : 'Publicar'}
+                        </motion.button>
+                      ) : pub ? (
+                        <span className="text-[10px] font-semibold shrink-0" style={{ color: '#22c55e' }}>Publicado</span>
+                      ) : (
+                        <span className="text-[10px] shrink-0" style={{ color: '#64748b' }}>{hechos > 0 ? `${hechos}/${total}` : 'Pendiente'}</span>
+                      )}
                     </div>
-                    {ronda === 'cuartos' && !pub ? (
-                      <span className="text-[10px] font-semibold shrink-0" style={{ color: '#64748b' }}>✅ Cuartos cerrados</span>
-                    ) : ronda === 'semis' && new Date() <= DEADLINE_SEMIS ? (
-                      <button
-                        onClick={() => handlePublicarRonda(ronda)}
-                        disabled={publicando || hechos < total}
-                        className="text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg shrink-0 transition-all active:scale-95 disabled:opacity-50"
-                        style={{ background: pub ? '#3b82f6' : 'var(--accent-gold)', color: pub ? '#fff' : '#000' }}
-                      >
-                        {publicando ? '⏳' : pub ? 'Actualizar Semifinales' : 'Publicar Semifinales'}
-                      </button>
-                    ) : ronda === 'semis' ? (
-                      <span className="text-[10px] font-semibold shrink-0" style={{ color: '#64748b' }}>🔒 Semifinales cerradas</span>
-                    ) : hechos === total && !pub ? (
-                      <button
-                        onClick={() => handlePublicarRonda(ronda)}
-                        disabled={publicando}
-                        className="text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg shrink-0 transition-all active:scale-95 disabled:opacity-50"
-                        style={{ background: 'var(--accent-gold)', color: '#000' }}
-                      >
-                        {publicando ? '⏳' : `Publicar ${label.split(' +')[0]}`}
-                      </button>
-                    ) : pub ? (
-                      <span className="text-[10px] font-semibold shrink-0" style={{ color: '#22c55e' }}>Publicado</span>
-                    ) : (
-                      <span className="text-[10px] shrink-0" style={{ color: '#64748b' }}>{hechos > 0 ? `${hechos}/${total}` : 'Pendiente'}</span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </motion.div>
+            </>
           )}
 
-          <div className="space-y-3" style={{ animation: 'fadeInUp 0.4s ease-out 0.25s both' }}>
+          {/* ── LISTA DE PARTIDOS ── */}
           {jornada === 6 ? (
             (['cuartos', 'semis', 'final'] as const).map(ronda => {
               const ps = rondaPartidos(ronda);
@@ -1098,95 +1139,116 @@ export default function PrediccionesPage() {
               const total = rondaTotal(ronda);
               const label = ronda === 'cuartos' ? 'Cuartos de Final' : ronda === 'semis' ? 'Semifinales' : 'Final + 3er Lugar';
               return (
-                <div key={ronda} className="space-y-3" id={ronda === 'semis' ? 'semifinales-section' : undefined}>
-                  <div className="flex items-center justify-between pt-1">
+                <motion.div
+                  key={ronda}
+                  variants={listVariants}
+                  initial="hidden"
+                  animate="show"
+                  className="space-y-3"
+                  id={ronda === 'semis' ? 'semifinales-section' : undefined}
+                >
+                  <div className="flex items-center justify-between pt-2">
                     <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
                       {label}
                     </p>
                     {ronda === 'cuartos' && !pub ? (
                       <span className="text-[10px] font-semibold" style={{ color: '#64748b' }}>✅ Cuartos cerrados</span>
                     ) : ronda === 'semis' && new Date() <= DEADLINE_SEMIS ? (
-                      <button
+                      <motion.button
+                        whileTap={{ scale: 0.95 }}
                         onClick={() => handlePublicarRonda(ronda)}
                         disabled={publicando || hechos < total}
-                        className="text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg shrink-0 transition-all active:scale-95 disabled:opacity-50"
-                        style={{ background: pub ? '#3b82f6' : 'var(--accent-gold)', color: pub ? '#fff' : '#000', fontFamily: 'var(--font-rajdhani)' }}
+                        className="text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg shrink-0"
+                        style={{ ...publishBtn(publicando || hechos < total, pub ? 'blue' : 'primary'), fontFamily: 'var(--font-rajdhani)' }}
                       >
                         {publicando ? '⏳' : pub ? 'Actualizar Semifinales' : 'Publicar Semifinales'}
-                      </button>
+                      </motion.button>
                     ) : ronda === 'semis' ? (
-                      <span className="text-[10px] font-semibold" style={{ color: '#64748b' }}>🔒 Semifinales cerradas</span>
+                      <span className="text-[10px] font-semibold" style={{ color: '#64748b' }}>🔒 Cerradas</span>
                     ) : pub ? (
                       <span className="text-[10px] font-semibold" style={{ color: '#22c55e' }}>✅ Publicado</span>
                     ) : hechos === total && total > 0 ? (
-                      <button
+                      <motion.button
+                        whileTap={{ scale: 0.95 }}
                         onClick={() => handlePublicarRonda(ronda)}
                         disabled={publicando}
-                        className="text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg shrink-0 transition-all active:scale-95 disabled:opacity-50"
-                        style={{ background: 'var(--accent-gold)', color: '#000', fontFamily: 'var(--font-rajdhani)' }}
+                        className="text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg shrink-0"
+                        style={{ ...publishBtn(publicando), fontFamily: 'var(--font-rajdhani)' }}
                       >
                         {publicando ? '⏳' : 'Publicar'}
-                      </button>
+                      </motion.button>
                     ) : (
                       <span className="text-[10px]" style={{ color: '#64748b' }}>{hechos}/{total}</span>
                     )}
                   </div>
+
                   {ronda === 'semis' && (
-                    <p className="text-[11px] rounded-lg px-3 py-2" style={{ background: 'rgba(251,191,36,0.08)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.2)' }}>
-                      ⚽ ¡Llena tus predicciones y presiona <strong>PUBLICAR</strong> o <strong>ACTUALIZAR</strong> para que se reflejen en la tabla!
+                    <p className="text-[11px] rounded-xl px-3 py-2" style={{ background: 'rgba(251,191,36,0.06)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.15)' }}>
+                      ⚽ Llena tus predicciones y presiona <strong>PUBLICAR</strong> para que aparezcan en la tabla.
                     </p>
                   )}
+
                   {ps.map(partido => (
-                    <div key={partido.id} id={`partido-${partido.id}`}>
+                    <motion.div key={partido.id} variants={itemVariants} id={`partido-${partido.id}`}>
                       <PartidoCard
                         partido={partido}
                         prediccion={prediccionesBorrador[partido.id] ?? predicciones[partido.id] ?? null}
                         participacionPagada={predicciones[partido.id] ? participando : undefined}
                         onPredicir={estaBloquado(partido) ? undefined : setPartidoActivo}
                       />
-                    </div>
+                    </motion.div>
                   ))}
-                </div>
+                </motion.div>
               );
             })
           ) : todosSinResolver ? (
-            <div
-              className="rounded-2xl p-6 text-center space-y-2"
-              style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
+            <motion.div
+              {...fadeUp(0.2)}
+              className="rounded-2xl p-8 text-center space-y-2"
+              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
             >
-              <p className="text-3xl">⏳</p>
+              <p className="text-4xl">⏳</p>
               <p className="font-bold text-sm" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
                 Los equipos se definen al término de la Fase de Grupos (J3)
               </p>
               <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                 Deadline: 28 jun 2026 · 13:00 CDMX
               </p>
-            </div>
+            </motion.div>
           ) : (
-            resolvedPartidos.map(partido => (
-              <div key={partido.id} id={`partido-${partido.id}`}>
-                <PartidoCard
-                  partido={partido}
-                  prediccion={prediccionesBorrador[partido.id] ?? predicciones[partido.id] ?? null}
-                  participacionPagada={predicciones[partido.id] ? participando : undefined}
-                  onPredicir={estaBloquado(partido) ? undefined : setPartidoActivo}
-                />
-              </div>
-            ))
+            <motion.div
+              variants={listVariants}
+              initial="hidden"
+              animate="show"
+              className="space-y-3"
+            >
+              {resolvedPartidos.map(partido => (
+                <motion.div key={partido.id} variants={itemVariants} id={`partido-${partido.id}`}>
+                  <PartidoCard
+                    partido={partido}
+                    prediccion={prediccionesBorrador[partido.id] ?? predicciones[partido.id] ?? null}
+                    participacionPagada={predicciones[partido.id] ? participando : undefined}
+                    onPredicir={estaBloquado(partido) ? undefined : setPartidoActivo}
+                  />
+                </motion.div>
+              ))}
+            </motion.div>
           )}
 
-          {/* Progreso bottom — solo jornadas 1-5 */}
+          {/* ── Progreso bottom (J1-J5) ── */}
           {jornada !== 6 && totalEnJornada > 0 && (
-            <div className="mt-6 mb-2">
-              <div className="flex justify-between text-xs text-slate-500 mb-2">
+            <div className="mt-4 mb-2">
+              <div className="flex justify-between text-xs mb-2" style={{ color: '#64748b' }}>
                 <span>Progreso {getNombreJornada(jornada)}</span>
                 <span>{predichasEnJornada}/{totalEnJornada}</span>
               </div>
-              <div className="w-full bg-themedcard rounded-full h-2">
-                <div
-                  className="h-2 rounded-full transition-all duration-500"
+              <div className="w-full rounded-full h-1.5 overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                <motion.div
+                  className="h-1.5 rounded-full"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${totalEnJornada > 0 ? (predichasEnJornada / totalEnJornada) * 100 : 0}%` }}
+                  transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
                   style={{
-                    width: `${totalEnJornada > 0 ? (predichasEnJornada / totalEnJornada) * 100 : 0}%`,
                     background: jornadaCompleta
                       ? 'linear-gradient(90deg, #10b981, #34d399)'
                       : 'linear-gradient(90deg, #ea580c, #f97316)',
@@ -1196,150 +1258,166 @@ export default function PrediccionesPage() {
             </div>
           )}
 
-          {/* Botón publicar bottom — solo jornadas 1-5 */}
+          {/* ── Botón publicar bottom (J1-J5) ── */}
           {jornada !== 6 && jornadaCompleta && !publicado && (
-            <button
+            <motion.button
+              whileTap={{ scale: 0.97 }}
               onClick={handlePublicar}
               disabled={publicando}
-              className="w-full text-white py-4 rounded-xl font-bold text-lg hover:opacity-90 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed mt-2"
-              style={{ background: '#ea580c', fontFamily: 'var(--font-rajdhani)', boxShadow: '0 0 20px rgba(234,88,12,0.3)' }}
+              className="w-full py-4 rounded-xl font-bold text-base mt-2"
+              style={{
+                ...publishBtn(publicando),
+                fontSize: '1rem',
+                boxShadow: publicando ? 'none' : '0 4px 24px rgba(234,88,12,0.3)',
+              }}
             >
               {publicando ? '⏳ Publicando...' : '📢 Publicar mi quiniela'}
-            </button>
+            </motion.button>
           )}
 
           {jornada !== 6 && jornadaCompleta && publicado && (
             <div
-              className="w-full py-4 rounded-xl text-center font-bold text-lg mt-2"
-              style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#34d399', fontFamily: 'var(--font-rajdhani)' }}
+              className="w-full py-4 rounded-xl text-center font-bold text-base mt-2"
+              style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.22)', color: '#34d399', fontFamily: 'var(--font-rajdhani)' }}
             >
               ✅ Quiniela publicada
             </div>
           )}
         </div>
-        </>
       )}
 
-      {/* ── PREDICCIÓN CAMPEÓN ── */}
-      {jornada !== 6 && <div
-        className="rounded-2xl p-4 space-y-3"
-        style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', animation: 'fadeInUp 0.4s ease-out 0.03s both' }}
-      >
-        <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
-          🏆 ¿Quién será el Campeón Mundial?
-        </p>
+      {/* ── PREDICCIÓN CAMPEÓN MUNDIAL (J1-J5) ── */}
+      {jornada !== 6 && (
+        <motion.div
+          {...fadeUp(0.03)}
+          className="rounded-2xl p-4 space-y-3"
+          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+        >
+          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
+            🏆 ¿Quién será el Campeón Mundial?
+          </p>
 
-        {campeonEquipos.length === 0 ? (
-          <div className="flex justify-center py-4">
-            <div className="h-5 w-5 border-2 border-t-transparent rounded-full animate-spin"
-              style={{ borderColor: 'var(--accent-gold)', borderTopColor: 'transparent' }} />
-          </div>
-        ) : (<>
-          {campeonAcerto && (
-            <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.4)' }}>
-              <p className="font-bold" style={{ color: '#fbbf24', fontFamily: 'var(--font-rajdhani)' }}>
-                ✅ ¡Acertaste! — {campeonDeclarado}
-              </p>
-              <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>🏆 Tienes el badge de Campeón</p>
+          {campeonEquipos.length === 0 ? (
+            <div className="flex justify-center py-4">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                className="h-5 w-5 rounded-full border-2"
+                style={{ borderColor: 'rgba(234,88,12,0.15)', borderTopColor: '#ea580c' }}
+              />
             </div>
-          )}
-
-          {campeonFallo && (
-            <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(100,116,139,0.1)', border: '1px solid rgba(100,116,139,0.2)' }}>
-              <p className="text-sm font-semibold" style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-rajdhani)' }}>
-                ❌ No fue {miCampeonPick} — ganó <strong style={{ color: '#fbbf24' }}>{campeonDeclarado}</strong>
-              </p>
-            </div>
-          )}
-
-          {campeonDeclarado && !miCampeonPick && (
-            <p className="text-sm text-center" style={{ color: 'var(--text-secondary)' }}>
-              No hiciste una predicción — ganó <strong style={{ color: '#fbbf24' }}>{campeonDeclarado}</strong>
-            </p>
-          )}
-
-          {!campeonDeclarado && campeonDeadlinePasado && !miCampeonPick && (
-            <p className="text-sm text-center" style={{ color: 'var(--text-secondary)' }}>No hiciste una predicción 🔒</p>
-          )}
-
-          {!campeonDeclarado && campeonDeadlinePasado && miCampeonPick && (
+          ) : (
             <>
-              <div className="rounded-xl p-3 flex items-center gap-2"
-                style={{ background: 'rgba(100,116,139,0.08)', border: '1px solid rgba(100,116,139,0.2)' }}>
-                <span>🔒</span>
-                <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-                  Tu campeón: <strong style={{ color: '#fbbf24' }}>{miCampeonPick}</strong>
-                </span>
-              </div>
-              {campeonStats.length > 0 && (
-                <div className="space-y-1 pt-1">
-                  <p className="text-[10px] uppercase tracking-widest" style={{ color: '#64748b' }}>Picks del grupo</p>
-                  {campeonStats.map(s => (
-                    <div key={s.equipo} className="flex items-center justify-between text-xs py-0.5">
-                      <span style={{ color: s.equipo === miCampeonPick ? '#fbbf24' : 'var(--text-secondary)' }}>
-                        {s.equipo}
-                      </span>
-                      <span style={{ color: '#64748b' }}>{s.total} jugador{s.total !== 1 ? 'es' : ''}</span>
-                    </div>
-                  ))}
+              {campeonAcerto && (
+                <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(251,191,36,0.06)', border: '1px solid rgba(251,191,36,0.22)' }}>
+                  <p className="font-bold" style={{ color: '#fbbf24', fontFamily: 'var(--font-rajdhani)' }}>
+                    ✅ ¡Acertaste! — {campeonDeclarado}
+                  </p>
+                  <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>🏆 Tienes el badge de Campeón</p>
                 </div>
               )}
-            </>
-          )}
 
-          {!campeonDeadlinePasado && !campeonDeclarado && (
-            <>
-              {miCampeonPick && (
-                <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                  Pick actual: <strong style={{ color: '#fbbf24' }}>{miCampeonPick}</strong> · Puedes cambiar hasta el 27 jun 2026
+              {campeonFallo && (
+                <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(100,116,139,0.08)', border: '1px solid rgba(100,116,139,0.15)' }}>
+                  <p className="text-sm font-semibold" style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-rajdhani)' }}>
+                    ❌ No fue {miCampeonPick} — ganó <strong style={{ color: '#fbbf24' }}>{campeonDeclarado}</strong>
+                  </p>
+                </div>
+              )}
+
+              {campeonDeclarado && !miCampeonPick && (
+                <p className="text-sm text-center" style={{ color: 'var(--text-secondary)' }}>
+                  No hiciste predicción — ganó <strong style={{ color: '#fbbf24' }}>{campeonDeclarado}</strong>
                 </p>
               )}
-              <div className="grid grid-cols-3 gap-1.5 max-h-64 overflow-y-auto">
-                {campeonEquipos.map(equipo => (
-                  <button
-                    key={equipo}
-                    onClick={() => setCampeonPickTemp(equipo)}
-                    className="py-2 px-1 rounded-lg text-xs font-semibold text-center transition-all active:scale-95"
-                    style={{
-                      background: campeonPickTemp === equipo ? '#ea580c' : 'var(--bg-card-hover)',
-                      color: campeonPickTemp === equipo ? '#fff' : 'var(--text-secondary)',
-                      border: `1px solid ${campeonPickTemp === equipo ? '#ea580c' : 'var(--border)'}`,
-                      fontFamily: 'var(--font-rajdhani)',
-                    }}
+
+              {!campeonDeclarado && campeonDeadlinePasado && !miCampeonPick && (
+                <p className="text-sm text-center" style={{ color: 'var(--text-secondary)' }}>No hiciste una predicción 🔒</p>
+              )}
+
+              {!campeonDeclarado && campeonDeadlinePasado && miCampeonPick && (
+                <>
+                  <div className="rounded-xl p-3 flex items-center gap-2" style={{ background: 'rgba(100,116,139,0.06)', border: '1px solid rgba(100,116,139,0.15)' }}>
+                    <span>🔒</span>
+                    <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                      Tu campeón: <strong style={{ color: '#fbbf24' }}>{miCampeonPick}</strong>
+                    </span>
+                  </div>
+                  {campeonStats.length > 0 && (
+                    <div className="space-y-1 pt-1">
+                      <p className="text-[10px] uppercase tracking-widest" style={{ color: '#64748b' }}>Picks del grupo</p>
+                      {campeonStats.map(s => (
+                        <div key={s.equipo} className="flex items-center justify-between text-xs py-0.5">
+                          <span style={{ color: s.equipo === miCampeonPick ? '#fbbf24' : 'var(--text-secondary)' }}>{s.equipo}</span>
+                          <span style={{ color: '#64748b' }}>{s.total} jugador{s.total !== 1 ? 'es' : ''}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+
+              {!campeonDeadlinePasado && !campeonDeclarado && (
+                <>
+                  {miCampeonPick && (
+                    <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                      Pick actual: <strong style={{ color: '#fbbf24' }}>{miCampeonPick}</strong> · Puedes cambiar hasta el 27 jun 2026
+                    </p>
+                  )}
+                  <div className="grid grid-cols-3 gap-1.5 max-h-64 overflow-y-auto">
+                    {campeonEquipos.map(equipo => (
+                      <motion.button
+                        whileTap={{ scale: 0.93 }}
+                        key={equipo}
+                        onClick={() => setCampeonPickTemp(equipo)}
+                        className="py-2 px-1 rounded-lg text-xs font-semibold text-center cursor-pointer"
+                        style={{
+                          background: campeonPickTemp === equipo
+                            ? 'linear-gradient(135deg, #ea580c, #f97316)'
+                            : 'rgba(255,255,255,0.04)',
+                          color: campeonPickTemp === equipo ? '#fff' : 'var(--text-secondary)',
+                          border: `1px solid ${campeonPickTemp === equipo ? 'transparent' : 'rgba(255,255,255,0.06)'}`,
+                          fontFamily: 'var(--font-rajdhani)',
+                          transition: 'all 0.12s ease',
+                        }}
+                      >
+                        {equipo}
+                      </motion.button>
+                    ))}
+                  </div>
+                  <motion.button
+                    whileTap={{ scale: 0.97 }}
+                    onClick={guardarCampeonPick}
+                    disabled={!campeonPickTemp || campeonGuardando || campeonPickTemp === miCampeonPick}
+                    className="w-full py-3 rounded-xl font-bold text-sm cursor-pointer"
+                    style={publishBtn(!campeonPickTemp || campeonGuardando || campeonPickTemp === miCampeonPick)}
                   >
-                    {equipo}
-                  </button>
-                ))}
-              </div>
-              <button
-                onClick={guardarCampeonPick}
-                disabled={!campeonPickTemp || campeonGuardando || campeonPickTemp === miCampeonPick}
-                className="w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-40"
-                style={{ background: '#ea580c', color: '#fff', fontFamily: 'var(--font-rajdhani)' }}
-              >
-                {campeonGuardando ? '⏳ Guardando...' : miCampeonPick ? '🔄 Actualizar predicción' : '🏆 Guardar predicción'}
-              </button>
+                    {campeonGuardando ? '⏳ Guardando...' : miCampeonPick ? '🔄 Actualizar predicción' : '🏆 Guardar predicción'}
+                  </motion.button>
+                </>
+              )}
             </>
           )}
-        </>)}
-      </div>}
+        </motion.div>
+      )}
 
-      {/* ── RESUMEN DE PREDICCIONES DE CAMPEÓN ── */}
+      {/* ── RESUMEN PICKS CAMPEÓN ── */}
       {jornada !== 6 && todosMisPicksCampeon.length > 0 && (
-        <div
+        <motion.div
+          {...fadeUp(0.05)}
           className="rounded-2xl p-4 space-y-2"
-          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', animation: 'fadeInUp 0.4s ease-out 0.05s both' }}
+          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
         >
           <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
             🏆 Predicciones de Campeón
           </p>
           {todosMisPicksCampeon.map((pick, i) => {
             const nombreQuiniela = pick.quiniela_extra_id
-              ? quinielasExtra.find(q => q.id === pick.quiniela_extra_id)?.nombre
+              ? quinielasExtra.find((q: any) => q.id === pick.quiniela_extra_id)?.nombre
               : null;
             return (
               <div key={i} className="flex items-center justify-between text-sm py-1"
-                style={{ borderBottom: i < todosMisPicksCampeon.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                style={{ borderBottom: i < todosMisPicksCampeon.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
                 <span style={{ color: 'var(--text-secondary)' }}>
                   {nombreQuiniela ? `🎫 ${nombreQuiniela}` : 'Tu quiniela'}
                 </span>
@@ -1347,14 +1425,19 @@ export default function PrediccionesPage() {
               </div>
             );
           })}
-        </div>
+        </motion.div>
       )}
 
-      {/* ── PREDICCIÓN CAMPEÓN J6 — CUARTOS DE FINAL ── */}
+      {/* ── PREDICCIÓN CAMPEÓN J6 — CUARTOS ── */}
       {jornada === 6 && (
-        <div
+        <motion.div
+          {...fadeUp(0.03)}
           className="rounded-2xl p-4 space-y-3"
-          style={{ background: 'var(--bg-card)', border: '1px solid rgba(234,88,12,0.3)', animation: 'fadeInUp 0.4s ease-out 0.03s both' }}
+          style={{
+            background: 'rgba(255,255,255,0.03)',
+            border: '1px solid rgba(234,88,12,0.2)',
+            boxShadow: '0 0 24px rgba(234,88,12,0.05)',
+          }}
         >
           <div>
             <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
@@ -1366,13 +1449,10 @@ export default function PrediccionesPage() {
           </div>
 
           {j6Equipos.length === 0 ? (
-            <p className="text-xs text-center py-2" style={{ color: '#64748b' }}>
-              Equipos pendientes de definirse
-            </p>
+            <p className="text-xs text-center py-2" style={{ color: '#64748b' }}>Equipos pendientes de definirse</p>
           ) : new Date() > DEADLINE_J6 ? (
             j6Pick ? (
-              <div className="rounded-xl p-3 flex items-center gap-2"
-                style={{ background: 'rgba(100,116,139,0.08)', border: '1px solid rgba(100,116,139,0.2)' }}>
+              <div className="rounded-xl p-3 flex items-center gap-2" style={{ background: 'rgba(100,116,139,0.06)', border: '1px solid rgba(100,116,139,0.15)' }}>
                 <span>🔒</span>
                 <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
                   Tu pick: <strong style={{ color: '#fbbf24' }}>{j6Pick}</strong>
@@ -1390,94 +1470,126 @@ export default function PrediccionesPage() {
               )}
               <div className="grid grid-cols-2 gap-2">
                 {j6Equipos.map(equipo => (
-                  <button
+                  <motion.button
+                    whileTap={{ scale: 0.94 }}
                     key={equipo}
                     onClick={() => setJ6PickTemp(equipo)}
-                    className="py-2 px-2 rounded-lg text-xs font-semibold text-center transition-all active:scale-95 flex items-center justify-center gap-1.5"
+                    className="py-2.5 px-2 rounded-xl text-xs font-semibold text-center flex items-center justify-center gap-1.5 cursor-pointer"
                     style={{
-                      background: j6PickTemp === equipo ? '#ea580c' : 'var(--bg-card-hover)',
+                      background: j6PickTemp === equipo
+                        ? 'linear-gradient(135deg, #ea580c, #f97316)'
+                        : 'rgba(255,255,255,0.04)',
                       color: j6PickTemp === equipo ? '#fff' : 'var(--text-secondary)',
-                      border: `1px solid ${j6PickTemp === equipo ? '#ea580c' : 'var(--border)'}`,
+                      border: `1px solid ${j6PickTemp === equipo ? 'transparent' : 'rgba(255,255,255,0.06)'}`,
                       fontFamily: 'var(--font-rajdhani)',
+                      transition: 'all 0.12s ease',
                     }}
                   >
                     <span>{BANDERAS_EQUIPOS[equipo] ?? ''}</span>
                     <span>{equipo}</span>
-                  </button>
+                  </motion.button>
                 ))}
               </div>
-              <button
+              <motion.button
+                whileTap={{ scale: 0.97 }}
                 onClick={guardarJ6Pick}
                 disabled={!j6PickTemp || j6Guardando || j6PickTemp === j6Pick}
-                className="w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-40"
-                style={{ background: '#ea580c', color: '#fff', fontFamily: 'var(--font-rajdhani)' }}
+                className="w-full py-3 rounded-xl font-bold text-sm cursor-pointer"
+                style={publishBtn(!j6PickTemp || j6Guardando || j6PickTemp === j6Pick)}
               >
                 {j6Guardando ? '⏳ Guardando...' : j6Pick ? '🔄 Actualizar pick' : '🏆 Guardar pick de Campeón'}
-              </button>
+              </motion.button>
             </>
           )}
-        </div>
+        </motion.div>
       )}
 
-      {partidoActivo && userId && (
-        <PrediccionForm
-          partido={partidoActivo}
-          userId={userId}
-          quinielaExtraId={quinielaSeleccionada}
-          prediccionExistente={prediccionesBorrador[partidoActivo.id] ?? predicciones[partidoActivo.id] ?? null}
-          onGuardado={handleGuardado}
-          onCancelar={() => setPartidoActivo(null)}
-          onGuardadoBorrador={jornada === 6 && !estaBloquado(partidoActivo) ? handleGuardadoBorrador : undefined}
-        />
-      )}
+      {/* ── MODAL: PREDICCIÓN PARTIDO ── */}
+      <AnimatePresence>
+        {partidoActivo && userId && (
+          <PrediccionForm
+            partido={partidoActivo}
+            userId={userId}
+            quinielaExtraId={quinielaSeleccionada}
+            prediccionExistente={prediccionesBorrador[partidoActivo.id] ?? predicciones[partidoActivo.id] ?? null}
+            onGuardado={handleGuardado}
+            onCancelar={() => setPartidoActivo(null)}
+            onGuardadoBorrador={jornada === 6 && !estaBloquado(partidoActivo) ? handleGuardadoBorrador : undefined}
+          />
+        )}
+      </AnimatePresence>
 
-      {/* Modal nueva quiniela */}
-      {showNuevaQuiniela && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: 'rgba(0,0,0,0.8)' }}
-          onClick={() => setShowNuevaQuiniela(false)}
-        >
-          <div
-            className="rounded-2xl p-6 w-full max-w-sm"
-            style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)' }}
-            onClick={e => e.stopPropagation()}
+      {/* ── MODAL: NUEVA QUINIELA ── */}
+      <AnimatePresence>
+        {showNuevaQuiniela && (
+          <motion.div
+            key="nueva-quiniela-backdrop"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => setShowNuevaQuiniela(false)}
           >
-            <h3 style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.25rem', color: '#ea580c', marginBottom: '1rem' }}>
-              🎫 Nueva Quiniela
-            </h3>
-            <input
-              type="text"
-              placeholder="Ej: Esposa, Hija, Compadre..."
-              maxLength={20}
-              value={nombreNuevaQuiniela}
-              onChange={e => setNombreNuevaQuiniela(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter') crearQuiniela();
-                if (e.key === 'Escape') setShowNuevaQuiniela(false);
+            <motion.div
+              key="nueva-quiniela-modal"
+              className="rounded-2xl p-6 w-full max-w-sm"
+              style={{
+                background: 'var(--bg-surface)',
+                border: '1px solid rgba(234,88,12,0.2)',
+                boxShadow: '0 24px 60px rgba(0,0,0,0.5)',
               }}
-              autoFocus
-              className="w-full rounded-lg px-3 py-2 mb-4 outline-none"
-              style={{ background: 'var(--bg-base)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
-            />
-            <div className="flex gap-2">
-              <button
-                onClick={crearQuiniela}
-                disabled={!nombreNuevaQuiniela.trim()}
-                className="flex-1 py-2 rounded-lg font-bold disabled:opacity-40"
-                style={{ background: '#ea580c', color: '#fff', fontFamily: 'var(--font-rajdhani)' }}>
-                Crear
-              </button>
-              <button
-                onClick={() => setShowNuevaQuiniela(false)}
-                className="px-4 py-2"
-                style={{ color: '#64748b' }}>
-                Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+              onClick={e => e.stopPropagation()}
+              initial={{ opacity: 0, scale: 0.92, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: 20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            >
+              <h3 style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.4rem', color: '#f97316', marginBottom: '1rem' }}>
+                🎫 Nueva Quiniela
+              </h3>
+              <input
+                type="text"
+                placeholder="Ej: Esposa, Hija, Compadre..."
+                maxLength={20}
+                value={nombreNuevaQuiniela}
+                onChange={e => setNombreNuevaQuiniela(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') crearQuiniela();
+                  if (e.key === 'Escape') setShowNuevaQuiniela(false);
+                }}
+                autoFocus
+                className="w-full rounded-xl px-4 py-3 mb-4 outline-none text-sm"
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: 'var(--text-primary)',
+                }}
+              />
+              <div className="flex gap-2">
+                <motion.button
+                  whileTap={{ scale: 0.96 }}
+                  onClick={crearQuiniela}
+                  disabled={!nombreNuevaQuiniela.trim()}
+                  className="flex-1 py-3 rounded-xl font-bold text-sm cursor-pointer"
+                  style={publishBtn(!nombreNuevaQuiniela.trim())}
+                >
+                  Crear
+                </motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() => setShowNuevaQuiniela(false)}
+                  className="px-5 py-3 rounded-xl text-sm cursor-pointer"
+                  style={{ color: '#64748b', background: 'transparent', border: '1px solid rgba(255,255,255,0.07)' }}
+                >
+                  Cancelar
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </main>
   );
 }
