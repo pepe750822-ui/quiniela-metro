@@ -248,12 +248,12 @@ export default function PrediccionForm({
       transition={{ duration: 0.2 }}
     >
       <motion.div
-        className="w-full max-w-sm overflow-y-auto rounded-t-3xl sm:rounded-3xl"
+        className="w-full max-w-sm flex flex-col rounded-t-3xl sm:rounded-3xl"
         style={{
           background: 'var(--bg-surface)',
           border: '1px solid rgba(234,88,12,0.2)',
           boxShadow: '0 -8px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(234,88,12,0.1)',
-          maxHeight: '92dvh',
+          maxHeight: '85dvh',
         }}
         onClick={(e) => e.stopPropagation()}
         initial={{ opacity: 0, y: '100%' }}
@@ -262,7 +262,7 @@ export default function PrediccionForm({
         transition={{ type: 'spring', damping: 30, stiffness: 280 }}
       >
           {/* ── Scrollable content ── */}
-          <div className="px-5 pt-5 pb-4 space-y-5">
+          <div className="px-5 pt-5 pb-24 space-y-5 overflow-y-auto flex-1">
             {/* Handle */}
             <div
               className="w-10 h-1 rounded-full mx-auto"
@@ -396,7 +396,7 @@ export default function PrediccionForm({
 
           {/* ── Sticky action bar ── */}
           <div
-            className="sticky bottom-0 px-5 pt-3 pb-6 flex gap-3"
+            className="px-5 pt-3 pb-6 flex gap-3 shrink-0"
             style={{
               background: 'var(--bg-surface)',
               borderTop: '1px solid rgba(255,255,255,0.06)',
