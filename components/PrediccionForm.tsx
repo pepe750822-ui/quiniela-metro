@@ -396,7 +396,7 @@ export default function PrediccionForm({
 
           {/* ── Sticky action bar ── */}
           <div
-            className="px-5 pt-3 pb-6 flex gap-3 shrink-0"
+            className="px-5 pt-3 pb-24 flex gap-3 shrink-0"
             style={{
               background: 'var(--bg-surface)',
               borderTop: '1px solid rgba(255,255,255,0.06)',
