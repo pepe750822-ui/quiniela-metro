@@ -1513,7 +1513,7 @@ export default function PrediccionesPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 80 }}
             transition={{ type: 'spring', damping: 24, stiffness: 260 }}
-            className="fixed bottom-6 left-0 right-0 flex justify-center z-40 px-4"
+            className="fixed bottom-20 left-0 right-0 flex justify-center z-[60] px-4"
           >
             <motion.button
               whileTap={{ scale: 0.96 }}
