@@ -1504,6 +1504,39 @@ export default function PrediccionesPage() {
         </motion.div>
       )}
 
+      {/* ── FLOATING BUTTON: Publicar Final + 3er Lugar ── */}
+      <AnimatePresence>
+        {jornada === 6 && rondaCompletados('final') > 0 && !rondaPublicada('final') && (
+          <motion.div
+            id="publicar-final-section"
+            initial={{ opacity: 0, y: 80 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 80 }}
+            transition={{ type: 'spring', damping: 24, stiffness: 260 }}
+            className="fixed bottom-6 left-0 right-0 flex justify-center z-40 px-4"
+          >
+            <motion.button
+              whileTap={{ scale: 0.96 }}
+              onClick={() => handlePublicarRonda('final')}
+              disabled={publicando}
+              className="py-4 px-8 rounded-2xl font-bold text-base"
+              style={{
+                background: publicando ? 'rgba(255,255,255,0.08)' : 'linear-gradient(135deg, #ea580c, #f97316)',
+                color: publicando ? '#475569' : '#fff',
+                fontFamily: 'var(--font-rajdhani)',
+                fontSize: '1rem',
+                boxShadow: publicando ? 'none' : '0 8px 32px rgba(234,88,12,0.5)',
+                cursor: publicando ? 'not-allowed' : 'pointer',
+                border: 'none',
+                minWidth: 280,
+              }}
+            >
+              {publicando ? '⏳ Publicando...' : '✅ Publicar Final + 3er Lugar'}
+            </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ── MODAL: PREDICCIÓN PARTIDO ── */}
       <AnimatePresence>
         {partidoActivo && userId && (
