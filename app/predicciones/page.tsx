@@ -1506,7 +1506,8 @@ export default function PrediccionesPage() {
 
       {/* ── FLOATING BUTTON: Publicar / Actualizar Final + 3er Lugar ── */}
       <AnimatePresence>
-        {jornada === 6 && rondaPartidos('final').length > 0 && new Date() <= DEADLINE_FINAL && (
+        {jornada === 6 && new Date() <= DEADLINE_FINAL &&
+          rondaPartidos('final').some(p => prediccionesBorrador[p.id] !== undefined) && (
           <motion.div
             id="publicar-final-section"
             initial={{ opacity: 0, y: 80 }}
