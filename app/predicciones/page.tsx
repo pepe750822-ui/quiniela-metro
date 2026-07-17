@@ -1504,9 +1504,9 @@ export default function PrediccionesPage() {
         </motion.div>
       )}
 
-      {/* ── FLOATING BUTTON: Publicar Final + 3er Lugar ── */}
+      {/* ── FLOATING BUTTON: Publicar / Actualizar Final + 3er Lugar ── */}
       <AnimatePresence>
-        {jornada === 6 && rondaCompletados('final') > 0 && !rondaPublicada('final') && (
+        {jornada === 6 && rondaCompletados('final') > 0 && new Date() <= DEADLINE_FINAL && (
           <motion.div
             id="publicar-final-section"
             initial={{ opacity: 0, y: 80 }}
@@ -1521,17 +1521,17 @@ export default function PrediccionesPage() {
               disabled={publicando}
               className="py-4 px-8 rounded-2xl font-bold text-base"
               style={{
-                background: publicando ? 'rgba(255,255,255,0.08)' : 'linear-gradient(135deg, #ea580c, #f97316)',
+                background: publicando ? 'rgba(255,255,255,0.08)' : rondaPublicada('final') ? '#3b82f6' : 'linear-gradient(135deg, #ea580c, #f97316)',
                 color: publicando ? '#475569' : '#fff',
                 fontFamily: 'var(--font-rajdhani)',
                 fontSize: '1rem',
-                boxShadow: publicando ? 'none' : '0 8px 32px rgba(234,88,12,0.5)',
+                boxShadow: publicando ? 'none' : rondaPublicada('final') ? '0 8px 32px rgba(59,130,246,0.45)' : '0 8px 32px rgba(234,88,12,0.5)',
                 cursor: publicando ? 'not-allowed' : 'pointer',
                 border: 'none',
                 minWidth: 280,
               }}
             >
-              {publicando ? '⏳ Publicando...' : '✅ Publicar Final + 3er Lugar'}
+              {publicando ? '⏳ Actualizando...' : rondaPublicada('final') ? '🔄 Actualizar Final + 3er Lugar' : '✅ Publicar Final + 3er Lugar'}
             </motion.button>
           </motion.div>
         )}
