@@ -1188,6 +1188,12 @@ export default function PrediccionesPage() {
                     </p>
                   )}
 
+                  {ronda === 'final' && new Date() > DEADLINE_FINAL && (
+                    <p className="text-[11px] rounded-xl px-3 py-2" style={{ background: 'rgba(239,68,68,0.06)', color: '#f87171', border: '1px solid rgba(239,68,68,0.15)' }}>
+                      🔒 Las predicciones de Final y 3er Lugar cerraron a las 3:00 PM
+                    </p>
+                  )}
+
                   {ps.map(partido => (
                     <motion.div key={partido.id} variants={itemVariants} id={`partido-${partido.id}`}>
                       <PartidoCard
