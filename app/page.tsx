@@ -33,28 +33,10 @@ const LandingCanvas = dynamic(
 );
 
 export default function LandingPage() {
-  const [timeLeft, setTimeLeft] = useState({ dias: 0, horas: 0, mins: 0, segs: 0 });
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user));
-  }, []);
-
-  useEffect(() => {
-    const target = new Date('2026-06-11T13:00:00-06:00');
-    const tick = () => {
-      const diff = target.getTime() - Date.now();
-      if (diff <= 0) return;
-      setTimeLeft({
-        dias:  Math.floor(diff / 86400000),
-        horas: Math.floor((diff % 86400000) / 3600000),
-        mins:  Math.floor((diff % 3600000) / 60000),
-        segs:  Math.floor((diff % 60000) / 1000),
-      });
-    };
-    tick();
-    const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
   }, []);
 
   return (
@@ -96,7 +78,7 @@ export default function LandingPage() {
             animate={{ opacity: [1, 0.25, 1] }}
             transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
           />
-          <span className="text-orange-400 text-sm">STC Metro CDMX · Mundial 2026</span>
+          <span className="text-orange-400 text-sm">STC Metro CDMX · Liga MX Apertura 2026</span>
         </motion.div>
 
         {/* Título letra por letra */}
@@ -111,15 +93,24 @@ export default function LandingPage() {
           ))}
         </motion.h1>
         <motion.h2
-          style={{ fontFamily: 'var(--font-bebas)', fontSize: 'clamp(3.5rem,18vw,6rem)', color: '#ea580c', letterSpacing: '0.05em', lineHeight: 1, marginBottom: '1.5rem', textShadow: '0 0 20px rgba(234,88,12,0.5)' }}
+          style={{ fontFamily: 'var(--font-bebas)', fontSize: 'clamp(3.5rem,18vw,6rem)', color: '#ea580c', letterSpacing: '0.05em', lineHeight: 1, marginBottom: '0.5rem', textShadow: '0 0 20px rgba(234,88,12,0.5)' }}
           initial="hidden"
           animate="visible"
           variants={titleH2Variants}
         >
-          {'METRO 2026'.split('').map((char, i) => (
+          {'METRO'.split('').map((char, i) => (
             <motion.span key={i} variants={letterVariants} style={{ display: 'inline-block' }}>{char}</motion.span>
           ))}
         </motion.h2>
+
+        <motion.p
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.35, duration: 0.35 }}
+          style={{ fontFamily: 'var(--font-rajdhani)', fontWeight: 700, color: '#f97316', fontSize: '1rem', letterSpacing: '0.06em', marginBottom: '1rem' }}
+        >
+          LIGA MX APERTURA 2026
+        </motion.p>
 
         <motion.p
           className="text-slate-400 text-base max-w-xs leading-relaxed mb-10"
@@ -127,32 +118,8 @@ export default function LandingPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.55, duration: 0.45 }}
         >
-          Predice, compite y gana el pozo entre compañeros del Metro.
+          Predice los partidos de Liga MX, compite y gana el pozo entre compañeros del Metro.
         </motion.p>
-
-        {/* Countdown */}
-        <div className="mb-10">
-          <p className="text-slate-600 text-xs mb-4 uppercase tracking-[3px]">
-            Faltan para el partido inaugural
-          </p>
-          <div className="flex gap-3 justify-center">
-            {[
-              { v: timeLeft.dias,  l: 'DÍAS' },
-              { v: timeLeft.horas, l: 'HRS'  },
-              { v: timeLeft.mins,  l: 'MIN'  },
-              { v: timeLeft.segs,  l: 'SEG'  },
-            ].map(({ v, l }) => (
-              <div key={l} className="text-center">
-                <div className="bg-black/50 backdrop-blur-sm border border-orange-600/20 rounded-xl px-4 py-3 min-w-[58px]">
-                  <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '2.5rem', color: '#ea580c', display: 'block', lineHeight: 1 }}>
-                    {String(v).padStart(2, '0')}
-                  </span>
-                </div>
-                <p className="text-slate-600 text-[10px] mt-1.5 tracking-wider">{l}</p>
-              </div>
-            ))}
-          </div>
-        </div>
 
         {/* CTAs */}
         <div className="flex flex-col gap-3 w-full max-w-xs">
@@ -226,7 +193,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <div className="relative z-20 text-center pb-8 text-slate-700 text-xs">
-        México 🇲🇽 · Canadá 🇨🇦 · Estados Unidos 🇺🇸
+        Liga MX · Apertura 2026
       </div>
 
       {/* Botón flotante WhatsApp */}
