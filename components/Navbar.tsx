@@ -5,12 +5,13 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import ThemeToggle from '@/components/ThemeToggle';
+import { TEMPORADA_ACTIVA } from '@/lib/utils';
 
 const publicLinks = [
   { href: '/predicciones',   label: 'Predicciones', emoji: '⚽' },
   { href: '/tabla',          label: 'Tabla',        emoji: '📊' },
   { href: '/grupos',         label: 'Grupos',       emoji: '🌎' },
-  { href: '/bracket',        label: 'Bracket',      emoji: '🏆' },
+  ...(TEMPORADA_ACTIVA !== 'ligamx2026' ? [{ href: '/bracket', label: 'Bracket', emoji: '🏆' }] : []),
   { href: '/calendario',     label: 'Calendario',   emoji: '📅' },
   { href: '/perfil',         label: 'Perfil',       emoji: '👤' },
 ];

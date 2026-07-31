@@ -1297,7 +1297,7 @@ export default function PrediccionesPage() {
       )}
 
       {/* ── PREDICCIÓN CAMPEÓN MUNDIAL (J1-J5) ── */}
-      {jornada !== 6 && (
+      {jornada !== 6 && TEMPORADA_ACTIVA !== 'ligamx2026' && (
         <motion.div
           {...fadeUp(0.03)}
           className="rounded-2xl p-4 space-y-3"
@@ -1412,7 +1412,7 @@ export default function PrediccionesPage() {
       )}
 
       {/* ── RESUMEN PICKS CAMPEÓN ── */}
-      {jornada !== 6 && todosMisPicksCampeon.length > 0 && (
+      {jornada !== 6 && todosMisPicksCampeon.length > 0 && TEMPORADA_ACTIVA !== 'ligamx2026' && (
         <motion.div
           {...fadeUp(0.05)}
           className="rounded-2xl p-4 space-y-2"
@@ -1439,7 +1439,7 @@ export default function PrediccionesPage() {
       )}
 
       {/* ── PREDICCIÓN CAMPEÓN J6 — CUARTOS ── */}
-      {jornada === 6 && (
+      {jornada === 6 && TEMPORADA_ACTIVA !== 'ligamx2026' && (
         <motion.div
           {...fadeUp(0.03)}
           className="rounded-2xl p-4 space-y-3"

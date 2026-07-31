@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Bandera } from '@/components/Bandera';
 import { Partido } from '@/types';
-import { getFechaKey, equiposE32, BANDERAS_EQUIPOS } from '@/lib/utils';
+import { getFechaKey, equiposE32, BANDERAS_EQUIPOS, TEMPORADA_ACTIVA } from '@/lib/utils';
 
 // ── Layout constants ──────────────────────────────────────────────────────────
 const SLOT_H  = 86;               // px per E32 slot
@@ -238,6 +238,7 @@ export default function BracketPage() {
   const [loading, setLoading]   = useState(true);
 
   useEffect(() => {
+    if (TEMPORADA_ACTIVA === 'ligamx2026') { setLoading(false); return; }
     supabase
       .from('quiniela_partidos')
       .select('*')
@@ -275,6 +276,20 @@ export default function BracketPage() {
   const finalP = fin[0] ?? null;
 
   const FINAL_W = CARD_W + 48; // center column width
+
+  if (TEMPORADA_ACTIVA === 'ligamx2026') {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-6 text-center pb-24">
+        <p style={{ fontSize: '3rem' }}>🏗️</p>
+        <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: '2rem', color: '#ea580c' }}>
+          Bracket no disponible en esta temporada
+        </h1>
+        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+          El bracket es exclusivo del Mundial 2026. Esta temporada es Liga MX 2026.
+        </p>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

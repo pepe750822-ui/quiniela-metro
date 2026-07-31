@@ -280,10 +280,11 @@ export default function DashboardPage() {
             user_id,
             quiniela_extra_id,
             puntos_ganados,
-            partido:quiniela_partidos!inner(estado, jornada)
+            partido:quiniela_partidos!inner(estado, jornada, temporada)
           `)
           .eq('partido.jornada', jornadaSeleccionada)
           .eq('partido.estado', 'finalizado')
+          .eq('partido.temporada', TEMPORADA_ACTIVA)
           .in('user_id', allUserIds)
       : { data: [] };
 
@@ -474,7 +475,9 @@ export default function DashboardPage() {
   }
   pozosCompletos.sort((a, b) => a.jornada - b.jornada);
 
-  const jornadasDisponibles = [...new Set(pozosCompletos.map(p => p.jornada))];
+  const jornadasDisponibles = TEMPORADA_ACTIVA === 'ligamx2026'
+    ? [1, 2, 3]
+    : [...new Set(pozosCompletos.map(p => p.jornada))];
 
   const compartirRanking = () => {
     const texto = ranking
@@ -547,7 +550,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Champion pick compact card */}
-      {campeonLoaded && (
+      {campeonLoaded && TEMPORADA_ACTIVA !== 'ligamx2026' && (
         <div
           className="rounded-2xl px-4 py-3 text-center"
           style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', animation: 'fadeInUp 0.5s ease-out 0.2s both' }}
@@ -587,7 +590,7 @@ export default function DashboardPage() {
       )}
 
       {/* Pozos por jornada */}
-      {pozosCompletos.length > 0 && (
+      {TEMPORADA_ACTIVA !== 'ligamx2026' && pozosCompletos.length > 0 && (
         <motion.div className="space-y-3" initial="hidden" animate="visible" variants={staggerContainer}>
           <p className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: 'var(--text-secondary)' }}>
             Pozos acumulados
