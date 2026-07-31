@@ -25,6 +25,14 @@ const JugadorAnimado = dynamic(
 
 const INAUGURAL = new Date('2026-06-11T20:00:00Z'); // 15:00 CDMX = 20:00 UTC
 
+const getNombreJornadaLigaMX = (j: number) => {
+  const offset = 2; // J1 interna = J3 real (Apertura 2026)
+  return `Jornada ${j + offset}`;
+};
+
+const labelJornada = (j: number) =>
+  TEMPORADA_ACTIVA === 'ligamx2026' ? getNombreJornadaLigaMX(j) : getNombreJornada(j);
+
 const nomParticipante = (j: { nombre: string; email: string; apodo: string | null } | null) =>
   j?.apodo || j?.nombre?.split(' ')[0] || 'Jugador';
 
@@ -429,6 +437,7 @@ export default function DashboardPage() {
     supabase
       .from('quiniela_pozo')
       .select('*')
+      .eq('temporada', TEMPORADA_ACTIVA)
       .order('jornada')
       .then(({ data }) => setPozos((data as Pozo[]) ?? []));
 
@@ -489,7 +498,7 @@ export default function DashboardPage() {
       })
       .join('\n');
 
-    const jornadaLabel = jornadaSeleccionada === 'general' ? 'General' : getNombreJornada(jornadaSeleccionada as number);
+    const jornadaLabel = jornadaSeleccionada === 'general' ? 'General' : labelJornada(jornadaSeleccionada as number);
     const mensaje = encodeURIComponent(
       `🏆 Ranking Quiniela Metro — ${jornadaLabel}\n\n` +
       texto +
@@ -648,7 +657,7 @@ export default function DashboardPage() {
       {/* Ranking por jornada */}
       <div style={{ animation: 'fadeInUp 0.5s ease-out 0.3s both' }}>
         <h2 className="font-bebas text-2xl mb-3" style={{ color: '#ea580c' }}>
-          {jornadaSeleccionada === 'general' ? '🏆 Clasificación General' : `Clasificación ${getNombreJornada(jornadaSeleccionada as number)}`}
+          {jornadaSeleccionada === 'general' ? '🏆 Clasificación General' : `Clasificación ${labelJornada(jornadaSeleccionada as number)}`}
         </h2>
 
         <div className="flex gap-2 mb-4 flex-wrap">
@@ -664,7 +673,7 @@ export default function DashboardPage() {
                 fontFamily: 'var(--font-rajdhani)',
               }}
             >
-              {j === 'general' ? '🏆 General' : getNombreJornada(j)}
+              {j === 'general' ? '🏆 General' : labelJornada(j as number)}
             </button>
           ))}
         </div>
