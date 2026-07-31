@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { Partido, Prediccion, DraftPrediccion, Pozo } from '@/types';
-import { getNombreJornada, getFechaKey, equiposE32, BANDERAS_EQUIPOS, getMontoJornada, TEMPORADA_ACTIVA } from '@/lib/utils';
+import { getNombreJornada, getFechaKey, equiposE32, BANDERAS_EQUIPOS, getMontoJornada, TEMPORADA_ACTIVA, getNombreJornadaLigaMX } from '@/lib/utils';
 import { Bandera } from '@/components/Bandera';
 import PartidoCard from '@/components/PartidoCard';
 import PrediccionForm from '@/components/PrediccionForm';
@@ -25,8 +25,16 @@ const DEADLINE_FINAL   = new Date('2026-07-18T21:00:00Z'); // 18 jul 15:00 CDMX 
 const DEADLINE_J7 = new Date('2026-07-14T19:00:00Z');
 const DEADLINE_J8 = new Date('2026-07-18T21:00:00Z');
 const DEADLINE_J9 = new Date('2026-07-19T19:00:00Z');
+// Liga MX Apertura 2026 — deadline antes del primer partido de cada jornada (UTC-5 CDT)
+const DEADLINE_LIGAMX_J1 = new Date('2026-08-01T23:55:00Z'); // 18:55 CDMX vie 1 ago
+
+const labelJornada = (j: number) =>
+  TEMPORADA_ACTIVA === 'ligamx2026' ? getNombreJornadaLigaMX(j) : getNombreJornada(j);
 
 const getDeadline = (jornada: number) => {
+  if (TEMPORADA_ACTIVA === 'ligamx2026') {
+    if (jornada === 1) return DEADLINE_LIGAMX_J1;
+  }
   if (jornada === 1) return DEADLINE_J1;
   if (jornada === 2) return DEADLINE_J2;
   if (jornada === 3) return DEADLINE_J3;
@@ -361,9 +369,30 @@ export default function PrediccionesPage() {
       supabase.from('quiniela_participaciones').select('quiniela_extra_id').eq('user_id', uid).eq('jornada', j).not('quiniela_extra_id', 'is', null),
     ]);
     const idsConParticipacion = new Set((partics || []).map((p: any) => p.quiniela_extra_id));
-    const filtradas = (extras || []).filter((q: any) => idsConParticipacion.has(q.id));
+    let filtradas = (extras || []).filter((q: any) => idsConParticipacion.has(q.id));
+
+    if (TEMPORADA_ACTIVA === 'ligamx2026' && filtradas.length > 0) {
+      const qeIds = filtradas.map((q: any) => q.id);
+      const { data: allPreds } = await supabase
+        .from('quiniela_predicciones')
+        .select('quiniela_extra_id, partido:quiniela_partidos!inner(temporada)')
+        .eq('user_id', uid)
+        .in('quiniela_extra_id', qeIds);
+      const hasLigamxPreds = new Set<string>();
+      const hasAnyPreds = new Set<string>();
+      (allPreds ?? []).forEach((p: any) => {
+        if (p.quiniela_extra_id) {
+          hasAnyPreds.add(p.quiniela_extra_id);
+          if (p.partido?.temporada === TEMPORADA_ACTIVA) hasLigamxPreds.add(p.quiniela_extra_id);
+        }
+      });
+      filtradas = filtradas.filter((q: any) =>
+        hasLigamxPreds.has(q.id) || !hasAnyPreds.has(q.id)
+      );
+    }
+
     setQuinielasExtra(filtradas);
-    setQuinielaSeleccionada(prev => (prev && !idsConParticipacion.has(prev) ? null : prev));
+    setQuinielaSeleccionada(prev => (prev && !filtradas.find((q: any) => q.id === prev) ? null : prev));
   }, []);
 
   const cargarPozoYParticipacion = useCallback(async (uid: string, j: number) => {
@@ -378,7 +407,7 @@ export default function PrediccionesPage() {
       : basePartQuery.eq('quiniela_extra_id', quinielaSeleccionada).maybeSingle();
 
     const [{ data: pz }, { data: part }] = await Promise.all([
-      supabase.from('quiniela_pozo').select('*').eq('jornada', j).single(),
+      supabase.from('quiniela_pozo').select('*').eq('jornada', j).eq('temporada', TEMPORADA_ACTIVA).maybeSingle(),
       partPromise,
     ]);
     setPozo(pz as Pozo ?? null);
@@ -808,7 +837,7 @@ export default function PrediccionesPage() {
           PREDICCIONES
         </h1>
         <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-          {getNombreJornada(jornada)}
+          {labelJornada(jornada)}
         </p>
       </motion.div>
 
@@ -872,8 +901,8 @@ export default function PrediccionesPage() {
               fontFamily: 'var(--font-rajdhani)',
             }}>
               {participando === true
-                ? `✅ Participando en ${getNombreJornada(jornada)}`
-                : `🏆 Pozo ${getNombreJornada(jornada)}`}
+                ? `✅ Participando en ${labelJornada(jornada)}`
+                : `🏆 Pozo ${labelJornada(jornada)}`}
             </p>
             <p style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.5rem', color: 'var(--accent-gold)', lineHeight: 1 }}>
               ${pozo.total_mxn} <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>MXN</span>
@@ -922,11 +951,11 @@ export default function PrediccionesPage() {
         style={{ scrollbarWidth: 'none' }}
       >
         {jornadas.filter(j => j <= 6).map(j => {
-          const cerrada = j < 2 || new Date() > getDeadline(j);
+          const cerrada = TEMPORADA_ACTIVA === 'ligamx2026' ? new Date() > getDeadline(j) : j < 2 || new Date() > getDeadline(j);
           return (
             <Pill key={j} active={jornada === j} onClick={() => setJornada(j)} faded={cerrada && jornada !== j}>
               {cerrada && jornada !== j && <span style={{ fontSize: '0.55rem', marginRight: 2 }}>🔒</span>}
-              {getNombreJornada(j)}
+              {labelJornada(j)}
             </Pill>
           );
         })}
@@ -948,7 +977,7 @@ export default function PrediccionesPage() {
               color: jornadaCompleta ? '#10b981' : 'var(--text-primary)',
             }}>
               {jornadaCompleta
-                ? (publicado ? `✅ ¡${getNombreJornada(jornada)} publicada!` : `✅ ¡${getNombreJornada(jornada)} completa!`)
+                ? (publicado ? `✅ ¡${labelJornada(jornada)} publicada!` : `✅ ¡${labelJornada(jornada)} completa!`)
                 : `${predichasEnJornada}/${totalEnJornada} partidos predichos`}
             </p>
             <span style={{
@@ -1249,7 +1278,7 @@ export default function PrediccionesPage() {
           {jornada !== 6 && totalEnJornada > 0 && (
             <div className="mt-4 mb-2">
               <div className="flex justify-between text-xs mb-2" style={{ color: '#64748b' }}>
-                <span>Progreso {getNombreJornada(jornada)}</span>
+                <span>Progreso {labelJornada(jornada)}</span>
                 <span>{predichasEnJornada}/{totalEnJornada}</span>
               </div>
               <div className="w-full rounded-full h-1.5 overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>

@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { RankingConJugador, Pozo } from '@/types';
 import RankingTable from '@/components/RankingTable';
-import { getNombreJornada, getMontoJornada, TEMPORADA_ACTIVA } from '@/lib/utils';
+import { getNombreJornada, getMontoJornada, TEMPORADA_ACTIVA, getNombreJornadaLigaMX } from '@/lib/utils';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 
@@ -24,11 +24,6 @@ const JugadorAnimado = dynamic(
 );
 
 const INAUGURAL = new Date('2026-06-11T20:00:00Z'); // 15:00 CDMX = 20:00 UTC
-
-const getNombreJornadaLigaMX = (j: number) => {
-  const offset = 2; // J1 interna = J3 real (Apertura 2026)
-  return `Jornada ${j + offset}`;
-};
 
 const labelJornada = (j: number) =>
   TEMPORADA_ACTIVA === 'ligamx2026' ? getNombreJornadaLigaMX(j) : getNombreJornada(j);

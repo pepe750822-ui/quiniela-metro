@@ -72,6 +72,11 @@ export const getNombreJornada = (j: number) => {
   return `J${j}`;
 };
 
+export const getNombreJornadaLigaMX = (j: number) => `Jornada ${j + 2}`;
+
+export const labelJornada = (j: number) =>
+  TEMPORADA_ACTIVA === 'ligamx2026' ? getNombreJornadaLigaMX(j) : getNombreJornada(j);
+
 export const getMontoJornada = (j: number) => j >= 5 ? 100 : 50;
 
 export const getFechaKey = (fecha: string) => {
