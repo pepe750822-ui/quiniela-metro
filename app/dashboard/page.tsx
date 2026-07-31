@@ -188,7 +188,7 @@ export default function DashboardPage() {
         : { data: [] };
 
       // Campeón picks para quiniela principal (quiniela_extra_id IS NULL)
-      const { data: genCampeones } = genUserIds.length
+      const { data: genCampeones } = (TEMPORADA_ACTIVA !== 'ligamx2026' && genUserIds.length)
         ? await supabase.from('quiniela_prediccion_campeon').select('user_id, equipo').is('quiniela_extra_id', null).in('user_id', genUserIds)
         : { data: [] };
       const genCampeonMap: Record<string, string> = {};
@@ -214,9 +214,9 @@ export default function DashboardPage() {
               avatar_url:   jug?.avatar_url   ?? null,
               creditos:     0,
               created_at:   '',
-              badge_ultimo:  jug?.badge_ultimo  ?? null,
+              badge_ultimo:  TEMPORADA_ACTIVA !== 'ligamx2026' ? (jug?.badge_ultimo  ?? null) : null,
               badge_campeon: jug?.badge_campeon ?? null,
-              campeon_pick:  genCampeonMap[r.user_id] ?? null,
+              campeon_pick:  TEMPORADA_ACTIVA !== 'ligamx2026' ? (genCampeonMap[r.user_id] ?? null) : null,
             },
           };
         })
@@ -265,8 +265,6 @@ export default function DashboardPage() {
         ? ((quinielasExtra ?? []) as { id: string; nombre: string }[]).find(q => q.id === p.quiniela_extra_id)?.nombre ?? null
         : null,
     }));
-    setParticipantesJornada(participantesConNombre);
-
     // Todos los pagados+publicados, incluyendo quinielas familiares
     const { data: pagadosConPrediccion } = await supabase
       .from('quiniela_participaciones')
@@ -275,7 +273,29 @@ export default function DashboardPage() {
       .eq('pagado', true)
       .eq('publicado', true);
 
-    const pagadosEntries = (pagadosConPrediccion ?? []) as { user_id: string; quiniela_extra_id: string | null }[];
+    let pagadosEntries = (pagadosConPrediccion ?? []) as { user_id: string; quiniela_extra_id: string | null }[];
+
+    // For ligamx2026: filter participants to only those with predictions for this season
+    if (TEMPORADA_ACTIVA === 'ligamx2026') {
+      const checkIds = [...new Set([
+        ...participantesConNombre.map(p => p.user_id),
+        ...pagadosEntries.map(p => p.user_id),
+      ])];
+      if (checkIds.length > 0) {
+        const { data: ligamxPreds } = await supabase
+          .from('quiniela_predicciones')
+          .select('user_id, partido:quiniela_partidos!inner(temporada)')
+          .eq('partido.temporada', TEMPORADA_ACTIVA)
+          .in('user_id', checkIds);
+        const ligamxUserSet = new Set((ligamxPreds ?? []).map((p: { user_id: string }) => p.user_id));
+        pagadosEntries = pagadosEntries.filter(p => ligamxUserSet.has(p.user_id));
+        setParticipantesJornada(participantesConNombre.filter(p => ligamxUserSet.has(p.user_id)));
+      } else {
+        setParticipantesJornada([]);
+      }
+    } else {
+      setParticipantesJornada(participantesConNombre);
+    }
 
     // user_ids únicos para el badge y para la query de puntos
     const allUserIds = [...new Set(pagadosEntries.map(p => p.user_id))];
@@ -347,7 +367,7 @@ export default function DashboardPage() {
       : { data: [] };
 
     // Campeón picks por user_id + quiniela_extra_id
-    const { data: campeonesData } = allUserIds.length
+    const { data: campeonesData } = (TEMPORADA_ACTIVA !== 'ligamx2026' && allUserIds.length)
       ? await supabase.from('quiniela_prediccion_campeon').select('user_id, quiniela_extra_id, equipo').in('user_id', allUserIds)
       : { data: [] };
     const campeonMap: Record<string, string> = {};
@@ -377,10 +397,10 @@ export default function DashboardPage() {
             avatar_url:      jug?.avatar_url      ?? null,
             creditos:        0,
             created_at:      '',
-            badge_ultimo:    jug?.badge_ultimo    ?? null,
+            badge_ultimo:    TEMPORADA_ACTIVA !== 'ligamx2026' ? (jug?.badge_ultimo    ?? null) : null,
             badge_campeon:   jug?.badge_campeon   ?? null,
             quiniela_nombre: quinielaNombre,
-            campeon_pick:    campeonMap[`${r.user_id}:${r.quiniela_extra_id ?? 'null'}`] ?? null,
+            campeon_pick:    TEMPORADA_ACTIVA !== 'ligamx2026' ? (campeonMap[`${r.user_id}:${r.quiniela_extra_id ?? 'null'}`] ?? null) : null,
           },
         };
       })
@@ -485,7 +505,7 @@ export default function DashboardPage() {
   pozosCompletos.sort((a, b) => a.jornada - b.jornada);
 
   const jornadasDisponibles = TEMPORADA_ACTIVA === 'ligamx2026'
-    ? [1, 2, 3]
+    ? [1]
     : [...new Set(pozosCompletos.map(p => p.jornada))];
 
   const compartirRanking = () => {
@@ -524,12 +544,13 @@ export default function DashboardPage() {
           QUINIELA METRO
         </h1>
         <p className="text-sm font-semibold" style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--text-secondary)' }}>
-          Mundial 2026 🏆 · STC Metro CDMX
+          Liga MX Apertura 2026 · STC Metro CDMX
         </p>
         <JugadorAnimado />
       </div>
 
       {/* Countdown */}
+      {TEMPORADA_ACTIVA !== 'ligamx2026' && (
       <div
         className="rounded-2xl px-4 py-4 text-center space-y-2"
         style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', animation: 'fadeInUp 0.5s ease-out 0.1s both' }}
@@ -557,6 +578,7 @@ export default function DashboardPage() {
           </>
         )}
       </div>
+      )}
 
       {/* Champion pick compact card */}
       {campeonLoaded && TEMPORADA_ACTIVA !== 'ligamx2026' && (
@@ -661,7 +683,7 @@ export default function DashboardPage() {
         </h2>
 
         <div className="flex gap-2 mb-4 flex-wrap">
-          {(['general', ...jornadasDisponibles] as (number | 'general')[]).map(j => (
+          {((TEMPORADA_ACTIVA === 'ligamx2026' ? jornadasDisponibles : ['general', ...jornadasDisponibles]) as (number | 'general')[]).map(j => (
             <button
               key={j}
               onClick={() => setJornadaSeleccionada(j)}
