@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react';
+import { LOGOS_LIGAMX } from '@/lib/utils';
 
 const EMOJI_A_CODIGO: Record<string, string> = {
   '🇲🇽': 'mx', '🇿🇦': 'za', '🇰🇷': 'kr', '🇨🇿': 'cz',
@@ -39,9 +40,26 @@ interface BanderaProps {
 
 export function Bandera({ emoji, nombre, size = 'md' }: BanderaProps) {
   const [error, setError] = useState(false);
+  const { w, h } = sizeMap[size];
+
+  const logoUrl = LOGOS_LIGAMX[nombre];
+  if (logoUrl && !error) {
+    return (
+      <img
+        src={logoUrl}
+        width={w}
+        height={w}
+        alt={nombre}
+        className="object-contain inline-block"
+        style={{ width: w, height: w }}
+        loading="lazy"
+        onError={() => setError(true)}
+      />
+    );
+  }
+
   // Handle both flag emojis ('🇨🇦') and raw ISO-2 codes ('CA') stored in DB
   const codigo = EMOJI_A_CODIGO[emoji] ?? (/^[A-Z]{2}$/.test(emoji) ? emoji.toLowerCase() : undefined);
-  const { w, h } = sizeMap[size];
 
   if (!codigo || error) {
     return (
