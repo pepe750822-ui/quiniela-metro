@@ -1,3 +1,5 @@
+export const TEMPORADA_ACTIVA = 'ligamx2026';
+
 export const emailCorto = (email: string) => email.split('@')[0];
 
 export const mostrarNombre = (jugador: { nombre: string; apodo?: string | null }) =>

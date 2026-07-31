@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { Partido, Prediccion, DraftPrediccion, Pozo } from '@/types';
-import { getNombreJornada, getFechaKey, equiposE32, BANDERAS_EQUIPOS, getMontoJornada } from '@/lib/utils';
+import { getNombreJornada, getFechaKey, equiposE32, BANDERAS_EQUIPOS, getMontoJornada, TEMPORADA_ACTIVA } from '@/lib/utils';
 import { Bandera } from '@/components/Bandera';
 import PartidoCard from '@/components/PartidoCard';
 import PrediccionForm from '@/components/PrediccionForm';
@@ -303,7 +303,7 @@ export default function PrediccionesPage() {
   const [predicciones, setPredicciones]   = useState<Record<string, Prediccion>>({});
   const [partidoActivo, setPartidoActivo] = useState<Partido | null>(null);
   const [loading, setLoading]             = useState(true);
-  const [jornada, setJornada]             = useState(6);
+  const [jornada, setJornada]             = useState(1);
   const [jornadas, setJornadas]           = useState<number[]>([]);
   const [pozo, setPozo]                   = useState<Pozo | null>(null);
   const [participando, setParticipando]   = useState<boolean | null>(null);
@@ -347,6 +347,7 @@ export default function PrediccionesPage() {
     supabase
       .from('quiniela_partidos')
       .select('jornada')
+      .eq('temporada', TEMPORADA_ACTIVA)
       .order('jornada')
       .then(({ data }) => {
         const unicas = [...new Set((data ?? []).map((p: { jornada: number }) => p.jornada))];
@@ -403,6 +404,7 @@ export default function PrediccionesPage() {
       .from('quiniela_partidos')
       .select('*')
       .eq('jornada', jornada)
+      .eq('temporada', TEMPORADA_ACTIVA)
       .order('fecha_hora');
     setPartidos((data as Partido[]) ?? []);
   }, [jornada]);
@@ -437,6 +439,7 @@ export default function PrediccionesPage() {
         .select('goles_local, goles_visitante, equipo_local, equipo_visitante')
         .eq('grupo', 'FIN')
         .eq('estado', 'finalizado')
+        .eq('temporada', TEMPORADA_ACTIVA)
         .maybeSingle(),
       supabase.from('quiniela_prediccion_campeon').select('quiniela_extra_id, equipo').eq('user_id', userId),
     ]);
@@ -468,7 +471,7 @@ export default function PrediccionesPage() {
   const cargarJ6Campeon = useCallback(async () => {
     if (!userId) return;
     const [{ data: partidos6 }, { data: pick }] = await Promise.all([
-      supabase.from('quiniela_partidos').select('equipo_local, equipo_visitante').eq('jornada', 6).order('fecha_hora'),
+      supabase.from('quiniela_partidos').select('equipo_local, equipo_visitante').eq('jornada', 6).eq('temporada', TEMPORADA_ACTIVA).order('fecha_hora'),
       (quinielaSeleccionada === null
         ? supabase.from('quiniela_prediccion_campeon').select('equipo').eq('user_id', userId).eq('jornada', 6).is('quiniela_extra_id', null).maybeSingle()
         : supabase.from('quiniela_prediccion_campeon').select('equipo').eq('user_id', userId).eq('jornada', 6).eq('quiniela_extra_id', quinielaSeleccionada).maybeSingle()),
@@ -500,6 +503,7 @@ export default function PrediccionesPage() {
       .from('quiniela_partidos')
       .select('*')
       .gte('jornada', 6)
+      .eq('temporada', TEMPORADA_ACTIVA)
       .order('jornada')
       .order('fecha_hora')
       .then(({ data }) => setBracketPartidos((data as Partido[]) ?? []));

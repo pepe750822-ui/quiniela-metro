@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Bandera } from '@/components/Bandera';
-import { getNombreJornada, BANDERAS_EQUIPOS } from '@/lib/utils';
+import { getNombreJornada, BANDERAS_EQUIPOS, TEMPORADA_ACTIVA } from '@/lib/utils';
 import ReglasFaseFinal from '@/components/ReglasFaseFinal';
 
 const tableBodyVariants = {
@@ -18,7 +18,7 @@ const tableRowVariants = {
 };
 
 export default function TablaPage() {
-  const [jornada, setJornada]           = useState(6);
+  const [jornada, setJornada]           = useState(1);
   const [partidos, setPartidos]         = useState<any[]>([]);
   const [jugadores, setJugadores]       = useState<any[]>([]);
   const [predicciones, setPredicciones] = useState<any[]>([]);
@@ -73,6 +73,7 @@ export default function TablaPage() {
     const partidosQuery = supabase
       .from('quiniela_partidos')
       .select('id, jornada, equipo_local, equipo_visitante, bandera_local, bandera_visitante, goles_local, goles_visitante, estado, grupo, fecha_hora, clasificado, como_termino')
+      .eq('temporada', TEMPORADA_ACTIVA)
       .order('fecha_hora');
     const { data: parts } = jornada === 6
       ? await partidosQuery.gte('jornada', 6)
@@ -476,7 +477,7 @@ export default function TablaPage() {
 
         {/* Selector jornada */}
         <div className="flex gap-2 mt-3">
-          {[1, 2, 3, 4, 5, 6].map(j => (
+          {[1, 2, 3].map(j => (
             <button
               key={j}
               onClick={() => setJornada(j)}

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Partido, Jugador, Pozo, Participacion } from '@/types';
-import { emailCorto, mostrarNombre, getNombreJornada, getMontoJornada, BANDERAS_EQUIPOS } from '@/lib/utils';
+import { emailCorto, mostrarNombre, getNombreJornada, getMontoJornada, BANDERAS_EQUIPOS, TEMPORADA_ACTIVA } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Bandera } from '@/components/Bandera';
 
@@ -145,6 +145,7 @@ export default function AdminPage() {
       .from('quiniela_partidos')
       .select('*')
       .eq('estado', 'finalizado')
+      .eq('temporada', TEMPORADA_ACTIVA)
       .in('grupo', ['A','B','C','D','E','F','G','H','I','J','K','L']);
 
     if (!partidos || partidos.length === 0) {
@@ -270,6 +271,7 @@ export default function AdminPage() {
     const { data: ps } = await supabase
       .from('quiniela_partidos')
       .select('*')
+      .eq('temporada', TEMPORADA_ACTIVA)
       .not('equipo_local', 'eq', 'A definir')
       .order('fecha_hora');
     setPartidos((ps as Partido[]) ?? []);
@@ -495,7 +497,8 @@ export default function AdminPage() {
     const { data: partidos } = await supabase
       .from('quiniela_partidos')
       .select('id')
-      .eq('jornada', p.jornada);
+      .eq('jornada', p.jornada)
+      .eq('temporada', TEMPORADA_ACTIVA);
 
     const partidoIds = partidos?.map(pt => pt.id) ?? [];
     if (partidoIds.length) {
@@ -556,7 +559,8 @@ export default function AdminPage() {
       .from('quiniela_partidos')
       .select('id')
       .eq('jornada', jornada)
-      .eq('estado', 'finalizado');
+      .eq('estado', 'finalizado')
+      .eq('temporada', TEMPORADA_ACTIVA);
     const partidoIds = (partidosFin ?? []).map(p => p.id);
 
     if (partidoIds.length === 0) {
@@ -640,7 +644,8 @@ export default function AdminPage() {
       .from('quiniela_partidos')
       .select('id')
       .eq('jornada', jornada)
-      .eq('estado', 'finalizado');
+      .eq('estado', 'finalizado')
+      .eq('temporada', TEMPORADA_ACTIVA);
     const partidoIds = (partidosFin ?? []).map(p => p.id);
 
     if (partidoIds.length === 0) {
@@ -854,6 +859,7 @@ export default function AdminPage() {
         .from('quiniela_partidos')
         .select('id, jornada, equipo_local, equipo_visitante, goles_local, goles_visitante, estado, grupo, fecha_hora')
         .eq('jornada', jornadaCSV)
+        .eq('temporada', TEMPORADA_ACTIVA)
         .not('equipo_local', 'eq', 'A definir')
         .order('fecha_hora');
       const partsList = parts || [];

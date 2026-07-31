@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { RankingConJugador, Pozo } from '@/types';
 import RankingTable from '@/components/RankingTable';
-import { getNombreJornada, getMontoJornada } from '@/lib/utils';
+import { getNombreJornada, getMontoJornada, TEMPORADA_ACTIVA } from '@/lib/utils';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 
@@ -155,7 +155,7 @@ export default function DashboardPage() {
   const [pozos, setPozos]                       = useState<Pozo[]>([]);
   const [pendienteIds, setPendienteIds]         = useState<string[]>([]);
   const [pagadosIds, setPagadosIds]             = useState<string[]>([]);
-  const [jornadaSeleccionada, setJornadaSeleccionada] = useState<number | 'general'>(6);
+  const [jornadaSeleccionada, setJornadaSeleccionada] = useState<number | 'general'>(1);
   const [participantesJornada, setParticipantesJornada] = useState<ParticipanteItem[]>([]);
   const { d, h, m, s, started, mounted: countdownReady } = useCountdown(INAUGURAL);
 
@@ -395,6 +395,7 @@ export default function DashboardPage() {
             .select('goles_local, goles_visitante, equipo_local, equipo_visitante')
             .eq('grupo', 'FIN')
             .eq('estado', 'finalizado')
+            .eq('temporada', TEMPORADA_ACTIVA)
             .maybeSingle(),
         ]);
         setCampeonPick(pick?.equipo ?? null);
@@ -457,7 +458,7 @@ export default function DashboardPage() {
 
   const jornadasConPozo = new Set(pozos.map(p => p.jornada));
   const pozosCompletos: Pozo[] = [...pozos];
-  for (let j = 1; j <= 6; j++) {
+  for (let j = 1; j <= 3; j++) {
     if (!jornadasConPozo.has(j)) {
       pozosCompletos.push({
         id: `synthetic-${j}`,
