@@ -26,14 +26,14 @@ const DEADLINE_J7 = new Date('2026-07-14T19:00:00Z');
 const DEADLINE_J8 = new Date('2026-07-18T21:00:00Z');
 const DEADLINE_J9 = new Date('2026-07-19T19:00:00Z');
 // Liga MX Apertura 2026 — deadline antes del primer partido de cada jornada (UTC-5 CDT)
-const DEADLINE_LIGAMX_J1 = new Date('2026-08-01T23:55:00Z'); // 18:55 CDMX vie 1 ago
+const DEADLINE_LC_F1 = new Date('2026-08-05T23:45:00Z'); // Martes 4 ago 17:45 CDMX — primer partido
 
 const labelJornada = (j: number) =>
   TEMPORADA_ACTIVA === 'ligamx2026' ? getNombreJornadaLigaMX(j) : getNombreJornada(j);
 
 const getDeadline = (jornada: number) => {
   if (TEMPORADA_ACTIVA === 'ligamx2026') {
-    if (jornada === 1) return DEADLINE_LIGAMX_J1;
+    if (jornada === 1) return DEADLINE_LC_F1;
   }
   if (jornada === 1) return DEADLINE_J1;
   if (jornada === 2) return DEADLINE_J2;
@@ -429,12 +429,15 @@ export default function PrediccionesPage() {
   }, [quinielaSeleccionada]);
 
   const cargarPartidos = useCallback(async () => {
-    const { data } = await supabase
+    let query = supabase
       .from('quiniela_partidos')
       .select('*')
-      .eq('jornada', jornada)
       .eq('temporada', TEMPORADA_ACTIVA)
-      .order('fecha_hora');
+      .eq('jornada', jornada);
+    if (TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 1) {
+      query = query.lt('fecha_hora', '2026-08-07T00:00:00Z');
+    }
+    const { data } = await query.order('fecha_hora');
     setPartidos((data as Partido[]) ?? []);
   }, [jornada]);
 
