@@ -11,7 +11,7 @@ export const LOGOS_LIGAMX: Record<string, string> = {
   'Toluca':       '/logos/toluca.png',
   'Atlas':        '/logos/atlas.svg',
   'León':         '/logos/leon.svg',
-  'Pachuca':      '/logos/pachuca.png',
+  'Pachuca':      '/logos/pachuca.svg',
   'Santos':       '/logos/santos.svg',
   'Puebla':       '/logos/puebla.svg',
   'Querétaro':    '/logos/queretaro.png',
@@ -28,8 +28,9 @@ export const LOGOS_LIGAMX: Record<string, string> = {
   'New York City FC':   '/logos/newyorkcityfc.png',
   'Real Salt Lake':     '/logos/realsaltlake.svg',
   'Seattle Sounders':   '/logos/seattlesounders.svg',
+  'FC Cincinnati':      '/logos/fccincinnati.svg',
   // MLS — sin logo disponible: muestran nombre en texto como fallback
-  // FC Cincinnati, Minnesota United, Vancouver Whitecaps, Nashville SC,
+  // Minnesota United, Vancouver Whitecaps, Nashville SC,
   // LAFC, Philadelphia Union, Chicago Fire, Austin FC,
   // Portland Timbers, San Diego FC, Orlando City
 };
