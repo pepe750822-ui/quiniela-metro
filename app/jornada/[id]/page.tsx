@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Partido, Prediccion } from '@/types';
+import { TEMPORADA_ACTIVA } from '@/lib/utils';
 
 interface ParticipanteVista {
   key: string;
@@ -58,6 +59,7 @@ export default function JornadaPage() {
         .from('quiniela_partidos')
         .select('*')
         .eq('jornada', jornada)
+        .eq('temporada', TEMPORADA_ACTIVA)
         .order('fecha_hora');
       const listaPartidos = (pData as Partido[]) ?? [];
       setPartidos(listaPartidos);
@@ -65,7 +67,8 @@ export default function JornadaPage() {
       const { data: partcData, error: errorPart } = await supabase
         .from('quiniela_participaciones')
         .select('id, user_id, pagado, publicado, quiniela_extra_id')
-        .eq('jornada', jornada);
+        .eq('jornada', jornada)
+        .eq('temporada', TEMPORADA_ACTIVA);
       console.log('Participaciones jornada:', partcData, errorPart);
 
       if (!partcData?.length) { setLoading(false); return; }
