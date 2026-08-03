@@ -1,16 +1,16 @@
 export const TEMPORADA_ACTIVA = 'ligamx2026';
 
 export const LOGOS_LIGAMX: Record<string, string> = {
-  // Liga MX (locales)
+  // Liga MX — archivos locales
   'América':      '/logos/america.svg',
   'Guadalajara':  '/logos/guadalajara.svg',
-  'Cruz Azul':    '/logos/cruzazul.png',
-  'Monterrey':    '/logos/monterrey.png',
-  'Tigres':       '/logos/tigres.png',
-  'Pumas':        '/logos/pumas.png',
+  'Cruz Azul':    '/logos/cruzazul.svg',
+  'Monterrey':    '/logos/monterrey.svg',
+  'Tigres':       '/logos/tigres.svg',
+  'Pumas':        '/logos/pumas.svg',
   'Toluca':       '/logos/toluca.png',
-  'Atlas':        '/logos/atlas.png',
-  'León':         '/logos/leon.png',
+  'Atlas':        '/logos/atlas.svg',
+  'León':         '/logos/leon.svg',
   'Pachuca':      '/logos/pachuca.png',
   'Santos':       '/logos/santos.svg',
   'Puebla':       '/logos/puebla.svg',
@@ -18,27 +18,20 @@ export const LOGOS_LIGAMX: Record<string, string> = {
   'Tijuana':      '/logos/tijuana.svg',
   'Juárez':       '/logos/juarez.svg',
   'San Luis':     '/logos/sanluis.png',
-  'Necaxa':       '/logos/necaxa.png',
+  'Necaxa':       '/logos/necaxa.svg',
   'Atlante':      '/logos/atlante.svg',
-  // MLS (Leagues Cup 2026)
-  'FC Cincinnati':      'https://upload.wikimedia.org/wikipedia/en/thumb/b/b7/FC_Cincinnati_primary_logo.svg/120px-FC_Cincinnati_primary_logo.svg.png',
-  'Columbus Crew':      'https://upload.wikimedia.org/wikipedia/en/thumb/3/3b/Columbus_Crew_SC_logo.svg/120px-Columbus_Crew_SC_logo.svg.png',
-  'Charlotte FC':       'https://upload.wikimedia.org/wikipedia/en/thumb/c/ce/Charlotte_FC_logo.svg/120px-Charlotte_FC_logo.svg.png',
-  'Minnesota United':   'https://upload.wikimedia.org/wikipedia/en/thumb/e/e0/Minnesota_United_FC_logo.svg/120px-Minnesota_United_FC_logo.svg.png',
-  'Vancouver Whitecaps':'https://upload.wikimedia.org/wikipedia/en/thumb/2/29/Vancouver_Whitecaps_FC_logo.svg/120px-Vancouver_Whitecaps_FC_logo.svg.png',
-  'Inter Miami':        'https://upload.wikimedia.org/wikipedia/en/thumb/5/5e/Inter_Miami_CF_logo.svg/120px-Inter_Miami_CF_logo.svg.png',
-  'Nashville SC':       'https://upload.wikimedia.org/wikipedia/en/thumb/1/1d/Nashville_SC_logo.svg/120px-Nashville_SC_logo.svg.png',
-  'FC Dallas':          'https://upload.wikimedia.org/wikipedia/en/thumb/9/97/FC_Dallas_2019.svg/120px-FC_Dallas_2019.svg.png',
-  'LAFC':               'https://upload.wikimedia.org/wikipedia/en/thumb/1/12/Los_Angeles_FC.svg/120px-Los_Angeles_FC.svg.png',
-  'New York City FC':   'https://upload.wikimedia.org/wikipedia/en/thumb/c/c5/New_York_City_FC.svg/120px-New_York_City_FC.svg.png',
-  'Chicago Fire':       'https://upload.wikimedia.org/wikipedia/en/thumb/2/25/Chicago_Fire_FC_logo.svg/120px-Chicago_Fire_FC_logo.svg.png',
-  'Austin FC':          'https://upload.wikimedia.org/wikipedia/en/thumb/0/07/Austin_FC_logo.svg/120px-Austin_FC_logo.svg.png',
-  'Portland Timbers':   'https://upload.wikimedia.org/wikipedia/en/thumb/5/57/Portland_Timbers_logo.svg/120px-Portland_Timbers_logo.svg.png',
-  'San Diego FC':       'https://upload.wikimedia.org/wikipedia/en/thumb/5/5a/San_Diego_FC_logo.svg/120px-San_Diego_FC_logo.svg.png',
-  'Philadelphia Union': 'https://upload.wikimedia.org/wikipedia/en/thumb/b/b5/Philadelphia_Union_logo.svg/120px-Philadelphia_Union_logo.svg.png',
-  'Seattle Sounders':   'https://upload.wikimedia.org/wikipedia/en/thumb/5/5c/Seattle_Sounders_FC.svg/120px-Seattle_Sounders_FC.svg.png',
-  'Orlando City':       'https://upload.wikimedia.org/wikipedia/en/thumb/b/b6/Orlando_City_FC_2014.svg/120px-Orlando_City_FC_2014.svg.png',
-  'Real Salt Lake':     'https://upload.wikimedia.org/wikipedia/en/thumb/e/e7/Real_Salt_Lake_logo.svg/120px-Real_Salt_Lake_logo.svg.png',
+  // MLS — archivos locales (descargados de Wikipedia)
+  'Charlotte FC':       '/logos/charlottefc.svg',
+  'Columbus Crew':      '/logos/columbuscrew.svg',
+  'FC Dallas':          '/logos/fcdallas.svg',
+  'Inter Miami':        '/logos/intermiami.svg',
+  'New York City FC':   '/logos/newyorkcityfc.png',
+  'Real Salt Lake':     '/logos/realsaltlake.svg',
+  'Seattle Sounders':   '/logos/seattlesounders.svg',
+  // MLS — sin logo disponible: muestran nombre en texto como fallback
+  // FC Cincinnati, Minnesota United, Vancouver Whitecaps, Nashville SC,
+  // LAFC, Philadelphia Union, Chicago Fire, Austin FC,
+  // Portland Timbers, San Diego FC, Orlando City
 };
 
 export const emailCorto = (email: string) => email.split('@')[0];
