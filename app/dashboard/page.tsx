@@ -270,29 +270,17 @@ export default function DashboardPage() {
       .eq('publicado', true)
       .eq('temporada', TEMPORADA_ACTIVA);
 
-    let pagadosEntries = (pagadosConPrediccion ?? []) as { user_id: string; quiniela_extra_id: string | null }[];
+    // ligamx2026: incluir todos los pagados aunque no tengan predicciones (0 pts)
+    // Otras temporadas: solo publicado=true
+    const pagadosEntries: { user_id: string; quiniela_extra_id: string | null }[] =
+      TEMPORADA_ACTIVA === 'ligamx2026'
+        ? (parts ?? []).map((p: { user_id: string; quiniela_extra_id: string | null }) => ({
+            user_id:           p.user_id,
+            quiniela_extra_id: p.quiniela_extra_id,
+          }))
+        : (pagadosConPrediccion ?? []) as { user_id: string; quiniela_extra_id: string | null }[];
 
-    // For ligamx2026: filter participants to only those with predictions for this season
-    if (TEMPORADA_ACTIVA === 'ligamx2026') {
-      const checkIds = [...new Set([
-        ...participantesConNombre.map(p => p.user_id),
-        ...pagadosEntries.map(p => p.user_id),
-      ])];
-      if (checkIds.length > 0) {
-        const { data: ligamxPreds } = await supabase
-          .from('quiniela_predicciones')
-          .select('user_id, partido:quiniela_partidos!inner(temporada)')
-          .eq('partido.temporada', TEMPORADA_ACTIVA)
-          .in('user_id', checkIds);
-        const ligamxUserSet = new Set((ligamxPreds ?? []).map((p: { user_id: string }) => p.user_id));
-        pagadosEntries = pagadosEntries.filter(p => ligamxUserSet.has(p.user_id));
-        setParticipantesJornada(participantesConNombre.filter(p => ligamxUserSet.has(p.user_id)));
-      } else {
-        setParticipantesJornada([]);
-      }
-    } else {
-      setParticipantesJornada(participantesConNombre);
-    }
+    setParticipantesJornada(participantesConNombre);
 
     // user_ids únicos para el badge y para la query de puntos
     const allUserIds = [...new Set(pagadosEntries.map(p => p.user_id))];
