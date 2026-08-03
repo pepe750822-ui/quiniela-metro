@@ -112,8 +112,12 @@ export default function PrediccionForm({
   const [comoTerminaPred, setComoTerminaPred] = useState<string | null>(prediccionExistente?.como_termina_pred ?? null);
   const [loading,         setLoading]         = useState(false);
 
+  const fechaPartido = new Date(partido.fecha_hora);
+  const esLeaguesCup = fechaPartido >= new Date('2026-08-04T00:00:00Z') && fechaPartido < new Date('2026-08-14T00:00:00Z');
+  const necesitaTerminacion = TEMPORADA_ACTIVA === 'ligamx2026' ? esLeaguesCup : partido.jornada >= 5;
+
   const handleGuardar = async () => {
-    if (partido.jornada >= 5 && (!clasificadoPred || !comoTerminaPred)) {
+    if (necesitaTerminacion && (!clasificadoPred || !comoTerminaPred)) {
       toast.error('Debes seleccionar quién clasifica y cómo termina el partido');
       return;
     }
@@ -156,8 +160,8 @@ export default function PrediccionForm({
     const predPayload = {
       goles_local_pred:     local,
       goles_visitante_pred: visita,
-      clasificado_pred:     partido.jornada >= 5 ? clasificadoPred : null,
-      como_termina_pred:    partido.jornada >= 5 ? comoTerminaPred : null,
+      clasificado_pred:     necesitaTerminacion ? clasificadoPred : null,
+      como_termina_pred:    necesitaTerminacion ? comoTerminaPred : null,
       updated_at:           new Date().toISOString(),
     };
 
@@ -231,9 +235,9 @@ export default function PrediccionForm({
     (e) => e && e !== 'A definir',
   );
 
-  const terminaciones = TEMPORADA_ACTIVA === 'ligamx2026'
+  const terminaciones = esLeaguesCup
     ? [
-        { key: 'reglamentario', label: '⏱️ Tiempo reglamentario' },
+        { key: 'reglamentario', label: '⏱️ Reglamentario' },
         { key: 'penales',       label: '🥅 Penales' },
       ] as const
     : [
@@ -292,7 +296,7 @@ export default function PrediccionForm({
                 {partido.equipo_visitante}
                 <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
               </p>
-              {partido.jornada >= 5 && (
+              {necesitaTerminacion && (
                 <p className="text-[11px]" style={{ color: '#64748b' }}>
                   ⏱️ Marcador a 90 minutos (tiempo reglamentario)
                 </p>
@@ -319,14 +323,14 @@ export default function PrediccionForm({
               <Contador value={visita} onChange={setVisita} label={partido.equipo_visitante} />
             </div>
 
-            {partido.jornada >= 5 && (
+            {necesitaTerminacion && (
               <p className="text-[10px] text-center leading-relaxed" style={{ color: '#475569' }}>
-                Empate a 90 min y predijiste empate = 1pt, aunque continúe a prórroga o penales.
+                Empate a 90 min y predijiste empate = 1pt, aunque continúe a penales.
               </p>
             )}
 
             {/* Clasificado + Cómo termina */}
-            {partido.jornada >= 5 && (
+            {necesitaTerminacion && (
               <div className="space-y-4">
                 {/* Clasificado */}
                 <div className="space-y-2">
