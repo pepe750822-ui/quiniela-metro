@@ -117,8 +117,8 @@ export default function PrediccionForm({
   const necesitaTerminacion = TEMPORADA_ACTIVA === 'ligamx2026' ? esLeaguesCup : partido.jornada >= 5;
 
   const handleGuardar = async () => {
-    if (necesitaTerminacion && (!esLeaguesCup && !clasificadoPred || !comoTerminaPred)) {
-      toast.error('Debes seleccionar cómo termina el partido');
+    if (necesitaTerminacion && (!clasificadoPred || !comoTerminaPred)) {
+      toast.error('Debes seleccionar quién gana y cómo termina el partido');
       return;
     }
     setLoading(true);
@@ -334,18 +334,19 @@ export default function PrediccionForm({
             {/* Clasificado + Cómo termina */}
             {necesitaTerminacion && (
               <div className="space-y-4">
-                {/* Clasificado — oculto en Leagues Cup */}
-                {!esLeaguesCup && (
+                {/* ¿Quién gana? */}
                 <div className="space-y-2">
                   <p
                     className="text-[10px] text-center uppercase tracking-widest font-bold"
                     style={{ color: 'var(--text-secondary)' }}
                   >
-                    ¿Quién clasifica?
+                    ¿Quién gana?
                   </p>
-                  <p className="text-[10px] text-center" style={{ color: '#475569' }}>
-                    Independiente del marcador a 90 min
-                  </p>
+                  {!esLeaguesCup && (
+                    <p className="text-[10px] text-center" style={{ color: '#475569' }}>
+                      Independiente del marcador a 90 min
+                    </p>
+                  )}
                   <div className="flex gap-2">
                     {equiposParaClasificar.map((equipo) => (
                       <motion.button
@@ -369,7 +370,6 @@ export default function PrediccionForm({
                     ))}
                   </div>
                 </div>
-                )}
 
                 {/* Cómo termina */}
                 <div className="space-y-2">
