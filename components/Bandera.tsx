@@ -38,9 +38,9 @@ interface BanderaProps {
   size?: 'sm' | 'md' | 'lg';
 }
 
-export function Bandera({ emoji, nombre, size = 'md' }: BanderaProps) {
+export function Bandera({ emoji: _emoji, nombre, size = 'md' }: BanderaProps) {
   const [error, setError] = useState(false);
-  const { w, h } = sizeMap[size];
+  const { w } = sizeMap[size];
 
   const logoUrl = LOGOS_LIGAMX[nombre];
   if (logoUrl && !error) {
@@ -58,28 +58,18 @@ export function Bandera({ emoji, nombre, size = 'md' }: BanderaProps) {
     );
   }
 
-  // Handle both flag emojis ('🇨🇦') and raw ISO-2 codes ('CA') stored in DB
-  const codigo = EMOJI_A_CODIGO[emoji] ?? (/^[A-Z]{2}$/.test(emoji) ? emoji.toLowerCase() : undefined);
-
-  if (!codigo || error) {
-    return (
-      <span style={{ fontSize: w * 0.7 }} role="img" aria-label={nombre}>
-        {emoji}
-      </span>
-    );
-  }
-
   return (
-    <img
-      src={`https://flagcdn.com/${w}x${h}/${codigo}.png`}
-      srcSet={`https://flagcdn.com/${w*2}x${h*2}/${codigo}.png 2x`}
-      width={w}
-      height={h}
-      alt={nombre}
-      className="object-cover rounded-sm inline-block"
-      loading="lazy"
-      onError={() => setError(true)}
-    />
+    <span
+      className="inline-flex items-center justify-center text-center leading-tight"
+      style={{
+        fontSize: Math.max(7, w * 0.22),
+        color: 'var(--text-secondary)',
+        width: w,
+        maxWidth: w * 2,
+      }}
+    >
+      {nombre}
+    </span>
   );
 }
 
