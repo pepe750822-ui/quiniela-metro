@@ -12,7 +12,7 @@ const publicLinks = [
   { href: '/tabla',          label: 'Tabla',        emoji: '📊' },
   ...(TEMPORADA_ACTIVA !== 'ligamx2026' ? [{ href: '/grupos',    label: 'Grupos',    emoji: '🌎' }] : []),
   ...(TEMPORADA_ACTIVA !== 'ligamx2026' ? [{ href: '/bracket',   label: 'Bracket',   emoji: '🏆' }] : []),
-  ...(TEMPORADA_ACTIVA !== 'ligamx2026' ? [{ href: '/calendario',label: 'Calendario',emoji: '📅' }] : []),
+  { href: '/calendario', label: 'Calendario', emoji: '📅' },
   { href: '/perfil',         label: 'Perfil',       emoji: '👤' },
 ];
 

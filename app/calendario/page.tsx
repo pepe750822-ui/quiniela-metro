@@ -38,6 +38,7 @@ export default function CalendarioPage() {
     const { data, error } = await supabase
       .from('quiniela_partidos')
       .select('*')
+      .eq('temporada', TEMPORADA_ACTIVA)
       .order('fecha_hora', { ascending: true });
     
     if (error) {
@@ -88,16 +89,6 @@ export default function CalendarioPage() {
       }, 600);
     }
   }, [partidos]);
-
-  if (TEMPORADA_ACTIVA === 'ligamx2026') {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh] text-center px-4">
-        <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
-          No disponible en esta temporada
-        </p>
-      </div>
-    );
-  }
 
   // Agrupar por fecha CDMX: definidos primero, "A definir" al final
   const definidos = partidos.filter(p => p.equipo_local && p.equipo_local !== 'A definir');
