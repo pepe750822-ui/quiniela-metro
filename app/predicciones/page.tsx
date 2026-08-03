@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { Partido, Prediccion, DraftPrediccion, Pozo } from '@/types';
-import { getNombreJornada, getFechaKey, equiposE32, BANDERAS_EQUIPOS, getMontoJornada, TEMPORADA_ACTIVA, getNombreJornadaLigaMX } from '@/lib/utils';
+import { getNombreJornada, getFechaKey, equiposE32, BANDERAS_EQUIPOS, getMontoJornada, TEMPORADA_ACTIVA, getNombreJornadaLigaMX, LOGOS_LIGAMX } from '@/lib/utils';
 import { Bandera } from '@/components/Bandera';
 import PartidoCard from '@/components/PartidoCard';
 import PrediccionForm from '@/components/PrediccionForm';
@@ -336,6 +336,11 @@ export default function PrediccionesPage() {
   const [bracketVisible, setBracketVisible] = useState(false);
   const [bracketPartidos, setBracketPartidos] = useState<Partido[]>([]);
 
+  // ── Picks clasificación Leagues Cup ────────────────────────────────────────
+  const [picksLigamx, setPicksLigamx] = useState<string[]>([]);
+  const [picksMls, setPicksMls]       = useState<string[]>([]);
+  const [picksGuardando, setPicksGuardando] = useState(false);
+
   useEffect(() => {
     if (jornada === 6) setBracketVisible(true);
   }, [jornada]);
@@ -529,8 +534,35 @@ export default function PrediccionesPage() {
       cargarCampeon();
       cargarPozoYParticipacion(userId, jornada);
       if (jornada === 6) cargarJ6Campeon();
+      if (TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 1) cargarPicksClasificacion(userId);
     }
-  }, [userId, jornada, cargarQuinielas, cargarPredicciones, cargarCampeon, cargarPozoYParticipacion, cargarJ6Campeon]);
+  }, [userId, jornada, cargarQuinielas, cargarPredicciones, cargarCampeon, cargarPozoYParticipacion, cargarJ6Campeon]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const cargarPicksClasificacion = async (uid: string) => {
+    const { data } = await supabase
+      .from('quiniela_picks_clasificacion')
+      .select('liga, equipos')
+      .eq('user_id', uid)
+      .eq('temporada', TEMPORADA_ACTIVA);
+    (data ?? []).forEach((row: { liga: string; equipos: string[] }) => {
+      if (row.liga === 'ligamx') setPicksLigamx(row.equipos);
+      if (row.liga === 'mls')    setPicksMls(row.equipos);
+    });
+  };
+
+  const guardarPicksClasificacion = async (liga: 'ligamx' | 'mls', equipos: string[]) => {
+    if (!userId || equipos.length !== 4) return;
+    setPicksGuardando(true);
+    const { error } = await supabase
+      .from('quiniela_picks_clasificacion')
+      .upsert({ user_id: userId, temporada: TEMPORADA_ACTIVA, liga, equipos, updated_at: new Date().toISOString() },
+               { onConflict: 'user_id,temporada,liga' });
+    setPicksGuardando(false);
+    if (error) { toast.error('Error al guardar picks'); return; }
+    if (liga === 'ligamx') setPicksLigamx(equipos);
+    if (liga === 'mls')    setPicksMls(equipos);
+    toast.success('✅ Picks guardados');
+  };
 
   useEffect(() => {
     supabase
@@ -808,6 +840,11 @@ export default function PrediccionesPage() {
   const campeonDeadlinePasado = Date.now() >= DEADLINE_J3.getTime();
   const campeonAcerto = campeonDeclarado && miCampeonPick === campeonDeclarado;
   const campeonFallo  = campeonDeclarado && miCampeonPick && miCampeonPick !== campeonDeclarado;
+
+  // ── Equipos Leagues Cup ─────────────────────────────────────────────────
+  const EQUIPOS_LIGAMX_LC = ['América','Guadalajara','Cruz Azul','Monterrey','Tigres','Pumas','Toluca','Atlas','León','Pachuca','Santos','Puebla','Querétaro','Tijuana','Juárez','San Luis','Necaxa','Atlante'];
+  const EQUIPOS_MLS_LC    = ['Charlotte FC','Columbus Crew','FC Dallas','Inter Miami','New York City FC','Real Salt Lake','Seattle Sounders','FC Cincinnati','Minnesota United','Vancouver Whitecaps','Nashville SC','Orlando City','LAFC','Philadelphia Union','Chicago Fire','Austin FC','San Diego FC','Portland Timbers'];
+  const picksDeadlinePasado = Date.now() >= DEADLINE_LC_F1.getTime();
 
   // ── Shared button style helpers ─────────────────────────────────────────
   const publishBtn = (disabled: boolean, variant: 'primary' | 'blue' = 'primary') => ({
@@ -1328,6 +1365,111 @@ export default function PrediccionesPage() {
             </div>
           )}
         </div>
+      )}
+
+      {/* ── PICKS CLASIFICACIÓN LEAGUES CUP ── */}
+      {TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 1 && (
+        <>
+          {(['ligamx', 'mls'] as const).map(liga => {
+            const equipos     = liga === 'ligamx' ? EQUIPOS_LIGAMX_LC : EQUIPOS_MLS_LC;
+            const picks       = liga === 'ligamx' ? picksLigamx : picksMls;
+            const setPicks    = liga === 'ligamx' ? setPicksLigamx : setPicksMls;
+            const titulo      = liga === 'ligamx' ? '🏆 ¿Cuáles 4 equipos de Liga MX clasifican a Cuartos?' : '🏆 ¿Cuáles 4 equipos de MLS clasifican a Cuartos?';
+            const yaGuardado  = picks.length === 4;
+
+            const toggleEquipo = (eq: string) => {
+              if (picksDeadlinePasado) return;
+              setPicks(prev =>
+                prev.includes(eq) ? prev.filter(e => e !== eq) : prev.length < 4 ? [...prev, eq] : prev
+              );
+            };
+
+            return (
+              <motion.div
+                key={liga}
+                {...fadeUp(0.03)}
+                className="rounded-2xl p-4 space-y-3"
+                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+              >
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
+                    {titulo}
+                  </p>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                    Selecciona exactamente 4 · +1 pt por cada acierto · Máximo +4 pts
+                  </p>
+                </div>
+
+                {picksDeadlinePasado ? (
+                  yaGuardado ? (
+                    <div className="space-y-1.5">
+                      <p className="text-[10px] uppercase tracking-widest mb-2" style={{ color: '#64748b' }}>🔒 Tus picks guardados</p>
+                      <div className="grid grid-cols-4 gap-2">
+                        {picks.map(eq => (
+                          <div key={eq} className="flex flex-col items-center gap-1 rounded-xl py-2 px-1"
+                            style={{ background: 'rgba(234,88,12,0.1)', border: '1px solid rgba(234,88,12,0.25)' }}>
+                            <Bandera emoji="" nombre={eq} size="md" />
+                            <span className="text-[9px] text-center leading-tight" style={{ color: '#fb923c', fontFamily: 'var(--font-rajdhani)', fontWeight: 700 }}>{eq}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-center py-2" style={{ color: 'var(--text-secondary)' }}>No hiciste picks 🔒</p>
+                  )
+                ) : (
+                  <>
+                    <p className="text-xs" style={{ color: picks.length === 4 ? '#34d399' : 'var(--text-secondary)' }}>
+                      {picks.length === 4 ? '✅ 4 equipos seleccionados' : `Seleccionados: ${picks.length}/4`}
+                    </p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {equipos.map(eq => {
+                        const seleccionado = picks.includes(eq);
+                        const lleno = picks.length === 4 && !seleccionado;
+                        const tienelogo = !!LOGOS_LIGAMX[eq];
+                        return (
+                          <motion.button
+                            key={eq}
+                            whileTap={{ scale: 0.93 }}
+                            onClick={() => toggleEquipo(eq)}
+                            className="flex flex-col items-center gap-1 rounded-xl py-2 px-1 cursor-pointer"
+                            style={{
+                              background: seleccionado ? 'linear-gradient(135deg, #ea580c, #f97316)' : 'rgba(255,255,255,0.04)',
+                              border: `1px solid ${seleccionado ? 'transparent' : 'rgba(255,255,255,0.07)'}`,
+                              opacity: lleno ? 0.35 : 1,
+                              transition: 'all 0.12s ease',
+                            }}
+                          >
+                            <Bandera emoji="" nombre={eq} size={tienelogo ? 'md' : 'sm'} />
+                            <span className="text-[9px] text-center leading-tight" style={{
+                              fontFamily: 'var(--font-rajdhani)', fontWeight: 600,
+                              color: seleccionado ? '#fff' : 'var(--text-secondary)',
+                            }}>{eq}</span>
+                          </motion.button>
+                        );
+                      })}
+                    </div>
+                    <motion.button
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() => guardarPicksClasificacion(liga, picks)}
+                      disabled={picks.length !== 4 || picksGuardando}
+                      className="w-full py-3 rounded-xl font-bold text-sm mt-1"
+                      style={{
+                        background: picks.length === 4 && !picksGuardando ? 'linear-gradient(135deg, #ea580c, #f97316)' : 'rgba(255,255,255,0.06)',
+                        color: picks.length === 4 && !picksGuardando ? '#fff' : '#475569',
+                        border: 'none', fontFamily: 'var(--font-rajdhani)',
+                        cursor: picks.length !== 4 || picksGuardando ? 'not-allowed' : 'pointer',
+                        boxShadow: picks.length === 4 && !picksGuardando ? '0 4px 18px rgba(234,88,12,0.3)' : 'none',
+                      }}
+                    >
+                      {picksGuardando ? '⏳ Guardando...' : yaGuardado ? '🔄 Actualizar picks' : '✅ Guardar picks'}
+                    </motion.button>
+                  </>
+                )}
+              </motion.div>
+            );
+          })}
+        </>
       )}
 
       {/* ── PREDICCIÓN CAMPEÓN MUNDIAL (J1-J5) ── */}
