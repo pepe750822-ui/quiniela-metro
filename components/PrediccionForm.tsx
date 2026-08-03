@@ -6,7 +6,7 @@ import { DraftPrediccion, Partido } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Bandera } from '@/components/Bandera';
-import { getMontoJornada, TEMPORADA_ACTIVA } from '@/lib/utils';
+import { getMontoJornada, TEMPORADA_ACTIVA, LOGOS_LIGAMX } from '@/lib/utils';
 
 interface Props {
   partido: Partido;
@@ -95,6 +95,25 @@ function Contador({
       </div>
     </div>
   );
+}
+
+function LogoONombre({ equipo }: { equipo: string }) {
+  const [imgError, setImgError] = useState(false);
+  const logo = LOGOS_LIGAMX[equipo];
+  if (logo && !imgError) {
+    return (
+      <img
+        src={logo}
+        alt={equipo}
+        width={28}
+        height={28}
+        className="object-contain mx-auto"
+        loading="lazy"
+        onError={() => setImgError(true)}
+      />
+    );
+  }
+  return <span>{equipo}</span>;
 }
 
 export default function PrediccionForm({
@@ -354,7 +373,7 @@ export default function PrediccionForm({
                         whileTap={{ scale: 0.95 }}
                         type="button"
                         onClick={() => setClasificadoPred(equipo)}
-                        className="flex-1 py-2.5 rounded-xl text-xs font-bold cursor-pointer"
+                        className="flex-1 py-2.5 rounded-xl text-xs font-bold cursor-pointer flex flex-col items-center gap-1"
                         style={{
                           background: clasificadoPred === equipo
                             ? 'linear-gradient(135deg, #ea580c, #f97316)'
@@ -365,7 +384,7 @@ export default function PrediccionForm({
                           transition: 'all 0.15s ease',
                         }}
                       >
-                        {equipo}
+                        <LogoONombre equipo={equipo} />
                       </motion.button>
                     ))}
                   </div>
