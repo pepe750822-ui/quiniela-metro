@@ -227,6 +227,7 @@ export default function DashboardPage() {
       .select('id, user_id, jornada, pagado, publicado, quiniela_extra_id')
       .eq('jornada', j)
       .eq('pagado', true)
+      .eq('temporada', TEMPORADA_ACTIVA)
       .order('created_at', { ascending: true });
     console.log('Participantes query result:', parts, errorPart);
 
@@ -266,7 +267,8 @@ export default function DashboardPage() {
       .select('user_id, quiniela_extra_id')
       .eq('jornada', j)
       .eq('pagado', true)
-      .eq('publicado', true);
+      .eq('publicado', true)
+      .eq('temporada', TEMPORADA_ACTIVA);
 
     let pagadosEntries = (pagadosConPrediccion ?? []) as { user_id: string; quiniela_extra_id: string | null }[];
 
