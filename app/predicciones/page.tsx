@@ -435,7 +435,7 @@ export default function PrediccionesPage() {
       .eq('temporada', TEMPORADA_ACTIVA)
       .eq('jornada', jornada);
     if (TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 1) {
-      query = query.lt('fecha_hora', '2026-08-08T00:00:00Z');
+      query = query.lt('fecha_hora', '2026-08-07T23:00:00Z');
     }
     const { data } = await query.order('fecha_hora');
     setPartidos((data as Partido[]) ?? []);
