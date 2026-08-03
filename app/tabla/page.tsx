@@ -19,6 +19,7 @@ const tableRowVariants = {
 
 export default function TablaPage() {
   const [jornada, setJornada]           = useState(1);
+  const [jornadasDisponibles, setJornadasDisponibles] = useState<number[]>([1]);
   const [partidos, setPartidos]         = useState<any[]>([]);
   const [jugadores, setJugadores]       = useState<any[]>([]);
   const [predicciones, setPredicciones] = useState<any[]>([]);
@@ -42,7 +43,17 @@ export default function TablaPage() {
         .single();
       setEsAdmin(data?.rol === 'admin');
     };
+    const cargarJornadas = async () => {
+      const { data } = await supabase
+        .from('quiniela_partidos')
+        .select('jornada')
+        .eq('temporada', TEMPORADA_ACTIVA)
+        .order('jornada');
+      const unicas = [...new Set((data ?? []).map((p: any) => p.jornada as number))];
+      if (unicas.length > 0) setJornadasDisponibles(unicas);
+    };
     verificarAdmin();
+    cargarJornadas();
   }, []);
 
   useEffect(() => { refreshData(); }, [jornada]);
@@ -141,6 +152,7 @@ export default function TablaPage() {
       .from('quiniela_pozo')
       .select('participantes, campeon_j6')
       .eq('jornada', jornada)
+      .eq('temporada', TEMPORADA_ACTIVA)
       .single();
     setPozoParticipantes(pozoDat?.participantes ?? null);
     setCampeonJ6Declarado(pozoDat?.campeon_j6 ?? null);
@@ -478,7 +490,7 @@ export default function TablaPage() {
 
         {/* Selector jornada */}
         <div className="flex gap-2 mt-3">
-          {[1, 2, 3].map(j => (
+          {jornadasDisponibles.map(j => (
             <button
               key={j}
               onClick={() => setJornada(j)}
