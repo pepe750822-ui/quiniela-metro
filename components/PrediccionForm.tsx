@@ -141,7 +141,8 @@ export default function PrediccionForm({
       .from('quiniela_participaciones')
       .select('pagado')
       .eq('user_id', userId)
-      .eq('jornada', partido.jornada);
+      .eq('jornada', partido.jornada)
+      .eq('temporada', TEMPORADA_ACTIVA);
 
     const { data: participacion } = await (quinielaExtraId === null
       ? basePartQuery.is('quiniela_extra_id', null).maybeSingle()
@@ -155,7 +156,7 @@ export default function PrediccionForm({
         monto:             getMontoJornada(partido.jornada),
         quiniela_extra_id: quinielaExtraId,
         temporada:         TEMPORADA_ACTIVA,
-      });
+      }, { count: 'none' });
     }
 
     const predPayload = {
