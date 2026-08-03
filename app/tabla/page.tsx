@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Bandera } from '@/components/Bandera';
-import { getNombreJornada, BANDERAS_EQUIPOS, TEMPORADA_ACTIVA } from '@/lib/utils';
+import { getNombreJornada, getNombreJornadaLigaMX, BANDERAS_EQUIPOS, TEMPORADA_ACTIVA } from '@/lib/utils';
 import ReglasFaseFinal from '@/components/ReglasFaseFinal';
 
 const tableBodyVariants = {
@@ -84,7 +84,8 @@ export default function TablaPage() {
     const particsQuery = supabase
       .from('quiniela_participaciones')
       .select('id, user_id, pagado, publicado, quiniela_extra_id, jornada')
-      .eq('pagado', true);
+      .eq('pagado', true)
+      .eq('temporada', TEMPORADA_ACTIVA);
     const { data: particsRaw } = jornada === 6
       ? await particsQuery.gte('jornada', 6)
       : await particsQuery.eq('jornada', jornada);
@@ -489,7 +490,7 @@ export default function TablaPage() {
                 border: `1px solid ${jornada === j ? '#ea580c' : 'var(--border-color)'}`,
               }}
             >
-              {getNombreJornada(j)}
+              {TEMPORADA_ACTIVA === 'ligamx2026' ? getNombreJornadaLigaMX(j) : getNombreJornada(j)}
             </button>
           ))}
         </div>
@@ -821,7 +822,9 @@ export default function TablaPage() {
 
         {participaciones.length === 0 && (
           <p className="text-center py-12 text-sm" style={{ color: '#475569' }}>
-            Aún no hay participantes en esta jornada.
+            {TEMPORADA_ACTIVA === 'ligamx2026'
+              ? 'Aún no hay participantes registrados para esta temporada'
+              : 'Aún no hay participantes en esta jornada.'}
           </p>
         )}
       </div>
