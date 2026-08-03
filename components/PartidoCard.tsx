@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Partido } from '@/types';
 import { Bandera } from '@/components/Bandera';
-import { formatearHoraCDMX, formatearDiaCDMX, BANDERAS_EQUIPOS } from '@/lib/utils';
+import { formatearHoraCDMX, formatearDiaCDMX, BANDERAS_EQUIPOS, TEMPORADA_ACTIVA } from '@/lib/utils';
 
 interface Props {
   partido: Partido;
@@ -46,6 +46,12 @@ export default function PartidoCard({ partido, prediccion, participacionPagada, 
   const vivo = partido.estado === 'en_curso';
   const localWins = fin && gl > gv;
   const visitWins = fin && gv > gl;
+
+  const fechaPartido = new Date(partido.fecha_hora);
+  const esLeaguesCup = TEMPORADA_ACTIVA === 'ligamx2026'
+    && fechaPartido >= new Date('2026-08-04T00:00:00Z')
+    && fechaPartido < new Date('2026-08-14T00:00:00Z');
+  const mostrarTerminacion = partido.jornada >= 5 || esLeaguesCup;
 
   const puntosInfo = prediccion
     ? prediccion.puntos_ganados === 3
@@ -235,13 +241,13 @@ export default function PartidoCard({ partido, prediccion, participacionPagada, 
               >
                 {prediccion.goles_local_pred} – {prediccion.goles_visitante_pred}
               </span>
-              {partido.jornada >= 5 && prediccion.como_termina_pred && (
+              {mostrarTerminacion && prediccion.como_termina_pred && (
                 <span className="text-xs" style={{ color: '#64748b' }}>
                   {prediccion.como_termina_pred === 'reglamentario' ? '⏱️'
                     : prediccion.como_termina_pred === 'tiempo_extra' ? '⏩' : '🥅'}
                 </span>
               )}
-              {partido.jornada >= 5 && prediccion.clasificado_pred && (
+              {mostrarTerminacion && prediccion.clasificado_pred && (
                 <div className="flex items-center gap-1">
                   <Bandera emoji={BANDERAS_EQUIPOS[prediccion.clasificado_pred] ?? ''} nombre={prediccion.clasificado_pred} size="sm" />
                 </div>

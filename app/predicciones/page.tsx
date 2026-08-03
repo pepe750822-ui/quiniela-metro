@@ -400,7 +400,8 @@ export default function PrediccionesPage() {
       .from('quiniela_participaciones')
       .select('pagado, publicado')
       .eq('user_id', uid)
-      .eq('jornada', j);
+      .eq('jornada', j)
+      .eq('temporada', TEMPORADA_ACTIVA);
 
     const partPromise = quinielaSeleccionada === null
       ? basePartQuery.is('quiniela_extra_id', null).maybeSingle()
@@ -423,6 +424,7 @@ export default function PrediccionesPage() {
           pagado:            false,
           publicado:         false,
           quiniela_extra_id: quinielaSeleccionada ?? null,
+          temporada:         TEMPORADA_ACTIVA,
         });
       setParticipando(false);
     }
