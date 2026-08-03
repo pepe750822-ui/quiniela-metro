@@ -10,9 +10,9 @@ import { TEMPORADA_ACTIVA } from '@/lib/utils';
 const publicLinks = [
   { href: '/predicciones',   label: 'Predicciones', emoji: '⚽' },
   { href: '/tabla',          label: 'Tabla',        emoji: '📊' },
-  { href: '/grupos',         label: 'Grupos',       emoji: '🌎' },
-  ...(TEMPORADA_ACTIVA !== 'ligamx2026' ? [{ href: '/bracket', label: 'Bracket', emoji: '🏆' }] : []),
-  { href: '/calendario',     label: 'Calendario',   emoji: '📅' },
+  ...(TEMPORADA_ACTIVA !== 'ligamx2026' ? [{ href: '/grupos',    label: 'Grupos',    emoji: '🌎' }] : []),
+  ...(TEMPORADA_ACTIVA !== 'ligamx2026' ? [{ href: '/bracket',   label: 'Bracket',   emoji: '🏆' }] : []),
+  ...(TEMPORADA_ACTIVA !== 'ligamx2026' ? [{ href: '/calendario',label: 'Calendario',emoji: '📅' }] : []),
   { href: '/perfil',         label: 'Perfil',       emoji: '👤' },
 ];
 

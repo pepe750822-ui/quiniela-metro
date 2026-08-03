@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Bandera } from '@/components/Bandera';
+import { TEMPORADA_ACTIVA } from '@/lib/utils';
 
 const GRUPOS = ['A','B','C','D','E','F','G','H','I','J','K','L'];
 
@@ -60,6 +61,16 @@ export default function GruposPage() {
     };
     cargar();
   }, []);
+
+  if (TEMPORADA_ACTIVA === 'ligamx2026') {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh] text-center px-4">
+        <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
+          No disponible en esta temporada
+        </p>
+      </div>
+    );
+  }
 
   const equiposOrdenados = ordenarGrupo(
     equipos.filter(e => e.grupo === grupoActivo)

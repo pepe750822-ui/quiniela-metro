@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Bandera } from '@/components/Bandera';
-import { formatearFechaCDMX, formatearDiaCDMX, formatearHoraCDMX, getFechaCDMX } from '@/lib/utils';
+import { formatearFechaCDMX, formatearDiaCDMX, formatearHoraCDMX, getFechaCDMX, TEMPORADA_ACTIVA } from '@/lib/utils';
 
 interface Partido {
   id: string;
@@ -88,6 +88,16 @@ export default function CalendarioPage() {
       }, 600);
     }
   }, [partidos]);
+
+  if (TEMPORADA_ACTIVA === 'ligamx2026') {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh] text-center px-4">
+        <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
+          No disponible en esta temporada
+        </p>
+      </div>
+    );
+  }
 
   // Agrupar por fecha CDMX: definidos primero, "A definir" al final
   const definidos = partidos.filter(p => p.equipo_local && p.equipo_local !== 'A definir');
