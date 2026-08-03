@@ -618,7 +618,7 @@ export default function DashboardPage() {
       )}
 
       {/* Pozos por jornada */}
-      {TEMPORADA_ACTIVA !== 'ligamx2026' && pozosCompletos.length > 0 && (
+      {pozosCompletos.length > 0 && (
         <motion.div className="space-y-3" initial="hidden" animate="visible" variants={staggerContainer}>
           <p className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: 'var(--text-secondary)' }}>
             Pozos acumulados
