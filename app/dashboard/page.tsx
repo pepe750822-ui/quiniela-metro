@@ -485,18 +485,20 @@ export default function DashboardPage() {
 
   const jornadasConPozo = new Set(pozos.map(p => p.jornada));
   const pozosCompletos: Pozo[] = [...pozos];
-  for (let j = 1; j <= 3; j++) {
-    if (!jornadasConPozo.has(j)) {
-      pozosCompletos.push({
-        id: `synthetic-${j}`,
-        jornada: j,
-        total_mxn: getMontoJornada(j),
-        participantes: 0,
-        ganador_id: null,
-        ganador_nombre: null,
-        estado: 'abierto',
-        created_at: new Date().toISOString(),
-      });
+  if (TEMPORADA_ACTIVA !== 'ligamx2026') {
+    for (let j = 1; j <= 3; j++) {
+      if (!jornadasConPozo.has(j)) {
+        pozosCompletos.push({
+          id: `synthetic-${j}`,
+          jornada: j,
+          total_mxn: getMontoJornada(j),
+          participantes: 0,
+          ganador_id: null,
+          ganador_nombre: null,
+          estado: 'abierto',
+          created_at: new Date().toISOString(),
+        });
+      }
     }
   }
   pozosCompletos.sort((a, b) => a.jornada - b.jornada);
