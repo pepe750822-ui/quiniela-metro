@@ -117,8 +117,8 @@ export default function PrediccionForm({
   const necesitaTerminacion = TEMPORADA_ACTIVA === 'ligamx2026' ? esLeaguesCup : partido.jornada >= 5;
 
   const handleGuardar = async () => {
-    if (necesitaTerminacion && (!clasificadoPred || !comoTerminaPred)) {
-      toast.error('Debes seleccionar quién clasifica y cómo termina el partido');
+    if (necesitaTerminacion && (!esLeaguesCup && !clasificadoPred || !comoTerminaPred)) {
+      toast.error('Debes seleccionar cómo termina el partido');
       return;
     }
     setLoading(true);
@@ -332,7 +332,8 @@ export default function PrediccionForm({
             {/* Clasificado + Cómo termina */}
             {necesitaTerminacion && (
               <div className="space-y-4">
-                {/* Clasificado */}
+                {/* Clasificado — oculto en Leagues Cup */}
+                {!esLeaguesCup && (
                 <div className="space-y-2">
                   <p
                     className="text-[10px] text-center uppercase tracking-widest font-bold"
@@ -366,6 +367,7 @@ export default function PrediccionForm({
                     ))}
                   </div>
                 </div>
+                )}
 
                 {/* Cómo termina */}
                 <div className="space-y-2">
