@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS quiniela_picks_clasificacion (
 ALTER TABLE quiniela_picks_clasificacion ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "usuarios ven sus picks" ON quiniela_picks_clasificacion
-  FOR SELECT USING (auth.uid() = user_id);
+  FOR SELECT USING (auth.uid() IS NOT NULL);
 
 CREATE POLICY "usuarios insertan sus picks" ON quiniela_picks_clasificacion
   FOR INSERT WITH CHECK (auth.uid() = user_id);

@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Bandera } from '@/components/Bandera';
-import { getNombreJornada, getNombreJornadaLigaMX, BANDERAS_EQUIPOS, TEMPORADA_ACTIVA } from '@/lib/utils';
+import { getNombreJornada, getNombreJornadaLigaMX, BANDERAS_EQUIPOS, LOGOS_LIGAMX, TEMPORADA_ACTIVA } from '@/lib/utils';
 import ReglasFaseFinal from '@/components/ReglasFaseFinal';
 
 const tableBodyVariants = {
@@ -29,6 +29,8 @@ export default function TablaPage() {
   const [esAdmin, setEsAdmin]           = useState(false);
   const [campeonPicks, setCampeonPicks] = useState<Record<string, string>>({});
   const [bonosCampeon, setBonosCampeon] = useState<Record<string, number>>({});
+  const [picksClasificacion, setPicksClasificacion] = useState<Record<string, { ligamx: string[]; mls: string[] }>>({});
+  const [clasificadosLc, setClasificadosLc] = useState<{ ligamx: string[]; mls: string[] }>({ ligamx: [], mls: [] });
   const [loading, setLoading]           = useState(false);
   const tablaRef = useRef<HTMLDivElement>(null);
 
@@ -185,6 +187,24 @@ export default function TablaPage() {
       });
     }
     setBonosCampeon(bonosMap);
+
+    if (TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 1) {
+      const res = await fetch('/api/picks-clasificacion');
+      const { picks = [], clasificados = [] } = await res.json();
+      const picksMap: Record<string, { ligamx: string[]; mls: string[] }> = {};
+      picks.forEach((p: any) => {
+        if (!picksMap[p.user_id]) picksMap[p.user_id] = { ligamx: [], mls: [] };
+        if (p.liga === 'ligamx') picksMap[p.user_id].ligamx = p.equipos;
+        if (p.liga === 'mls')    picksMap[p.user_id].mls = p.equipos;
+      });
+      setPicksClasificacion(picksMap);
+      const lcMap: { ligamx: string[]; mls: string[] } = { ligamx: [], mls: [] };
+      clasificados.forEach((c: any) => {
+        if (c.liga === 'ligamx') lcMap.ligamx = c.equipos;
+        if (c.liga === 'mls')    lcMap.mls = c.equipos;
+      });
+      setClasificadosLc(lcMap);
+    }
 
     setLoading(false);
   };
@@ -374,7 +394,17 @@ export default function TablaPage() {
       .filter((p: any) => partidos.find((partido: any) => partido.id === p.partido_id && partido.estado === 'finalizado'))
       .reduce((sum: number, p: any) => sum + (p.puntos_ganados || 0), 0);
     const bono = jornada === 6 ? (bonosCampeon[`${part.user_id}:${part.quiniela_extra_id ?? 'null'}`] || 0) : 0;
-    return base + bono;
+    let ptsClas = 0;
+    if (TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 1) {
+      const userPicks = picksClasificacion[part.user_id];
+      if (userPicks && clasificadosLc.ligamx.length > 0) {
+        ptsClas += userPicks.ligamx.filter(e => clasificadosLc.ligamx.includes(e)).length;
+      }
+      if (userPicks && clasificadosLc.mls.length > 0) {
+        ptsClas += userPicks.mls.filter(e => clasificadosLc.mls.includes(e)).length;
+      }
+    }
+    return base + bono + ptsClas;
   };
 
   const participacionesOrdenadas = participaciones
@@ -621,6 +651,11 @@ export default function TablaPage() {
                   PTS
                 </th>
               )}
+              {TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 1 && (
+                <th className="px-2 py-2 text-center text-xs" style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.2)', color: '#94a3b8', whiteSpace: 'nowrap', fontFamily: 'var(--font-rajdhani)' }}>
+                  🏆 Clasif.
+                </th>
+              )}
             </tr>
           </thead>
           <motion.tbody initial="hidden" animate="visible" variants={tableBodyVariants}>
@@ -836,6 +871,49 @@ export default function TablaPage() {
                       {totalPuntos}
                     </td>
                   )}
+                  {TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 1 && (() => {
+                    const userPicks = picksClasificacion[part.user_id];
+                    const lcDeclared = clasificadosLc.ligamx.length > 0;
+                    const ptsClas = !userPicks ? 0 :
+                      (lcDeclared ? userPicks.ligamx.filter(e => clasificadosLc.ligamx.includes(e)).length : 0) +
+                      (clasificadosLc.mls.length > 0 ? userPicks.mls.filter(e => clasificadosLc.mls.includes(e)).length : 0);
+                    return (
+                      <td className="px-2 py-1 text-center align-middle"
+                        style={{ borderLeft: '1px solid rgba(234,88,12,0.2)', borderBottom: '1px solid var(--border-color)', minWidth: 80 }}>
+                        {userPicks ? (
+                          <div className="flex flex-col gap-0.5">
+                            <div className="flex flex-wrap justify-center gap-0.5">
+                              {userPicks.ligamx.map(eq => {
+                                const acierto = clasificadosLc.ligamx.includes(eq);
+                                const fallo = lcDeclared && !acierto;
+                                return (
+                                  <div key={eq} title={eq} style={{ opacity: fallo ? 0.45 : 1, filter: acierto ? 'drop-shadow(0 0 3px #22c55e)' : 'none' }}>
+                                    <Bandera emoji="" nombre={eq} size="sm" />
+                                  </div>
+                                );
+                              })}
+                            </div>
+                            <div className="flex flex-wrap justify-center gap-0.5">
+                              {userPicks.mls.map(eq => {
+                                const acierto = clasificadosLc.mls.includes(eq);
+                                const fallo = clasificadosLc.mls.length > 0 && !acierto;
+                                return (
+                                  <div key={eq} title={eq} style={{ opacity: fallo ? 0.45 : 1, filter: acierto ? 'drop-shadow(0 0 3px #22c55e)' : 'none' }}>
+                                    <Bandera emoji="" nombre={eq} size="sm" />
+                                  </div>
+                                );
+                              })}
+                            </div>
+                            {(lcDeclared || clasificadosLc.mls.length > 0) && (
+                              <div style={{ fontSize: 9, color: '#22c55e', fontWeight: 700, textAlign: 'center' }}>+{ptsClas}pts</div>
+                            )}
+                          </div>
+                        ) : (
+                          <span style={{ fontSize: '0.65rem', color: '#475569' }}>—</span>
+                        )}
+                      </td>
+                    );
+                  })()}
                 </motion.tr>
               );
             })}

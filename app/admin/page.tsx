@@ -73,6 +73,11 @@ export default function AdminPage() {
   const [campeonJ6Result, setCampeonJ6Result] = useState<string | null>(null);
   const [confirmandoCampeonJ6, setConfirmandoCampeonJ6] = useState(false);
 
+  // Clasificados LC
+  const [clasificadosLcLigamx, setClasificadosLcLigamx] = useState<string[]>([]);
+  const [clasificadosLcMls, setClasificadosLcMls] = useState<string[]>([]);
+  const [clasificandoLc, setClasificandoLc] = useState(false);
+
   // Registrar pago manual
   const [pagoJugadorId, setPagoJugadorId] = useState('');
   const [pagoJornada, setPagoJornada]     = useState<number>(1);
@@ -115,6 +120,7 @@ export default function AdminPage() {
     campeonJ6: false,
     magicLink: false,
     grupos: false,
+    clasificadosLc: false,
   });
   const toggleSeccion = (seccion: keyof typeof seccionesAbiertas) => {
     setSeccionesAbiertas(prev => ({ ...prev, [seccion]: !prev[seccion] }));
@@ -358,6 +364,19 @@ export default function AdminPage() {
       await Promise.all([cargarPartidos(), cargarJugadores()]);
 
       await cargarPozos();
+
+      // Cargar clasificados LC si temporada activa
+      if (TEMPORADA_ACTIVA === 'ligamx2026') {
+        const { data: lcRows } = await supabase
+          .from('quiniela_clasificados_lc')
+          .select('liga, equipos')
+          .eq('temporada', 'ligamx2026');
+        (lcRows ?? []).forEach((row: { liga: string; equipos: string[] }) => {
+          if (row.liga === 'ligamx') setClasificadosLcLigamx(row.equipos);
+          if (row.liga === 'mls')    setClasificadosLcMls(row.equipos);
+        });
+      }
+
       setLoading(false);
     };
 
@@ -803,6 +822,35 @@ export default function AdminPage() {
       toast.error(msg);
     }
     setCampeonJ6Loading(false);
+  };
+
+  const handleGuardarClasificadosLc = async (liga: 'ligamx' | 'mls') => {
+    setClasificandoLc(true);
+    const equipos = liga === 'ligamx' ? clasificadosLcLigamx : clasificadosLcMls;
+    try {
+      const { data: existing } = await supabase
+        .from('quiniela_clasificados_lc')
+        .select('id')
+        .eq('temporada', 'ligamx2026')
+        .eq('liga', liga)
+        .maybeSingle();
+      if (existing?.id) {
+        const { error } = await supabase
+          .from('quiniela_clasificados_lc')
+          .update({ equipos, updated_at: new Date().toISOString() })
+          .eq('id', existing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('quiniela_clasificados_lc')
+          .insert({ temporada: 'ligamx2026', liga, equipos });
+        if (error) throw error;
+      }
+      toast.success(`✅ Clasificados ${liga === 'ligamx' ? 'Liga MX' : 'MLS'} guardados (${equipos.length} equipos)`);
+    } catch (e: unknown) {
+      toast.error('Error: ' + (e as Error).message);
+    }
+    setClasificandoLc(false);
   };
 
   const registrarPago = async () => {
@@ -1906,6 +1954,88 @@ export default function AdminPage() {
         </div>
         )}
       </section>
+
+      {/* ── CLASIFICADOS LEAGUES CUP ── */}
+      {TEMPORADA_ACTIVA === 'ligamx2026' && (
+      <section className="space-y-1">
+        <button
+          onClick={() => toggleSeccion('clasificadosLc')}
+          className="w-full flex items-center justify-between px-4 py-4 rounded-xl hover:border-orange-500/30 transition-all"
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: 'var(--accent-gold)' }}>
+            🏆 CLASIFICADOS LEAGUES CUP — LC2026
+          </span>
+          <span style={{ color: '#64748b' }}>{seccionesAbiertas.clasificadosLc ? '▲' : '▼'}</span>
+        </button>
+        {seccionesAbiertas.clasificadosLc && (
+          <div className="rounded-2xl p-4 space-y-6" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+            {/* Liga MX */}
+            <div className="space-y-3">
+              <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
+                Liga MX — selecciona los clasificados ({clasificadosLcLigamx.length} seleccionados)
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {['América','Guadalajara','Cruz Azul','Monterrey','Tigres','Pumas','Toluca','Atlas','León','Pachuca','Santos','Puebla','Querétaro','Tijuana','Juárez','San Luis','Necaxa','Atlante'].map(eq => {
+                  const sel = clasificadosLcLigamx.includes(eq);
+                  return (
+                    <button key={eq}
+                      onClick={() => setClasificadosLcLigamx(prev => sel ? prev.filter(e => e !== eq) : [...prev, eq])}
+                      className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold transition-all"
+                      style={{
+                        background: sel ? 'rgba(34,197,94,0.2)' : 'var(--bg-card-hover)',
+                        border: `1px solid ${sel ? '#22c55e' : 'var(--border)'}`,
+                        color: sel ? '#22c55e' : 'var(--text-secondary)',
+                      }}>
+                      <Bandera emoji="" nombre={eq} size="sm" />
+                      {eq}
+                    </button>
+                  );
+                })}
+              </div>
+              <button
+                onClick={() => handleGuardarClasificadosLc('ligamx')}
+                disabled={clasificandoLc}
+                className="w-full h-10 rounded-xl font-bold text-sm disabled:opacity-40 transition-all active:scale-95"
+                style={{ background: '#10b981', color: '#000' }}>
+                {clasificandoLc ? '…' : `Guardar Liga MX (${clasificadosLcLigamx.length} equipos) ✓`}
+              </button>
+            </div>
+
+            {/* MLS */}
+            <div className="space-y-3">
+              <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
+                MLS — selecciona los clasificados ({clasificadosLcMls.length} seleccionados)
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {['Charlotte FC','Columbus Crew','FC Dallas','Inter Miami','New York City FC','Real Salt Lake','Seattle Sounders','FC Cincinnati','Minnesota United','Vancouver Whitecaps','Nashville SC','Orlando City','LAFC','Philadelphia Union','Chicago Fire','Austin FC','San Diego FC','Portland Timbers'].map(eq => {
+                  const sel = clasificadosLcMls.includes(eq);
+                  return (
+                    <button key={eq}
+                      onClick={() => setClasificadosLcMls(prev => sel ? prev.filter(e => e !== eq) : [...prev, eq])}
+                      className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold transition-all"
+                      style={{
+                        background: sel ? 'rgba(34,197,94,0.2)' : 'var(--bg-card-hover)',
+                        border: `1px solid ${sel ? '#22c55e' : 'var(--border)'}`,
+                        color: sel ? '#22c55e' : 'var(--text-secondary)',
+                      }}>
+                      <Bandera emoji="" nombre={eq} size="sm" />
+                      {eq}
+                    </button>
+                  );
+                })}
+              </div>
+              <button
+                onClick={() => handleGuardarClasificadosLc('mls')}
+                disabled={clasificandoLc}
+                className="w-full h-10 rounded-xl font-bold text-sm disabled:opacity-40 transition-all active:scale-95"
+                style={{ background: '#10b981', color: '#000' }}>
+                {clasificandoLc ? '…' : `Guardar MLS (${clasificadosLcMls.length} equipos) ✓`}
+              </button>
+            </div>
+          </div>
+        )}
+      </section>
+      )}
 
       {/* ── NOTAS DEL ADMIN ── */}
       <section className="space-y-1">

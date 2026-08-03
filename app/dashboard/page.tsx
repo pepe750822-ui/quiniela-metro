@@ -323,6 +323,42 @@ export default function DashboardPage() {
       });
     }
 
+    // Pts de clasificación Leagues Cup (solo ligamx2026 J1)
+    if (TEMPORADA_ACTIVA === 'ligamx2026' && j === 1 && allUserIds.length) {
+      const [{ data: lcRows }, { data: lcPicks }] = await Promise.all([
+        supabase.from('quiniela_clasificados_lc').select('liga, equipos').eq('temporada', 'ligamx2026'),
+        supabase.from('quiniela_picks_clasificacion').select('user_id, liga, equipos').eq('temporada', 'ligamx2026').in('user_id', allUserIds),
+      ]);
+      const lcMap: { ligamx: string[]; mls: string[] } = { ligamx: [], mls: [] };
+      (lcRows ?? []).forEach((r: { liga: string; equipos: string[] }) => {
+        if (r.liga === 'ligamx') lcMap.ligamx = r.equipos;
+        if (r.liga === 'mls')    lcMap.mls = r.equipos;
+      });
+      const userPicksMap: Record<string, { ligamx: string[]; mls: string[] }> = {};
+      (lcPicks ?? []).forEach((p: { user_id: string; liga: string; equipos: string[] }) => {
+        if (!userPicksMap[p.user_id]) userPicksMap[p.user_id] = { ligamx: [], mls: [] };
+        if (p.liga === 'ligamx') userPicksMap[p.user_id].ligamx = p.equipos;
+        if (p.liga === 'mls')    userPicksMap[p.user_id].mls = p.equipos;
+      });
+      allUserIds.forEach(uid => {
+        const up = userPicksMap[uid];
+        if (!up) return;
+        let pts = 0;
+        if (lcMap.ligamx.length > 0) pts += up.ligamx.filter(e => lcMap.ligamx.includes(e)).length;
+        if (lcMap.mls.length > 0)    pts += up.mls.filter(e => lcMap.mls.includes(e)).length;
+        if (pts > 0) {
+          // Apply to all participaciones for this user in this jornada
+          pagadosEntries
+            .filter(p => p.user_id === uid)
+            .forEach(p => {
+              const key = `${p.user_id}:${p.quiniela_extra_id ?? 'null'}`;
+              if (!puntajes[key]) puntajes[key] = { puntos: 0, exactos: 0 };
+              puntajes[key].puntos += pts;
+            });
+        }
+      });
+    }
+
     // Incluir todos los pagados+publicados aunque tengan 0 pts
     const rankingOrdenado = pagadosEntries
       .map(p => {
