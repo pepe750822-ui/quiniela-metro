@@ -88,7 +88,9 @@ export default function TablaPage() {
       .order('fecha_hora');
     const { data: parts } = jornada === 6
       ? await partidosQuery.gte('jornada', 6)
-      : await partidosQuery.eq('jornada', jornada);
+      : TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 1
+        ? await partidosQuery.eq('jornada', jornada).lt('fecha_hora', '2026-08-07T23:00:00Z')
+        : await partidosQuery.eq('jornada', jornada);
     setPartidos(parts || []);
 
     // Para J6 (Fase Final), incluir participaciones de J7+ igual que partidos
