@@ -553,16 +553,12 @@ export default function PrediccionesPage() {
   const guardarPicksClasificacion = async (liga: 'ligamx' | 'mls', equipos: string[]) => {
     if (!userId || equipos.length !== 4) return;
     setPicksGuardando(true);
-    const { data: existing } = await supabase
+    await supabase
       .from('quiniela_picks_clasificacion')
-      .select('id')
+      .delete()
       .eq('user_id', userId)
       .eq('temporada', TEMPORADA_ACTIVA)
-      .eq('liga', liga)
-      .maybeSingle();
-    if (existing) {
-      await supabase.from('quiniela_picks_clasificacion').delete().eq('id', existing.id);
-    }
+      .eq('liga', liga);
     const { error } = await supabase
       .from('quiniela_picks_clasificacion')
       .insert({ user_id: userId, temporada: TEMPORADA_ACTIVA, liga, equipos });
