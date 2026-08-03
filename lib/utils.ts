@@ -8,16 +8,16 @@ export const LOGOS_LIGAMX: Record<string, string> = {
   'Monterrey':    '/logos/monterrey.svg',
   'Tigres':       '/logos/tigres.svg',
   'Pumas':        '/logos/pumas.svg',
-  'Toluca':       '/logos/toluca.png',
+  'Toluca':       '/logos/toluca.svg',
   'Atlas':        '/logos/atlas.svg',
   'León':         '/logos/leon.svg',
   'Pachuca':      '/logos/pachuca.svg',
   'Santos':       '/logos/santos.svg',
   'Puebla':       '/logos/puebla.svg',
-  'Querétaro':    '/logos/queretaro.png',
+  'Querétaro':    '/logos/queretaro.svg',
   'Tijuana':      '/logos/tijuana.svg',
   'Juárez':       '/logos/juarez.svg',
-  'San Luis':     '/logos/sanluis.png',
+  'San Luis':     '/logos/sanluis.svg',
   'Necaxa':       '/logos/necaxa.svg',
   'Atlante':      '/logos/atlante.svg',
   // MLS — archivos locales (descargados de Wikipedia)
@@ -25,7 +25,7 @@ export const LOGOS_LIGAMX: Record<string, string> = {
   'Columbus Crew':      '/logos/columbuscrew.svg',
   'FC Dallas':          '/logos/fcdallas.svg',
   'Inter Miami':        '/logos/intermiami.svg',
-  'New York City FC':   '/logos/newyorkcityfc.png',
+  'New York City FC':   '/logos/newyorkcityfc.svg',
   'Real Salt Lake':     '/logos/realsaltlake.svg',
   'Seattle Sounders':   '/logos/seattlesounders.svg',
   'FC Cincinnati':      '/logos/fccincinnati.svg',
@@ -33,9 +33,12 @@ export const LOGOS_LIGAMX: Record<string, string> = {
   'Vancouver Whitecaps': '/logos/vancouverwhitecaps.svg',
   'Nashville SC':        '/logos/nashvillesc.svg',
   'Orlando City':        '/logos/orlandocity.svg',
-  // MLS — sin logo disponible: muestran nombre en texto como fallback
-  // LAFC, Philadelphia Union, Chicago Fire, Austin FC,
-  // Portland Timbers, San Diego FC, Orlando City
+  'LAFC':                '/logos/lafc.svg',
+  'Philadelphia Union':  '/logos/philadelphiaunion.svg',
+  'Chicago Fire':        '/logos/chicagofire.svg',
+  'Austin FC':           '/logos/austinfc.svg',
+  'San Diego FC':        '/logos/sandiegofc.svg',
+  'Portland Timbers':    '/logos/portlandtimbers.svg',
 };
 
 export const emailCorto = (email: string) => email.split('@')[0];
