@@ -435,7 +435,7 @@ export default function PrediccionesPage() {
       .eq('temporada', TEMPORADA_ACTIVA)
       .eq('jornada', jornada);
     if (TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 1) {
-      query = query.lt('fecha_hora', '2026-08-07T00:00:00Z');
+      query = query.lt('fecha_hora', '2026-08-08T00:00:00Z');
     }
     const { data } = await query.order('fecha_hora');
     setPartidos((data as Partido[]) ?? []);
@@ -953,7 +953,7 @@ export default function PrediccionesPage() {
         className="flex gap-2 overflow-x-auto pb-1"
         style={{ scrollbarWidth: 'none' }}
       >
-        {jornadas.filter(j => j <= 6).map(j => {
+        {jornadas.filter(j => TEMPORADA_ACTIVA === 'ligamx2026' ? j === 1 : j <= 6).map(j => {
           const cerrada = TEMPORADA_ACTIVA === 'ligamx2026' ? new Date() > getDeadline(j) : j < 2 || new Date() > getDeadline(j);
           return (
             <Pill key={j} active={jornada === j} onClick={() => setJornada(j)} faded={cerrada && jornada !== j}>
