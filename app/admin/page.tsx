@@ -399,10 +399,14 @@ export default function AdminPage() {
     }
     const partidoObj = partidos.find(p => p.id === partidoId);
     const ext = extras[partidoId];
-    const esElim = (partidoObj?.jornada ?? 0) >= 5;
+    const fechaPartidoH = partidoObj ? new Date(partidoObj.fecha_hora) : null;
+    const esLeaguesCupH = TEMPORADA_ACTIVA === 'ligamx2026' && !!fechaPartidoH
+      && fechaPartidoH >= new Date('2026-08-04T00:00:00Z')
+      && fechaPartidoH < new Date('2026-08-14T00:00:00Z');
+    const esElim = (partidoObj?.jornada ?? 0) >= 5 || esLeaguesCupH;
 
     if (esElim && (!ext?.clasificado || !ext?.como_termino)) {
-      toast.error('Debes seleccionar quién clasificó y cómo terminó');
+      toast.error('Debes seleccionar quién ganó y cómo terminó');
       return;
     }
 
@@ -1777,6 +1781,11 @@ export default function AdminPage() {
         <div className="space-y-3">
           {partidos.map(partido => {
             const res = resultados[partido.id];
+            const fechaP = new Date(partido.fecha_hora);
+            const esLeaguesCup = TEMPORADA_ACTIVA === 'ligamx2026'
+              && fechaP >= new Date('2026-08-04T00:00:00Z')
+              && fechaP < new Date('2026-08-14T00:00:00Z');
+            const necesitaExtras = partido.jornada >= 5 || esLeaguesCup;
             return (
               <div key={partido.id} id={`partido-${partido.id}`} className="rounded-2xl p-4 space-y-3"
                 style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
@@ -1817,7 +1826,7 @@ export default function AdminPage() {
                         }))}
                         className="w-14 h-12 text-center text-xl font-bold rounded-xl outline-none"
                         style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontFamily: 'var(--font-bebas)' }} />
-                      {partido.jornada < 5 && (
+                      {!necesitaExtras && (
                         <button onClick={() => handleGuardar(partido.id)}
                           disabled={guardando === partido.id}
                           className="h-12 px-4 rounded-xl font-bold text-sm disabled:opacity-40 transition-all active:scale-95"
@@ -1832,10 +1841,12 @@ export default function AdminPage() {
                         🔄
                       </button>
                     </div>
-                    {partido.jornada >= 5 && (
+                    {necesitaExtras && (
                       <div className="flex flex-col sm:flex-row gap-2 px-1">
                         <div className="flex-1">
-                          <label className="block text-xs mb-1" style={{ color: '#64748b' }}>¿Quién clasificó?</label>
+                          <label className="block text-xs mb-1" style={{ color: '#64748b' }}>
+                            {esLeaguesCup ? '¿Quién ganó?' : '¿Quién clasificó?'}
+                          </label>
                           <select
                             value={extras[partido.id]?.clasificado ?? ''}
                             onChange={e => setExtras(prev => ({ ...prev, [partido.id]: { ...prev[partido.id], clasificado: e.target.value, como_termino: prev[partido.id]?.como_termino ?? 'reglamentario' } }))}
@@ -1854,14 +1865,14 @@ export default function AdminPage() {
                             className="w-full rounded-lg px-2 py-1.5 text-sm outline-none"
                             style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}>
                             <option value="">— seleccionar —</option>
-                            <option value="reglamentario">⏱️ Tiempo reglamentario</option>
-                            <option value="tiempo_extra">⏩ Tiempo extra</option>
+                            <option value="reglamentario">⏱️ Reglamentario</option>
+                            {!esLeaguesCup && <option value="tiempo_extra">⏩ Tiempo extra</option>}
                             <option value="penales">🥅 Penales</option>
                           </select>
                         </div>
                       </div>
                     )}
-                    {partido.jornada >= 5 && (
+                    {necesitaExtras && (
                       <button onClick={() => handleGuardar(partido.id)}
                         disabled={guardando === partido.id}
                         className="w-full h-12 rounded-xl font-bold text-sm disabled:opacity-40 transition-all active:scale-95"
@@ -1876,7 +1887,7 @@ export default function AdminPage() {
                     <p className="font-bold text-lg" style={{ fontFamily: 'var(--font-bebas)', color: 'var(--accent-gold)' }}>
                       {partido.goles_local} – {partido.goles_visitante}
                     </p>
-                    {partido.jornada >= 5 && (partido as any).clasificado && (
+                    {necesitaExtras && (partido as any).clasificado && (
                       <p className="text-xs flex items-center justify-center gap-1.5" style={{ color: '#94a3b8' }}>
                         <Bandera emoji={BANDERAS_EQUIPOS[(partido as any).clasificado] ?? ''} nombre={(partido as any).clasificado} size="sm" />
                         {(partido as any).clasificado}
