@@ -6,7 +6,7 @@ import { DraftPrediccion, Partido } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Bandera } from '@/components/Bandera';
-import { getMontoJornada } from '@/lib/utils';
+import { getMontoJornada, TEMPORADA_ACTIVA } from '@/lib/utils';
 
 interface Props {
   partido: Partido;
@@ -231,11 +231,16 @@ export default function PrediccionForm({
     (e) => e && e !== 'A definir',
   );
 
-  const terminaciones = [
-    { key: 'reglamentario', label: '⏱️ 90 min' },
-    { key: 'tiempo_extra',  label: '⏩ Prórroga' },
-    { key: 'penales',       label: '🥅 Penales' },
-  ] as const;
+  const terminaciones = TEMPORADA_ACTIVA === 'ligamx2026'
+    ? [
+        { key: 'reglamentario', label: '⏱️ Tiempo reglamentario' },
+        { key: 'penales',       label: '🥅 Penales' },
+      ] as const
+    : [
+        { key: 'reglamentario', label: '⏱️ 90 min' },
+        { key: 'tiempo_extra',  label: '⏩ Prórroga' },
+        { key: 'penales',       label: '🥅 Penales' },
+      ] as const;
 
   return (
     <motion.div
