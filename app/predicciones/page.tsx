@@ -553,10 +553,19 @@ export default function PrediccionesPage() {
   const guardarPicksClasificacion = async (liga: 'ligamx' | 'mls', equipos: string[]) => {
     if (!userId || equipos.length !== 4) return;
     setPicksGuardando(true);
-    const { error } = await supabase
+    const { data: existing } = await supabase
       .from('quiniela_picks_clasificacion')
-      .upsert({ user_id: userId, temporada: TEMPORADA_ACTIVA, liga, equipos, updated_at: new Date().toISOString() },
-               { onConflict: 'user_id,temporada,liga' });
+      .select('id')
+      .eq('user_id', userId)
+      .eq('temporada', TEMPORADA_ACTIVA)
+      .eq('liga', liga)
+      .maybeSingle();
+    const { error } = existing
+      ? await supabase.from('quiniela_picks_clasificacion')
+          .update({ equipos, updated_at: new Date().toISOString() })
+          .eq('id', existing.id)
+      : await supabase.from('quiniela_picks_clasificacion')
+          .insert({ user_id: userId, temporada: TEMPORADA_ACTIVA, liga, equipos });
     setPicksGuardando(false);
     if (error) { toast.error('Error al guardar picks'); return; }
     if (liga === 'ligamx') setPicksLigamx(equipos);
