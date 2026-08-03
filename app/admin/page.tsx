@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Partido, Jugador, Pozo, Participacion } from '@/types';
-import { emailCorto, mostrarNombre, getNombreJornada, getMontoJornada, BANDERAS_EQUIPOS, TEMPORADA_ACTIVA } from '@/lib/utils';
+import { emailCorto, mostrarNombre, getNombreJornada, getNombreJornadaLigaMX, getMontoJornada, BANDERAS_EQUIPOS, TEMPORADA_ACTIVA } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Bandera } from '@/components/Bandera';
 
@@ -288,8 +288,8 @@ export default function AdminPage() {
   const cargarPozos = async () => {
     // Query 1: pozos y participaciones (sin join para evitar fallos silenciosos de RLS)
     const [{ data: pz }, { data: pt, error: ptError }] = await Promise.all([
-      supabase.from('quiniela_pozo').select('*').order('jornada'),
-      supabase.from('quiniela_participaciones').select('id, user_id, jornada, pagado, monto, publicado, created_at, pagado_at, quiniela_extra_id').order('created_at'),
+      supabase.from('quiniela_pozo').select('*').eq('temporada', TEMPORADA_ACTIVA).order('jornada'),
+      supabase.from('quiniela_participaciones').select('id, user_id, jornada, pagado, monto, publicado, created_at, pagado_at, quiniela_extra_id').eq('temporada', TEMPORADA_ACTIVA).order('created_at'),
     ]);
 
     if (ptError) console.error('Error cargando participaciones:', ptError);
@@ -812,6 +812,7 @@ export default function AdminPage() {
       .select('id, pagado')
       .eq('user_id', pagoJugadorId)
       .eq('jornada', pagoJornada)
+      .eq('temporada', TEMPORADA_ACTIVA)
       .maybeSingle();
 
     if (partExistente) {
@@ -829,7 +830,7 @@ export default function AdminPage() {
       const monto = getMontoJornada(pagoJornada);
       const { error } = await supabase
         .from('quiniela_participaciones')
-        .insert({ user_id: pagoJugadorId, jornada: pagoJornada, pagado: true, monto, pagado_at: new Date().toISOString() });
+        .insert({ user_id: pagoJugadorId, jornada: pagoJornada, pagado: true, monto, pagado_at: new Date().toISOString(), temporada: TEMPORADA_ACTIVA });
       if (error) { toast.error('Error al crear participación'); setRegistrando(false); return; }
     }
 
@@ -841,7 +842,8 @@ export default function AdminPage() {
         total_mxn:     (pozo?.total_mxn ?? 0) + montoPozo,
         participantes: (pozo?.participantes ?? 0) + 1,
       })
-      .eq('jornada', pagoJornada);
+      .eq('jornada', pagoJornada)
+      .eq('temporada', TEMPORADA_ACTIVA);
 
     const nombre = jugador ? mostrarNombre(jugador) : 'Jugador';
     toast.success(`✅ Pago de ${nombre} registrado en ${getNombreJornada(pagoJornada)}`);
@@ -981,7 +983,7 @@ export default function AdminPage() {
 
   const jornadasConPozo = new Set(pozos.map(p => p.jornada));
   const pozosCompletos = [...pozos];
-  for (let j = 1; j <= 5; j++) {
+  for (let j = 1; j <= (TEMPORADA_ACTIVA === 'ligamx2026' ? 3 : 5); j++) {
     if (!jornadasConPozo.has(j)) {
       pozosCompletos.push({
         id: `synthetic-${j}`,
@@ -1052,7 +1054,7 @@ export default function AdminPage() {
       </div>
 
       {/* ── FASE FINAL J6 — CUARTOS DE FINAL ── */}
-      <section className="space-y-1">
+      {TEMPORADA_ACTIVA !== 'ligamx2026' && <section className="space-y-1">
         <button
           onClick={() => toggleSeccion('faseFinalJ6')}
           className="w-full flex items-center justify-between px-4 py-4 rounded-xl hover:border-orange-500/50 transition-all"
@@ -1210,7 +1212,7 @@ export default function AdminPage() {
 
           </div>
         )}
-      </section>
+      </section>}
 
       {/* ── REGISTRAR PAGO ── */}
       <section className="space-y-1">
@@ -1253,7 +1255,7 @@ export default function AdminPage() {
                 Jornada
               </label>
               <div className="flex gap-2">
-                {[1, 2, 3, 4].map(j => (
+                {(TEMPORADA_ACTIVA === 'ligamx2026' ? [1, 2, 3] : [1, 2, 3, 4]).map(j => (
                   <button
                     key={j}
                     onClick={() => setPagoJornada(j)}
@@ -1265,7 +1267,7 @@ export default function AdminPage() {
                       fontFamily: 'var(--font-rajdhani)',
                     }}
                   >
-                    {getNombreJornada(j)}
+                    {TEMPORADA_ACTIVA === 'ligamx2026' ? getNombreJornadaLigaMX(j) : getNombreJornada(j)}
                   </button>
                 ))}
               </div>
@@ -2067,7 +2069,7 @@ export default function AdminPage() {
       </section>)}
 
       {/* ── CAMPEÓN J6 — CUARTOS DE FINAL +5 PTS ── */}
-      <section className="space-y-1">
+      {TEMPORADA_ACTIVA !== 'ligamx2026' && <section className="space-y-1">
         <button
           onClick={() => toggleSeccion('campeonJ6')}
           className="w-full flex items-center justify-between px-4 py-4 rounded-xl hover:border-orange-500/30 transition-all"
@@ -2154,10 +2156,10 @@ export default function AdminPage() {
             </div>
           </div>
         )}
-      </section>
+      </section>}
 
       {/* ── GRUPOS MUNDIAL ── */}
-      <section className="space-y-1">
+      {TEMPORADA_ACTIVA !== 'ligamx2026' && <section className="space-y-1">
         <button
           onClick={() => {
             toggleSeccion('grupos');
@@ -2272,7 +2274,7 @@ export default function AdminPage() {
             )}
           </div>
         )}
-      </section>
+      </section>}
     </main>
   );
 }
