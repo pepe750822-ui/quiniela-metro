@@ -154,6 +154,7 @@ export default function PrediccionForm({
         pagado:            false,
         monto:             getMontoJornada(partido.jornada),
         quiniela_extra_id: quinielaExtraId,
+        temporada:         TEMPORADA_ACTIVA,
       });
     }
 
