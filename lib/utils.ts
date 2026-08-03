@@ -29,8 +29,9 @@ export const LOGOS_LIGAMX: Record<string, string> = {
   'Real Salt Lake':     '/logos/realsaltlake.svg',
   'Seattle Sounders':   '/logos/seattlesounders.svg',
   'FC Cincinnati':      '/logos/fccincinnati.svg',
+  'Minnesota United':   '/logos/minnesotaunited.svg',
   // MLS — sin logo disponible: muestran nombre en texto como fallback
-  // Minnesota United, Vancouver Whitecaps, Nashville SC,
+  // Vancouver Whitecaps, Nashville SC,
   // LAFC, Philadelphia Union, Chicago Fire, Austin FC,
   // Portland Timbers, San Diego FC, Orlando City
 };
