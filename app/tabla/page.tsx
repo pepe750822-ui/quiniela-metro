@@ -231,6 +231,14 @@ export default function TablaPage() {
     return BANDERAS_EQUIPOS[clasificadoPred] || clasificadoPred;
   };
 
+  const necesitaTerminacionPartido = (partido: any): boolean => {
+    if (TEMPORADA_ACTIVA === 'ligamx2026') {
+      const fecha = new Date(partido.fecha_hora);
+      return fecha >= new Date('2026-08-04T00:00:00Z') && fecha < new Date('2026-08-14T00:00:00Z');
+    }
+    return partido.jornada >= 5;
+  };
+
   const descargarCSV = () => {
     const ahora = new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' });
 
@@ -560,7 +568,7 @@ export default function TablaPage() {
                     style={{ background: 'rgba(234,88,12,0.2)', border: '1px solid rgba(234,88,12,0.3)', color: '#fb923c' }}>
                     {partido.goles_local}-{partido.goles_visitante}
                   </div>
-                  {jornada >= 5 && partido.clasificado && (
+                  {necesitaTerminacionPartido(partido) && partido.clasificado && (
                     <div className="flex items-center justify-center gap-0.5 mt-0.5">
                       <Bandera emoji={BANDERAS_EQUIPOS[partido.clasificado] ?? ''} nombre={partido.clasificado} size="sm" />
                       <span style={{ fontSize: '0.6rem', color: '#94a3b8' }}>
@@ -659,7 +667,7 @@ export default function TablaPage() {
                   {finalizados.map(partido => {
                     const pred = getPred(part.user_id, partido.id, part.quiniela_extra_id);
                     const pts = pred?.puntos_ganados ?? null;
-                    if (partido.jornada >= 5) {
+                    if (necesitaTerminacionPartido(partido)) {
                       // ── desglose J5+ ─────────────────────────────
                       if (pts !== null && pred) {
                         const ptsClasif = (partido.clasificado && pred.clasificado_pred === partido.clasificado) ? 1 : 0;
@@ -763,7 +771,7 @@ export default function TablaPage() {
                             <div className="text-sm font-medium text-slate-800 dark:text-slate-200">
                               {pred.goles_local_pred}-{pred.goles_visitante_pred}
                             </div>
-                            {partido.jornada >= 5 && (pred.clasificado_pred || pred.como_termina_pred) && (
+                            {necesitaTerminacionPartido(partido) && (pred.clasificado_pred || pred.como_termina_pred) && (
                               <div className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>
                                 {[
                                   pred.clasificado_pred ? getBanderaClasificado(pred.clasificado_pred, partido) : null,
