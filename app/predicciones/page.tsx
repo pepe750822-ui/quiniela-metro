@@ -419,8 +419,22 @@ export default function PrediccionesPage() {
       partPromise,
     ]);
     setPozo(pz as Pozo ?? null);
-    setParticipando(part?.pagado ?? null);
     setPublicado(part?.publicado ?? false);
+
+    // Liga MX 2026: pago de J1 cubre toda la Leagues Cup (J1, J2, J3)
+    if (TEMPORADA_ACTIVA === 'ligamx2026' && j >= 2 && !part?.pagado) {
+      const { data: partJ1 } = await supabase
+        .from('quiniela_participaciones')
+        .select('pagado')
+        .eq('user_id', uid)
+        .eq('jornada', 1)
+        .eq('temporada', TEMPORADA_ACTIVA)
+        .is('quiniela_extra_id', null)
+        .maybeSingle();
+      setParticipando(partJ1?.pagado === true ? true : part?.pagado ?? null);
+    } else {
+      setParticipando(part?.pagado ?? null);
+    }
 
     if (!part) {
       await supabase
