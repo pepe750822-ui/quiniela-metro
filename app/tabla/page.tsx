@@ -222,13 +222,23 @@ export default function TablaPage() {
           body: JSON.stringify({ partidoIds: partidosF1.map((p: any) => p.id) }),
         });
         const { predicciones: predsF1 = [] } = await resF1.json();
-        // Clave por user_id:quiniela_extra_id para no sumar quinielas distintas
-        const ptsByUser: Record<string, number> = {};
+        // Deduplicar por (user_id, partido_id, quiniela_extra_id) — evita doble conteo
+        const dedupMap: Record<string, number> = {};
         predsF1.forEach((p: any) => {
           if (p.puntos_ganados != null) {
-            const key = `${p.user_id}:${p.quiniela_extra_id ?? 'null'}`;
-            ptsByUser[key] = (ptsByUser[key] || 0) + p.puntos_ganados;
+            const dk = `${p.user_id}:${p.partido_id}:${p.quiniela_extra_id ?? 'null'}`;
+            // Guardar el mayor puntos_ganados si hay duplicados
+            if (dedupMap[dk] === undefined || p.puntos_ganados > dedupMap[dk]) {
+              dedupMap[dk] = p.puntos_ganados;
+            }
           }
+        });
+        // Agrupar por user_id:quiniela_extra_id
+        const ptsByUser: Record<string, number> = {};
+        Object.entries(dedupMap).forEach(([dk, pts]) => {
+          const [userId, , qeid] = dk.split(':');
+          const key = `${userId}:${qeid}`;
+          ptsByUser[key] = (ptsByUser[key] || 0) + pts;
         });
         setPtsF1(ptsByUser);
       } else {
