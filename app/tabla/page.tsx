@@ -222,23 +222,20 @@ export default function TablaPage() {
           body: JSON.stringify({ partidoIds: partidosF1.map((p: any) => p.id) }),
         });
         const { predicciones: predsF1 = [] } = await resF1.json();
-        // Deduplicar por (user_id, partido_id, quiniela_extra_id) — evita doble conteo
+        // Solo quiniela principal (quiniela_extra_id = null), deduplicar por partido
         const dedupMap: Record<string, number> = {};
         predsF1.forEach((p: any) => {
-          if (p.puntos_ganados != null) {
-            const dk = `${p.user_id}:${p.partido_id}:${p.quiniela_extra_id ?? 'null'}`;
-            // Guardar el mayor puntos_ganados si hay duplicados
+          if (p.puntos_ganados != null && p.quiniela_extra_id === null) {
+            const dk = `${p.user_id}:${p.partido_id}`;
             if (dedupMap[dk] === undefined || p.puntos_ganados > dedupMap[dk]) {
               dedupMap[dk] = p.puntos_ganados;
             }
           }
         });
-        // Agrupar por user_id:quiniela_extra_id
         const ptsByUser: Record<string, number> = {};
         Object.entries(dedupMap).forEach(([dk, pts]) => {
-          const [userId, , qeid] = dk.split(':');
-          const key = `${userId}:${qeid}`;
-          ptsByUser[key] = (ptsByUser[key] || 0) + pts;
+          const userId = dk.split(':')[0];
+          ptsByUser[userId] = (ptsByUser[userId] || 0) + pts;
         });
         setPtsF1(ptsByUser);
       } else {
@@ -449,13 +446,7 @@ export default function TablaPage() {
     return base + bono + ptsClas;
   };
 
-  const getPtsF1 = (part: any) => {
-    const key = `${part.user_id}:${part.quiniela_extra_id ?? 'null'}`;
-    // Si no hay pts para esta quiniela extra, usar la quiniela principal como fallback
-    if (ptsF1[key] !== undefined) return ptsF1[key];
-    if (part.quiniela_extra_id) return ptsF1[`${part.user_id}:null`] ?? 0;
-    return 0;
-  };
+  const getPtsF1 = (part: any) => ptsF1[part.user_id] ?? 0;
 
   const calcTotalConF1 = (part: any) => {
     const j2pts = calcTotal(part);
