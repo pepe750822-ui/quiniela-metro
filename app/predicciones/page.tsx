@@ -25,8 +25,9 @@ const DEADLINE_FINAL   = new Date('2026-07-18T21:00:00Z'); // 18 jul 15:00 CDMX 
 const DEADLINE_J7 = new Date('2026-07-14T19:00:00Z');
 const DEADLINE_J8 = new Date('2026-07-18T21:00:00Z');
 const DEADLINE_J9 = new Date('2026-07-19T19:00:00Z');
-// Liga MX Apertura 2026 — deadline antes del primer partido de cada jornada (UTC-5 CDT)
-const DEADLINE_LC_F1 = new Date('2026-08-05T23:45:00Z'); // Martes 4 ago 17:45 CDMX — primer partido
+// Liga MX Apertura 2026 — deadline antes del primer partido de cada fecha (UTC-5 CDT)
+const DEADLINE_LC_F1 = new Date('2026-08-05T23:45:00Z'); // Mar 4 ago 17:45 CDMX — primer partido F1
+const DEADLINE_LC_F2 = new Date('2026-08-07T23:30:00Z'); // Jue 7 ago 17:30 CDMX — primer partido F2
 
 const labelJornada = (j: number) =>
   TEMPORADA_ACTIVA === 'ligamx2026' ? getNombreJornadaLigaMX(j) : getNombreJornada(j);
@@ -34,6 +35,7 @@ const labelJornada = (j: number) =>
 const getDeadline = (jornada: number) => {
   if (TEMPORADA_ACTIVA === 'ligamx2026') {
     if (jornada === 1) return DEADLINE_LC_F1;
+    if (jornada === 2) return DEADLINE_LC_F2;
   }
   if (jornada === 1) return DEADLINE_J1;
   if (jornada === 2) return DEADLINE_J2;
@@ -997,7 +999,7 @@ export default function PrediccionesPage() {
         className="flex gap-2 overflow-x-auto pb-1"
         style={{ scrollbarWidth: 'none' }}
       >
-        {jornadas.filter(j => TEMPORADA_ACTIVA === 'ligamx2026' ? j === 1 : j <= 6).map(j => {
+        {jornadas.filter(j => TEMPORADA_ACTIVA === 'ligamx2026' ? j <= 2 : j <= 6).map(j => {
           const cerrada = TEMPORADA_ACTIVA === 'ligamx2026' ? new Date() > getDeadline(j) : j < 2 || new Date() > getDeadline(j);
           return (
             <Pill key={j} active={jornada === j} onClick={() => setJornada(j)} faded={cerrada && jornada !== j}>
