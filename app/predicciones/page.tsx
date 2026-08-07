@@ -313,7 +313,7 @@ export default function PrediccionesPage() {
   const [predicciones, setPredicciones]   = useState<Record<string, Prediccion>>({});
   const [partidoActivo, setPartidoActivo] = useState<Partido | null>(null);
   const [loading, setLoading]             = useState(true);
-  const [jornada, setJornada]             = useState(1);
+  const [jornada, setJornada]             = useState(TEMPORADA_ACTIVA === 'ligamx2026' && new Date() > DEADLINE_LC_F1 ? 2 : 1);
   const [jornadas, setJornadas]           = useState<number[]>([]);
   const [pozo, setPozo]                   = useState<Pozo | null>(null);
   const [participando, setParticipando]   = useState<boolean | null>(null);
