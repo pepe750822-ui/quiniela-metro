@@ -222,10 +222,12 @@ export default function TablaPage() {
           body: JSON.stringify({ partidoIds: partidosF1.map((p: any) => p.id) }),
         });
         const { predicciones: predsF1 = [] } = await resF1.json();
+        // Clave por user_id:quiniela_extra_id para no sumar quinielas distintas
         const ptsByUser: Record<string, number> = {};
         predsF1.forEach((p: any) => {
           if (p.puntos_ganados != null) {
-            ptsByUser[p.user_id] = (ptsByUser[p.user_id] || 0) + p.puntos_ganados;
+            const key = `${p.user_id}:${p.quiniela_extra_id ?? 'null'}`;
+            ptsByUser[key] = (ptsByUser[key] || 0) + p.puntos_ganados;
           }
         });
         setPtsF1(ptsByUser);
@@ -437,10 +439,18 @@ export default function TablaPage() {
     return base + bono + ptsClas;
   };
 
+  const getPtsF1 = (part: any) => {
+    const key = `${part.user_id}:${part.quiniela_extra_id ?? 'null'}`;
+    // Si no hay pts para esta quiniela extra, usar la quiniela principal como fallback
+    if (ptsF1[key] !== undefined) return ptsF1[key];
+    if (part.quiniela_extra_id) return ptsF1[`${part.user_id}:null`] ?? 0;
+    return 0;
+  };
+
   const calcTotalConF1 = (part: any) => {
     const j2pts = calcTotal(part);
     if (TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 2) {
-      return j2pts + (ptsF1[part.user_id] ?? 0);
+      return j2pts + getPtsF1(part);
     }
     return j2pts;
   };
@@ -749,7 +759,7 @@ export default function TablaPage() {
                     <td className="px-2 py-2 text-center"
                       style={{ borderLeft: '2px solid rgba(99,102,241,0.5)', borderBottom: '1px solid var(--border-color)', minWidth: 52 }}>
                       <div style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: '#818cf8' }}>
-                        {ptsF1[part.user_id] ?? 0}
+                        {getPtsF1(part)}
                       </div>
                       <div style={{ fontSize: '0.55rem', color: '#475569', lineHeight: 1 }}>F1</div>
                     </td>
