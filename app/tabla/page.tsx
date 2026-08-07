@@ -532,7 +532,7 @@ export default function TablaPage() {
       <div className="px-4 pt-6 pb-4">
         <div className="flex items-center gap-3">
           <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: '2rem', color: '#ea580c', letterSpacing: '0.05em' }}>
-            📊 TABLA DE PUNTOS
+            {TEMPORADA_ACTIVA === 'ligamx2026' ? 'Leagues Cup — Fase 1' : '📊 TABLA DE PUNTOS'}
           </h1>
           <div className="ml-auto flex gap-2">
             {esAdmin && (
