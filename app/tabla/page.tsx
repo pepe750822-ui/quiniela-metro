@@ -90,8 +90,8 @@ export default function TablaPage() {
       .order('fecha_hora');
     const { data: parts } = jornada === 6
       ? await partidosQuery.gte('jornada', 6)
-      : TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 1
-        ? await partidosQuery.eq('jornada', jornada).lt('fecha_hora', '2026-08-07T23:00:00Z')
+      : TEMPORADA_ACTIVA === 'ligamx2026' && (jornada === 1 || jornada === 2)
+        ? await partidosQuery.in('jornada', [1, 2])
         : await partidosQuery.eq('jornada', jornada);
     setPartidos(parts || []);
 
@@ -103,7 +103,9 @@ export default function TablaPage() {
       .eq('temporada', TEMPORADA_ACTIVA);
     const { data: particsRaw } = jornada === 6
       ? await particsQuery.gte('jornada', 6)
-      : await particsQuery.eq('jornada', jornada);
+      : TEMPORADA_ACTIVA === 'ligamx2026' && (jornada === 1 || jornada === 2)
+        ? await particsQuery.in('jornada', [1, 2])
+        : await particsQuery.eq('jornada', jornada);
     // Deduplicar por (user_id, quiniela_extra_id) manteniendo la participación de menor jornada
     let partics: any[] = [];
     if (jornada === 6) {
@@ -188,7 +190,7 @@ export default function TablaPage() {
     }
     setBonosCampeon(bonosMap);
 
-    if (TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 1) {
+    if (TEMPORADA_ACTIVA === 'ligamx2026' && (jornada === 1 || jornada === 2)) {
       const res = await fetch('/api/picks-clasificacion');
       const { picks = [], clasificados = [] } = await res.json();
       const picksMap: Record<string, { ligamx: string[]; mls: string[] }> = {};
@@ -395,7 +397,7 @@ export default function TablaPage() {
       .reduce((sum: number, p: any) => sum + (p.puntos_ganados || 0), 0);
     const bono = jornada === 6 ? (bonosCampeon[`${part.user_id}:${part.quiniela_extra_id ?? 'null'}`] || 0) : 0;
     let ptsClas = 0;
-    if (TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 1) {
+    if (TEMPORADA_ACTIVA === 'ligamx2026' && (jornada === 1 || jornada === 2)) {
       const userPicks = picksClasificacion[part.user_id];
       if (userPicks && clasificadosLc.ligamx.length > 0) {
         ptsClas += userPicks.ligamx.filter(e => clasificadosLc.ligamx.includes(e)).length;
@@ -587,10 +589,14 @@ export default function TablaPage() {
                 style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
                 PTS
               </th>
-              {finalizados.map(partido => (
+              {finalizados.map((partido, idx) => {
+                const isLcF2 = TEMPORADA_ACTIVA === 'ligamx2026' && (jornada === 1 || jornada === 2) && new Date(partido.fecha_hora) >= new Date('2026-08-07T00:00:00Z');
+                const prevIsF1 = idx > 0 && new Date(finalizados[idx - 1].fecha_hora) < new Date('2026-08-07T00:00:00Z');
+                const showF2Marker = isLcF2 && prevIsF1;
+                return (
                 <th key={partido.id}
                   className="px-2 py-2 text-center min-w-[70px]"
-                  style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
+                  style={{ background: 'var(--bg-base)', borderLeft: showF2Marker ? '3px solid rgba(99,102,241,0.7)' : '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
                   <div className="flex items-center justify-center gap-1 mb-1">
                     <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
                     <span style={{ fontSize: '0.625rem', color: '#475569' }}>vs</span>
@@ -600,6 +606,9 @@ export default function TablaPage() {
                     style={{ background: 'rgba(234,88,12,0.2)', border: '1px solid rgba(234,88,12,0.3)', color: '#fb923c' }}>
                     {partido.goles_local}-{partido.goles_visitante}
                   </div>
+                  {showF2Marker && (
+                    <div style={{ fontSize: '0.5rem', color: '#818cf8', fontWeight: 700, marginBottom: 2 }}>F2</div>
+                  )}
                   {necesitaTerminacionPartido(partido) && partido.clasificado && (
                     <div className="flex items-center justify-center gap-0.5 mt-0.5">
                       <Bandera emoji={BANDERAS_EQUIPOS[partido.clasificado] ?? ''} nombre={partido.clasificado} size="sm" />
@@ -609,15 +618,23 @@ export default function TablaPage() {
                     </div>
                   )}
                 </th>
-              ))}
+                );
+              })}
               <th id="col-pts" className="px-3 py-2 text-center min-w-[55px]"
                 style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
                 PTS
               </th>
-              {pendientes.map(partido => (
+              {pendientes.map((partido, idx) => {
+                const isLcF2p = TEMPORADA_ACTIVA === 'ligamx2026' && (jornada === 1 || jornada === 2) && new Date(partido.fecha_hora) >= new Date('2026-08-07T00:00:00Z');
+                const prevIsF1p = idx > 0 && new Date(pendientes[idx - 1].fecha_hora) < new Date('2026-08-07T00:00:00Z');
+                const showF2p = isLcF2p && (prevIsF1p || (idx === 0 && finalizados.every(p => new Date(p.fecha_hora) < new Date('2026-08-07T00:00:00Z'))));
+                return (
                 <th key={partido.id} id={`col-${partido.id}`}
                   className="px-2 py-2 text-center min-w-[70px]"
-                  style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
+                  style={{ background: 'var(--bg-base)', borderLeft: showF2p ? '3px solid rgba(99,102,241,0.7)' : '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
+                  {showF2p && (
+                    <div style={{ fontSize: '0.5rem', color: '#818cf8', fontWeight: 700, marginBottom: 2 }}>F2</div>
+                  )}
                   <div className="flex items-center justify-center gap-1 mb-1">
                     <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
                     <span style={{ fontSize: '0.625rem', color: '#475569' }}>vs</span>
@@ -632,7 +649,8 @@ export default function TablaPage() {
                     <div style={{ fontSize: '0.625rem', color: '#334155' }}>pendiente</div>
                   )}
                 </th>
-              ))}
+                );
+              })}
               {jornada !== 6 && (
                 <th className="px-3 py-2 text-center min-w-[55px]"
                   style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
@@ -651,7 +669,7 @@ export default function TablaPage() {
                   PTS
                 </th>
               )}
-              {TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 1 && (
+              {TEMPORADA_ACTIVA === 'ligamx2026' && (jornada === 1 || jornada === 2) && (
                 <th className="px-2 py-2 text-center text-xs" style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.2)', color: '#94a3b8', whiteSpace: 'nowrap', fontFamily: 'var(--font-rajdhani)' }}>
                   🏆 Clasif.
                 </th>
@@ -871,7 +889,7 @@ export default function TablaPage() {
                       {totalPuntos}
                     </td>
                   )}
-                  {TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 1 && (() => {
+                  {TEMPORADA_ACTIVA === 'ligamx2026' && (jornada === 1 || jornada === 2) && (() => {
                     const userPicks = picksClasificacion[part.user_id];
                     const lcDeclared = clasificadosLc.ligamx.length > 0;
                     const ptsClas = !userPicks ? 0 :
