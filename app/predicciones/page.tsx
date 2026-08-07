@@ -26,7 +26,8 @@ const DEADLINE_J7 = new Date('2026-07-14T19:00:00Z');
 const DEADLINE_J8 = new Date('2026-07-18T21:00:00Z');
 const DEADLINE_J9 = new Date('2026-07-19T19:00:00Z');
 // Liga MX Apertura 2026 — deadline antes del primer partido de cada fecha (UTC-5 CDT)
-const DEADLINE_LC_F1 = new Date('2026-08-05T23:45:00Z'); // Mar 4 ago 17:45 CDMX — primer partido F1
+const DEADLINE_LC_F1 = new Date('2026-08-08T02:00:00Z'); // Vie 7 ago 8:00 PM CDMX — extendido
+const DEADLINE_PICKS_CLASIFICACION = new Date('2026-08-08T05:59:00Z'); // Vie 7 ago 11:59 PM CDMX
 const DEADLINE_LC_F2 = new Date('2026-08-07T23:30:00Z'); // Jue 7 ago 17:30 CDMX — primer partido F2
 
 const labelJornada = (j: number) =>
@@ -865,7 +866,7 @@ export default function PrediccionesPage() {
   // ── Equipos Leagues Cup ─────────────────────────────────────────────────
   const EQUIPOS_LIGAMX_LC = ['América','Guadalajara','Cruz Azul','Monterrey','Tigres','Pumas','Toluca','Atlas','León','Pachuca','Santos','Puebla','Querétaro','Tijuana','Juárez','San Luis','Necaxa','Atlante'];
   const EQUIPOS_MLS_LC    = ['Charlotte FC','Columbus Crew','FC Dallas','Inter Miami','New York City FC','Real Salt Lake','Seattle Sounders','FC Cincinnati','Minnesota United','Vancouver Whitecaps','Nashville SC','Orlando City','LAFC','Philadelphia Union','Chicago Fire','Austin FC','San Diego FC','Portland Timbers'];
-  const picksDeadlinePasado = Date.now() >= DEADLINE_LC_F1.getTime();
+  const picksDeadlinePasado = Date.now() >= DEADLINE_PICKS_CLASIFICACION.getTime();
 
   // ── Shared button style helpers ─────────────────────────────────────────
   const publishBtn = (disabled: boolean, variant: 'primary' | 'blue' = 'primary') => ({
