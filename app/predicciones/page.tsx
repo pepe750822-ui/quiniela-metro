@@ -25,8 +25,9 @@ const DEADLINE_FINAL   = new Date('2026-07-18T21:00:00Z'); // 18 jul 15:00 CDMX 
 const DEADLINE_J7 = new Date('2026-07-14T19:00:00Z');
 const DEADLINE_J8 = new Date('2026-07-18T21:00:00Z');
 const DEADLINE_J9 = new Date('2026-07-19T19:00:00Z');
-// Liga MX Apertura 2026 — deadline antes del primer partido de cada jornada (UTC-5 CDT)
-const DEADLINE_LC_F1 = new Date('2026-08-05T23:45:00Z'); // Martes 4 ago 17:45 CDMX — primer partido
+// Liga MX Apertura 2026 — deadline antes del primer partido de cada fecha (UTC-5 CDT)
+const DEADLINE_LC_F1 = new Date('2026-08-05T23:45:00Z'); // Mar 4 ago 17:45 CDMX — primer partido F1
+const DEADLINE_LC_F2 = new Date('2026-08-07T22:00:00Z'); // Jue 7 ago 17:00 CDMX — primer partido F2
 
 const labelJornada = (j: number) =>
   TEMPORADA_ACTIVA === 'ligamx2026' ? getNombreJornadaLigaMX(j) : getNombreJornada(j);
@@ -34,6 +35,7 @@ const labelJornada = (j: number) =>
 const getDeadline = (jornada: number) => {
   if (TEMPORADA_ACTIVA === 'ligamx2026') {
     if (jornada === 1) return DEADLINE_LC_F1;
+    if (jornada === 2) return DEADLINE_LC_F2;
   }
   if (jornada === 1) return DEADLINE_J1;
   if (jornada === 2) return DEADLINE_J2;
@@ -439,10 +441,11 @@ export default function PrediccionesPage() {
     let query = supabase
       .from('quiniela_partidos')
       .select('*')
-      .eq('temporada', TEMPORADA_ACTIVA)
-      .eq('jornada', jornada);
-    if (TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 1) {
-      query = query.lt('fecha_hora', '2026-08-07T23:00:00Z');
+      .eq('temporada', TEMPORADA_ACTIVA);
+    if (TEMPORADA_ACTIVA === 'ligamx2026' && (jornada === 1 || jornada === 2)) {
+      query = query.in('jornada', [1, 2]);
+    } else {
+      query = query.eq('jornada', jornada);
     }
     const { data } = await query.order('fecha_hora');
     setPartidos((data as Partido[]) ?? []);
@@ -534,7 +537,7 @@ export default function PrediccionesPage() {
       cargarCampeon();
       cargarPozoYParticipacion(userId, jornada);
       if (jornada === 6) cargarJ6Campeon();
-      if (TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 1) cargarPicksClasificacion(userId);
+      if (TEMPORADA_ACTIVA === 'ligamx2026' && (jornada === 1 || jornada === 2)) cargarPicksClasificacion(userId);
     }
   }, [userId, jornada, cargarQuinielas, cargarPredicciones, cargarCampeon, cargarPozoYParticipacion, cargarJ6Campeon]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -821,6 +824,11 @@ export default function PrediccionesPage() {
       if (fechaPartido >= new Date('2026-07-14T00:00:00Z')) return new Date() > DEADLINE_SEMIS;
       return new Date() > DEADLINE_J6;
     }
+    if (TEMPORADA_ACTIVA === 'ligamx2026') {
+      const fechaPartido = new Date(partido.fecha_hora);
+      if (fechaPartido < new Date('2026-08-07T00:00:00Z')) return new Date() > DEADLINE_LC_F1;
+      return new Date() > DEADLINE_LC_F2;
+    }
     if (new Date() > getDeadline(jornada)) return true;
     return false;
   };
@@ -997,7 +1005,7 @@ export default function PrediccionesPage() {
         className="flex gap-2 overflow-x-auto pb-1"
         style={{ scrollbarWidth: 'none' }}
       >
-        {jornadas.filter(j => TEMPORADA_ACTIVA === 'ligamx2026' ? j === 1 : j <= 6).map(j => {
+        {jornadas.filter(j => TEMPORADA_ACTIVA === 'ligamx2026' ? j <= 2 : j <= 6).map(j => {
           const cerrada = TEMPORADA_ACTIVA === 'ligamx2026' ? new Date() > getDeadline(j) : j < 2 || new Date() > getDeadline(j);
           return (
             <Pill key={j} active={jornada === j} onClick={() => setJornada(j)} faded={cerrada && jornada !== j}>
@@ -1301,6 +1309,39 @@ export default function PrediccionesPage() {
                 Deadline: 28 jun 2026 · 13:00 CDMX
               </p>
             </motion.div>
+          ) : TEMPORADA_ACTIVA === 'ligamx2026' ? (
+            <motion.div variants={listVariants} initial="hidden" animate="show" className="space-y-3">
+              {(['f1', 'f2'] as const).map(fecha => {
+                const corte = new Date('2026-08-07T00:00:00Z');
+                const grupo = resolvedPartidos.filter(p =>
+                  fecha === 'f1' ? new Date(p.fecha_hora) < corte : new Date(p.fecha_hora) >= corte
+                );
+                if (grupo.length === 0) return null;
+                const label = fecha === 'f1' ? '📅 Fecha 1 — 4-6 agosto' : '📅 Fecha 2 — 7-9 agosto';
+                const deadline = fecha === 'f1' ? DEADLINE_LC_F1 : DEADLINE_LC_F2;
+                const cerrada = new Date() > deadline;
+                return (
+                  <div key={fecha} className="space-y-3">
+                    <div className="flex items-center gap-2 pt-1">
+                      <span className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
+                        {label}
+                      </span>
+                      {cerrada && <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: 'rgba(100,116,139,0.15)', color: '#64748b' }}>🔒 Cerrada</span>}
+                    </div>
+                    {grupo.map(partido => (
+                      <motion.div key={partido.id} variants={itemVariants} id={`partido-${partido.id}`}>
+                        <PartidoCard
+                          partido={partido}
+                          prediccion={prediccionesBorrador[partido.id] ?? predicciones[partido.id] ?? null}
+                          participacionPagada={predicciones[partido.id] ? participando : undefined}
+                          onPredicir={estaBloquado(partido) ? undefined : setPartidoActivo}
+                        />
+                      </motion.div>
+                    ))}
+                  </div>
+                );
+              })}
+            </motion.div>
           ) : (
             <motion.div
               variants={listVariants}
@@ -1373,7 +1414,7 @@ export default function PrediccionesPage() {
       )}
 
       {/* ── PICKS CLASIFICACIÓN LEAGUES CUP ── */}
-      {TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 1 && (
+      {TEMPORADA_ACTIVA === 'ligamx2026' && (jornada === 1 || jornada === 2) && (
         <>
           {(['ligamx', 'mls'] as const).map(liga => {
             const equipos     = liga === 'ligamx' ? EQUIPOS_LIGAMX_LC : EQUIPOS_MLS_LC;
