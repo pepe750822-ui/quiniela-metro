@@ -32,6 +32,7 @@ export default function TablaPage() {
   const [picksClasificacion, setPicksClasificacion] = useState<Record<string, { ligamx: string[]; mls: string[] }>>({});
   const [clasificadosLc, setClasificadosLc] = useState<{ ligamx: string[]; mls: string[] }>({ ligamx: [], mls: [] });
   const [loading, setLoading]           = useState(false);
+  const [mostrarF1, setMostrarF1]       = useState(false);
   const tablaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -430,6 +431,15 @@ export default function TablaPage() {
   const finalizados = partidos.filter((p: any) => p.estado === 'finalizado');
   const pendientes  = partidos.filter((p: any) => p.estado !== 'finalizado');
 
+  const isLcCombinado = TEMPORADA_ACTIVA === 'ligamx2026' && (jornada === 1 || jornada === 2);
+  const LC_CORTE = new Date('2026-08-07T00:00:00Z');
+  const finalizadosMostrar = isLcCombinado && !mostrarF1
+    ? finalizados.filter((p: any) => new Date(p.fecha_hora) >= LC_CORTE)
+    : finalizados;
+  const pendientesMostrar = isLcCombinado && !mostrarF1
+    ? pendientes.filter((p: any) => new Date(p.fecha_hora) >= LC_CORTE)
+    : pendientes;
+
   // Campeón declarado cuando la Final (J9) está finalizada
   const campeonDeclarado = jornada === 6 && campeonJ6Declarado !== null;
 
@@ -548,6 +558,24 @@ export default function TablaPage() {
             </button>
           ))}
         </div>
+
+        {/* Botón colapsar/expandir F1 para LC combinado */}
+        {isLcCombinado && (
+          <div className="mt-2">
+            <button
+              onClick={() => setMostrarF1(v => !v)}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all active:scale-95"
+              style={{
+                fontFamily: 'var(--font-rajdhani)',
+                background: mostrarF1 ? 'rgba(99,102,241,0.15)' : 'var(--bg-card)',
+                color: mostrarF1 ? '#818cf8' : 'var(--text-secondary)',
+                border: `1px solid ${mostrarF1 ? 'rgba(99,102,241,0.5)' : 'var(--border-color)'}`,
+              }}
+            >
+              {mostrarF1 ? '▼ Ocultar Fecha 1' : '▶ Ver Fecha 1'}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Reglas Fase Final — solo J6 */}
@@ -589,9 +617,9 @@ export default function TablaPage() {
                 style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
                 PTS
               </th>
-              {finalizados.map((partido, idx) => {
+              {finalizadosMostrar.map((partido, idx) => {
                 const isLcF2 = TEMPORADA_ACTIVA === 'ligamx2026' && (jornada === 1 || jornada === 2) && new Date(partido.fecha_hora) >= new Date('2026-08-07T00:00:00Z');
-                const prevIsF1 = idx > 0 && new Date(finalizados[idx - 1].fecha_hora) < new Date('2026-08-07T00:00:00Z');
+                const prevIsF1 = idx > 0 && new Date(finalizadosMostrar[idx - 1].fecha_hora) < new Date('2026-08-07T00:00:00Z');
                 const showF2Marker = isLcF2 && prevIsF1;
                 return (
                 <th key={partido.id}
@@ -620,14 +648,16 @@ export default function TablaPage() {
                 </th>
                 );
               })}
-              <th id="col-pts" className="px-3 py-2 text-center min-w-[55px]"
-                style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
-                PTS
-              </th>
-              {pendientes.map((partido, idx) => {
+              {finalizadosMostrar.length > 0 && (
+                <th id="col-pts" className="px-3 py-2 text-center min-w-[55px]"
+                  style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
+                  PTS
+                </th>
+              )}
+              {pendientesMostrar.map((partido, idx) => {
                 const isLcF2p = TEMPORADA_ACTIVA === 'ligamx2026' && (jornada === 1 || jornada === 2) && new Date(partido.fecha_hora) >= new Date('2026-08-07T00:00:00Z');
-                const prevIsF1p = idx > 0 && new Date(pendientes[idx - 1].fecha_hora) < new Date('2026-08-07T00:00:00Z');
-                const showF2p = isLcF2p && (prevIsF1p || (idx === 0 && finalizados.every(p => new Date(p.fecha_hora) < new Date('2026-08-07T00:00:00Z'))));
+                const prevIsF1p = idx > 0 && new Date(pendientesMostrar[idx - 1].fecha_hora) < new Date('2026-08-07T00:00:00Z');
+                const showF2p = isLcF2p && (prevIsF1p || (idx === 0 && finalizadosMostrar.every((p: any) => new Date(p.fecha_hora) < new Date('2026-08-07T00:00:00Z'))));
                 return (
                 <th key={partido.id} id={`col-${partido.id}`}
                   className="px-2 py-2 text-center min-w-[70px]"
@@ -719,7 +749,7 @@ export default function TablaPage() {
                     style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
                     {totalPuntos}
                   </td>
-                  {finalizados.map(partido => {
+                  {finalizadosMostrar.map(partido => {
                     const pred = getPred(part.user_id, partido.id, part.quiniela_extra_id);
                     const pts = pred?.puntos_ganados ?? null;
                     if (necesitaTerminacionPartido(partido)) {
@@ -811,11 +841,13 @@ export default function TablaPage() {
                       </td>
                     );
                   })}
-                  <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
-                    style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
-                    {totalPuntos}
-                  </td>
-                  {pendientes.map(partido => {
+                  {finalizadosMostrar.length > 0 && (
+                    <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
+                      style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
+                      {totalPuntos}
+                    </td>
+                  )}
+                  {pendientesMostrar.map(partido => {
                     const pred = getPred(part.user_id, partido.id, part.quiniela_extra_id);
                     return (
                       <td key={partido.id}
