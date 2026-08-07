@@ -90,9 +90,14 @@ export default function CalendarioPage() {
     }
   }, [partidos]);
 
+  // Deduplicar por id antes de renderizar
+  const partidosUnicos = partidos.filter(
+    (p, index, self) => index === self.findIndex(t => t.id === p.id)
+  );
+
   // Agrupar por fecha CDMX: definidos primero, "A definir" al final
-  const definidos = partidos.filter(p => p.equipo_local && p.equipo_local !== 'A definir');
-  const porDefinir = partidos.filter(p => !p.equipo_local || p.equipo_local === 'A definir');
+  const definidos = partidosUnicos.filter(p => p.equipo_local && p.equipo_local !== 'A definir');
+  const porDefinir = partidosUnicos.filter(p => !p.equipo_local || p.equipo_local === 'A definir');
   const partidosPorFecha = [...definidos, ...porDefinir].reduce((acc, partido) => {
     const key = getFechaCDMX(partido.fecha_hora);
     if (!acc[key]) acc[key] = [];
