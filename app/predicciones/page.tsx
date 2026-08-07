@@ -1018,7 +1018,7 @@ export default function PrediccionesPage() {
           return (
             <Pill key={j} active={jornada === j} onClick={() => setJornada(j)} faded={cerrada && jornada !== j}>
               {cerrada && jornada !== j && <span style={{ fontSize: '0.55rem', marginRight: 2 }}>🔒</span>}
-              {labelJornada(j)}
+              {TEMPORADA_ACTIVA === 'ligamx2026' ? (j <= 3 ? `F${j}` : labelJornada(j)) : labelJornada(j)}
             </Pill>
           );
         })}

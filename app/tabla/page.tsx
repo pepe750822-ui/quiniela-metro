@@ -580,7 +580,7 @@ export default function TablaPage() {
                 border: `1px solid ${jornada === j ? '#ea580c' : 'var(--border-color)'}`,
               }}
             >
-              {TEMPORADA_ACTIVA === 'ligamx2026' ? getNombreJornadaLigaMX(j) : getNombreJornada(j)}
+              {TEMPORADA_ACTIVA === 'ligamx2026' ? (j <= 3 ? `F${j}` : getNombreJornadaLigaMX(j)) : getNombreJornada(j)}
             </button>
           ))}
         </div>
