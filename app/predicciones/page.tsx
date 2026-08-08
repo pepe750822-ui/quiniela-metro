@@ -831,6 +831,9 @@ export default function PrediccionesPage() {
 
   const estaBloquado = (partido: Partido) => {
     if (partido.estado === 'finalizado') return true;
+    if (TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 2) {
+      return new Date() >= new Date(partido.fecha_hora);
+    }
     if (jornada === 6) {
       const fechaPartido = new Date(partido.fecha_hora);
       if (fechaPartido >= new Date('2026-07-19T00:00:00Z')) return new Date() > DEADLINE_FINAL;
