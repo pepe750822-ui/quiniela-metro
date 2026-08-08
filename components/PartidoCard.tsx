@@ -196,8 +196,8 @@ export default function PartidoCard({ partido, prediccion, participacionPagada, 
         </div>
       </div>
 
-      {/* ── Clasificado (J5+) ── */}
-      {partido.jornada >= 5 && partido.estado === 'finalizado' && partido.clasificado && (
+      {/* ── Clasificado (J5+ o Leagues Cup) ── */}
+      {(partido.jornada >= 5 || esLeaguesCup) && partido.estado === 'finalizado' && partido.clasificado && (
         <div
           className="px-4 py-2 flex items-center gap-2 flex-wrap"
           style={{ borderTop: '1px solid rgba(255,255,255,0.04)', background: 'rgba(234,88,12,0.03)' }}
