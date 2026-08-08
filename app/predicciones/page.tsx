@@ -28,7 +28,7 @@ const DEADLINE_J9 = new Date('2026-07-19T19:00:00Z');
 // Liga MX Apertura 2026 — deadline antes del primer partido de cada fecha (UTC-5 CDT)
 const DEADLINE_LC_F1 = new Date('2026-08-08T02:00:00Z'); // Vie 7 ago 8:00 PM CDMX — extendido
 const DEADLINE_PICKS_CLASIFICACION = new Date('2026-08-08T05:59:00Z'); // Vie 7 ago 11:59 PM CDMX
-const DEADLINE_LC_F2 = new Date('2026-08-07T23:30:00Z'); // Jue 7 ago 17:30 CDMX — primer partido F2
+const DEADLINE_LC_F2 = new Date('2026-08-08T02:00:00Z'); // Vie 7 ago 8:00 PM CDMX — extendido
 
 const labelJornada = (j: number) =>
   TEMPORADA_ACTIVA === 'ligamx2026' ? getNombreJornadaLigaMX(j) : getNombreJornada(j);
