@@ -95,6 +95,7 @@ export const getNombreJornada = (j: number) => {
 export const getNombreJornadaLigaMX = (j: number) => {
   if (j === 1) return 'Leagues Cup F1';
   if (j === 2) return 'Leagues Cup F2';
+  if (j === 3) return 'J3';
   return `Jornada ${j + 2}`;
 };
 
