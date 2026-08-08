@@ -158,7 +158,9 @@ export default function DashboardPage() {
   const [pozos, setPozos]                       = useState<Pozo[]>([]);
   const [pendienteIds, setPendienteIds]         = useState<string[]>([]);
   const [pagadosIds, setPagadosIds]             = useState<string[]>([]);
-  const [jornadaSeleccionada, setJornadaSeleccionada] = useState<number | 'general'>(1);
+  const [jornadaSeleccionada, setJornadaSeleccionada] = useState<number | 'general' | 'lc_total'>(
+    TEMPORADA_ACTIVA === 'ligamx2026' ? 'lc_total' : 1
+  );
   const [participantesJornada, setParticipantesJornada] = useState<ParticipanteItem[]>([]);
   const { d, h, m, s, started, mounted: countdownReady } = useCountdown(INAUGURAL);
 
@@ -216,6 +218,120 @@ export default function DashboardPage() {
           };
         })
       );
+      setLoading(false);
+      return;
+    }
+
+    // ── LC Total: acumulado J1+J2+J3 + bono clasificación ──────────────────
+    if (jornadaSeleccionada === 'lc_total') {
+      const { data: partsLC } = await supabase
+        .from('quiniela_participaciones')
+        .select('id, user_id, pagado, quiniela_extra_id')
+        .eq('jornada', 1)
+        .eq('pagado', true)
+        .eq('temporada', TEMPORADA_ACTIVA)
+        .order('created_at', { ascending: true });
+
+      const pagadosLC = (partsLC ?? []).map((p: { user_id: string; quiniela_extra_id: string | null }) => ({
+        user_id: p.user_id, quiniela_extra_id: p.quiniela_extra_id,
+      }));
+      const allUserIdsLC = [...new Set(pagadosLC.map(p => p.user_id))];
+      setPagadosIds(allUserIdsLC);
+      setParticipantesJornada([]);
+
+      // Partidos J1+J2+J3 finalizados
+      const { data: partidosLC } = allUserIdsLC.length
+        ? await supabase
+            .from('quiniela_partidos')
+            .select('id')
+            .eq('temporada', TEMPORADA_ACTIVA)
+            .in('jornada', [1, 2, 3])
+            .eq('estado', 'finalizado')
+        : { data: [] };
+      const lcPartidoIds = (partidosLC ?? []).map((p: { id: string }) => p.id);
+
+      const { data: rankingDataLC } = lcPartidoIds.length && allUserIdsLC.length
+        ? await supabase
+            .from('quiniela_predicciones')
+            .select('user_id, quiniela_extra_id, puntos_ganados')
+            .in('partido_id', lcPartidoIds)
+            .in('user_id', allUserIdsLC)
+        : { data: [] };
+
+      const puntajesLC: Record<string, { puntos: number; exactos: number }> = {};
+      (rankingDataLC ?? []).forEach((pred: { user_id: string; quiniela_extra_id: string | null; puntos_ganados: number | null }) => {
+        const key = `${pred.user_id}:${pred.quiniela_extra_id ?? 'null'}`;
+        if (!puntajesLC[key]) puntajesLC[key] = { puntos: 0, exactos: 0 };
+        puntajesLC[key].puntos += pred.puntos_ganados || 0;
+        if (pred.puntos_ganados === 3) puntajesLC[key].exactos++;
+      });
+
+      // Bono clasificación LC
+      if (allUserIdsLC.length) {
+        const [{ data: lcRows }, { data: lcPicks }] = await Promise.all([
+          supabase.from('quiniela_clasificados_lc').select('liga, equipos').eq('temporada', 'ligamx2026'),
+          supabase.from('quiniela_picks_clasificacion').select('user_id, liga, equipos').eq('temporada', 'ligamx2026').in('user_id', allUserIdsLC),
+        ]);
+        const lcMap: { ligamx: string[]; mls: string[] } = { ligamx: [], mls: [] };
+        (lcRows ?? []).forEach((r: { liga: string; equipos: string[] }) => {
+          if (r.liga === 'ligamx') lcMap.ligamx = r.equipos;
+          if (r.liga === 'mls')    lcMap.mls = r.equipos;
+        });
+        const userPicksMapLC: Record<string, { ligamx: string[]; mls: string[] }> = {};
+        (lcPicks ?? []).forEach((p: { user_id: string; liga: string; equipos: string[] }) => {
+          if (!userPicksMapLC[p.user_id]) userPicksMapLC[p.user_id] = { ligamx: [], mls: [] };
+          if (p.liga === 'ligamx') userPicksMapLC[p.user_id].ligamx = p.equipos;
+          if (p.liga === 'mls')    userPicksMapLC[p.user_id].mls = p.equipos;
+        });
+        allUserIdsLC.forEach(uid => {
+          const up = userPicksMapLC[uid];
+          if (!up) return;
+          let pts = 0;
+          if (lcMap.ligamx.length > 0) pts += up.ligamx.filter(e => lcMap.ligamx.includes(e)).length;
+          if (lcMap.mls.length > 0)    pts += up.mls.filter(e => lcMap.mls.includes(e)).length;
+          if (pts > 0) {
+            pagadosLC.filter(p => p.user_id === uid).forEach(p => {
+              const key = `${p.user_id}:${p.quiniela_extra_id ?? 'null'}`;
+              if (!puntajesLC[key]) puntajesLC[key] = { puntos: 0, exactos: 0 };
+              puntajesLC[key].puntos += pts;
+            });
+          }
+        });
+      }
+
+      const rankingOrdenadoLC = pagadosLC
+        .map(p => {
+          const key = `${p.user_id}:${p.quiniela_extra_id ?? 'null'}`;
+          return { id: key, user_id: p.user_id, quiniela_extra_id: p.quiniela_extra_id,
+            puntos_total: puntajesLC[key]?.puntos ?? 0, exactos: puntajesLC[key]?.exactos ?? 0 };
+        })
+        .sort((a, b) => b.puntos_total - a.puntos_total);
+
+      const { data: rankJugadoresLC } = allUserIdsLC.length
+        ? await supabase.from('quiniela_jugadores').select('id, nombre, email, apodo, avatar_url, badge_campeon').in('id', allUserIdsLC)
+        : { data: [] };
+      const extraIdsLC = [...new Set(pagadosLC.map(p => p.quiniela_extra_id).filter(Boolean))] as string[];
+      const { data: quinielasNombresLC } = extraIdsLC.length
+        ? await supabase.from('quiniela_extra').select('id, nombre').in('id', extraIdsLC)
+        : { data: [] };
+
+      setRanking(rankingOrdenadoLC.map(r => {
+        const jug = (rankJugadoresLC ?? []).find((jg: { id: string }) => jg.id === r.user_id);
+        const quinielaNombre = r.quiniela_extra_id
+          ? ((quinielasNombresLC ?? []) as { id: string; nombre: string }[]).find(q => q.id === r.quiniela_extra_id)?.nombre ?? null
+          : null;
+        return {
+          id: r.id, user_id: r.user_id, jornada: 1,
+          puntos_total: r.puntos_total, exactos: r.exactos, updated_at: '',
+          jugador: {
+            id: r.user_id, nombre: jug?.nombre ?? '', apodo: jug?.apodo ?? null,
+            email: jug?.email ?? '', rol: 'jugador' as const,
+            avatar_url: jug?.avatar_url ?? null, creditos: 0, created_at: '',
+            badge_ultimo: null, badge_campeon: jug?.badge_campeon ?? null,
+            quiniela_nombre: quinielaNombre, campeon_pick: null,
+          },
+        };
+      }));
       setLoading(false);
       return;
     }
@@ -323,8 +439,8 @@ export default function DashboardPage() {
       });
     }
 
-    // Pts de clasificación Leagues Cup (solo ligamx2026 J1)
-    if (TEMPORADA_ACTIVA === 'ligamx2026' && j === 1 && allUserIds.length) {
+    // Pts de clasificación Leagues Cup (ligamx2026 J1–J3)
+    if (TEMPORADA_ACTIVA === 'ligamx2026' && j >= 1 && j <= 3 && allUserIds.length) {
       const [{ data: lcRows }, { data: lcPicks }] = await Promise.all([
         supabase.from('quiniela_clasificados_lc').select('liga, equipos').eq('temporada', 'ligamx2026'),
         supabase.from('quiniela_picks_clasificacion').select('user_id, liga, equipos').eq('temporada', 'ligamx2026').in('user_id', allUserIds),
@@ -528,7 +644,7 @@ export default function DashboardPage() {
   pozosCompletos.sort((a, b) => a.jornada - b.jornada);
 
   const jornadasDisponibles = TEMPORADA_ACTIVA === 'ligamx2026'
-    ? [1]
+    ? [1, 2, 3]
     : [...new Set(pozosCompletos.map(p => p.jornada))];
 
   const compartirRanking = () => {
@@ -541,7 +657,9 @@ export default function DashboardPage() {
       })
       .join('\n');
 
-    const jornadaLabel = jornadaSeleccionada === 'general' ? 'General' : labelJornada(jornadaSeleccionada as number);
+    const jornadaLabel = jornadaSeleccionada === 'general' ? 'General'
+      : jornadaSeleccionada === 'lc_total' ? 'LC Total'
+      : labelJornada(jornadaSeleccionada as number);
     const mensaje = encodeURIComponent(
       `🏆 Ranking Quiniela Metro — ${jornadaLabel}\n\n` +
       texto +
@@ -702,13 +820,18 @@ export default function DashboardPage() {
       {/* Ranking por jornada */}
       <div style={{ animation: 'fadeInUp 0.5s ease-out 0.3s both' }}>
         <h2 className="font-bebas text-2xl mb-3" style={{ color: '#ea580c' }}>
-          {jornadaSeleccionada === 'general' ? '🏆 Clasificación General' : `Clasificación ${labelJornada(jornadaSeleccionada as number)}`}
+          {jornadaSeleccionada === 'general' ? '🏆 Clasificación General'
+            : jornadaSeleccionada === 'lc_total' ? '🏆 Leagues Cup — Acumulado'
+            : `Clasificación ${labelJornada(jornadaSeleccionada as number)}`}
         </h2>
 
         <div className="flex gap-2 mb-4 flex-wrap">
-          {((TEMPORADA_ACTIVA === 'ligamx2026' ? jornadasDisponibles : ['general', ...jornadasDisponibles]) as (number | 'general')[]).map(j => (
+          {((TEMPORADA_ACTIVA === 'ligamx2026'
+            ? (['lc_total', ...jornadasDisponibles] as (number | 'lc_total')[])
+            : (['general', ...jornadasDisponibles] as (number | 'general')[])
+          ) as (number | 'general' | 'lc_total')[]).map(j => (
             <button
-              key={j}
+              key={String(j)}
               onClick={() => setJornadaSeleccionada(j)}
               className="px-4 py-1.5 rounded-lg text-sm font-bold transition-all active:scale-95 min-h-[36px]"
               style={{
@@ -718,7 +841,7 @@ export default function DashboardPage() {
                 fontFamily: 'var(--font-rajdhani)',
               }}
             >
-              {j === 'general' ? '🏆 General' : labelJornada(j as number)}
+              {j === 'general' ? '🏆 General' : j === 'lc_total' ? '🏆 LC Total' : labelJornada(j as number)}
             </button>
           ))}
         </div>
@@ -730,7 +853,7 @@ export default function DashboardPage() {
           </div>
         ) : ranking.length > 0 ? (
           <>
-            <RankingTable ranking={ranking} userId={userId} pendienteIds={pendienteIds.filter(id => !pagadosIds.includes(id))} jornada={jornadaSeleccionada} />
+            <RankingTable ranking={ranking} userId={userId} pendienteIds={pendienteIds.filter(id => !pagadosIds.includes(id))} jornada={jornadaSeleccionada === 'lc_total' ? 1 : jornadaSeleccionada} />
             <button
               onClick={compartirRanking}
               className="w-full mt-4 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all hover:opacity-80 active:scale-95"
