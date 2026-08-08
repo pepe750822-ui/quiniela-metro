@@ -17,8 +17,18 @@ const tableRowVariants = {
   visible: { opacity: 1, x: 0, transition: { duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] as const } },
 };
 
+const DEADLINE_LC_F1 = new Date('2026-08-08T02:00:00Z'); // Vie 7 ago 8:00 PM CDMX
+
+const jornadaInicial = () => {
+  if (TEMPORADA_ACTIVA === 'ligamx2026') {
+    if (new Date() > DEADLINE_LC_F1) return 2;
+    return 1;
+  }
+  return 1;
+};
+
 export default function TablaPage() {
-  const [jornada, setJornada]           = useState(1);
+  const [jornada, setJornada]           = useState(jornadaInicial);
   const [jornadasDisponibles, setJornadasDisponibles] = useState<number[]>([1]);
   const [partidos, setPartidos]         = useState<any[]>([]);
   const [jugadores, setJugadores]       = useState<any[]>([]);
