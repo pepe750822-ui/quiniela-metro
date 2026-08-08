@@ -189,7 +189,7 @@ export default function TablaPage() {
     }
     setBonosCampeon(bonosMap);
 
-    if (TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 1) {
+    if (TEMPORADA_ACTIVA === 'ligamx2026' && jornada <= 2) {
       const res = await fetch('/api/picks-clasificacion');
       const { picks = [], clasificados = [] } = await res.json();
       const picksMap: Record<string, { ligamx: string[]; mls: string[] }> = {};
@@ -706,7 +706,7 @@ export default function TablaPage() {
                   PTS
                 </th>
               )}
-              {TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 1 && (
+              {TEMPORADA_ACTIVA === 'ligamx2026' && jornada <= 2 && (
                 <th className="px-2 py-2 text-center text-xs" style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.2)', color: '#94a3b8', whiteSpace: 'nowrap', fontFamily: 'var(--font-rajdhani)' }}>
                   🏆 Clasif.
                 </th>
@@ -935,7 +935,7 @@ export default function TablaPage() {
                       {totalPuntos}
                     </td>
                   )}
-                  {TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 1 && (() => {
+                  {TEMPORADA_ACTIVA === 'ligamx2026' && jornada <= 2 && (() => {
                     const userPicks = picksClasificacion[part.user_id];
                     const lcDeclared = clasificadosLc.ligamx.length > 0;
                     const ptsClas = !userPicks ? 0 :
