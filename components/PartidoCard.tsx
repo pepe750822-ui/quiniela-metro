@@ -50,7 +50,7 @@ export default function PartidoCard({ partido, prediccion, participacionPagada, 
   const fechaPartido = new Date(partido.fecha_hora);
   const esLeaguesCup = TEMPORADA_ACTIVA === 'ligamx2026'
     && fechaPartido >= new Date('2026-08-04T00:00:00Z')
-    && fechaPartido < new Date('2026-08-14T00:00:00Z');
+    && fechaPartido < new Date('2026-08-14T06:00:00Z');
   const mostrarTerminacion = partido.jornada >= 5 || esLeaguesCup;
 
   const puntosInfo = prediccion
