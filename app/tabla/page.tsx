@@ -563,7 +563,9 @@ export default function TablaPage() {
       <div className="px-4 pt-6 pb-4">
         <div className="flex items-center gap-3">
           <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: '2rem', color: '#ea580c', letterSpacing: '0.05em' }}>
-            {TEMPORADA_ACTIVA === 'ligamx2026' ? 'Leagues Cup — Fase 1' : '📊 TABLA DE PUNTOS'}
+            {TEMPORADA_ACTIVA === 'ligamx2026'
+              ? (jornada <= 3 ? 'Leagues Cup — Fase 1' : 'Liga MX Apertura 2026')
+              : '📊 TABLA DE PUNTOS'}
           </h1>
           <div className="ml-auto flex gap-2">
             {esAdmin && (
@@ -1015,7 +1017,7 @@ export default function TablaPage() {
 
       {/* Leyenda */}
       <div className="px-4 mt-4 flex flex-wrap gap-4 text-xs leyenda" style={{ color: '#475569' }}>
-        {jornada < 5 ? (
+        {(jornada < 5 || (TEMPORADA_ACTIVA === 'ligamx2026' && jornada <= 5)) ? (
           <>
             <span style={{ color: '#34d399' }}>■ 3pts exacto</span>
             <span style={{ color: '#fb923c' }}>■ 1pt resultado</span>
