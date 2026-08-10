@@ -18,9 +18,13 @@ const tableRowVariants = {
 };
 
 const DEADLINE_LC_F1 = new Date('2026-08-08T02:00:00Z'); // Vie 7 ago 8:00 PM CDMX
+const DEADLINE_LC_F2 = new Date('2026-08-08T02:00:00Z'); // Vie 7 ago 8:00 PM CDMX
 
 const jornadaInicial = () => {
-  if (TEMPORADA_ACTIVA === 'ligamx2026') return 2;
+  if (TEMPORADA_ACTIVA === 'ligamx2026') {
+    if (new Date() > DEADLINE_LC_F2) return 3;
+    return 2;
+  }
   return 1;
 };
 
