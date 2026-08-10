@@ -1307,7 +1307,7 @@ export default function AdminPage() {
                 Jornada
               </label>
               <div className="flex gap-2">
-                {(TEMPORADA_ACTIVA === 'ligamx2026' ? [1, 2, 3] : [1, 2, 3, 4]).map(j => (
+                {(TEMPORADA_ACTIVA === 'ligamx2026' ? [1, 2, 3, 4, 5] : [1, 2, 3, 4]).map(j => (
                   <button
                     key={j}
                     onClick={() => setPagoJornada(j)}
