@@ -29,7 +29,9 @@ const DEADLINE_J9 = new Date('2026-07-19T19:00:00Z');
 const DEADLINE_LC_F1 = new Date('2026-08-08T02:00:00Z'); // Vie 7 ago 8:00 PM CDMX — extendido
 const DEADLINE_PICKS_CLASIFICACION = new Date('2026-08-08T05:59:00Z'); // Vie 7 ago 11:59 PM CDMX
 const DEADLINE_LC_F2 = new Date('2026-08-08T02:00:00Z'); // Vie 7 ago 8:00 PM CDMX — extendido
-const DEADLINE_LC_F3 = new Date('2026-08-15T06:00:00Z'); // placeholder — J3 usa bloqueo por partido
+const DEADLINE_LC_F3  = new Date('2026-08-15T06:00:00Z'); // placeholder — J3 usa bloqueo por partido
+const DEADLINE_LMX_J4 = new Date('2026-08-15T23:00:00Z'); // Sáb 15 ago 18:00 CDMX — primer partido J4
+const DEADLINE_LMX_J5 = new Date('2026-08-22T01:00:00Z'); // Vie 21 ago 20:00 CDMX — primer partido J5
 
 const labelJornada = (j: number) =>
   TEMPORADA_ACTIVA === 'ligamx2026' ? getNombreJornadaLigaMX(j) : getNombreJornada(j);
@@ -39,6 +41,8 @@ const getDeadline = (jornada: number) => {
     if (jornada === 1) return DEADLINE_LC_F1;
     if (jornada === 2) return DEADLINE_LC_F2;
     if (jornada === 3) return DEADLINE_LC_F3;
+    if (jornada === 4) return DEADLINE_LMX_J4;
+    if (jornada === 5) return DEADLINE_LMX_J5;
   }
   if (jornada === 1) return DEADLINE_J1;
   if (jornada === 2) return DEADLINE_J2;
@@ -318,8 +322,10 @@ export default function PrediccionesPage() {
   const [loading, setLoading]             = useState(true);
   const [jornada, setJornada]             = useState(() => {
     if (TEMPORADA_ACTIVA === 'ligamx2026') {
-      if (new Date() > DEADLINE_LC_F2) return 3;
-      if (new Date() > DEADLINE_LC_F1) return 2;
+      if (new Date() > DEADLINE_LMX_J5) return 5;
+      if (new Date() > DEADLINE_LMX_J4) return 4;
+      if (new Date() > DEADLINE_LC_F2)  return 3;
+      if (new Date() > DEADLINE_LC_F1)  return 2;
       return 1;
     }
     return 1;
@@ -840,7 +846,7 @@ export default function PrediccionesPage() {
 
   const estaBloquado = (partido: Partido) => {
     if (partido.estado === 'finalizado') return true;
-    if (TEMPORADA_ACTIVA === 'ligamx2026' && (jornada === 2 || jornada === 3)) {
+    if (TEMPORADA_ACTIVA === 'ligamx2026' && jornada >= 2 && jornada <= 5) {
       return new Date() >= new Date(partido.fecha_hora);
     }
     if (jornada === 6) {
@@ -1026,7 +1032,7 @@ export default function PrediccionesPage() {
         className="flex gap-2 overflow-x-auto pb-1"
         style={{ scrollbarWidth: 'none' }}
       >
-        {jornadas.filter(j => TEMPORADA_ACTIVA === 'ligamx2026' ? j <= 3 : j <= 6).map(j => {
+        {jornadas.filter(j => TEMPORADA_ACTIVA === 'ligamx2026' ? j <= 5 : j <= 6).map(j => {
           const cerrada = TEMPORADA_ACTIVA === 'ligamx2026' ? new Date() > getDeadline(j) : j < 2 || new Date() > getDeadline(j);
           return (
             <Pill key={j} active={jornada === j} onClick={() => setJornada(j)} faded={cerrada && jornada !== j}>
