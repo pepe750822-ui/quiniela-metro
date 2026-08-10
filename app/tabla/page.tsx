@@ -344,7 +344,7 @@ export default function TablaPage() {
   const necesitaTerminacionPartido = (partido: any): boolean => {
     if (TEMPORADA_ACTIVA === 'ligamx2026') {
       const fecha = new Date(partido.fecha_hora);
-      return fecha >= new Date('2026-08-04T00:00:00Z') && fecha < new Date('2026-08-14T00:00:00Z');
+      return fecha >= new Date('2026-08-04T00:00:00Z') && fecha < new Date('2026-08-14T06:00:00Z');
     }
     return partido.jornada >= 5;
   };
