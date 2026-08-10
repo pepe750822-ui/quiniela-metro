@@ -643,8 +643,11 @@ export default function DashboardPage() {
   }
   pozosCompletos.sort((a, b) => a.jornada - b.jornada);
 
+  // Solo mostrar pozos que tienen participantes reales (oculta jornadas futuras vacías)
+  const pozosVisibles = pozosCompletos.filter(p => p.participantes > 0);
+
   const jornadasDisponibles = TEMPORADA_ACTIVA === 'ligamx2026'
-    ? [1, 2, 3]
+    ? [...new Set(pozosCompletos.filter(p => p.participantes > 0).map(p => p.jornada))]
     : [...new Set(pozosCompletos.map(p => p.jornada))];
 
   const compartirRanking = () => {
@@ -762,12 +765,12 @@ export default function DashboardPage() {
       )}
 
       {/* Pozos por jornada */}
-      {pozosCompletos.length > 0 && (
+      {pozosVisibles.length > 0 && (
         <motion.div className="space-y-3" initial="hidden" animate="visible" variants={staggerContainer}>
           <p className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: 'var(--text-secondary)' }}>
             Pozos acumulados
           </p>
-          {pozosCompletos.map(pozo => (
+          {pozosVisibles.map(pozo => (
             <PozoCard key={pozo.id} pozo={pozo} id={pozo.jornada === 6 ? 'pozo-j6' : undefined} />
           ))}
         </motion.div>
