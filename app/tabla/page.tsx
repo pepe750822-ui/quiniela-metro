@@ -44,6 +44,7 @@ export default function TablaPage() {
   const [clasificadosLc, setClasificadosLc] = useState<{ ligamx: string[]; mls: string[] }>({ ligamx: [], mls: [] });
   const [loading, setLoading]           = useState(false);
   const [ptsF1, setPtsF1]               = useState<Record<string, number>>({});
+  const [ptsJ1J2, setPtsJ1J2]           = useState<Record<string, number>>({});
   const tablaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -216,6 +217,43 @@ export default function TablaPage() {
         if (c.liga === 'mls')    lcMap.mls = c.equipos;
       });
       setClasificadosLc(lcMap);
+    }
+
+    // Cargar puntos J1+J2 para mostrar acumulado en J3
+    if (TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 3) {
+      const { data: partidosJ1J2 } = await supabase
+        .from('quiniela_partidos')
+        .select('id')
+        .eq('temporada', TEMPORADA_ACTIVA)
+        .in('jornada', [1, 2])
+        .eq('estado', 'finalizado');
+      if (partidosJ1J2?.length) {
+        const resJ1J2 = await fetch('/api/predicciones-tabla', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ partidoIds: partidosJ1J2.map((p: any) => p.id) }),
+        });
+        const { predicciones: predsJ1J2 = [] } = await resJ1J2.json();
+        const dedupMapJ1J2: Record<string, number> = {};
+        predsJ1J2.forEach((p: any) => {
+          if (p.puntos_ganados != null && p.quiniela_extra_id === null) {
+            const dk = `${p.user_id}:${p.partido_id}`;
+            if (dedupMapJ1J2[dk] === undefined || p.puntos_ganados > dedupMapJ1J2[dk]) {
+              dedupMapJ1J2[dk] = p.puntos_ganados;
+            }
+          }
+        });
+        const ptsByUserJ1J2: Record<string, number> = {};
+        Object.entries(dedupMapJ1J2).forEach(([dk, pts]) => {
+          const userId = dk.split(':')[0];
+          ptsByUserJ1J2[userId] = (ptsByUserJ1J2[userId] || 0) + pts;
+        });
+        setPtsJ1J2(ptsByUserJ1J2);
+      } else {
+        setPtsJ1J2({});
+      }
+    } else {
+      setPtsJ1J2({});
     }
 
     // Cargar puntos de F1 para mostrar acumulado en J2
@@ -458,13 +496,13 @@ export default function TablaPage() {
   };
 
   const getPtsF1 = (part: any) => ptsF1[part.user_id] ?? 0;
+  const getPtsJ1J2 = (part: any) => ptsJ1J2[part.user_id] ?? 0;
 
   const calcTotalConF1 = (part: any) => {
-    const j2pts = calcTotal(part);
-    if (TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 2) {
-      return j2pts + getPtsF1(part);
-    }
-    return j2pts;
+    const jPts = calcTotal(part);
+    if (TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 2) return jPts + getPtsF1(part);
+    if (TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 3) return jPts + getPtsJ1J2(part);
+    return jPts;
   };
 
   const participacionesOrdenadas = participaciones
@@ -653,6 +691,12 @@ export default function TablaPage() {
                   PTS F1
                 </th>
               )}
+              {TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 3 && (
+                <th className="px-2 py-2 text-center min-w-[64px]"
+                  style={{ background: 'var(--bg-base)', borderLeft: '2px solid rgba(99,102,241,0.5)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '0.75rem', color: '#818cf8' }}>
+                  PTS J1+J2
+                </th>
+              )}
               {finalizados.map(partido => (
                 <th key={partido.id}
                   className="px-2 py-2 text-center min-w-[70px]"
@@ -774,6 +818,15 @@ export default function TablaPage() {
                         {getPtsF1(part)}
                       </div>
                       <div style={{ fontSize: '0.55rem', color: '#475569', lineHeight: 1 }}>F1</div>
+                    </td>
+                  )}
+                  {TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 3 && (
+                    <td className="px-2 py-2 text-center"
+                      style={{ borderLeft: '2px solid rgba(99,102,241,0.5)', borderBottom: '1px solid var(--border-color)', minWidth: 64 }}>
+                      <div style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: '#818cf8' }}>
+                        {getPtsJ1J2(part)}
+                      </div>
+                      <div style={{ fontSize: '0.55rem', color: '#475569', lineHeight: 1 }}>J1+J2</div>
                     </td>
                   )}
                   {finalizados.map(partido => {
