@@ -222,8 +222,8 @@ export default function TablaPage() {
       setClasificadosLc(lcMap);
     }
 
-    // Cargar puntos acumulados de jornadas anteriores (J2+)
-    if (TEMPORADA_ACTIVA === 'ligamx2026' && jornada >= 2) {
+    // Cargar puntos acumulados de jornadas anteriores (solo J2 y J3 de Leagues Cup)
+    if (TEMPORADA_ACTIVA === 'ligamx2026' && jornada >= 2 && jornada <= 3) {
       const jornadasAnt = Array.from({ length: jornada - 1 }, (_, i) => i + 1);
       const { data: partidosAnt } = await supabase
         .from('quiniela_partidos')
@@ -472,7 +472,7 @@ export default function TablaPage() {
 
   const calcTotalConF1 = (part: any) => {
     const jPts = calcTotal(part);
-    if (TEMPORADA_ACTIVA === 'ligamx2026' && jornada >= 2) return jPts + getPtsAnteriores(part);
+    if (TEMPORADA_ACTIVA === 'ligamx2026' && jornada >= 2 && jornada <= 3) return jPts + getPtsAnteriores(part);
     return jPts;
   };
 
@@ -656,7 +656,7 @@ export default function TablaPage() {
                 style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
                 PTS
               </th>
-              {TEMPORADA_ACTIVA === 'ligamx2026' && jornada >= 2 && (
+              {TEMPORADA_ACTIVA === 'ligamx2026' && jornada >= 2 && jornada <= 3 && (
                 <th className="px-2 py-2 text-center min-w-[64px]"
                   style={{ background: 'var(--bg-base)', borderLeft: '2px solid rgba(99,102,241,0.5)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '0.75rem', color: '#818cf8' }}>
                   {labelPtsAnteriores().header}
@@ -776,7 +776,7 @@ export default function TablaPage() {
                     style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
                     {totalPuntos}
                   </td>
-                  {TEMPORADA_ACTIVA === 'ligamx2026' && jornada >= 2 && (
+                  {TEMPORADA_ACTIVA === 'ligamx2026' && jornada >= 2 && jornada <= 3 && (
                     <td className="px-2 py-2 text-center"
                       style={{ borderLeft: '2px solid rgba(99,102,241,0.5)', borderBottom: '1px solid var(--border-color)', minWidth: 64 }}>
                       <div style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: '#818cf8' }}>
