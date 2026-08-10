@@ -1137,7 +1137,7 @@ export default function PrediccionesPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {jornada >= 5 && (
+          {jornada >= 5 && TEMPORADA_ACTIVA !== 'ligamx2026' && (
             <motion.div {...fadeUp(0.12)} className="flex gap-3 text-xs flex-wrap" style={{ color: '#64748b' }}>
               <span>⏱️ Tiempo reglamentario</span>
               <span>⏩ Prórroga</span>
