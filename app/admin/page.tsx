@@ -1035,7 +1035,7 @@ export default function AdminPage() {
 
   const jornadasConPozo = new Set(pozos.map(p => p.jornada));
   const pozosCompletos = [...pozos];
-  for (let j = 1; j <= (TEMPORADA_ACTIVA === 'ligamx2026' ? 3 : 5); j++) {
+  for (let j = 1; j <= (TEMPORADA_ACTIVA === 'ligamx2026' ? 5 : 5); j++) {
     if (!jornadasConPozo.has(j)) {
       pozosCompletos.push({
         id: `synthetic-${j}`,
