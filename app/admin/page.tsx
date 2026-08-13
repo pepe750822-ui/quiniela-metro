@@ -1462,7 +1462,9 @@ export default function AdminPage() {
                 >
                   <div className="flex items-center gap-3 flex-wrap text-left">
                     <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: 'var(--accent-gold)' }}>
-                      {getNombreJornada(pozo.jornada)}
+                      {TEMPORADA_ACTIVA === 'ligamx2026' && pozo.jornada >= 4
+                        ? `Jornada ${pozo.jornada} Liga MX`
+                        : getNombreJornada(pozo.jornada)}
                     </span>
                     <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                       👥 {pozo.participantes} · ${pozo.total_mxn} MXN
