@@ -419,11 +419,14 @@ export default function PrediccionesPage() {
   }, []);
 
   const cargarPozoYParticipacion = useCallback(async (uid: string, j: number) => {
+    // J4 es la base de la quiniela Liga MX (cubre J4 y J5), igual que J1 fue la base de Leagues Cup
+    const baseJornada = TEMPORADA_ACTIVA === 'ligamx2026' && j === 5 ? 4 : j;
+
     const basePartQuery = supabase
       .from('quiniela_participaciones')
       .select('pagado, publicado')
       .eq('user_id', uid)
-      .eq('jornada', j)
+      .eq('jornada', baseJornada)
       .eq('temporada', TEMPORADA_ACTIVA);
 
     const partPromise = quinielaSeleccionada === null
@@ -431,14 +434,14 @@ export default function PrediccionesPage() {
       : basePartQuery.eq('quiniela_extra_id', quinielaSeleccionada).maybeSingle();
 
     const [{ data: pz }, { data: part }] = await Promise.all([
-      supabase.from('quiniela_pozo').select('*').eq('jornada', j).eq('temporada', TEMPORADA_ACTIVA).maybeSingle(),
+      supabase.from('quiniela_pozo').select('*').eq('jornada', baseJornada).eq('temporada', TEMPORADA_ACTIVA).maybeSingle(),
       partPromise,
     ]);
     setPozo(pz as Pozo ?? null);
     setPublicado(part?.publicado ?? false);
 
-    // Liga MX 2026: pago de J1 cubre toda la Leagues Cup (J1, J2, J3)
-    if (TEMPORADA_ACTIVA === 'ligamx2026' && j >= 2 && !part?.pagado) {
+    // Liga MX 2026: pago de J1 cubre Leagues Cup (J2, J3); J4 cubre Liga MX (J4, J5)
+    if (TEMPORADA_ACTIVA === 'ligamx2026' && j >= 2 && j <= 3 && !part?.pagado) {
       const { data: partJ1 } = await supabase
         .from('quiniela_participaciones')
         .select('pagado')
@@ -457,7 +460,7 @@ export default function PrediccionesPage() {
         .from('quiniela_participaciones')
         .insert({
           user_id:           uid,
-          jornada:           j,
+          jornada:           baseJornada,
           pagado:            false,
           publicado:         false,
           quiniela_extra_id: quinielaSeleccionada ?? null,
@@ -641,11 +644,12 @@ export default function PrediccionesPage() {
   const handlePublicar = async () => {
     if (!userId) return;
     setPublicando(true);
+    const baseJornadaPublicar = TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 5 ? 4 : jornada;
     const baseUpdate = supabase
       .from('quiniela_participaciones')
       .update({ publicado: true })
       .eq('user_id', userId)
-      .eq('jornada', jornada);
+      .eq('jornada', baseJornadaPublicar);
     const { error } = await (quinielaSeleccionada === null
       ? baseUpdate.is('quiniela_extra_id', null)
       : baseUpdate.eq('quiniela_extra_id', quinielaSeleccionada));
@@ -728,7 +732,8 @@ export default function PrediccionesPage() {
     });
     try {
       await Promise.all(promises);
-      const baseUpdate = supabase.from('quiniela_participaciones').update({ publicado: true }).eq('user_id', userId).eq('jornada', jornada);
+      const baseJornadaAct = TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 5 ? 4 : jornada;
+      const baseUpdate = supabase.from('quiniela_participaciones').update({ publicado: true }).eq('user_id', userId).eq('jornada', baseJornadaAct);
       await (quinielaSeleccionada === null ? baseUpdate.is('quiniela_extra_id', null) : baseUpdate.eq('quiniela_extra_id', quinielaSeleccionada));
       setPrediccionesBorrador({});
       setPublicado(true);

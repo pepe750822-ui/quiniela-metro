@@ -156,11 +156,14 @@ export default function PrediccionForm({
       return;
     }
 
+    // J4 es la base de la quiniela Liga MX (cubre J4 y J5)
+    const baseJornada = TEMPORADA_ACTIVA === 'ligamx2026' && partido.jornada === 5 ? 4 : partido.jornada;
+
     const basePartQuery = supabase
       .from('quiniela_participaciones')
       .select('pagado')
       .eq('user_id', userId)
-      .eq('jornada', partido.jornada)
+      .eq('jornada', baseJornada)
       .eq('temporada', TEMPORADA_ACTIVA);
 
     const { data: participacion } = await (quinielaExtraId === null
@@ -170,9 +173,9 @@ export default function PrediccionForm({
     if (!participacion) {
       await supabase.from('quiniela_participaciones').insert({
         user_id:           userId,
-        jornada:           partido.jornada,
+        jornada:           baseJornada,
         pagado:            false,
-        monto:             getMontoJornada(partido.jornada),
+        monto:             getMontoJornada(baseJornada),
         quiniela_extra_id: quinielaExtraId,
         temporada:         TEMPORADA_ACTIVA,
       }, { count: 'none' });
