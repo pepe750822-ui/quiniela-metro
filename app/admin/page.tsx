@@ -1035,7 +1035,7 @@ export default function AdminPage() {
 
   const jornadasConPozo = new Set(pozos.map(p => p.jornada));
   const pozosCompletos = [...pozos];
-  for (let j = 1; j <= (TEMPORADA_ACTIVA === 'ligamx2026' ? 5 : 5); j++) {
+  for (let j = 1; j <= 5; j++) {
     if (!jornadasConPozo.has(j)) {
       pozosCompletos.push({
         id: `synthetic-${j}`,
@@ -1047,6 +1047,23 @@ export default function AdminPage() {
         estado: 'abierto',
         created_at: new Date().toISOString(),
       });
+    }
+  }
+  // Garantizar que J4 y J5 siempre estén visibles para ligamx2026
+  if (TEMPORADA_ACTIVA === 'ligamx2026') {
+    for (const j of [4, 5]) {
+      if (!pozosCompletos.find(p => p.jornada === j)) {
+        pozosCompletos.push({
+          id: `synthetic-lmx-${j}`,
+          jornada: j,
+          total_mxn: 0,
+          participantes: 0,
+          ganador_id: null,
+          ganador_nombre: null,
+          estado: 'abierto',
+          created_at: new Date().toISOString(),
+        });
+      }
     }
   }
 
@@ -1428,8 +1445,10 @@ export default function AdminPage() {
         {seccionesAbiertas.pozos && (
         <div className="space-y-2">
           {pozosCompletos.map(pozo => {
-            const pendientes = participaciones.filter(p => p.jornada === pozo.jornada && !p.pagado);
-            const confirmadas = participaciones.filter(p => p.jornada === pozo.jornada && p.pagado);
+            // J4 es la base de la quiniela Liga MX; J5 comparte participaciones de J4
+            const pozoBaseJornada = TEMPORADA_ACTIVA === 'ligamx2026' && pozo.jornada === 5 ? 4 : pozo.jornada;
+            const pendientes = participaciones.filter(p => p.jornada === pozoBaseJornada && !p.pagado);
+            const confirmadas = participaciones.filter(p => p.jornada === pozoBaseJornada && p.pagado);
             const isOpen = jornadaAbierta === pozo.jornada;
             return (
               <div key={pozo.id} className="rounded-xl overflow-hidden"
