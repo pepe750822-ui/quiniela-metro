@@ -921,7 +921,9 @@ export default function PrediccionesPage() {
             backgroundClip: 'text',
           }}
         >
-          {TEMPORADA_ACTIVA === 'ligamx2026' ? 'Leagues Cup — Fase 1' : 'PREDICCIONES'}
+          {TEMPORADA_ACTIVA === 'ligamx2026'
+            ? (jornada >= 4 ? 'Liga MX Apertura 2026' : 'Leagues Cup — Fase 1')
+            : 'PREDICCIONES'}
         </h1>
         <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
           {labelJornada(jornada)}
