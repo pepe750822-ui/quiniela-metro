@@ -222,9 +222,9 @@ export default function TablaPage() {
       setClasificadosLc(lcMap);
     }
 
-    // Cargar puntos acumulados de jornadas anteriores (solo J2 y J3 de Leagues Cup)
-    if (TEMPORADA_ACTIVA === 'ligamx2026' && jornada >= 2 && jornada <= 3) {
-      const jornadasAnt = Array.from({ length: jornada - 1 }, (_, i) => i + 1);
+    // Cargar puntos acumulados de jornadas anteriores (LC: J2/J3 · Liga MX: J5 acumula J4)
+    if (TEMPORADA_ACTIVA === 'ligamx2026' && ((jornada >= 2 && jornada <= 3) || jornada === 5)) {
+      const jornadasAnt = jornada === 5 ? [4] : Array.from({ length: jornada - 1 }, (_, i) => i + 1);
       const { data: partidosAnt } = await supabase
         .from('quiniela_partidos')
         .select('id')
@@ -464,15 +464,15 @@ export default function TablaPage() {
   const getPtsAnteriores = (part: any) => ptsAnteriores[part.user_id] ?? 0;
 
   const labelPtsAnteriores = () => {
-    if (jornada === 2) return { header: 'PTS F1',   sub: 'F1' };
+    if (jornada === 2) return { header: 'PTS F1', sub: 'F1' };
     if (jornada === 3) return { header: 'PTS J1+J2', sub: 'J1+J2' };
-    if (jornada === 4) return { header: 'PTS J1-J3', sub: 'J1-J3' };
-    return { header: 'PTS J1-J4', sub: 'J1-J4' };
+    if (jornada === 5) return { header: 'PTS J4', sub: 'J4' };
+    return { header: '', sub: '' };
   };
 
   const calcTotalConF1 = (part: any) => {
     const jPts = calcTotal(part);
-    if (TEMPORADA_ACTIVA === 'ligamx2026' && jornada >= 2 && jornada <= 3) return jPts + getPtsAnteriores(part);
+    if (TEMPORADA_ACTIVA === 'ligamx2026' && ((jornada >= 2 && jornada <= 3) || jornada === 5)) return jPts + getPtsAnteriores(part);
     return jPts;
   };
 
@@ -658,7 +658,7 @@ export default function TablaPage() {
                 style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
                 PTS
               </th>
-              {TEMPORADA_ACTIVA === 'ligamx2026' && jornada >= 2 && jornada <= 3 && (
+              {TEMPORADA_ACTIVA === 'ligamx2026' && ((jornada >= 2 && jornada <= 3) || jornada === 5) && (
                 <th className="px-2 py-2 text-center min-w-[64px]"
                   style={{ background: 'var(--bg-base)', borderLeft: '2px solid rgba(99,102,241,0.5)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '0.75rem', color: '#818cf8' }}>
                   {labelPtsAnteriores().header}
@@ -733,6 +733,18 @@ export default function TablaPage() {
                   🏆 Clasif.
                 </th>
               )}
+              {TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 3 && (
+                <>
+                  <th className="px-3 py-2 text-center min-w-[52px]"
+                    style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(34,197,94,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#22c55e' }}>
+                    Bono
+                  </th>
+                  <th className="px-3 py-2 text-center min-w-[55px]"
+                    style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
+                    Total
+                  </th>
+                </>
+              )}
             </tr>
           </thead>
           <motion.tbody initial="hidden" animate="visible" variants={tableBodyVariants}>
@@ -744,6 +756,11 @@ export default function TablaPage() {
               const campBono  = bonosCampeon[campKey];
               const campAcerto = campBono !== undefined && campBono > 0;
               const campFallo  = campeonDeclarado && !campAcerto;
+              const userPicksClas = TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 3 ? picksClasificacion[part.user_id] : undefined;
+              const ptsClas = userPicksClas
+                ? (clasificadosLc.ligamx.length > 0 ? userPicksClas.ligamx.filter((e: string) => clasificadosLc.ligamx.includes(e)).length : 0)
+                  + (clasificadosLc.mls.length > 0 ? userPicksClas.mls.filter((e: string) => clasificadosLc.mls.includes(e)).length : 0)
+                : 0;
 
               return (
                 <motion.tr key={part.id} variants={tableRowVariants}>
@@ -778,7 +795,7 @@ export default function TablaPage() {
                     style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
                     {totalPuntos}
                   </td>
-                  {TEMPORADA_ACTIVA === 'ligamx2026' && jornada >= 2 && jornada <= 3 && (
+                  {TEMPORADA_ACTIVA === 'ligamx2026' && ((jornada >= 2 && jornada <= 3) || jornada === 5) && (
                     <td className="px-2 py-2 text-center"
                       style={{ borderLeft: '2px solid rgba(99,102,241,0.5)', borderBottom: '1px solid var(--border-color)', minWidth: 64 }}>
                       <div style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: '#818cf8' }}>
@@ -1000,6 +1017,18 @@ export default function TablaPage() {
                       </td>
                     );
                   })()}
+                  {TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 3 && (
+                    <>
+                      <td className="px-3 py-2 text-center"
+                        style={{ borderLeft: '1px solid rgba(34,197,94,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#22c55e' }}>
+                        {ptsClas > 0 ? `+${ptsClas}` : '—'}
+                      </td>
+                      <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
+                        style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
+                        {totalPuntos + ptsClas}
+                      </td>
+                    </>
+                  )}
                 </motion.tr>
               );
             })}
