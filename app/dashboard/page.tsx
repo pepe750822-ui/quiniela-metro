@@ -159,7 +159,9 @@ export default function DashboardPage() {
   const [pendienteIds, setPendienteIds]         = useState<string[]>([]);
   const [pagadosIds, setPagadosIds]             = useState<string[]>([]);
   const [jornadaSeleccionada, setJornadaSeleccionada] = useState<number | 'general' | 'lc_total'>(
-    TEMPORADA_ACTIVA === 'ligamx2026' ? 'lc_total' : 1
+    TEMPORADA_ACTIVA === 'ligamx2026'
+      ? (new Date() > new Date('2026-08-14T06:00:00Z') ? 4 : 'lc_total')
+      : 1
   );
   const [participantesJornada, setParticipantesJornada] = useState<ParticipanteItem[]>([]);
   const { d, h, m, s, started, mounted: countdownReady } = useCountdown(INAUGURAL);
