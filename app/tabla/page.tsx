@@ -23,13 +23,7 @@ const DEADLINE_LMX_J4 = new Date('2026-08-15T23:00:00Z'); // Sáb 15 ago 18:00 C
 const DEADLINE_LMX_J5 = new Date('2026-08-22T01:00:00Z'); // Vie 21 ago 20:00 CDMX
 
 const jornadaInicial = () => {
-  if (TEMPORADA_ACTIVA === 'ligamx2026') {
-    if (new Date() > new Date('2026-08-22T01:00:00Z')) return 5;
-    if (new Date() > new Date('2026-08-14T06:00:00Z')) return 4;
-    if (new Date() > DEADLINE_LC_F2)  return 3;
-    if (new Date() > DEADLINE_LC_F1)  return 2;
-    return 1;
-  }
+  if (TEMPORADA_ACTIVA === 'ligamx2026') return 5;
   return 1;
 };
 
