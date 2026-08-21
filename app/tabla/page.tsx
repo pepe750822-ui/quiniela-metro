@@ -120,10 +120,12 @@ export default function TablaPage() {
       .eq('temporada', TEMPORADA_ACTIVA);
     const { data: particsRaw } = jornada === 6
       ? await particsQuery.gte('jornada', 6)
-      : await particsQuery.eq('jornada', jornada);
+      : TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 5
+        ? await particsQuery.in('jornada', [4, 5])
+        : await particsQuery.eq('jornada', jornada);
     // Deduplicar por (user_id, quiniela_extra_id) manteniendo la participación de menor jornada
     let partics: any[] = [];
-    if (jornada === 6) {
+    if (jornada === 6 || (TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 5)) {
       const seen = new Map<string, any>();
       for (const p of (particsRaw || [])) {
         const key = `${p.user_id}:${p.quiniela_extra_id ?? 'null'}`;
