@@ -160,7 +160,9 @@ export default function DashboardPage() {
   const [pagadosIds, setPagadosIds]             = useState<string[]>([]);
   const [jornadaSeleccionada, setJornadaSeleccionada] = useState<number | 'general' | 'lc_total'>(
     TEMPORADA_ACTIVA === 'ligamx2026'
-      ? (new Date() > new Date('2026-08-14T06:00:00Z') ? 4 : 'lc_total')
+      ? (new Date() > new Date('2026-08-22T01:00:00Z') ? 5
+        : new Date() > new Date('2026-08-14T06:00:00Z') ? 4
+        : 'lc_total')
       : 1
   );
   const [participantesJornada, setParticipantesJornada] = useState<ParticipanteItem[]>([]);

@@ -322,8 +322,7 @@ export default function PrediccionesPage() {
   const [loading, setLoading]             = useState(true);
   const [jornada, setJornada]             = useState(() => {
     if (TEMPORADA_ACTIVA === 'ligamx2026') {
-      if (new Date() > DEADLINE_LMX_J5) return 5;
-      if (new Date() > DEADLINE_LMX_J4) return 4;
+      if (new Date() > new Date('2026-08-22T01:00:00Z')) return 5;
       if (new Date() > new Date('2026-08-14T06:00:00Z')) return 4;
       if (new Date() > DEADLINE_LC_F2)  return 3;
       if (new Date() > DEADLINE_LC_F1)  return 2;

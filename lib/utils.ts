@@ -39,6 +39,11 @@ export const LOGOS_LIGAMX: Record<string, string> = {
   'Austin FC':           '/logos/austinfc.svg',
   'San Diego FC':        '/logos/sandiegofc.svg',
   'Portland Timbers':    '/logos/portlandtimbers.svg',
+  // LaLiga ESP
+  'Espanyol':            '/logos/espanyol.svg',
+  'Real Madrid':         '/logos/realmadrid.svg',
+  'Elche':               '/logos/elche.svg',
+  'Barcelona':           '/logos/barcelona.svg',
 };
 
 export const emailCorto = (email: string) => email.split('@')[0];
