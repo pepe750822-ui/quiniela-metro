@@ -342,13 +342,25 @@ export default function DashboardPage() {
 
     const j = Number(jornadaSeleccionada);
 
-    const { data: parts, error: errorPart } = await supabase
+    // J4+J5 son la misma quiniela acumulada
+    const jornadasJ = TEMPORADA_ACTIVA === 'ligamx2026' && j === 5 ? [4, 5] : [j];
+    const { data: partsRaw, error: errorPart } = await supabase
       .from('quiniela_participaciones')
       .select('id, user_id, jornada, pagado, publicado, quiniela_extra_id')
-      .eq('jornada', j)
+      .in('jornada', jornadasJ)
       .eq('pagado', true)
       .eq('temporada', TEMPORADA_ACTIVA)
       .order('created_at', { ascending: true });
+    // Deduplicar: un usuario puede tener participacion en J4 y J5 — conservar la de menor jornada
+    let parts: typeof partsRaw = partsRaw;
+    if (TEMPORADA_ACTIVA === 'ligamx2026' && j === 5 && partsRaw) {
+      const seen = new Map<string, any>();
+      for (const p of partsRaw) {
+        const key = `${(p as any).user_id}:${(p as any).quiniela_extra_id ?? 'null'}`;
+        if (!seen.has(key) || seen.get(key).jornada > (p as any).jornada) seen.set(key, p);
+      }
+      parts = [...seen.values()] as typeof partsRaw;
+    }
     console.log('Participantes query result:', parts, errorPart);
 
     const userIds = parts?.map((p: { user_id: string }) => p.user_id) ?? [];
@@ -385,7 +397,7 @@ export default function DashboardPage() {
     const { data: pagadosConPrediccion } = await supabase
       .from('quiniela_participaciones')
       .select('user_id, quiniela_extra_id')
-      .eq('jornada', j)
+      .in('jornada', jornadasJ)
       .eq('pagado', true)
       .eq('publicado', true)
       .eq('temporada', TEMPORADA_ACTIVA);
@@ -406,8 +418,8 @@ export default function DashboardPage() {
     const allUserIds = [...new Set(pagadosEntries.map(p => p.user_id))];
     setPagadosIds(allUserIds);
 
-    const { data: rankingData } = allUserIds.length
-      ? await supabase
+    const rankBaseQuery = allUserIds.length
+      ? supabase
           .from('quiniela_predicciones')
           .select(`
             user_id,
@@ -415,10 +427,14 @@ export default function DashboardPage() {
             puntos_ganados,
             partido:quiniela_partidos!inner(estado, jornada, temporada)
           `)
-          .eq('partido.jornada', jornadaSeleccionada)
           .eq('partido.estado', 'finalizado')
           .eq('partido.temporada', TEMPORADA_ACTIVA)
           .in('user_id', allUserIds)
+      : null;
+    const { data: rankingData } = rankBaseQuery
+      ? await (TEMPORADA_ACTIVA === 'ligamx2026' && j === 5
+          ? rankBaseQuery.in('partido.jornada', [4, 5])
+          : rankBaseQuery.eq('partido.jornada', j))
       : { data: [] };
 
     // Agrupar puntos por user_id + quiniela_extra_id
