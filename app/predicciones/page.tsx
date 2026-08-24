@@ -1384,7 +1384,115 @@ export default function PrediccionesPage() {
               animate="show"
               className="space-y-3"
             >
-              {resolvedPartidos.map(partido => (
+              {TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 6 ? (() => {
+                const lcPartidos  = resolvedPartidos.filter(p => p.grupo === 'LC');
+                const lmxPartidos = resolvedPartidos.filter(p => p.grupo !== 'LC');
+                const LC_LIGAMX = ['León', 'América', 'Toluca', 'Monterrey'];
+                const LC_MLS    = ['Chicago Fire', 'Columbus Crew', 'Austin FC', 'Real Salt Lake'];
+                const cerrado   = partidos.length > 0 && partidos.some(p => new Date() >= new Date(p.fecha_hora));
+                return (
+                  <>
+                    {lcPartidos.map(partido => (
+                      <motion.div key={partido.id} variants={itemVariants} id={`partido-${partido.id}`}>
+                        <PartidoCard
+                          partido={partido}
+                          prediccion={prediccionesBorrador[partido.id] ?? predicciones[partido.id] ?? null}
+                          participacionPagada={predicciones[partido.id] ? participando : undefined}
+                          onPredicir={estaBloquado(partido) ? undefined : setPartidoActivo}
+                        />
+                      </motion.div>
+                    ))}
+
+                    {/* ── Pick Campeón LC (entre cuartos y partidos LMX) ── */}
+                    <motion.div variants={itemVariants}>
+                      <div
+                        className="rounded-2xl p-4 space-y-3"
+                        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(234,88,12,0.2)', boxShadow: '0 0 24px rgba(234,88,12,0.05)' }}
+                      >
+                        <div>
+                          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
+                            🏆 ¿Quién será campeón de la Leagues Cup 2026?
+                          </p>
+                          <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                            1 pick entre los 8 clasificados a Cuartos · +5 pts si aciertas
+                          </p>
+                        </div>
+                        {cerrado ? (
+                          lcCampeonPick ? (
+                            <div className="rounded-xl p-3 flex items-center gap-2" style={{ background: 'rgba(100,116,139,0.06)', border: '1px solid rgba(100,116,139,0.15)' }}>
+                              <span>🔒</span>
+                              <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                                Tu pick: <strong style={{ color: '#fbbf24' }}>{lcCampeonPick}</strong>
+                              </span>
+                            </div>
+                          ) : (
+                            <p className="text-sm text-center" style={{ color: 'var(--text-secondary)' }}>No hiciste una predicción 🔒</p>
+                          )
+                        ) : (
+                          <>
+                            {lcCampeonPick && (
+                              <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                                Pick actual: <strong style={{ color: '#fbbf24' }}>{lcCampeonPick}</strong>
+                              </p>
+                            )}
+                            {[{ label: 'Liga MX', equipos: LC_LIGAMX }, { label: 'MLS', equipos: LC_MLS }].map(({ label, equipos }) => (
+                              <div key={label} className="space-y-1.5">
+                                <p className="text-[10px] uppercase tracking-widest" style={{ color: '#64748b' }}>{label}</p>
+                                <div className="grid grid-cols-2 gap-2">
+                                  {equipos.map(equipo => {
+                                    const logo = LOGOS_LIGAMX[equipo];
+                                    const sel  = lcCampeonPickTemp === equipo;
+                                    return (
+                                      <motion.button
+                                        whileTap={{ scale: 0.94 }}
+                                        key={equipo}
+                                        onClick={() => setLcCampeonPickTemp(equipo)}
+                                        className="py-2.5 px-2 rounded-xl text-xs font-semibold text-center flex flex-col items-center gap-1 cursor-pointer"
+                                        style={{
+                                          background: sel ? 'linear-gradient(135deg, #ea580c, #f97316)' : 'rgba(255,255,255,0.04)',
+                                          color: sel ? '#fff' : 'var(--text-secondary)',
+                                          border: `1px solid ${sel ? 'transparent' : 'rgba(255,255,255,0.06)'}`,
+                                          fontFamily: 'var(--font-rajdhani)',
+                                          transition: 'all 0.12s ease',
+                                        }}
+                                      >
+                                        {logo
+                                          ? <img src={logo} alt={equipo} width={24} height={24} className="object-contain" />
+                                          : <span style={{ fontSize: '0.6rem', color: sel ? 'rgba(255,255,255,0.7)' : '#475569' }}>{label}</span>}
+                                        <span>{equipo}</span>
+                                      </motion.button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            ))}
+                            <motion.button
+                              whileTap={{ scale: 0.97 }}
+                              onClick={guardarLcCampeonPick}
+                              disabled={!lcCampeonPickTemp || lcCampeonGuardando || lcCampeonPickTemp === lcCampeonPick}
+                              className="w-full py-3 rounded-xl font-bold text-sm cursor-pointer"
+                              style={publishBtn(!lcCampeonPickTemp || lcCampeonGuardando || lcCampeonPickTemp === lcCampeonPick)}
+                            >
+                              {lcCampeonGuardando ? '⏳ Guardando...' : lcCampeonPick ? '🔄 Actualizar pick' : '🏆 Guardar pick de Campeón LC'}
+                            </motion.button>
+                          </>
+                        )}
+                      </div>
+                    </motion.div>
+
+                    {lmxPartidos.map(partido => (
+                      <motion.div key={partido.id} variants={itemVariants} id={`partido-${partido.id}`}>
+                        <PartidoCard
+                          partido={partido}
+                          prediccion={prediccionesBorrador[partido.id] ?? predicciones[partido.id] ?? null}
+                          participacionPagada={predicciones[partido.id] ? participando : undefined}
+                          onPredicir={estaBloquado(partido) ? undefined : setPartidoActivo}
+                        />
+                      </motion.div>
+                    ))}
+                  </>
+                );
+              })() : resolvedPartidos.map(partido => (
                 <motion.div key={partido.id} variants={itemVariants} id={`partido-${partido.id}`}>
                   <PartidoCard
                     partido={partido}
@@ -1772,88 +1880,6 @@ export default function PrediccionesPage() {
       )}
 
       {/* ── PICK CAMPEÓN LEAGUES CUP 2026 — J6 ── */}
-      {TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 6 && (() => {
-        const LC_LIGAMX = ['León', 'América', 'Toluca', 'Monterrey'];
-        const LC_MLS    = ['Chicago Fire', 'Columbus Crew', 'Austin FC', 'Real Salt Lake'];
-        const cerrado   = partidos.length > 0 && partidos.some(p => new Date() >= new Date(p.fecha_hora));
-        return (
-          <motion.div
-            {...fadeUp(0.06)}
-            className="rounded-2xl p-4 space-y-3"
-            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(234,88,12,0.2)', boxShadow: '0 0 24px rgba(234,88,12,0.05)' }}
-          >
-            <div>
-              <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
-                🏆 ¿Quién será campeón de la Leagues Cup 2026?
-              </p>
-              <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-                1 pick entre los 8 clasificados a Cuartos · +5 pts si aciertas
-              </p>
-            </div>
-
-            {cerrado ? (
-              lcCampeonPick ? (
-                <div className="rounded-xl p-3 flex items-center gap-2" style={{ background: 'rgba(100,116,139,0.06)', border: '1px solid rgba(100,116,139,0.15)' }}>
-                  <span>🔒</span>
-                  <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-                    Tu pick: <strong style={{ color: '#fbbf24' }}>{lcCampeonPick}</strong>
-                  </span>
-                </div>
-              ) : (
-                <p className="text-sm text-center" style={{ color: 'var(--text-secondary)' }}>No hiciste una predicción 🔒</p>
-              )
-            ) : (
-              <>
-                {lcCampeonPick && (
-                  <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                    Pick actual: <strong style={{ color: '#fbbf24' }}>{lcCampeonPick}</strong>
-                  </p>
-                )}
-                {[{ label: 'Liga MX', equipos: LC_LIGAMX }, { label: 'MLS', equipos: LC_MLS }].map(({ label, equipos }) => (
-                  <div key={label} className="space-y-1.5">
-                    <p className="text-[10px] uppercase tracking-widest" style={{ color: '#64748b' }}>{label}</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      {equipos.map(equipo => {
-                        const logo = LOGOS_LIGAMX[equipo];
-                        const sel  = lcCampeonPickTemp === equipo;
-                        return (
-                          <motion.button
-                            whileTap={{ scale: 0.94 }}
-                            key={equipo}
-                            onClick={() => setLcCampeonPickTemp(equipo)}
-                            className="py-2.5 px-2 rounded-xl text-xs font-semibold text-center flex flex-col items-center gap-1 cursor-pointer"
-                            style={{
-                              background: sel ? 'linear-gradient(135deg, #ea580c, #f97316)' : 'rgba(255,255,255,0.04)',
-                              color: sel ? '#fff' : 'var(--text-secondary)',
-                              border: `1px solid ${sel ? 'transparent' : 'rgba(255,255,255,0.06)'}`,
-                              fontFamily: 'var(--font-rajdhani)',
-                              transition: 'all 0.12s ease',
-                            }}
-                          >
-                            {logo
-                              ? <img src={logo} alt={equipo} width={24} height={24} className="object-contain" />
-                              : <span style={{ fontSize: '0.6rem', color: sel ? 'rgba(255,255,255,0.7)' : '#475569' }}>{label}</span>}
-                            <span>{equipo}</span>
-                          </motion.button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-                <motion.button
-                  whileTap={{ scale: 0.97 }}
-                  onClick={guardarLcCampeonPick}
-                  disabled={!lcCampeonPickTemp || lcCampeonGuardando || lcCampeonPickTemp === lcCampeonPick}
-                  className="w-full py-3 rounded-xl font-bold text-sm cursor-pointer"
-                  style={publishBtn(!lcCampeonPickTemp || lcCampeonGuardando || lcCampeonPickTemp === lcCampeonPick)}
-                >
-                  {lcCampeonGuardando ? '⏳ Guardando...' : lcCampeonPick ? '🔄 Actualizar pick' : '🏆 Guardar pick de Campeón LC'}
-                </motion.button>
-              </>
-            )}
-          </motion.div>
-        );
-      })()}
 
       {/* ── FLOATING BUTTON: Publicar / Actualizar Final + 3er Lugar ── */}
       <AnimatePresence>
