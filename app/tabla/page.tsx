@@ -506,6 +506,13 @@ export default function TablaPage() {
   const finalizados = partidos.filter((p: any) => p.estado === 'finalizado');
   const pendientes  = partidos.filter((p: any) => p.estado !== 'finalizado');
 
+  // Para ligamx2026 J6: separar LC Cuartos de Liga MX J6
+  const esJ6LC = TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 6;
+  const finalizadosLC  = esJ6LC ? finalizados.filter((p: any) => p.grupo === 'LC')  : [];
+  const finalizadosLMX = esJ6LC ? finalizados.filter((p: any) => p.grupo !== 'LC') : [];
+  const pendientesLC   = esJ6LC ? pendientes.filter((p: any) => p.grupo === 'LC')   : [];
+  const pendientesLMX  = esJ6LC ? pendientes.filter((p: any) => p.grupo !== 'LC')  : [];
+
   // Campeón declarado cuando la Final (J9) está finalizada (no aplica para ligamx2026)
   const campeonDeclarado = jornada === 6 && TEMPORADA_ACTIVA !== 'ligamx2026' && campeonJ6Declarado !== null;
 
@@ -658,6 +665,28 @@ export default function TablaPage() {
       <div ref={tablaRef} className="overflow-x-auto overflow-y-auto px-2 print:hidden" style={{ maxHeight: 'calc(100vh - 160px)' }}>
         <table className="min-w-max print:min-w-0 print:w-full text-sm border-collapse">
           <thead className="sticky top-0 z-20">
+            {esJ6LC && (
+              <tr style={{ borderBottom: '1px solid rgba(234,88,12,0.15)' }}>
+                <th colSpan={2} style={{ background: 'var(--bg-base)' }} />
+                <th
+                  colSpan={finalizadosLC.length + pendientesLC.length}
+                  className="px-2 py-1 text-center text-[10px] uppercase tracking-widest"
+                  style={{ background: 'rgba(234,88,12,0.06)', color: '#fb923c', fontFamily: 'var(--font-rajdhani)', borderLeft: '2px solid rgba(234,88,12,0.3)', borderBottom: '1px solid rgba(234,88,12,0.15)' }}>
+                  LC Cuartos
+                </th>
+                <th
+                  className="px-2 py-1 text-center text-[10px] uppercase tracking-widest"
+                  style={{ background: 'rgba(251,191,36,0.06)', color: '#fbbf24', fontFamily: 'var(--font-rajdhani)', borderLeft: '2px solid rgba(251,191,36,0.3)', borderBottom: '1px solid rgba(234,88,12,0.15)' }}>
+                  🏆 Campeón
+                </th>
+                <th
+                  colSpan={finalizadosLMX.length + pendientesLMX.length + 1}
+                  className="px-2 py-1 text-center text-[10px] uppercase tracking-widest"
+                  style={{ background: 'rgba(99,102,241,0.06)', color: '#818cf8', fontFamily: 'var(--font-rajdhani)', borderLeft: '2px solid rgba(99,102,241,0.3)', borderBottom: '1px solid rgba(234,88,12,0.15)' }}>
+                  Liga MX J6
+                </th>
+              </tr>
+            )}
             <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
               <th className="sticky left-0 z-30 text-left px-3 py-3 min-w-[130px]"
                 style={{ background: 'var(--bg-base)', borderBottom: '1px solid var(--border-color)' }}>
@@ -673,69 +702,142 @@ export default function TablaPage() {
                   {labelPtsAnteriores().header}
                 </th>
               )}
-              {finalizados.map(partido => (
-                <th key={partido.id}
-                  className="px-2 py-2 text-center min-w-[70px]"
-                  style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
-                  <div className="flex items-center justify-center gap-1 mb-1">
-                    <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
-                    <span style={{ fontSize: '0.625rem', color: '#475569' }}>vs</span>
-                    <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
-                  </div>
-                  <div className="rounded px-1 py-0.5 font-bold text-xs"
-                    style={{ background: 'rgba(234,88,12,0.2)', border: '1px solid rgba(234,88,12,0.3)', color: '#fb923c' }}>
-                    {partido.goles_local}-{partido.goles_visitante}
-                  </div>
-                  {necesitaTerminacionPartido(partido) && partido.clasificado && (
-                    <div className="flex items-center justify-center gap-0.5 mt-0.5">
-                      <Bandera emoji={BANDERAS_EQUIPOS[partido.clasificado] ?? ''} nombre={partido.clasificado} size="sm" />
-                      <span style={{ fontSize: '0.6rem', color: '#94a3b8' }}>
-                        {emojiComoTermino(partido.como_termino)}
-                      </span>
-                    </div>
+              {esJ6LC ? (
+                <>
+                  {finalizadosLC.map(partido => (
+                    <th key={partido.id} className="px-2 py-2 text-center min-w-[70px]"
+                      style={{ background: 'var(--bg-base)', borderLeft: '2px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)' }}>
+                      <div className="flex items-center justify-center gap-1 mb-1">
+                        <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
+                        <span style={{ fontSize: '0.625rem', color: '#475569' }}>vs</span>
+                        <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
+                      </div>
+                      <div className="rounded px-1 py-0.5 font-bold text-xs" style={{ background: 'rgba(234,88,12,0.2)', border: '1px solid rgba(234,88,12,0.3)', color: '#fb923c' }}>
+                        {partido.goles_local}-{partido.goles_visitante}
+                      </div>
+                      {necesitaTerminacionPartido(partido) && partido.clasificado && (
+                        <div className="flex items-center justify-center gap-0.5 mt-0.5">
+                          <Bandera emoji={BANDERAS_EQUIPOS[partido.clasificado] ?? ''} nombre={partido.clasificado} size="sm" />
+                          <span style={{ fontSize: '0.6rem', color: '#94a3b8' }}>{emojiComoTermino(partido.como_termino)}</span>
+                        </div>
+                      )}
+                    </th>
+                  ))}
+                  {pendientesLC.map(partido => (
+                    <th key={partido.id} id={`col-${partido.id}`} className="px-2 py-2 text-center min-w-[70px]"
+                      style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
+                      <div className="flex items-center justify-center gap-1 mb-1">
+                        <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
+                        <span style={{ fontSize: '0.625rem', color: '#475569' }}>vs</span>
+                        <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
+                      </div>
+                      {partido.estado === 'en_curso' ? (
+                        <div className="rounded px-1 py-0.5 text-[10px] font-bold animate-pulse" style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>🔴 EN VIVO</div>
+                      ) : <div style={{ fontSize: '0.625rem', color: '#334155' }}>pendiente</div>}
+                    </th>
+                  ))}
+                  <th className="px-3 py-2 text-center min-w-[72px]"
+                    style={{ background: 'var(--bg-base)', borderLeft: '2px solid rgba(251,191,36,0.4)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '0.75rem', color: '#fbbf24' }}>
+                    🏆 +5
+                  </th>
+                  {finalizadosLMX.map(partido => (
+                    <th key={partido.id} className="px-2 py-2 text-center min-w-[70px]"
+                      style={{ background: 'var(--bg-base)', borderLeft: '2px solid rgba(99,102,241,0.3)', borderBottom: '1px solid var(--border-color)' }}>
+                      <div className="flex items-center justify-center gap-1 mb-1">
+                        <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
+                        <span style={{ fontSize: '0.625rem', color: '#475569' }}>vs</span>
+                        <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
+                      </div>
+                      <div className="rounded px-1 py-0.5 font-bold text-xs" style={{ background: 'rgba(234,88,12,0.2)', border: '1px solid rgba(234,88,12,0.3)', color: '#fb923c' }}>
+                        {partido.goles_local}-{partido.goles_visitante}
+                      </div>
+                    </th>
+                  ))}
+                  {pendientesLMX.map(partido => (
+                    <th key={partido.id} id={`col-${partido.id}`} className="px-2 py-2 text-center min-w-[70px]"
+                      style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
+                      <div className="flex items-center justify-center gap-1 mb-1">
+                        <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
+                        <span style={{ fontSize: '0.625rem', color: '#475569' }}>vs</span>
+                        <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
+                      </div>
+                      {partido.estado === 'en_curso' ? (
+                        <div className="rounded px-1 py-0.5 text-[10px] font-bold animate-pulse" style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>🔴 EN VIVO</div>
+                      ) : <div style={{ fontSize: '0.625rem', color: '#334155' }}>pendiente</div>}
+                    </th>
+                  ))}
+                  <th id="col-pts" className="px-3 py-2 text-center min-w-[55px]"
+                    style={{ background: 'var(--bg-base)', borderLeft: '2px solid rgba(99,102,241,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
+                    PTS
+                  </th>
+                </>
+              ) : (
+                <>
+                  {finalizados.map(partido => (
+                    <th key={partido.id}
+                      className="px-2 py-2 text-center min-w-[70px]"
+                      style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
+                      <div className="flex items-center justify-center gap-1 mb-1">
+                        <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
+                        <span style={{ fontSize: '0.625rem', color: '#475569' }}>vs</span>
+                        <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
+                      </div>
+                      <div className="rounded px-1 py-0.5 font-bold text-xs"
+                        style={{ background: 'rgba(234,88,12,0.2)', border: '1px solid rgba(234,88,12,0.3)', color: '#fb923c' }}>
+                        {partido.goles_local}-{partido.goles_visitante}
+                      </div>
+                      {necesitaTerminacionPartido(partido) && partido.clasificado && (
+                        <div className="flex items-center justify-center gap-0.5 mt-0.5">
+                          <Bandera emoji={BANDERAS_EQUIPOS[partido.clasificado] ?? ''} nombre={partido.clasificado} size="sm" />
+                          <span style={{ fontSize: '0.6rem', color: '#94a3b8' }}>
+                            {emojiComoTermino(partido.como_termino)}
+                          </span>
+                        </div>
+                      )}
+                    </th>
+                  ))}
+                  <th id="col-pts" className="px-3 py-2 text-center min-w-[55px]"
+                    style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
+                    PTS
+                  </th>
+                  {pendientes.map(partido => (
+                    <th key={partido.id} id={`col-${partido.id}`}
+                      className="px-2 py-2 text-center min-w-[70px]"
+                      style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
+                      <div className="flex items-center justify-center gap-1 mb-1">
+                        <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
+                        <span style={{ fontSize: '0.625rem', color: '#475569' }}>vs</span>
+                        <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
+                      </div>
+                      {partido.estado === 'en_curso' ? (
+                        <div className="rounded px-1 py-0.5 text-[10px] font-bold animate-pulse"
+                          style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>
+                          🔴 EN VIVO
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: '0.625rem', color: '#334155' }}>pendiente</div>
+                      )}
+                    </th>
+                  ))}
+                  {jornada !== 6 && (
+                    <th className="px-3 py-2 text-center min-w-[55px]"
+                      style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
+                      PTS
+                    </th>
                   )}
-                </th>
-              ))}
-              <th id="col-pts" className="px-3 py-2 text-center min-w-[55px]"
-                style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
-                PTS
-              </th>
-              {pendientes.map(partido => (
-                <th key={partido.id} id={`col-${partido.id}`}
-                  className="px-2 py-2 text-center min-w-[70px]"
-                  style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
-                  <div className="flex items-center justify-center gap-1 mb-1">
-                    <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
-                    <span style={{ fontSize: '0.625rem', color: '#475569' }}>vs</span>
-                    <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
-                  </div>
-                  {partido.estado === 'en_curso' ? (
-                    <div className="rounded px-1 py-0.5 text-[10px] font-bold animate-pulse"
-                      style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>
-                      🔴 EN VIVO
-                    </div>
-                  ) : (
-                    <div style={{ fontSize: '0.625rem', color: '#334155' }}>pendiente</div>
+                  {jornada === 6 && (
+                    <th className="px-3 py-2 text-center min-w-[72px]"
+                      style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(251,191,36,0.4)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '0.75rem', color: '#fbbf24' }}>
+                      🏆 +5
+                    </th>
                   )}
-                </th>
-              ))}
-              {jornada !== 6 && (
-                <th className="px-3 py-2 text-center min-w-[55px]"
-                  style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
-                  PTS
-                </th>
-              )}
-              {jornada === 6 && (
-                <th className="px-3 py-2 text-center min-w-[72px]"
-                  style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(251,191,36,0.4)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '0.75rem', color: '#fbbf24' }}>
-                  🏆 +5
-                </th>
-              )}
-              {jornada === 6 && (
-                <th className="px-3 py-2 text-center min-w-[55px]"
-                  style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
-                  PTS
-                </th>
+                  {jornada === 6 && (
+                    <th className="px-3 py-2 text-center min-w-[55px]"
+                      style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
+                      PTS
+                    </th>
+                  )}
+                </>
               )}
               {TEMPORADA_ACTIVA === 'ligamx2026' && jornada <= 3 && (
                 <th className="px-2 py-2 text-center text-xs" style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.2)', color: '#94a3b8', whiteSpace: 'nowrap', fontFamily: 'var(--font-rajdhani)' }}>
@@ -765,6 +867,94 @@ export default function TablaPage() {
               const campBono  = bonosCampeon[campKey];
               const campAcerto = campBono !== undefined && campBono > 0;
               const campFallo  = campeonDeclarado && !campAcerto;
+
+              const renderFinalizadoCell = (partido: any) => {
+                const pred = getPred(part.user_id, partido.id, part.quiniela_extra_id);
+                const pts = pred?.puntos_ganados ?? null;
+                if (necesitaTerminacionPartido(partido)) {
+                  if (pts !== null && pred) {
+                    const ptsClasif = (partido.clasificado && pred.clasificado_pred === partido.clasificado) ? 1 : 0;
+                    const ptsComo   = (partido.como_termino && pred.como_termina_pred === partido.como_termino) ? 1 : 0;
+                    const ptsBase   = Math.max(0, pts - ptsClasif - ptsComo);
+                    const emojiPartidoComo = partido.como_termino === 'penales' ? '🥅' : partido.como_termino === 'tiempo_extra' ? '⏩' : '⏱️';
+                    const banderaClasif = pred.clasificado_pred ? getBanderaClasificado(pred.clasificado_pred, partido) : null;
+                    const totalColor = pts >= 4 ? '#eab308' : pts === 3 ? '#10b981' : pts === 2 ? '#60a5fa' : pts === 1 ? '#f97316' : '#ef4444';
+                    return (
+                      <td key={partido.id} className="px-1 py-1 text-center" style={{ borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)', minWidth: 64 }}>
+                        <div style={{ fontSize: 9, lineHeight: '1.55', color: '#94a3b8' }}>
+                          <div>{pred.goles_local_pred}-{pred.goles_visitante_pred}</div>
+                          {(pred.clasificado_pred || pred.como_termina_pred) && (
+                            <div style={{ color: '#64748b' }}>
+                              {pred.clasificado_pred ? getBanderaClasificado(pred.clasificado_pred, partido) : ''}
+                              {pred.clasificado_pred && pred.como_termina_pred ? ' ' : ''}
+                              {pred.como_termina_pred === 'reglamentario' ? '⏱️' : pred.como_termina_pred === 'tiempo_extra' ? '⏩' : pred.como_termina_pred === 'penales' ? '🥅' : ''}
+                            </div>
+                          )}
+                          <div style={{ color: ptsBase >= 3 ? '#10b981' : ptsBase >= 1 ? '#f97316' : '#ef4444' }}>
+                            {ptsBase >= 3 ? '⚽⚽⚽' : ptsBase >= 1 ? '⚽' : '✗'} {ptsBase}pt{ptsBase !== 1 ? 's' : ''}
+                          </div>
+                          {partido.clasificado && (<div style={{ color: ptsClasif ? '#10b981' : '#ef4444' }}>{banderaClasif ?? '?'} {ptsClasif ? '+1pt' : '+0'}</div>)}
+                          {partido.como_termino && (<div style={{ color: ptsComo ? '#10b981' : '#ef4444' }}>{emojiPartidoComo} {ptsComo ? '+1pt' : '+0'}</div>)}
+                          <div style={{ borderTop: '1px solid rgba(148,163,184,0.2)', marginTop: 2, paddingTop: 2, fontWeight: 700, fontSize: 11, color: totalColor }}>{pts}pts</div>
+                        </div>
+                      </td>
+                    );
+                  }
+                  const bandera = pred?.clasificado_pred ? getBanderaClasificado(pred.clasificado_pred, partido) : null;
+                  const emojiTermina = pred?.como_termina_pred === 'reglamentario' ? '⏱️' : pred?.como_termina_pred === 'tiempo_extra' ? '⏩' : pred?.como_termina_pred === 'penales' ? '🥅' : '';
+                  return (
+                    <td key={partido.id} className="px-1 py-2 text-center" style={{ borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
+                      {pred ? (<><div className="text-xs text-slate-600 dark:text-slate-400">{pred.goles_local_pred}-{pred.goles_visitante_pred}</div>{(bandera || emojiTermina) && <div className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>{[bandera, emojiTermina].filter(Boolean).join(' ')}</div>}</>) : (<div className="text-sm text-slate-400 dark:text-slate-600">–</div>)}
+                    </td>
+                  );
+                }
+                return (
+                  <td key={partido.id} className="px-1 py-2 text-center" style={{ borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
+                    {pts !== null ? <div className={ptsClass(pts)}>{pts}pts</div> : <div className="text-sm text-slate-400 dark:text-slate-600">–</div>}
+                    {pred && <div className="text-xs text-slate-600 dark:text-slate-400">{pred.goles_local_pred}-{pred.goles_visitante_pred}</div>}
+                  </td>
+                );
+              };
+
+              const renderPendienteCell = (partido: any) => {
+                const pred = getPred(part.user_id, partido.id, part.quiniela_extra_id);
+                return (
+                  <td key={partido.id} className="px-1 py-2 text-center" style={{ borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
+                    {pred ? (
+                      <>
+                        <div className="text-sm font-medium text-slate-800 dark:text-slate-200">{pred.goles_local_pred}-{pred.goles_visitante_pred}</div>
+                        {necesitaTerminacionPartido(partido) && (pred.clasificado_pred || pred.como_termina_pred) && (
+                          <div className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>
+                            {[pred.clasificado_pred ? getBanderaClasificado(pred.clasificado_pred, partido) : null, pred.como_termina_pred === 'reglamentario' ? '⏱️' : pred.como_termina_pred === 'tiempo_extra' ? '⏩' : pred.como_termina_pred === 'penales' ? '🥅' : null].filter(Boolean).join(' ')}
+                          </div>
+                        )}
+                      </>
+                    ) : <span className="text-slate-400 dark:text-slate-600 text-sm">–</span>}
+                  </td>
+                );
+              };
+
+              const campCell = (
+                <td className="px-2 py-2 text-center" style={{ borderLeft: '1px solid rgba(251,191,36,0.3)', borderBottom: '1px solid var(--border-color)', minWidth: 72 }}>
+                  {campAcerto ? (
+                    <div className="flex flex-col items-center gap-0.5">
+                      <div style={{ fontSize: 14, lineHeight: 1 }}>✅</div>
+                      <div style={{ fontSize: 9, color: '#22c55e', fontWeight: 700 }}>+5pts</div>
+                      {campPick && (<div className="flex items-center justify-center gap-0.5"><Bandera emoji={BANDERAS_EQUIPOS[campPick] ?? ''} nombre={campPick} size="sm" /><span style={{ fontSize: '0.6rem', color: '#22c55e' }}>{campPick}</span></div>)}
+                    </div>
+                  ) : campFallo ? (
+                    <div>
+                      <div style={{ fontSize: 13, color: '#ef4444', fontWeight: 700 }}>✗</div>
+                      {campPick && (<div className="flex items-center justify-center gap-0.5 mt-0.5"><Bandera emoji={BANDERAS_EQUIPOS[campPick] ?? ''} nombre={campPick} size="sm" /><span style={{ fontSize: '0.6rem', color: '#64748b' }}>{campPick}</span></div>)}
+                    </div>
+                  ) : campPick ? (
+                    <div className="flex flex-col items-center gap-0.5">
+                      <Bandera emoji={BANDERAS_EQUIPOS[campPick] ?? ''} nombre={campPick} size="sm" />
+                      <span style={{ fontSize: '0.6rem', color: 'var(--text-primary)' }}>{campPick}</span>
+                    </div>
+                  ) : <span style={{ fontSize: '0.65rem', color: '#475569' }}>—</span>}
+                </td>
+              );
               const userPicksClas = TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 3 ? picksClasificacion[part.user_id] : undefined;
               const ptsClas = userPicksClas
                 ? (clasificadosLc.ligamx.length > 0 ? userPicksClas.ligamx.filter((e: string) => clasificadosLc.ligamx.includes(e)).length : 0)
@@ -813,175 +1003,40 @@ export default function TablaPage() {
                       <div style={{ fontSize: '0.55rem', color: '#475569', lineHeight: 1 }}>{labelPtsAnteriores().sub}</div>
                     </td>
                   )}
-                  {finalizados.map(partido => {
-                    const pred = getPred(part.user_id, partido.id, part.quiniela_extra_id);
-                    const pts = pred?.puntos_ganados ?? null;
-                    if (necesitaTerminacionPartido(partido)) {
-                      // ── desglose J5+ ─────────────────────────────
-                      if (pts !== null && pred) {
-                        const ptsClasif = (partido.clasificado && pred.clasificado_pred === partido.clasificado) ? 1 : 0;
-                        const ptsComo   = (partido.como_termino && pred.como_termina_pred === partido.como_termino) ? 1 : 0;
-                        const ptsBase   = Math.max(0, pts - ptsClasif - ptsComo);
-                        const emojiPartidoComo = partido.como_termino === 'penales' ? '🥅'
-                          : partido.como_termino === 'tiempo_extra' ? '⏩' : '⏱️';
-                        const banderaClasif = pred.clasificado_pred
-                          ? getBanderaClasificado(pred.clasificado_pred, partido) : null;
-                        const totalColor = pts >= 4 ? '#eab308' : pts === 3 ? '#10b981'
-                          : pts === 2 ? '#60a5fa' : pts === 1 ? '#f97316' : '#ef4444';
-                        return (
-                          <td key={partido.id}
-                            className="px-1 py-1 text-center"
-                            style={{ borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)', minWidth: 64 }}>
-                            <div style={{ fontSize: 9, lineHeight: '1.55', color: '#94a3b8' }}>
-                              <div>{pred.goles_local_pred}-{pred.goles_visitante_pred}</div>
-                              {(pred.clasificado_pred || pred.como_termina_pred) && (
-                                <div style={{ color: '#64748b' }}>
-                                  {pred.clasificado_pred ? getBanderaClasificado(pred.clasificado_pred, partido) : ''}
-                                  {pred.clasificado_pred && pred.como_termina_pred ? ' ' : ''}
-                                  {pred.como_termina_pred === 'reglamentario' ? '⏱️' : pred.como_termina_pred === 'tiempo_extra' ? '⏩' : pred.como_termina_pred === 'penales' ? '🥅' : ''}
-                                </div>
-                              )}
-                              <div style={{ color: ptsBase >= 3 ? '#10b981' : ptsBase >= 1 ? '#f97316' : '#ef4444' }}>
-                                {ptsBase >= 3 ? '⚽⚽⚽' : ptsBase >= 1 ? '⚽' : '✗'} {ptsBase}pt{ptsBase !== 1 ? 's' : ''}
-                              </div>
-                              {partido.clasificado && (
-                                <div style={{ color: ptsClasif ? '#10b981' : '#ef4444' }}>
-                                  {banderaClasif ?? '?'} {ptsClasif ? '+1pt' : '+0'}
-                                </div>
-                              )}
-                              {partido.como_termino && (
-                                <div style={{ color: ptsComo ? '#10b981' : '#ef4444' }}>
-                                  {emojiPartidoComo} {ptsComo ? '+1pt' : '+0'}
-                                </div>
-                              )}
-                              <div style={{ borderTop: '1px solid rgba(148,163,184,0.2)', marginTop: 2, paddingTop: 2, fontWeight: 700, fontSize: 11, color: totalColor }}>
-                                {pts}pts
-                              </div>
-                            </div>
-                          </td>
-                        );
-                      }
-                      // J5+ sin puntos aún (partido no finalizado o sin pred)
-                      const bandera = pred?.clasificado_pred
-                        ? getBanderaClasificado(pred.clasificado_pred, partido) : null;
-                      const emojiTermina = pred?.como_termina_pred === 'reglamentario' ? '⏱️'
-                        : pred?.como_termina_pred === 'tiempo_extra' ? '⏩'
-                        : pred?.como_termina_pred === 'penales' ? '🥅' : '';
-                      return (
-                        <td key={partido.id}
-                          className="px-1 py-2 text-center"
-                          style={{ borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
-                          {pred ? (
-                            <>
-                              <div className="text-xs text-slate-600 dark:text-slate-400">
-                                {pred.goles_local_pred}-{pred.goles_visitante_pred}
-                              </div>
-                              {(bandera || emojiTermina) && (
-                                <div className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>
-                                  {[bandera, emojiTermina].filter(Boolean).join(' ')}
-                                </div>
-                              )}
-                            </>
-                          ) : (
-                            <div className="text-sm text-slate-400 dark:text-slate-600">–</div>
-                          )}
+                  {esJ6LC ? (
+                    <>
+                      {finalizadosLC.map(renderFinalizadoCell)}
+                      {pendientesLC.map(renderPendienteCell)}
+                      {campCell}
+                      {finalizadosLMX.map(renderFinalizadoCell)}
+                      {pendientesLMX.map(renderPendienteCell)}
+                      <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
+                        style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
+                        {totalPuntos}
+                      </td>
+                    </>
+                  ) : (
+                    <>
+                      {finalizados.map(renderFinalizadoCell)}
+                      <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
+                        style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
+                        {totalPuntos}
+                      </td>
+                      {pendientes.map(renderPendienteCell)}
+                      {jornada !== 6 && (
+                        <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
+                          style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
+                          {totalPuntos}
                         </td>
-                      );
-                    }
-                    return (
-                      <td key={partido.id}
-                        className="px-1 py-2 text-center"
-                        style={{ borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
-                        {pts !== null ? (
-                          <div className={ptsClass(pts)}>{pts}pts</div>
-                        ) : (
-                          <div className="text-sm text-slate-400 dark:text-slate-600">–</div>
-                        )}
-                        {pred && (
-                          <div className="text-xs text-slate-600 dark:text-slate-400">
-                            {pred.goles_local_pred}-{pred.goles_visitante_pred}
-                          </div>
-                        )}
-                      </td>
-                    );
-                  })}
-                  <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
-                    style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
-                    {totalPuntos}
-                  </td>
-                  {pendientes.map(partido => {
-                    const pred = getPred(part.user_id, partido.id, part.quiniela_extra_id);
-                    return (
-                      <td key={partido.id}
-                        className="px-1 py-2 text-center"
-                        style={{ borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
-                        {pred ? (
-                          <>
-                            <div className="text-sm font-medium text-slate-800 dark:text-slate-200">
-                              {pred.goles_local_pred}-{pred.goles_visitante_pred}
-                            </div>
-                            {necesitaTerminacionPartido(partido) && (pred.clasificado_pred || pred.como_termina_pred) && (
-                              <div className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>
-                                {[
-                                  pred.clasificado_pred ? getBanderaClasificado(pred.clasificado_pred, partido) : null,
-                                  pred.como_termina_pred === 'reglamentario' ? '⏱️'
-                                    : pred.como_termina_pred === 'tiempo_extra' ? '⏩'
-                                    : pred.como_termina_pred === 'penales' ? '🥅' : null,
-                                ].filter(Boolean).join(' ')}
-                              </div>
-                            )}
-                          </>
-                        ) : (
-                          <span className="text-slate-400 dark:text-slate-600 text-sm">–</span>
-                        )}
-                      </td>
-                    );
-                  })}
-                  {jornada !== 6 && (
-                    <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
-                      style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
-                      {totalPuntos}
-                    </td>
-                  )}
-                  {jornada === 6 && (
-                    <td className="px-2 py-2 text-center"
-                      style={{ borderLeft: '1px solid rgba(251,191,36,0.3)', borderBottom: '1px solid var(--border-color)', minWidth: 72 }}>
-                      {campAcerto ? (
-                        <div className="flex flex-col items-center gap-0.5">
-                          <div style={{ fontSize: 14, lineHeight: 1 }}>✅</div>
-                          <div style={{ fontSize: 9, color: '#22c55e', fontWeight: 700 }}>+5pts</div>
-                          {campPick && (
-                            <div className="flex items-center justify-center gap-0.5">
-                              <Bandera emoji={BANDERAS_EQUIPOS[campPick] ?? ''} nombre={campPick} size="sm" />
-                              <span style={{ fontSize: '0.6rem', color: '#22c55e' }}>{campPick}</span>
-                            </div>
-                          )}
-                        </div>
-                      ) : campFallo ? (
-                        <div>
-                          <div style={{ fontSize: 13, color: '#ef4444', fontWeight: 700 }}>✗</div>
-                          {campPick && (
-                            <div className="flex items-center justify-center gap-0.5 mt-0.5">
-                              <Bandera emoji={BANDERAS_EQUIPOS[campPick] ?? ''} nombre={campPick} size="sm" />
-                              <span style={{ fontSize: '0.6rem', color: '#64748b' }}>{campPick}</span>
-                            </div>
-                          )}
-                        </div>
-                      ) : campPick ? (
-                        <div className="flex flex-col items-center gap-0.5">
-                          <Bandera emoji={BANDERAS_EQUIPOS[campPick] ?? ''} nombre={campPick} size="sm" />
-                          <span style={{ fontSize: '0.6rem', color: 'var(--text-primary)' }}>{campPick}</span>
-                        </div>
-                      ) : (
-                        <span style={{ fontSize: '0.65rem', color: '#475569' }}>—</span>
                       )}
-                    </td>
-                  )}
-                  {jornada === 6 && (
-                    <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
-                      style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
-                      {totalPuntos}
-                    </td>
+                      {jornada === 6 && campCell}
+                      {jornada === 6 && (
+                        <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
+                          style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
+                          {totalPuntos}
+                        </td>
+                      )}
+                    </>
                   )}
                   {TEMPORADA_ACTIVA === 'ligamx2026' && jornada <= 3 && (() => {
                     const userPicks = picksClasificacion[part.user_id];
