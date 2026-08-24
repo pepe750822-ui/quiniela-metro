@@ -951,7 +951,7 @@ export default function PrediccionesPage() {
               💳 CLABE: <strong style={{ color: 'var(--text-primary)' }}>014180565546539842</strong>
               <br />
               <span style={{ color: 'var(--text-secondary)' }}>Monto: </span>
-              <strong style={{ color: '#f97316' }}>${getMontoJornada(jornada)} MXN</strong>
+              <strong style={{ color: '#f97316' }}>${TEMPORADA_ACTIVA === 'ligamx2026' && jornada >= 6 ? 50 : getMontoJornada(jornada)} MXN</strong>
             </p>
             <div className="rounded-xl p-3 space-y-2" style={{ background: 'rgba(234,88,12,0.06)', border: '1px solid rgba(234,88,12,0.16)' }}>
               <p className="font-bold text-sm" style={{ fontFamily: 'var(--font-rajdhani)', color: '#f97316' }}>
