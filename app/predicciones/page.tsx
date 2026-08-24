@@ -355,6 +355,11 @@ export default function PrediccionesPage() {
   const [picksMls, setPicksMls]       = useState<string[]>([]);
   const [picksGuardando, setPicksGuardando] = useState(false);
 
+  // ── Pick campeón Leagues Cup 2026 ────────────────────────────────────────
+  const [lcCampeonPick, setLcCampeonPick]         = useState<string | null>(null);
+  const [lcCampeonPickTemp, setLcCampeonPickTemp] = useState<string | null>(null);
+  const [lcCampeonGuardando, setLcCampeonGuardando] = useState(false);
+
   useEffect(() => {
     if (jornada === 6 && TEMPORADA_ACTIVA !== 'ligamx2026') setBracketVisible(true);
   }, [jornada]);
@@ -559,6 +564,18 @@ export default function PrediccionesPage() {
     setJ6PickTemp(pick?.equipo ?? null);
   }, [userId, quinielaSeleccionada]);
 
+  const cargarLcCampeonPick = useCallback(async () => {
+    if (!userId) return;
+    const { data } = await supabase
+      .from('quiniela_prediccion_campeon_lc')
+      .select('equipo')
+      .eq('user_id', userId)
+      .eq('temporada', TEMPORADA_ACTIVA)
+      .maybeSingle();
+    setLcCampeonPick(data?.equipo ?? null);
+    setLcCampeonPickTemp(data?.equipo ?? null);
+  }, [userId]);
+
   useEffect(() => { cargarPartidos(); }, [cargarPartidos]);
   useEffect(() => {
     if (userId) {
@@ -567,9 +584,10 @@ export default function PrediccionesPage() {
       cargarCampeon();
       cargarPozoYParticipacion(userId, jornada);
       if (jornada === 6 && TEMPORADA_ACTIVA !== 'ligamx2026') cargarJ6Campeon();
+      if (jornada === 6 && TEMPORADA_ACTIVA === 'ligamx2026') cargarLcCampeonPick();
       if (TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 1) cargarPicksClasificacion(userId);
     }
-  }, [userId, jornada, cargarQuinielas, cargarPredicciones, cargarCampeon, cargarPozoYParticipacion, cargarJ6Campeon]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [userId, jornada, cargarQuinielas, cargarPredicciones, cargarCampeon, cargarPozoYParticipacion, cargarJ6Campeon, cargarLcCampeonPick]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const cargarPicksClasificacion = async (uid: string) => {
     const { data } = await supabase
@@ -839,6 +857,24 @@ export default function PrediccionesPage() {
     } else {
       setJ6Pick(j6PickTemp);
       toast.success('🏆 ¡Pick de Cuartos guardado!');
+    }
+  };
+
+  const guardarLcCampeonPick = async () => {
+    if (!userId || !lcCampeonPickTemp) return;
+    setLcCampeonGuardando(true);
+    const { error } = await supabase
+      .from('quiniela_prediccion_campeon_lc')
+      .upsert(
+        { user_id: userId, temporada: TEMPORADA_ACTIVA, equipo: lcCampeonPickTemp },
+        { onConflict: 'user_id,temporada' }
+      );
+    setLcCampeonGuardando(false);
+    if (error) {
+      toast.error('Error al guardar: ' + error.message);
+    } else {
+      setLcCampeonPick(lcCampeonPickTemp);
+      toast.success('🏆 ¡Pick de campeón LC guardado!');
     }
   };
 
@@ -1734,6 +1770,90 @@ export default function PrediccionesPage() {
           )}
         </motion.div>
       )}
+
+      {/* ── PICK CAMPEÓN LEAGUES CUP 2026 — J6 ── */}
+      {TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 6 && (() => {
+        const LC_LIGAMX = ['León', 'América', 'Toluca', 'Monterrey'];
+        const LC_MLS    = ['Chicago Fire', 'Columbus Crew', 'Austin FC', 'Real Salt Lake'];
+        const cerrado   = partidos.length > 0 && partidos.some(p => new Date() >= new Date(p.fecha_hora));
+        return (
+          <motion.div
+            {...fadeUp(0.06)}
+            className="rounded-2xl p-4 space-y-3"
+            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(234,88,12,0.2)', boxShadow: '0 0 24px rgba(234,88,12,0.05)' }}
+          >
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
+                🏆 ¿Quién será campeón de la Leagues Cup 2026?
+              </p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                1 pick entre los 8 clasificados a Cuartos · +5 pts si aciertas
+              </p>
+            </div>
+
+            {cerrado ? (
+              lcCampeonPick ? (
+                <div className="rounded-xl p-3 flex items-center gap-2" style={{ background: 'rgba(100,116,139,0.06)', border: '1px solid rgba(100,116,139,0.15)' }}>
+                  <span>🔒</span>
+                  <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                    Tu pick: <strong style={{ color: '#fbbf24' }}>{lcCampeonPick}</strong>
+                  </span>
+                </div>
+              ) : (
+                <p className="text-sm text-center" style={{ color: 'var(--text-secondary)' }}>No hiciste una predicción 🔒</p>
+              )
+            ) : (
+              <>
+                {lcCampeonPick && (
+                  <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                    Pick actual: <strong style={{ color: '#fbbf24' }}>{lcCampeonPick}</strong>
+                  </p>
+                )}
+                {[{ label: 'Liga MX', equipos: LC_LIGAMX }, { label: 'MLS', equipos: LC_MLS }].map(({ label, equipos }) => (
+                  <div key={label} className="space-y-1.5">
+                    <p className="text-[10px] uppercase tracking-widest" style={{ color: '#64748b' }}>{label}</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {equipos.map(equipo => {
+                        const logo = LOGOS_LIGAMX[equipo];
+                        const sel  = lcCampeonPickTemp === equipo;
+                        return (
+                          <motion.button
+                            whileTap={{ scale: 0.94 }}
+                            key={equipo}
+                            onClick={() => setLcCampeonPickTemp(equipo)}
+                            className="py-2.5 px-2 rounded-xl text-xs font-semibold text-center flex flex-col items-center gap-1 cursor-pointer"
+                            style={{
+                              background: sel ? 'linear-gradient(135deg, #ea580c, #f97316)' : 'rgba(255,255,255,0.04)',
+                              color: sel ? '#fff' : 'var(--text-secondary)',
+                              border: `1px solid ${sel ? 'transparent' : 'rgba(255,255,255,0.06)'}`,
+                              fontFamily: 'var(--font-rajdhani)',
+                              transition: 'all 0.12s ease',
+                            }}
+                          >
+                            {logo
+                              ? <img src={logo} alt={equipo} width={24} height={24} className="object-contain" />
+                              : <span style={{ fontSize: '0.6rem', color: sel ? 'rgba(255,255,255,0.7)' : '#475569' }}>{label}</span>}
+                            <span>{equipo}</span>
+                          </motion.button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
+                  onClick={guardarLcCampeonPick}
+                  disabled={!lcCampeonPickTemp || lcCampeonGuardando || lcCampeonPickTemp === lcCampeonPick}
+                  className="w-full py-3 rounded-xl font-bold text-sm cursor-pointer"
+                  style={publishBtn(!lcCampeonPickTemp || lcCampeonGuardando || lcCampeonPickTemp === lcCampeonPick)}
+                >
+                  {lcCampeonGuardando ? '⏳ Guardando...' : lcCampeonPick ? '🔄 Actualizar pick' : '🏆 Guardar pick de Campeón LC'}
+                </motion.button>
+              </>
+            )}
+          </motion.div>
+        );
+      })()}
 
       {/* ── FLOATING BUTTON: Publicar / Actualizar Final + 3er Lugar ── */}
       <AnimatePresence>
