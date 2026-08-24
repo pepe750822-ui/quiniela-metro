@@ -182,18 +182,27 @@ export default function TablaPage() {
     // Campeón elegido (solo J6)
     const picksMap: Record<string, string> = {};
     if (jornada === 6 && userIds.length) {
-      const { data: picks } = await supabase
-        .from('quiniela_prediccion_campeon')
-        .select('user_id, quiniela_extra_id, equipo')
-        .eq('jornada', 6)
-        .in('user_id', userIds);
-      (picks || []).forEach((p: any) => { picksMap[`${p.user_id}:${p.quiniela_extra_id ?? 'null'}`] = p.equipo; });
+      if (TEMPORADA_ACTIVA === 'ligamx2026') {
+        const { data: picks } = await supabase
+          .from('quiniela_prediccion_campeon_lc')
+          .select('user_id, equipo')
+          .eq('temporada', TEMPORADA_ACTIVA)
+          .in('user_id', userIds);
+        (picks || []).forEach((p: any) => { picksMap[`${p.user_id}:null`] = p.equipo; });
+      } else {
+        const { data: picks } = await supabase
+          .from('quiniela_prediccion_campeon')
+          .select('user_id, quiniela_extra_id, equipo')
+          .eq('jornada', 6)
+          .in('user_id', userIds);
+        (picks || []).forEach((p: any) => { picksMap[`${p.user_id}:${p.quiniela_extra_id ?? 'null'}`] = p.equipo; });
+      }
     }
     setCampeonPicks(picksMap);
 
-    // Bonos de campeón (solo J6)
+    // Bonos de campeón (solo J6, no aplica para ligamx2026 LC)
     const bonosMap: Record<string, number> = {};
-    if (jornada === 6 && userIds.length) {
+    if (jornada === 6 && userIds.length && TEMPORADA_ACTIVA !== 'ligamx2026') {
       const { data: bonos } = await supabase
         .from('quiniela_bono_campeon')
         .select('user_id, quiniela_extra_id, puntos')
@@ -497,8 +506,8 @@ export default function TablaPage() {
   const finalizados = partidos.filter((p: any) => p.estado === 'finalizado');
   const pendientes  = partidos.filter((p: any) => p.estado !== 'finalizado');
 
-  // Campeón declarado cuando la Final (J9) está finalizada
-  const campeonDeclarado = jornada === 6 && campeonJ6Declarado !== null;
+  // Campeón declarado cuando la Final (J9) está finalizada (no aplica para ligamx2026)
+  const campeonDeclarado = jornada === 6 && TEMPORADA_ACTIVA !== 'ligamx2026' && campeonJ6Declarado !== null;
 
 
   const renderFilasPrint = (mitad: any[]) =>
@@ -1062,7 +1071,11 @@ export default function TablaPage() {
             <span style={{ color: '#f97316' }}>■ 1pt</span>
             <span style={{ color: '#b91c1c' }}>■ 0pts</span>
             <span style={{ color: '#64748b' }}>■ pendiente</span>
-            <span style={{ color: '#94a3b8' }}>⏱️ T. Reglamentario · ⏩ Prórroga · 🥅 Penales</span>
+            <span style={{ color: '#94a3b8' }}>
+              {TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 6
+                ? '⏱️ T. Reglamentario · 🥅 Penales'
+                : '⏱️ T. Reglamentario · ⏩ Prórroga · 🥅 Penales'}
+            </span>
           </>
         )}
       </div>
