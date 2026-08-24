@@ -132,7 +132,9 @@ export default function PrediccionForm({
   const [loading,         setLoading]         = useState(false);
 
   const fechaPartido = new Date(partido.fecha_hora);
-  const esLeaguesCup = fechaPartido >= new Date('2026-08-04T00:00:00Z') && fechaPartido < new Date('2026-08-14T06:00:00Z');
+  const esLeaguesCup = TEMPORADA_ACTIVA === 'ligamx2026'
+    ? partido.grupo === 'LC'
+    : fechaPartido >= new Date('2026-08-04T00:00:00Z') && fechaPartido < new Date('2026-08-14T06:00:00Z');
   const necesitaTerminacion = TEMPORADA_ACTIVA === 'ligamx2026' ? esLeaguesCup : partido.jornada >= 5;
 
   const handleGuardar = async () => {
