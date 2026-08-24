@@ -23,7 +23,8 @@ const DEADLINE_LMX_J4 = new Date('2026-08-15T23:00:00Z'); // Sáb 15 ago 18:00 C
 const DEADLINE_LMX_J5 = new Date('2026-08-22T01:00:00Z'); // Vie 21 ago 20:00 CDMX
 
 const jornadaInicial = () => {
-  if (TEMPORADA_ACTIVA === 'ligamx2026') return 5;
+  if (TEMPORADA_ACTIVA === 'ligamx2026')
+    return Date.now() >= new Date('2026-08-22T01:00:00Z').getTime() ? 6 : 5;
   return 1;
 };
 
@@ -62,7 +63,8 @@ export default function TablaPage() {
         .select('jornada')
         .eq('temporada', TEMPORADA_ACTIVA)
         .order('jornada');
-      const unicas = [...new Set((data ?? []).map((p: any) => p.jornada as number))];
+      const unicas = [...new Set((data ?? []).map((p: any) => p.jornada as number))]
+        .filter(j => TEMPORADA_ACTIVA !== 'ligamx2026' || j <= 7);
       if (unicas.length > 0) setJornadasDisponibles(unicas);
     };
     verificarAdmin();
@@ -99,7 +101,7 @@ export default function TablaPage() {
       .select('id, jornada, equipo_local, equipo_visitante, bandera_local, bandera_visitante, goles_local, goles_visitante, estado, grupo, fecha_hora, clasificado, como_termino')
       .eq('temporada', TEMPORADA_ACTIVA)
       .order('fecha_hora');
-    const { data: parts } = jornada === 6
+    const { data: parts } = jornada === 6 && TEMPORADA_ACTIVA !== 'ligamx2026'
       ? await partidosQuery.gte('jornada', 6)
       : TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 1
         ? await partidosQuery.eq('jornada', jornada).lt('fecha_hora', '2026-08-07T23:00:00Z')
@@ -112,14 +114,17 @@ export default function TablaPage() {
       .select('id, user_id, pagado, publicado, quiniela_extra_id, jornada')
       .eq('pagado', true)
       .eq('temporada', TEMPORADA_ACTIVA);
-    const { data: particsRaw } = jornada === 6
+    const { data: particsRaw } = jornada === 6 && TEMPORADA_ACTIVA !== 'ligamx2026'
       ? await particsQuery.gte('jornada', 6)
       : TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 5
         ? await particsQuery.in('jornada', [4, 5])
+        : TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 7
+        ? await particsQuery.in('jornada', [6, 7])
         : await particsQuery.eq('jornada', jornada);
     // Deduplicar por (user_id, quiniela_extra_id) manteniendo la participación de menor jornada
     let partics: any[] = [];
-    if (jornada === 6 || (TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 5)) {
+    if ((jornada === 6 && TEMPORADA_ACTIVA !== 'ligamx2026')
+      || (TEMPORADA_ACTIVA === 'ligamx2026' && (jornada === 5 || jornada === 7))) {
       const seen = new Map<string, any>();
       for (const p of (particsRaw || [])) {
         const key = `${p.user_id}:${p.quiniela_extra_id ?? 'null'}`;
@@ -220,8 +225,8 @@ export default function TablaPage() {
     }
 
     // Cargar puntos acumulados de jornadas anteriores (LC: J2/J3 · Liga MX: J5 acumula J4)
-    if (TEMPORADA_ACTIVA === 'ligamx2026' && ((jornada >= 2 && jornada <= 3) || jornada === 5)) {
-      const jornadasAnt = jornada === 5 ? [4] : Array.from({ length: jornada - 1 }, (_, i) => i + 1);
+    if (TEMPORADA_ACTIVA === 'ligamx2026' && ((jornada >= 2 && jornada <= 3) || jornada === 5 || jornada === 7)) {
+      const jornadasAnt = jornada === 5 ? [4] : jornada === 7 ? [6] : Array.from({ length: jornada - 1 }, (_, i) => i + 1);
       const { data: partidosAnt } = await supabase
         .from('quiniela_partidos')
         .select('id')
@@ -305,10 +310,7 @@ export default function TablaPage() {
   };
 
   const necesitaTerminacionPartido = (partido: any): boolean => {
-    if (TEMPORADA_ACTIVA === 'ligamx2026') {
-      const fecha = new Date(partido.fecha_hora);
-      return fecha >= new Date('2026-08-04T00:00:00Z') && fecha < new Date('2026-08-14T06:00:00Z');
-    }
+    if (TEMPORADA_ACTIVA === 'ligamx2026') return partido.grupo === 'LC';
     return partido.jornada >= 5;
   };
 
@@ -464,12 +466,13 @@ export default function TablaPage() {
     if (jornada === 2) return { header: 'PTS F1', sub: 'F1' };
     if (jornada === 3) return { header: 'PTS J1+J2', sub: 'J1+J2' };
     if (jornada === 5) return { header: 'PTS J4', sub: 'J4' };
+    if (jornada === 7) return { header: 'PTS J6', sub: 'J6' };
     return { header: '', sub: '' };
   };
 
   const calcTotalConF1 = (part: any) => {
     const jPts = calcTotal(part);
-    if (TEMPORADA_ACTIVA === 'ligamx2026' && ((jornada >= 2 && jornada <= 3) || jornada === 5)) return jPts + getPtsAnteriores(part);
+    if (TEMPORADA_ACTIVA === 'ligamx2026' && ((jornada >= 2 && jornada <= 3) || jornada === 5 || jornada === 7)) return jPts + getPtsAnteriores(part);
     return jPts;
   };
 
@@ -655,7 +658,7 @@ export default function TablaPage() {
                 style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
                 PTS
               </th>
-              {TEMPORADA_ACTIVA === 'ligamx2026' && ((jornada >= 2 && jornada <= 3) || jornada === 5) && (
+              {TEMPORADA_ACTIVA === 'ligamx2026' && ((jornada >= 2 && jornada <= 3) || jornada === 5 || jornada === 7) && (
                 <th className="px-2 py-2 text-center min-w-[64px]"
                   style={{ background: 'var(--bg-base)', borderLeft: '2px solid rgba(99,102,241,0.5)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '0.75rem', color: '#818cf8' }}>
                   {labelPtsAnteriores().header}
@@ -792,7 +795,7 @@ export default function TablaPage() {
                     style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
                     {totalPuntos}
                   </td>
-                  {TEMPORADA_ACTIVA === 'ligamx2026' && ((jornada >= 2 && jornada <= 3) || jornada === 5) && (
+                  {TEMPORADA_ACTIVA === 'ligamx2026' && ((jornada >= 2 && jornada <= 3) || jornada === 5 || jornada === 7) && (
                     <td className="px-2 py-2 text-center"
                       style={{ borderLeft: '2px solid rgba(99,102,241,0.5)', borderBottom: '1px solid var(--border-color)', minWidth: 64 }}>
                       <div style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: '#818cf8' }}>

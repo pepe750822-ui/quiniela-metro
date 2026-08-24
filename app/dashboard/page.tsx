@@ -159,7 +159,9 @@ export default function DashboardPage() {
   const [pendienteIds, setPendienteIds]         = useState<string[]>([]);
   const [pagadosIds, setPagadosIds]             = useState<string[]>([]);
   const [jornadaSeleccionada, setJornadaSeleccionada] = useState<number | 'general' | 'lc_total'>(
-    TEMPORADA_ACTIVA === 'ligamx2026' ? 5 : 1
+    TEMPORADA_ACTIVA === 'ligamx2026'
+      ? (Date.now() >= new Date('2026-08-22T01:00:00Z').getTime() ? 6 : 5)
+      : 1
   );
   const [participantesJornada, setParticipantesJornada] = useState<ParticipanteItem[]>([]);
   const { d, h, m, s, started, mounted: countdownReady } = useCountdown(INAUGURAL);
@@ -338,8 +340,10 @@ export default function DashboardPage() {
 
     const j = Number(jornadaSeleccionada);
 
-    // J4+J5 son la misma quiniela acumulada
-    const jornadasJ = TEMPORADA_ACTIVA === 'ligamx2026' && j === 5 ? [4, 5] : [j];
+    // J4+J5 son la misma quiniela; J6+J7 también (LC Cuartos+Semis)
+    const jornadasJ = TEMPORADA_ACTIVA === 'ligamx2026' && j === 5 ? [4, 5]
+      : TEMPORADA_ACTIVA === 'ligamx2026' && j === 7 ? [6, 7]
+      : [j];
     const { data: partsRaw, error: errorPart } = await supabase
       .from('quiniela_participaciones')
       .select('id, user_id, jornada, pagado, publicado, quiniela_extra_id')
@@ -349,7 +353,7 @@ export default function DashboardPage() {
       .order('created_at', { ascending: true });
     // Deduplicar: un usuario puede tener participacion en J4 y J5 — conservar la de menor jornada
     let parts: typeof partsRaw = partsRaw;
-    if (TEMPORADA_ACTIVA === 'ligamx2026' && j === 5 && partsRaw) {
+    if (TEMPORADA_ACTIVA === 'ligamx2026' && (j === 5 || j === 7) && partsRaw) {
       const seen = new Map<string, any>();
       for (const p of partsRaw) {
         const key = `${(p as any).user_id}:${(p as any).quiniela_extra_id ?? 'null'}`;
@@ -430,6 +434,8 @@ export default function DashboardPage() {
     const { data: rankingData } = rankBaseQuery
       ? await (TEMPORADA_ACTIVA === 'ligamx2026' && j === 5
           ? rankBaseQuery.in('partido.jornada', [4, 5])
+          : TEMPORADA_ACTIVA === 'ligamx2026' && j === 7
+          ? rankBaseQuery.in('partido.jornada', [6, 7])
           : rankBaseQuery.eq('partido.jornada', j))
       : { data: [] };
 
@@ -663,7 +669,7 @@ export default function DashboardPage() {
   const pozosVisibles = pozosCompletos.filter(p => p.participantes > 0);
 
   const jornadasDisponibles = TEMPORADA_ACTIVA === 'ligamx2026'
-    ? [...new Set(pozosCompletos.filter(p => p.participantes > 0).map(p => p.jornada))]
+    ? [...new Set(pozosCompletos.filter(p => p.participantes > 0 && p.jornada <= 7).map(p => p.jornada))]
     : [...new Set(pozosCompletos.map(p => p.jornada))];
 
   const compartirRanking = () => {

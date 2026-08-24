@@ -43,6 +43,7 @@ const getDeadline = (jornada: number) => {
     if (jornada === 3) return DEADLINE_LC_F3;
     if (jornada === 4) return DEADLINE_LMX_J4;
     if (jornada === 5) return DEADLINE_LMX_J5;
+    return new Date('2099-01-01T00:00:00Z'); // j=6,7 use per-partido blocking
   }
   if (jornada === 1) return DEADLINE_J1;
   if (jornada === 2) return DEADLINE_J2;
@@ -321,7 +322,8 @@ export default function PrediccionesPage() {
   const [partidoActivo, setPartidoActivo] = useState<Partido | null>(null);
   const [loading, setLoading]             = useState(true);
   const [jornada, setJornada]             = useState(() => {
-    if (TEMPORADA_ACTIVA === 'ligamx2026') return 5;
+    if (TEMPORADA_ACTIVA === 'ligamx2026')
+      return Date.now() >= DEADLINE_LMX_J5.getTime() ? 6 : 5;
     return 1;
   });
   const [jornadas, setJornadas]           = useState<number[]>([]);
@@ -354,7 +356,7 @@ export default function PrediccionesPage() {
   const [picksGuardando, setPicksGuardando] = useState(false);
 
   useEffect(() => {
-    if (jornada === 6) setBracketVisible(true);
+    if (jornada === 6 && TEMPORADA_ACTIVA !== 'ligamx2026') setBracketVisible(true);
   }, [jornada]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -375,15 +377,17 @@ export default function PrediccionesPage() {
       .eq('temporada', TEMPORADA_ACTIVA)
       .order('jornada')
       .then(({ data }) => {
-        const unicas = [...new Set((data ?? []).map((p: { jornada: number }) => p.jornada))];
+        const unicas = [...new Set((data ?? []).map((p: { jornada: number }) => p.jornada))]
+          .filter(j => TEMPORADA_ACTIVA !== 'ligamx2026' || j <= 7);
         setJornadas(unicas);
       });
   }, [router]);
 
   const cargarQuinielas = useCallback(async (uid: string, j: number) => {
+    const baseJQ = TEMPORADA_ACTIVA === 'ligamx2026' ? (j === 5 ? 4 : j === 7 ? 6 : j) : j;
     const [{ data: extras }, { data: partics }] = await Promise.all([
       supabase.from('quiniela_extra').select('*').eq('user_id', uid).eq('activa', true).order('created_at'),
-      supabase.from('quiniela_participaciones').select('quiniela_extra_id').eq('user_id', uid).eq('jornada', j).not('quiniela_extra_id', 'is', null),
+      supabase.from('quiniela_participaciones').select('quiniela_extra_id').eq('user_id', uid).eq('jornada', baseJQ).not('quiniela_extra_id', 'is', null),
     ]);
     const idsConParticipacion = new Set((partics || []).map((p: any) => p.quiniela_extra_id));
     let filtradas = (extras || []).filter((q: any) => idsConParticipacion.has(q.id));
@@ -413,8 +417,8 @@ export default function PrediccionesPage() {
   }, []);
 
   const cargarPozoYParticipacion = useCallback(async (uid: string, j: number) => {
-    // J4 es la base de la quiniela Liga MX (cubre J4 y J5), igual que J1 fue la base de Leagues Cup
-    const baseJornada = TEMPORADA_ACTIVA === 'ligamx2026' && j === 5 ? 4 : j;
+    // J4 cubre J4+J5; J6 cubre J6+J7 (LC Cuartos+Semis)
+    const baseJornada = TEMPORADA_ACTIVA === 'ligamx2026' ? (j === 5 ? 4 : j === 7 ? 6 : j) : j;
 
     const basePartQuery = supabase
       .from('quiniela_participaciones')
@@ -562,7 +566,7 @@ export default function PrediccionesPage() {
       cargarPredicciones();
       cargarCampeon();
       cargarPozoYParticipacion(userId, jornada);
-      if (jornada === 6) cargarJ6Campeon();
+      if (jornada === 6 && TEMPORADA_ACTIVA !== 'ligamx2026') cargarJ6Campeon();
       if (TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 1) cargarPicksClasificacion(userId);
     }
   }, [userId, jornada, cargarQuinielas, cargarPredicciones, cargarCampeon, cargarPozoYParticipacion, cargarJ6Campeon]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -621,7 +625,7 @@ export default function PrediccionesPage() {
   }, [partidos]);
 
   useEffect(() => {
-    if (jornada !== 6) return;
+    if (jornada !== 6 || TEMPORADA_ACTIVA === 'ligamx2026') return;
     const timer = setTimeout(() => {
       const el = document.getElementById('semifinales-section');
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -638,7 +642,7 @@ export default function PrediccionesPage() {
   const handlePublicar = async () => {
     if (!userId) return;
     setPublicando(true);
-    const baseJornadaPublicar = TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 5 ? 4 : jornada;
+    const baseJornadaPublicar = TEMPORADA_ACTIVA === 'ligamx2026' ? (jornada === 5 ? 4 : jornada === 7 ? 6 : jornada) : jornada;
     const baseUpdate = supabase
       .from('quiniela_participaciones')
       .update({ publicado: true })
@@ -726,7 +730,7 @@ export default function PrediccionesPage() {
     });
     try {
       await Promise.all(promises);
-      const baseJornadaAct = TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 5 ? 4 : jornada;
+      const baseJornadaAct = TEMPORADA_ACTIVA === 'ligamx2026' ? (jornada === 5 ? 4 : jornada === 7 ? 6 : jornada) : jornada;
       const baseUpdate = supabase.from('quiniela_participaciones').update({ publicado: true }).eq('user_id', userId).eq('jornada', baseJornadaAct);
       await (quinielaSeleccionada === null ? baseUpdate.is('quiniela_extra_id', null) : baseUpdate.eq('quiniela_extra_id', quinielaSeleccionada));
       setPrediccionesBorrador({});
@@ -845,7 +849,7 @@ export default function PrediccionesPage() {
 
   const estaBloquado = (partido: Partido) => {
     if (partido.estado === 'finalizado') return true;
-    if (TEMPORADA_ACTIVA === 'ligamx2026' && jornada >= 2 && jornada <= 5) {
+    if (TEMPORADA_ACTIVA === 'ligamx2026' && jornada >= 2 && jornada <= 7) {
       return new Date() >= new Date(partido.fecha_hora);
     }
     if (jornada === 6) {
@@ -916,7 +920,7 @@ export default function PrediccionesPage() {
           }}
         >
           {TEMPORADA_ACTIVA === 'ligamx2026'
-            ? (jornada >= 4 ? 'Liga MX Apertura 2026' : 'Leagues Cup — Fase 1')
+            ? (jornada >= 4 && jornada <= 5 ? 'Liga MX Apertura 2026' : jornada >= 6 ? 'Leagues Cup 2026' : 'Leagues Cup — Fase 1')
             : 'PREDICCIONES'}
         </h1>
         <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
@@ -1033,7 +1037,7 @@ export default function PrediccionesPage() {
         className="flex gap-2 overflow-x-auto pb-1"
         style={{ scrollbarWidth: 'none' }}
       >
-        {jornadas.filter(j => TEMPORADA_ACTIVA === 'ligamx2026' ? j <= 5 : j <= 6).map(j => {
+        {jornadas.filter(j => TEMPORADA_ACTIVA === 'ligamx2026' ? j <= 7 : j <= 6).map(j => {
           const cerrada = TEMPORADA_ACTIVA === 'ligamx2026' ? new Date() > getDeadline(j) : j < 2 || new Date() > getDeadline(j);
           return (
             <Pill key={j} active={jornada === j} onClick={() => setJornada(j)} faded={cerrada && jornada !== j}>
@@ -1087,7 +1091,7 @@ export default function PrediccionesPage() {
             />
           </div>
 
-          {jornada !== 6 && jornadaCompleta && !publicado && (
+          {(jornada !== 6 || TEMPORADA_ACTIVA === 'ligamx2026') && jornadaCompleta && !publicado && (
             <div className="pt-1 space-y-2">
               <motion.button
                 whileTap={{ scale: 0.97 }}
@@ -1104,7 +1108,7 @@ export default function PrediccionesPage() {
             </div>
           )}
 
-          {jornada !== 6 && jornadaCompleta && publicado && (
+          {(jornada !== 6 || TEMPORADA_ACTIVA === 'ligamx2026') && jornadaCompleta && publicado && (
             <div>
               <p className="text-xs" style={{ color: '#10b981' }}>
                 Tus predicciones ya son visibles para todos ✓
@@ -1146,8 +1150,8 @@ export default function PrediccionesPage() {
             </motion.div>
           )}
 
-          {/* ── Bracket Fase Final ── */}
-          {jornada === 6 && (
+          {/* ── Bracket Fase Final (Mundial only) ── */}
+          {jornada === 6 && TEMPORADA_ACTIVA !== 'ligamx2026' && (
             <>
               <motion.div {...fadeUp(0.1)}>
                 <ReglasFaseFinal />
@@ -1246,7 +1250,7 @@ export default function PrediccionesPage() {
           )}
 
           {/* ── LISTA DE PARTIDOS ── */}
-          {jornada === 6 ? (
+          {jornada === 6 && TEMPORADA_ACTIVA !== 'ligamx2026' ? (
             (['cuartos', 'semis', 'final'] as const).map(ronda => {
               const ps = rondaPartidos(ronda);
               if (ps.length === 0) return null;
@@ -1357,8 +1361,8 @@ export default function PrediccionesPage() {
             </motion.div>
           )}
 
-          {/* ── Progreso bottom (J1-J5) ── */}
-          {jornada !== 6 && totalEnJornada > 0 && (
+          {/* ── Progreso bottom (J1-J5, J6-J7 ligamx2026) ── */}
+          {(jornada !== 6 || TEMPORADA_ACTIVA === 'ligamx2026') && totalEnJornada > 0 && (
             <div className="mt-4 mb-2">
               <div className="flex justify-between text-xs mb-2" style={{ color: '#64748b' }}>
                 <span>Progreso {labelJornada(jornada)}</span>
@@ -1380,8 +1384,8 @@ export default function PrediccionesPage() {
             </div>
           )}
 
-          {/* ── Botón publicar bottom (J1-J5) ── */}
-          {jornada !== 6 && jornadaCompleta && !publicado && (
+          {/* ── Botón publicar bottom ── */}
+          {(jornada !== 6 || TEMPORADA_ACTIVA === 'ligamx2026') && jornadaCompleta && !publicado && (
             <motion.button
               whileTap={{ scale: 0.97 }}
               onClick={handlePublicar}
@@ -1397,7 +1401,7 @@ export default function PrediccionesPage() {
             </motion.button>
           )}
 
-          {jornada !== 6 && jornadaCompleta && publicado && (
+          {(jornada !== 6 || TEMPORADA_ACTIVA === 'ligamx2026') && jornadaCompleta && publicado && (
             <div
               className="w-full py-4 rounded-xl text-center font-bold text-base mt-2"
               style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.22)', color: '#34d399', fontFamily: 'var(--font-rajdhani)' }}

@@ -158,8 +158,10 @@ export default function PrediccionForm({
       return;
     }
 
-    // J4 es la base de la quiniela Liga MX (cubre J4 y J5)
-    const baseJornada = TEMPORADA_ACTIVA === 'ligamx2026' && partido.jornada === 5 ? 4 : partido.jornada;
+    // J4 cubre J4+J5, J6 cubre J6+J7 (Leagues Cup Cuartos+Semis)
+    const baseJornada = TEMPORADA_ACTIVA === 'ligamx2026' && partido.jornada === 5 ? 4
+      : TEMPORADA_ACTIVA === 'ligamx2026' && partido.jornada === 7 ? 6
+      : partido.jornada;
 
     const basePartQuery = supabase
       .from('quiniela_participaciones')
