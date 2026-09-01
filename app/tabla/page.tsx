@@ -920,10 +920,10 @@ export default function TablaPage() {
               const renderPendienteCell = (partido: any) => {
                 const pred = getPred(part.user_id, partido.id, part.quiniela_extra_id);
                 const esPropio = part.user_id === currentUserId;
-                const verPred = esAdmin || esPropio || part.publicado === true;
+                const verCompleto = esAdmin || esPropio;
                 return (
                   <td key={partido.id} className="px-1 py-2 text-center" style={{ borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
-                    {verPred && pred ? (
+                    {verCompleto && pred ? (
                       <>
                         <div className="text-sm font-medium text-slate-800 dark:text-slate-200">{pred.goles_local_pred}-{pred.goles_visitante_pred}</div>
                         {necesitaTerminacionPartido(partido) && (pred.clasificado_pred || pred.como_termina_pred) && (
@@ -932,7 +932,11 @@ export default function TablaPage() {
                           </div>
                         )}
                       </>
-                    ) : <span className="text-slate-400 dark:text-slate-600 text-sm">–</span>}
+                    ) : part.publicado && pred ? (
+                      <span style={{ fontSize: 14 }}>✅</span>
+                    ) : (
+                      <span className="text-slate-400 dark:text-slate-600 text-sm">–</span>
+                    )}
                   </td>
                 );
               };
