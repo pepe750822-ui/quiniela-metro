@@ -37,6 +37,7 @@ export default function TablaPage() {
   const [pozoParticipantes, setPozoParticipantes] = useState<number | null>(null);
   const [campeonJ6Declarado, setCampeonJ6Declarado] = useState<string | null>(null);
   const [esAdmin, setEsAdmin]           = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [campeonPicks, setCampeonPicks] = useState<Record<string, string>>({});
   const [bonosCampeon, setBonosCampeon] = useState<Record<string, number>>({});
   const [picksClasificacion, setPicksClasificacion] = useState<Record<string, { ligamx: string[]; mls: string[] }>>({});
@@ -49,6 +50,7 @@ export default function TablaPage() {
     const verificarAdmin = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+      setCurrentUserId(user.id);
       const { data } = await supabase
         .from('quiniela_jugadores')
         .select('rol')
@@ -917,9 +919,11 @@ export default function TablaPage() {
 
               const renderPendienteCell = (partido: any) => {
                 const pred = getPred(part.user_id, partido.id, part.quiniela_extra_id);
+                const esPropio = part.user_id === currentUserId;
+                const verPred = esAdmin || esPropio;
                 return (
                   <td key={partido.id} className="px-1 py-2 text-center" style={{ borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
-                    {pred ? (
+                    {verPred && pred ? (
                       <>
                         <div className="text-sm font-medium text-slate-800 dark:text-slate-200">{pred.goles_local_pred}-{pred.goles_visitante_pred}</div>
                         {necesitaTerminacionPartido(partido) && (pred.clasificado_pred || pred.como_termina_pred) && (
