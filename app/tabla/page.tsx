@@ -920,6 +920,27 @@ export default function TablaPage() {
               const renderPendienteCell = (partido: any) => {
                 const pred = getPred(part.user_id, partido.id, part.quiniela_extra_id);
                 const esPropio = part.user_id === currentUserId;
+                const yaEmpezó = new Date() >= new Date(partido.fecha_hora);
+
+                // Partido ya empezó (en curso) → todos ven predicción completa sin puntos
+                if (yaEmpezó) {
+                  return (
+                    <td key={partido.id} className="px-1 py-2 text-center" style={{ borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
+                      {pred ? (
+                        <>
+                          <div className="text-sm font-medium text-slate-800 dark:text-slate-200">{pred.goles_local_pred}-{pred.goles_visitante_pred}</div>
+                          {necesitaTerminacionPartido(partido) && (pred.clasificado_pred || pred.como_termina_pred) && (
+                            <div className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>
+                              {[pred.clasificado_pred ? getBanderaClasificado(pred.clasificado_pred, partido) : null, pred.como_termina_pred === 'reglamentario' ? '⏱️' : pred.como_termina_pred === 'tiempo_extra' ? '⏩' : pred.como_termina_pred === 'penales' ? '🥅' : null].filter(Boolean).join(' ')}
+                            </div>
+                          )}
+                        </>
+                      ) : <span className="text-slate-400 dark:text-slate-600 text-sm">–</span>}
+                    </td>
+                  );
+                }
+
+                // Partido no ha empezado → visibilidad por rol/publicado
                 const verCompleto = esAdmin || esPropio;
                 return (
                   <td key={partido.id} className="px-1 py-2 text-center" style={{ borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
