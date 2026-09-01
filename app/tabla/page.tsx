@@ -180,9 +180,9 @@ export default function TablaPage() {
     setPozoParticipantes(pozoDat?.participantes ?? null);
     setCampeonJ6Declarado(pozoDat?.campeon_j6 ?? null);
 
-    // Campeón elegido (solo J6)
+    // Campeón elegido (J6 y J7)
     const picksMap: Record<string, string> = {};
-    if (jornada === 6 && userIds.length) {
+    if ((jornada === 6 || jornada === 7) && userIds.length) {
       if (TEMPORADA_ACTIVA === 'ligamx2026') {
         const { data: picks } = await supabase
           .from('quiniela_prediccion_campeon_lc')
@@ -820,19 +820,19 @@ export default function TablaPage() {
                       )}
                     </th>
                   ))}
-                  {jornada !== 6 && (
+                  {jornada !== 6 && jornada !== 7 && (
                     <th className="px-3 py-2 text-center min-w-[55px]"
                       style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
                       PTS
                     </th>
                   )}
-                  {jornada === 6 && (
+                  {(jornada === 6 || jornada === 7) && (
                     <th className="px-3 py-2 text-center min-w-[72px]"
                       style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(251,191,36,0.4)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '0.75rem', color: '#fbbf24' }}>
                       🏆 +5
                     </th>
                   )}
-                  {jornada === 6 && (
+                  {(jornada === 6 || jornada === 7) && (
                     <th className="px-3 py-2 text-center min-w-[55px]"
                       style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
                       PTS
@@ -1051,14 +1051,14 @@ export default function TablaPage() {
                         {totalPuntos}
                       </td>
                       {pendientes.map(renderPendienteCell)}
-                      {jornada !== 6 && (
+                      {jornada !== 6 && jornada !== 7 && (
                         <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
                           style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
                           {totalPuntos}
                         </td>
                       )}
-                      {jornada === 6 && campCell}
-                      {jornada === 6 && (
+                      {(jornada === 6 || jornada === 7) && campCell}
+                      {(jornada === 6 || jornada === 7) && (
                         <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
                           style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
                           {totalPuntos}
