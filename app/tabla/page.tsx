@@ -920,7 +920,7 @@ export default function TablaPage() {
               const renderPendienteCell = (partido: any) => {
                 const pred = getPred(part.user_id, partido.id, part.quiniela_extra_id);
                 const esPropio = part.user_id === currentUserId;
-                const verPred = esAdmin || esPropio;
+                const verPred = esAdmin || esPropio || part.publicado === true;
                 return (
                   <td key={partido.id} className="px-1 py-2 text-center" style={{ borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
                     {verPred && pred ? (
