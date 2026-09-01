@@ -322,8 +322,7 @@ export default function PrediccionesPage() {
   const [partidoActivo, setPartidoActivo] = useState<Partido | null>(null);
   const [loading, setLoading]             = useState(true);
   const [jornada, setJornada]             = useState(() => {
-    if (TEMPORADA_ACTIVA === 'ligamx2026')
-      return Date.now() >= DEADLINE_LMX_J5.getTime() ? 6 : 5;
+    if (TEMPORADA_ACTIVA === 'ligamx2026') return 7;
     return 1;
   });
   const [jornadas, setJornadas]           = useState<number[]>([]);
