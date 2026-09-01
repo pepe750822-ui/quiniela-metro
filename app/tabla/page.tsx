@@ -180,15 +180,13 @@ export default function TablaPage() {
     setPozoParticipantes(pozoDat?.participantes ?? null);
     setCampeonJ6Declarado(pozoDat?.campeon_j6 ?? null);
 
-    // Campeón elegido (J6 y J7)
+    // Campeón elegido (J6 y J7) — información pública: se muestran los picks de todos
     const picksMap: Record<string, string> = {};
     if ((jornada === 6 || jornada === 7) && userIds.length) {
       if (TEMPORADA_ACTIVA === 'ligamx2026') {
-        const { data: picks } = await supabase
-          .from('quiniela_prediccion_campeon_lc')
-          .select('user_id, equipo')
-          .eq('temporada', TEMPORADA_ACTIVA)
-          .in('user_id', userIds);
+        // API con service_role para bypassear RLS y mostrar el pick de todos los usuarios
+        const res = await fetch('/api/picks-campeon-lc');
+        const { picks = [] } = await res.json();
         (picks || []).forEach((p: any) => { picksMap[`${p.user_id}:null`] = p.equipo; });
       } else {
         const { data: picks } = await supabase
