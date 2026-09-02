@@ -1033,7 +1033,6 @@ export default function TablaPage() {
 
                 // Partido no ha empezado → visibilidad por rol/publicado
                 const verCompleto = esAdmin || esPropio;
-                const esPublicada = part.publicado === true || pred?.publicado === true;
                 return (
                   <td key={partido.id} className="px-1 py-2 text-center" style={{ borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
                     {verCompleto && pred ? (
@@ -1045,7 +1044,7 @@ export default function TablaPage() {
                           </div>
                         )}
                       </>
-                    ) : esPublicada && pred ? (
+                    ) : pred ? (
                       <span style={{ fontSize: 14 }}>✅</span>
                     ) : (
                       <span className="text-slate-400 dark:text-slate-600 text-sm">–</span>
