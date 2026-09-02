@@ -14,7 +14,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'partidoIds requerido' }, { status: 400 });
   }
 
-  const selectPreds = 'user_id, partido_id, goles_local_pred, goles_visitante_pred, puntos_ganados, quiniela_extra_id, clasificado_pred, como_termina_pred';
+  const selectPreds = 'user_id, partido_id, goles_local_pred, goles_visitante_pred, puntos_ganados, quiniela_extra_id, clasificado_pred, como_termina_pred, publicado';
 
   // Fetch en chunks de 1000 con service_role (sin RLS)
   const [{ data: preds1 }, { data: preds2 }, { data: preds3 }, { data: preds4 }] = await Promise.all([
