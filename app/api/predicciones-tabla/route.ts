@@ -1,22 +1,36 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 
-// Usa service_role para bypassear RLS y leer predicciones publicadas de todos los usuarios
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-export async function POST(request: Request) {
-  const { partidoIds } = await request.json();
+const bodySchema = z.object({
+  partidoIds: z.array(z.string().uuid()).min(1, 'partidoIds requerido (array no vacío de UUIDs)'),
+});
 
-  if (!Array.isArray(partidoIds) || partidoIds.length === 0) {
-    return NextResponse.json({ error: 'partidoIds requerido' }, { status: 400 });
+const selectPreds = 'user_id, partido_id, goles_local_pred, goles_visitante_pred, puntos_ganados, quiniela_extra_id, clasificado_pred, como_termina_pred';
+
+export async function POST(request: Request) {
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: 'JSON inválido' }, { status: 400 });
   }
 
-  const selectPreds = 'user_id, partido_id, goles_local_pred, goles_visitante_pred, puntos_ganados, quiniela_extra_id, clasificado_pred, como_termina_pred, publicado';
+  const parsed = bodySchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: 'Payload inválido', details: parsed.error.flatten().fieldErrors },
+      { status: 400 }
+    );
+  }
 
-  // Fetch en chunks de 1000 con service_role (sin RLS)
+  const { partidoIds } = parsed.data;
+
   const [{ data: preds1 }, { data: preds2 }, { data: preds3 }, { data: preds4 }] = await Promise.all([
     supabaseAdmin.from('quiniela_predicciones').select(selectPreds).in('partido_id', partidoIds).order('id').range(0, 999),
     supabaseAdmin.from('quiniela_predicciones').select(selectPreds).in('partido_id', partidoIds).order('id').range(1000, 1999),
