@@ -69,13 +69,13 @@ export const LOGOS_LIGAMX: Record<string, string> = {
   'PSV':                 '/logos/psv.svg',
   'Feyenoord':           '/logos/feyenoord.svg',
   'Galatasaray':         '/logos/galatasaray.svg',
-  'Aston Villa':         '/logos/astonvilla.svg',
+  'Aston Villa':         '/logos/astonvilla.png',
   'Atlético de Madrid':  '/logos/atletico.svg',
   'Villarreal':          '/logos/villarreal.svg',
   'AS Roma':             '/logos/asroma.svg',
   'Lille':               '/logos/lille.svg',
   'Fenerbahçe':          '/logos/fenerbahce.svg',
-  'VfB Stuttgart':       '/logos/stuttgart.svg',
+  'VfB Stuttgart':       '/logos/stuttgart.png',
   'AEK Atenas':          '/logos/aek.png',
   'Club Brujas':         '/logos/brujas.png',
   'Real Betis':          '/logos/betis.png',
@@ -87,8 +87,9 @@ export const LOGOS_LIGAMX: Record<string, string> = {
   'Lens':                '/logos/lens.png',
   'Como':                '/logos/como.png',
   'RB Leipzig':          '/logos/leipzig.png',
-  'Sabah FK':            '/logos/sabah.svg',
+  'Sabah FK':            '/logos/sabah.png',
   'Bodø/Glimt':          '/logos/bodo.png',
+  'LASK Linz':           '/logos/lask.png',
 };
 
 export const emailCorto = (email: string) => email.split('@')[0];
