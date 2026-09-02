@@ -23,7 +23,10 @@ const DEADLINE_LMX_J4 = new Date('2026-08-15T23:00:00Z'); // Sáb 15 ago 18:00 C
 const DEADLINE_LMX_J5 = new Date('2026-08-22T01:00:00Z'); // Vie 21 ago 20:00 CDMX
 
 const jornadaInicial = () => {
-  if (TEMPORADA_ACTIVA === 'ligamx2026') return 7;
+  if (TEMPORADA_ACTIVA === 'ligamx2026') {
+    if (new Date() > new Date('2026-09-07T06:00:00Z')) return 8;
+    return 7;
+  }
   return 1;
 };
 
@@ -65,7 +68,7 @@ export default function TablaPage() {
         .eq('temporada', TEMPORADA_ACTIVA)
         .order('jornada');
       const unicas = [...new Set((data ?? []).map((p: any) => p.jornada as number))]
-        .filter(j => TEMPORADA_ACTIVA !== 'ligamx2026' || j <= 7);
+        .filter(j => TEMPORADA_ACTIVA !== 'ligamx2026' || j <= 8);
       if (unicas.length > 0) setJornadasDisponibles(unicas);
     };
     verificarAdmin();

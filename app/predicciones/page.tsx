@@ -322,7 +322,10 @@ export default function PrediccionesPage() {
   const [partidoActivo, setPartidoActivo] = useState<Partido | null>(null);
   const [loading, setLoading]             = useState(true);
   const [jornada, setJornada]             = useState(() => {
-    if (TEMPORADA_ACTIVA === 'ligamx2026') return 7;
+    if (TEMPORADA_ACTIVA === 'ligamx2026') {
+      if (new Date() > new Date('2026-09-07T06:00:00Z')) return 8;
+      return 7;
+    }
     return 1;
   });
   const [jornadas, setJornadas]           = useState<number[]>([]);
@@ -382,7 +385,7 @@ export default function PrediccionesPage() {
       .order('jornada')
       .then(({ data }) => {
         const unicas = [...new Set((data ?? []).map((p: { jornada: number }) => p.jornada))]
-          .filter(j => TEMPORADA_ACTIVA !== 'ligamx2026' || j <= 7);
+          .filter(j => TEMPORADA_ACTIVA !== 'ligamx2026' || j <= 8);
         setJornadas(unicas);
       });
   }, [router]);
@@ -1072,7 +1075,7 @@ export default function PrediccionesPage() {
         className="flex gap-2 overflow-x-auto pb-1"
         style={{ scrollbarWidth: 'none' }}
       >
-        {jornadas.filter(j => TEMPORADA_ACTIVA === 'ligamx2026' ? j <= 7 : j <= 6).map(j => {
+        {jornadas.filter(j => TEMPORADA_ACTIVA === 'ligamx2026' ? j <= 8 : j <= 6).map(j => {
           const cerrada = TEMPORADA_ACTIVA === 'ligamx2026' ? new Date() > getDeadline(j) : j < 2 || new Date() > getDeadline(j);
           return (
             <Pill key={j} active={jornada === j} onClick={() => setJornada(j)} faded={cerrada && jornada !== j}>

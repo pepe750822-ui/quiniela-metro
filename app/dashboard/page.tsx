@@ -159,7 +159,9 @@ export default function DashboardPage() {
   const [pendienteIds, setPendienteIds]         = useState<string[]>([]);
   const [pagadosIds, setPagadosIds]             = useState<string[]>([]);
   const [jornadaSeleccionada, setJornadaSeleccionada] = useState<number | 'general' | 'lc_total'>(
-    TEMPORADA_ACTIVA === 'ligamx2026' ? 7 : 1
+    TEMPORADA_ACTIVA === 'ligamx2026'
+      ? (new Date() > new Date('2026-09-07T06:00:00Z') ? 8 : 7)
+      : 1
   );
   const [participantesJornada, setParticipantesJornada] = useState<ParticipanteItem[]>([]);
   const { d, h, m, s, started, mounted: countdownReady } = useCountdown(INAUGURAL);
@@ -667,7 +669,7 @@ export default function DashboardPage() {
   const pozosVisibles = pozosCompletos.filter(p => p.participantes > 0);
 
   const jornadasDisponibles = TEMPORADA_ACTIVA === 'ligamx2026'
-    ? [...new Set(pozosCompletos.filter(p => p.participantes > 0 && p.jornada <= 7).map(p => p.jornada))]
+    ? [...new Set(pozosCompletos.filter(p => p.participantes > 0 && p.jornada <= 8).map(p => p.jornada))]
     : [...new Set(pozosCompletos.map(p => p.jornada))];
 
   const compartirRanking = () => {
