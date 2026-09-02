@@ -69,6 +69,13 @@ export const LOGOS_LIGAMX: Record<string, string> = {
   'PSV':                 '/logos/psv.svg',
   'Feyenoord':           '/logos/feyenoord.svg',
   'Galatasaray':         '/logos/galatasaray.svg',
+  'Aston Villa':         '/logos/astonvilla.svg',
+  'Atlético de Madrid':  '/logos/atletico.svg',
+  'Villarreal':          '/logos/villarreal.svg',
+  'AS Roma':             '/logos/asroma.svg',
+  'Lille':               '/logos/lille.svg',
+  'Fenerbahçe':          '/logos/fenerbahce.svg',
+  'VfB Stuttgart':       '/logos/stuttgart.svg',
 };
 
 export const emailCorto = (email: string) => email.split('@')[0];
