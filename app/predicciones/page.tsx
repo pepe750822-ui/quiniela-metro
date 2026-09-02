@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
@@ -297,6 +297,7 @@ function Pill({
     <motion.button
       whileTap={{ scale: 0.93 }}
       onClick={onClick}
+      data-active={String(active)}
       className="flex-shrink-0 px-3.5 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap cursor-pointer"
       style={{
         background: active
@@ -330,6 +331,7 @@ export default function PrediccionesPage() {
   });
   const [jornadas, setJornadas]           = useState<number[]>([]);
   const [pozo, setPozo]                   = useState<Pozo | null>(null);
+  const selectorRef                       = useRef<HTMLDivElement>(null);
   const [participando, setParticipando]   = useState<boolean | null>(null);
   const [publicado, setPublicado]         = useState<boolean>(false);
   const [publicando, setPublicando]       = useState<boolean>(false);
@@ -364,6 +366,11 @@ export default function PrediccionesPage() {
 
   useEffect(() => {
     if (jornada === 6 && TEMPORADA_ACTIVA !== 'ligamx2026') setBracketVisible(true);
+  }, [jornada]);
+
+  useEffect(() => {
+    const activeBtn = selectorRef.current?.querySelector('[data-active="true"]');
+    activeBtn?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
   }, [jornada]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1072,6 +1079,7 @@ export default function PrediccionesPage() {
       {/* ── SELECTOR JORNADA ── */}
       <motion.div
         {...fadeUp(0.11)}
+        ref={selectorRef}
         className="flex gap-2 overflow-x-auto pb-1"
         style={{ scrollbarWidth: 'none' }}
       >
@@ -1492,6 +1500,43 @@ export default function PrediccionesPage() {
                         />
                       </motion.div>
                     ))}
+                  </>
+                );
+              })() : TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 8 ? (() => {
+                const J8_GRUPOS = [
+                  { key: 'LC',  label: '🏆 Leagues Cup Semis',   color: '#fb923c', bg: 'rgba(234,88,12,0.08)',  border: 'rgba(234,88,12,0.25)'  },
+                  { key: 'LMX', label: '⚽ Liga MX',             color: '#818cf8', bg: 'rgba(99,102,241,0.08)', border: 'rgba(99,102,241,0.25)' },
+                  { key: 'ENG', label: '🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League',   color: '#60a5fa', bg: 'rgba(96,165,250,0.08)', border: 'rgba(96,165,250,0.25)' },
+                  { key: 'UCL', label: '⭐ Champions League',    color: '#fbbf24', bg: 'rgba(251,191,36,0.08)', border: 'rgba(251,191,36,0.25)' },
+                ];
+                return (
+                  <>
+                    {J8_GRUPOS.map(({ key, label, color, bg, border }) => {
+                      const grpPartidos = resolvedPartidos.filter(p => p.grupo === key);
+                      if (grpPartidos.length === 0) return null;
+                      return (
+                        <div key={key}>
+                          <motion.div variants={itemVariants}
+                            className="sticky top-0 z-10 rounded-xl px-3 py-2 mb-1"
+                            style={{ background: bg, border: `1px solid ${border}`, backdropFilter: 'blur(8px)' }}
+                          >
+                            <span className="text-xs font-bold uppercase tracking-widest" style={{ color, fontFamily: 'var(--font-rajdhani)' }}>
+                              {label}
+                            </span>
+                          </motion.div>
+                          {grpPartidos.map(partido => (
+                            <motion.div key={partido.id} variants={itemVariants} id={`partido-${partido.id}`} className="mb-3">
+                              <PartidoCard
+                                partido={partido}
+                                prediccion={prediccionesBorrador[partido.id] ?? predicciones[partido.id] ?? null}
+                                participacionPagada={predicciones[partido.id] ? participando : undefined}
+                                onPredicir={estaBloquado(partido) ? undefined : setPartidoActivo}
+                              />
+                            </motion.div>
+                          ))}
+                        </div>
+                      );
+                    })}
                   </>
                 );
               })() : resolvedPartidos.map(partido => (
