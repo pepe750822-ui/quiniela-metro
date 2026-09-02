@@ -96,9 +96,12 @@ export default function TablaPage() {
     if (partidos.length === 0) return;
     if (tablaRef.current) {
       setTimeout(() => {
-        const col = document.getElementById('col-pts');
-        if (col) {
-          col.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        const firstPending = tablaRef.current?.querySelector('[data-estado="pendiente"]');
+        if (firstPending) {
+          firstPending.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        } else {
+          const col = document.getElementById('col-pts');
+          if (col) col.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
         }
       }, 800);
     }
@@ -772,7 +775,7 @@ export default function TablaPage() {
                     </th>
                   ))}
                   {pendientesLC.map(partido => (
-                    <th key={partido.id} id={`col-${partido.id}`} className="px-2 py-2 text-center min-w-[70px]"
+                    <th key={partido.id} id={`col-${partido.id}`} data-estado="pendiente" className="px-2 py-2 text-center min-w-[70px]"
                       style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
                       <div className="flex items-center justify-center gap-1 mb-1">
                         <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
@@ -802,7 +805,7 @@ export default function TablaPage() {
                     </th>
                   ))}
                   {pendientesLMX.map(partido => (
-                    <th key={partido.id} id={`col-${partido.id}`} className="px-2 py-2 text-center min-w-[70px]"
+                    <th key={partido.id} id={`col-${partido.id}`} data-estado="pendiente" className="px-2 py-2 text-center min-w-[70px]"
                       style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
                       <div className="flex items-center justify-center gap-1 mb-1">
                         <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
@@ -839,7 +842,7 @@ export default function TablaPage() {
                             </div>
                           </th>
                         ) : (
-                          <th key={partido.id} id={`col-${partido.id}`}
+                          <th key={partido.id} id={`col-${partido.id}`} data-estado="pendiente"
                             className="px-2 py-2 text-center min-w-[70px]"
                             style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
                             <div className="flex items-center justify-center gap-1 mb-1">
@@ -888,7 +891,7 @@ export default function TablaPage() {
                     PTS
                   </th>
                   {pendientes.map(partido => (
-                    <th key={partido.id} id={`col-${partido.id}`}
+                    <th key={partido.id} id={`col-${partido.id}`} data-estado="pendiente"
                       className="px-2 py-2 text-center min-w-[70px]"
                       style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
                       <div className="flex items-center justify-center gap-1 mb-1">

@@ -467,7 +467,8 @@ export default function PrediccionesPage() {
       setParticipando(part?.pagado ?? null);
     }
 
-    if (!part) {
+    // J8 no auto-crea participación: solo cuando admin confirma pago
+    if (!part && !(TEMPORADA_ACTIVA === 'ligamx2026' && j === 8)) {
       await supabase
         .from('quiniela_participaciones')
         .insert({
