@@ -57,6 +57,18 @@ export const LOGOS_LIGAMX: Record<string, string> = {
   'Borussia Dortmund':   '/logos/dortmund.svg',
   'Napoli':              '/logos/napoli.svg',
   'Porto':               '/logos/porto.svg',
+  // Champions League 2025/26 — logos oficiales
+  'Atlético Madrid':     '/logos/atletico.svg',
+  'Bayer Leverkusen':    '/logos/leverkusen.svg',
+  'AC Milan':            '/logos/acmilan.svg',
+  'Juventus':            '/logos/juventus.svg',
+  'Benfica':             '/logos/benfica.svg',
+  'Ajax':                '/logos/ajax.svg',
+  'Celtic':              '/logos/celtic.svg',
+  'Sporting CP':         '/logos/sporting.svg',
+  'PSV':                 '/logos/psv.svg',
+  'Feyenoord':           '/logos/feyenoord.svg',
+  'Galatasaray':         '/logos/galatasaray.svg',
 };
 
 export const emailCorto = (email: string) => email.split('@')[0];
