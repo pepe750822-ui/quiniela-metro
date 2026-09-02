@@ -44,6 +44,19 @@ export const LOGOS_LIGAMX: Record<string, string> = {
   'Real Madrid':         '/logos/realmadrid.svg',
   'Elche':               '/logos/elche.svg',
   'Barcelona':           '/logos/barcelona.svg',
+  // Premier League
+  'Arsenal':             '/logos/arsenal.svg',
+  'Chelsea':             '/logos/chelsea.svg',
+  // Champions League
+  'Inter de Milán':      '/logos/inter.svg',
+  'Liverpool':           '/logos/liverpool.svg',
+  'PSG':                 '/logos/psg.svg',
+  'Bayern de Múnich':    '/logos/bayern.svg',
+  'Manchester United':   '/logos/manchesterunited.svg',
+  'Manchester City':     '/logos/manchestercity.svg',
+  'Borussia Dortmund':   '/logos/dortmund.svg',
+  'Napoli':              '/logos/napoli.svg',
+  'Porto':               '/logos/porto.svg',
 };
 
 export const emailCorto = (email: string) => email.split('@')[0];
