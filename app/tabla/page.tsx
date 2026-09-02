@@ -704,7 +704,7 @@ export default function TablaPage() {
           <thead className="sticky top-0 z-20">
             {esJ8Multi && j8Runs.length > 0 && (
               <tr style={{ borderBottom: '1px solid rgba(234,88,12,0.15)' }}>
-                <th colSpan={2} style={{ background: 'var(--bg-base)' }} />
+                <th colSpan={jornada === 7 ? 3 : 2} style={{ background: 'var(--bg-base)' }} />
                 {j8Runs.map((run, i) => (
                   <th key={`${run.key}-${i}`}
                     colSpan={run.count}
@@ -713,7 +713,7 @@ export default function TablaPage() {
                     {run.meta.label}
                   </th>
                 ))}
-                <th style={{ background: 'var(--bg-base)', borderBottom: '1px solid rgba(234,88,12,0.15)' }} />
+                <th colSpan={jornada === 7 ? 2 : 1} style={{ background: 'var(--bg-base)', borderBottom: '1px solid rgba(234,88,12,0.15)' }} />
               </tr>
             )}
             {esJ6LC && (
@@ -1139,6 +1139,7 @@ export default function TablaPage() {
                       {esJ8Multi ? (
                         <>
                           {j8Sorted.map((p: any) => p.estado === 'finalizado' ? renderFinalizadoCell(p) : renderPendienteCell(p))}
+                          {campCell}
                           <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
                             style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
                             {totalPuntos}
