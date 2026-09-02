@@ -1503,37 +1503,43 @@ export default function PrediccionesPage() {
                   </>
                 );
               })() : TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 8 ? (() => {
-                const J8_GRUPOS = [
-                  { key: 'LC',  label: '🏆 Leagues Cup Semis',   color: '#fb923c', bg: 'rgba(234,88,12,0.08)',  border: 'rgba(234,88,12,0.25)'  },
-                  { key: 'LMX', label: '⚽ Liga MX',             color: '#818cf8', bg: 'rgba(99,102,241,0.08)', border: 'rgba(99,102,241,0.25)' },
-                  { key: 'ENG', label: '🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League',   color: '#60a5fa', bg: 'rgba(96,165,250,0.08)', border: 'rgba(96,165,250,0.25)' },
-                  { key: 'UCL', label: '⭐ Champions League',    color: '#fbbf24', bg: 'rgba(251,191,36,0.08)', border: 'rgba(251,191,36,0.25)' },
-                ];
+                const J8_GRUPO_META: Record<string, { label: string; color: string; bg: string; border: string }> = {
+                  LC:  { label: '🏆 Leagues Cup Semis',   color: '#fb923c', bg: 'rgba(234,88,12,0.08)',  border: 'rgba(234,88,12,0.25)'  },
+                  LMX: { label: '⚽ Liga MX',             color: '#818cf8', bg: 'rgba(99,102,241,0.08)', border: 'rgba(99,102,241,0.25)' },
+                  ENG: { label: '🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League',   color: '#60a5fa', bg: 'rgba(96,165,250,0.08)', border: 'rgba(96,165,250,0.25)' },
+                  UCL: { label: '⭐ Champions League',    color: '#fbbf24', bg: 'rgba(251,191,36,0.08)', border: 'rgba(251,191,36,0.25)' },
+                };
+                const sorted = [...resolvedPartidos].sort(
+                  (a, b) => new Date(a.fecha_hora).getTime() - new Date(b.fecha_hora).getTime()
+                );
+                let lastGrupo = '';
                 return (
                   <>
-                    {J8_GRUPOS.map(({ key, label, color, bg, border }) => {
-                      const grpPartidos = resolvedPartidos.filter(p => p.grupo === key);
-                      if (grpPartidos.length === 0) return null;
+                    {sorted.map(partido => {
+                      const grupoKey = partido.grupo ?? '';
+                      const showHeader = grupoKey !== lastGrupo;
+                      if (showHeader) lastGrupo = grupoKey;
+                      const meta = J8_GRUPO_META[grupoKey] ?? { label: grupoKey, color: '#94a3b8', bg: 'rgba(148,163,184,0.08)', border: 'rgba(148,163,184,0.25)' };
                       return (
-                        <div key={key}>
-                          <motion.div variants={itemVariants}
-                            className="sticky top-0 z-10 rounded-xl px-3 py-2 mb-1"
-                            style={{ background: bg, border: `1px solid ${border}`, backdropFilter: 'blur(8px)' }}
-                          >
-                            <span className="text-xs font-bold uppercase tracking-widest" style={{ color, fontFamily: 'var(--font-rajdhani)' }}>
-                              {label}
-                            </span>
-                          </motion.div>
-                          {grpPartidos.map(partido => (
-                            <motion.div key={partido.id} variants={itemVariants} id={`partido-${partido.id}`} className="mb-3">
-                              <PartidoCard
-                                partido={partido}
-                                prediccion={prediccionesBorrador[partido.id] ?? predicciones[partido.id] ?? null}
-                                participacionPagada={predicciones[partido.id] ? participando : undefined}
-                                onPredicir={estaBloquado(partido) ? undefined : setPartidoActivo}
-                              />
+                        <div key={partido.id}>
+                          {showHeader && (
+                            <motion.div variants={itemVariants}
+                              className="sticky top-0 z-10 rounded-xl px-3 py-2 mb-1 mt-2"
+                              style={{ background: meta.bg, border: `1px solid ${meta.border}`, backdropFilter: 'blur(8px)' }}
+                            >
+                              <span className="text-xs font-bold uppercase tracking-widest" style={{ color: meta.color, fontFamily: 'var(--font-rajdhani)' }}>
+                                {meta.label}
+                              </span>
                             </motion.div>
-                          ))}
+                          )}
+                          <motion.div variants={itemVariants} id={`partido-${partido.id}`} className="mb-3">
+                            <PartidoCard
+                              partido={partido}
+                              prediccion={prediccionesBorrador[partido.id] ?? predicciones[partido.id] ?? null}
+                              participacionPagada={predicciones[partido.id] ? participando : undefined}
+                              onPredicir={estaBloquado(partido) ? undefined : setPartidoActivo}
+                            />
+                          </motion.div>
                         </div>
                       );
                     })}

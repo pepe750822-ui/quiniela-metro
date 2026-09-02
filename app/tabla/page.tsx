@@ -521,21 +521,30 @@ export default function TablaPage() {
   const pendientesLC   = esJ6LC ? pendientes.filter((p: any) => p.grupo === 'LC')   : [];
   const pendientesLMX  = esJ6LC ? pendientes.filter((p: any) => p.grupo !== 'LC')  : [];
 
-  // Para ligamx2026 J8: separar por grupo (LC, LMX, ENG, UCL)
+  // Para ligamx2026 J8: orden cronológico global con headers cuando cambia el grupo
   const esJ8Multi = TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 8;
-  const J8_GRUPOS_DEF = [
-    { key: 'LC',  label: '🏆 LC Semis',        color: '#fb923c', bg: 'rgba(234,88,12,0.06)',  border: 'rgba(234,88,12,0.3)'  },
-    { key: 'LMX', label: '⚽ Liga MX',          color: '#818cf8', bg: 'rgba(99,102,241,0.06)', border: 'rgba(99,102,241,0.3)' },
-    { key: 'ENG', label: '🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier',        color: '#60a5fa', bg: 'rgba(96,165,250,0.06)', border: 'rgba(96,165,250,0.3)' },
-    { key: 'UCL', label: '⭐ Champions',        color: '#fbbf24', bg: 'rgba(251,191,36,0.06)', border: 'rgba(251,191,36,0.3)' },
-  ];
-  const j8Groups = esJ8Multi
-    ? J8_GRUPOS_DEF.map(g => ({
-        ...g,
-        finalizados: finalizados.filter((p: any) => p.grupo === g.key),
-        pendientes:  pendientes.filter((p: any) => p.grupo === g.key),
-      })).filter(g => g.finalizados.length + g.pendientes.length > 0)
+  const J8_GRUPO_META: Record<string, { label: string; color: string; bg: string; border: string }> = {
+    LC:  { label: '🏆 LC Semis',  color: '#fb923c', bg: 'rgba(234,88,12,0.06)',  border: 'rgba(234,88,12,0.3)'  },
+    LMX: { label: '⚽ Liga MX',   color: '#818cf8', bg: 'rgba(99,102,241,0.06)', border: 'rgba(99,102,241,0.3)' },
+    ENG: { label: '🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier', color: '#60a5fa', bg: 'rgba(96,165,250,0.06)', border: 'rgba(96,165,250,0.3)' },
+    UCL: { label: '⭐ Champions', color: '#fbbf24', bg: 'rgba(251,191,36,0.06)', border: 'rgba(251,191,36,0.3)' },
+  };
+  // All J8 partidos sorted chronologically
+  const j8Sorted: any[] = esJ8Multi
+    ? [...partidos].sort((a, b) => new Date(a.fecha_hora).getTime() - new Date(b.fecha_hora).getTime())
     : [];
+  // Consecutive runs of same grupo (for column-group headers in thead)
+  const j8Runs: { key: string; count: number; meta: typeof J8_GRUPO_META[string] }[] = [];
+  if (esJ8Multi) {
+    for (const p of j8Sorted) {
+      const last = j8Runs[j8Runs.length - 1];
+      const meta = J8_GRUPO_META[p.grupo] ?? { label: p.grupo, color: '#94a3b8', bg: 'rgba(148,163,184,0.06)', border: 'rgba(148,163,184,0.3)' };
+      if (last && last.key === p.grupo) { last.count++; }
+      else j8Runs.push({ key: p.grupo, count: 1, meta });
+    }
+  }
+  // Keep j8Groups for backward compat — not used anymore for J8 rendering
+  const j8Groups: any[] = [];
 
   // Campeón declarado cuando la Final (J9) está finalizada (no aplica para ligamx2026)
   const campeonDeclarado = jornada === 6 && TEMPORADA_ACTIVA !== 'ligamx2026' && campeonJ6Declarado !== null;
@@ -690,15 +699,15 @@ export default function TablaPage() {
       <div ref={tablaRef} className="overflow-x-auto overflow-y-auto px-2 print:hidden" style={{ maxHeight: 'calc(100vh - 160px)' }}>
         <table className="min-w-max print:min-w-0 print:w-full text-sm border-collapse">
           <thead className="sticky top-0 z-20">
-            {esJ8Multi && j8Groups.length > 0 && (
+            {esJ8Multi && j8Runs.length > 0 && (
               <tr style={{ borderBottom: '1px solid rgba(234,88,12,0.15)' }}>
                 <th colSpan={2} style={{ background: 'var(--bg-base)' }} />
-                {j8Groups.map(g => (
-                  <th key={g.key}
-                    colSpan={g.finalizados.length + g.pendientes.length}
+                {j8Runs.map((run, i) => (
+                  <th key={`${run.key}-${i}`}
+                    colSpan={run.count}
                     className="px-2 py-1 text-center text-[10px] uppercase tracking-widest"
-                    style={{ background: g.bg, color: g.color, fontFamily: 'var(--font-rajdhani)', borderLeft: `2px solid ${g.border}`, borderBottom: '1px solid rgba(234,88,12,0.15)' }}>
-                    {g.label}
+                    style={{ background: run.meta.bg, color: run.meta.color, fontFamily: 'var(--font-rajdhani)', borderLeft: `2px solid ${run.meta.border}`, borderBottom: '1px solid rgba(234,88,12,0.15)' }}>
+                    {run.meta.label}
                   </th>
                 ))}
                 <th style={{ background: 'var(--bg-base)', borderBottom: '1px solid rgba(234,88,12,0.15)' }} />
@@ -814,8 +823,8 @@ export default function TablaPage() {
                 <>
                   {esJ8Multi ? (
                     <>
-                      {j8Groups.flatMap(g => [
-                        ...g.finalizados.map((partido: any) => (
+                      {j8Sorted.map((partido: any) =>
+                        partido.estado === 'finalizado' ? (
                           <th key={partido.id}
                             className="px-2 py-2 text-center min-w-[70px]"
                             style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
@@ -829,8 +838,7 @@ export default function TablaPage() {
                               {partido.goles_local}-{partido.goles_visitante}
                             </div>
                           </th>
-                        )),
-                        ...g.pendientes.map((partido: any) => (
+                        ) : (
                           <th key={partido.id} id={`col-${partido.id}`}
                             className="px-2 py-2 text-center min-w-[70px]"
                             style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
@@ -843,8 +851,8 @@ export default function TablaPage() {
                               ? <div className="rounded px-1 py-0.5 text-[10px] font-bold animate-pulse" style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>🔴 EN VIVO</div>
                               : <div style={{ fontSize: '0.625rem', color: '#334155' }}>pendiente</div>}
                           </th>
-                        )),
-                      ])}
+                        )
+                      )}
                       <th id="col-pts" className="px-3 py-2 text-center min-w-[55px]"
                         style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
                         PTS
@@ -1127,10 +1135,7 @@ export default function TablaPage() {
                     <>
                       {esJ8Multi ? (
                         <>
-                          {j8Groups.flatMap(g => [
-                            ...g.finalizados.map(renderFinalizadoCell),
-                            ...g.pendientes.map(renderPendienteCell),
-                          ])}
+                          {j8Sorted.map((p: any) => p.estado === 'finalizado' ? renderFinalizadoCell(p) : renderPendienteCell(p))}
                           <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
                             style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
                             {totalPuntos}
