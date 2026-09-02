@@ -1505,7 +1505,7 @@ export default function PrediccionesPage() {
                 );
               })() : TEMPORADA_ACTIVA === 'ligamx2026' && jornada >= 7 ? (() => {
                 const J8_GRUPO_META: Record<string, { label: string; color: string; bg: string; border: string }> = {
-                  LC:  { label: jornada === 7 ? '🏆 LC Semifinales' : '🏆 Leagues Cup Semis', color: '#fb923c', bg: 'rgba(234,88,12,0.08)',  border: 'rgba(234,88,12,0.25)'  },
+                  LC:  { label: jornada === 7 ? '🏆 Leagues Cup' : '🏆 Leagues Cup Semis', color: '#fb923c', bg: 'rgba(234,88,12,0.08)',  border: 'rgba(234,88,12,0.25)'  },
                   LMX: { label: jornada === 7 ? '⚽ Liga MX J7'    : '⚽ Liga MX',            color: '#818cf8', bg: 'rgba(99,102,241,0.08)', border: 'rgba(99,102,241,0.25)' },
                   ENG: { label: '🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League',   color: '#60a5fa', bg: 'rgba(96,165,250,0.08)', border: 'rgba(96,165,250,0.25)' },
                   UCL: { label: '⭐ Champions League',    color: '#fbbf24', bg: 'rgba(251,191,36,0.08)', border: 'rgba(251,191,36,0.25)' },
