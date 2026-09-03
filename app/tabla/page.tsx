@@ -856,6 +856,12 @@ export default function TablaPage() {
                           </th>
                         )
                       )}
+                      {jornada === 7 && (
+                        <th className="px-3 py-2 text-center min-w-[72px]"
+                          style={{ background: 'var(--bg-base)', borderLeft: '2px solid rgba(251,191,36,0.4)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '0.75rem', color: '#fbbf24' }}>
+                          🏆
+                        </th>
+                      )}
                       <th id="col-pts" className="px-3 py-2 text-center min-w-[55px]"
                         style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
                         PTS
