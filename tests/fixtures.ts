@@ -1,4 +1,4 @@
-import { test as base, expect } from '@playwright/test';
+import { test as base, expect, Page } from '@playwright/test';
 
 const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL;
 const ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD;
@@ -6,10 +6,10 @@ const USER_EMAIL = process.env.TEST_USER_EMAIL;
 const USER_PASSWORD = process.env.TEST_USER_PASSWORD;
 
 export const test = base.extend<{
-  adminPage: any;
-  userPage: any;
+  adminPage: Page;
+  userPage: Page;
 }>({
-  adminPage: async ({ page }, use) => {
+  adminPage: async ({ page }: { page: Page }, use) => {
     if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
       test.skip(true, 'TEST_ADMIN_EMAIL/PASSWORD no configurados');
       return;
@@ -17,7 +17,7 @@ export const test = base.extend<{
     await login(page, ADMIN_EMAIL, ADMIN_PASSWORD);
     await use(page);
   },
-  userPage: async ({ page }, use) => {
+  userPage: async ({ page }: { page: Page }, use) => {
     if (!USER_EMAIL || !USER_PASSWORD) {
       test.skip(true, 'TEST_USER_EMAIL/PASSWORD no configurados');
       return;
@@ -27,7 +27,7 @@ export const test = base.extend<{
   },
 });
 
-async function login(page: any, email: string, password: string) {
+async function login(page: Page, email: string, password: string) {
   await page.goto('/login');
   await page.fill('input[type="email"]', email);
   await page.fill('input[type="password"]', password);
