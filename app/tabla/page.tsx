@@ -704,7 +704,7 @@ export default function TablaPage() {
           <thead className="sticky top-0 z-20">
             {esJ8Multi && j8Runs.length > 0 && (
               <tr style={{ borderBottom: '1px solid rgba(234,88,12,0.15)' }}>
-                <th colSpan={jornada === 7 ? 3 : 2} style={{ background: 'var(--bg-base)' }} />
+                <th colSpan={jornada === 7 ? 4 : 2} style={{ background: 'var(--bg-base)' }} />
                 {j8Runs.map((run, i) => (
                   <th key={`${run.key}-${i}`}
                     colSpan={run.count}
@@ -751,6 +751,12 @@ export default function TablaPage() {
                 <th className="px-2 py-2 text-center min-w-[64px]"
                   style={{ background: 'var(--bg-base)', borderLeft: '2px solid rgba(99,102,241,0.5)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '0.75rem', color: '#818cf8' }}>
                   {labelPtsAnteriores().header}
+                </th>
+              )}
+              {esJ8Multi && jornada === 7 && (
+                <th className="px-2 py-2 text-center min-w-[70px]"
+                  style={{ background: 'var(--bg-base)', borderLeft: '2px solid rgba(16,185,129,0.5)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '0.75rem', color: '#10b981' }}>
+                  PTS J6+J7
                 </th>
               )}
               {esJ6LC ? (
@@ -1126,6 +1132,15 @@ export default function TablaPage() {
                         {getPtsAnteriores(part)}
                       </div>
                       <div style={{ fontSize: '0.55rem', color: '#475569', lineHeight: 1 }}>{labelPtsAnteriores().sub}</div>
+                    </td>
+                  )}
+                  {esJ8Multi && jornada === 7 && (
+                    <td className="px-3 py-2 text-center"
+                      style={{ borderLeft: '2px solid rgba(16,185,129,0.5)', borderBottom: '1px solid var(--border-color)', minWidth: 70 }}>
+                      <div style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.25rem', color: '#10b981' }}>
+                        {totalPuntos}
+                      </div>
+                      <div style={{ fontSize: '0.5rem', color: '#475569', lineHeight: 1 }}>J6+J7</div>
                     </td>
                   )}
                   {esJ6LC ? (
