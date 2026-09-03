@@ -30,25 +30,36 @@ export default function PosicionesLmxPage() {
   const [loading, setLoading] = useState(true);
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
 
-  useEffect(() => {
-    const cargar = async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('ligamx_posiciones')
-        .select('equipo, pj, g, e, p, gf, gc, dg, pts, updated_at')
-        .eq('temporada', TEMPORADA_ACTIVA)
-        .order('pts', { ascending: false })
-        .order('dg', { ascending: false });
+  const cargar = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('ligamx_posiciones')
+      .select('equipo, pj, g, e, p, gf, gc, dg, pts, updated_at')
+      .eq('temporada', TEMPORADA_ACTIVA)
+      .order('pts', { ascending: false })
+      .order('dg', { ascending: false });
 
-      if (!error && data && data.length > 0) {
-        setRows(data as PosicionRow[]);
-        const latest = (data as any[]).reduce((acc: string, row: any) =>
-          row.updated_at > acc ? row.updated_at : acc, '');
-        if (latest) setUpdatedAt(latest);
-      }
-      setLoading(false);
-    };
+    if (!error && data && data.length > 0) {
+      setRows(data as PosicionRow[]);
+      const latest = (data as any[]).reduce((acc: string, row: any) =>
+        row.updated_at > acc ? row.updated_at : acc, '');
+      if (latest) setUpdatedAt(latest);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
     cargar();
+  }, []);
+
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        cargar();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
   }, []);
 
   const total = rows.length;

@@ -109,82 +109,89 @@ export default function PosicionesPage() {
   const [rowsMls, setRowsMls]       = useState<Row[]>([]);
   const [loading, setLoading]       = useState(true);
 
-  useEffect(() => {
-    const cargar = async () => {
-      const { data: partidos } = await supabase
-        .from('quiniela_partidos')
-        .select('equipo_local, equipo_visitante, goles_local, goles_visitante, clasificado, como_termino')
-        .eq('temporada', TEMPORADA_ACTIVA)
-        .eq('estado', 'finalizado');
+  const cargar = async () => {
+    const { data: partidos } = await supabase
+      .from('quiniela_partidos')
+      .select('equipo_local, equipo_visitante, goles_local, goles_visitante, clasificado, como_termino')
+      .eq('temporada', TEMPORADA_ACTIVA)
+      .eq('estado', 'finalizado');
 
-      const stats: Record<string, Row> = {};
-      const getRow = (equipo: string): Row => {
-        if (!stats[equipo]) stats[equipo] = { equipo, pj: 0, g: 0, gpe: 0, lpe: 0, p: 0, gf: 0, gc: 0, pts: 0 };
-        return stats[equipo];
-      };
+    const stats: Record<string, Row> = {};
+    const getRow = (equipo: string): Row => {
+      if (!stats[equipo]) stats[equipo] = { equipo, pj: 0, g: 0, gpe: 0, lpe: 0, p: 0, gf: 0, gc: 0, pts: 0 };
+      return stats[equipo];
+    };
 
-      for (const p of (partidos ?? [])) {
-        const gl = p.goles_local ?? 0;
-        const gv = p.goles_visitante ?? 0;
-        const local = getRow(p.equipo_local);
-        const visit = getRow(p.equipo_visitante);
+    for (const p of (partidos ?? [])) {
+      const gl = p.goles_local ?? 0;
+      const gv = p.goles_visitante ?? 0;
+      const local = getRow(p.equipo_local);
+      const visit = getRow(p.equipo_visitante);
 
-        local.pj++; visit.pj++;
-        local.gf += gl; local.gc += gv;
-        visit.gf += gv; visit.gc += gl;
+      local.pj++; visit.pj++;
+      local.gf += gl; local.gc += gv;
+      visit.gf += gv; visit.gc += gl;
 
-        const esReglamentario = p.como_termino === 'reglamentario';
-        const esPenalesOTE = p.como_termino === 'penales' || p.como_termino === 'tiempo_extra';
+      const esReglamentario = p.como_termino === 'reglamentario';
+      const esPenalesOTE = p.como_termino === 'penales' || p.como_termino === 'tiempo_extra';
 
-        if (esReglamentario) {
-          if (gl > gv) {
-            local.g++; local.pts += 3; local.p === local.p; // no change
-            visit.p++;
-          } else if (gl < gv) {
-            visit.g++; visit.pts += 3;
-            local.p++;
-          } else {
-            // Empate en reglamentario sin penales (raro en LC, pero por si acaso)
-            local.pts += 1; local.lpe++;
-            visit.pts += 1; visit.lpe++;
-          }
-        } else if (esPenalesOTE) {
-          // Decidido por penales o tiempo extra — clasificado es el ganador
-          const ganador = p.clasificado;
-          if (ganador === p.equipo_local) {
-            local.gpe++; local.pts += 2;
-            visit.lpe++; visit.pts += 1;
-          } else if (ganador === p.equipo_visitante) {
-            visit.gpe++; visit.pts += 2;
-            local.lpe++; local.pts += 1;
-          } else {
-            // Sin clasificado declarado — tratar como empate provisional
-            local.pts += 1; local.lpe++;
-            visit.pts += 1; visit.lpe++;
-          }
+      if (esReglamentario) {
+        if (gl > gv) {
+          local.g++; local.pts += 3;
+          visit.p++;
+        } else if (gl < gv) {
+          visit.g++; visit.pts += 3;
+          local.p++;
         } else {
-          // como_termino no declarado — usar marcador
-          if (gl > gv) {
-            local.g++; local.pts += 3; visit.p++;
-          } else if (gl < gv) {
-            visit.g++; visit.pts += 3; local.p++;
-          }
+          local.pts += 1; local.lpe++;
+          visit.pts += 1; visit.lpe++;
+        }
+      } else if (esPenalesOTE) {
+        const ganador = p.clasificado;
+        if (ganador === p.equipo_local) {
+          local.gpe++; local.pts += 2;
+          visit.lpe++; visit.pts += 1;
+        } else if (ganador === p.equipo_visitante) {
+          visit.gpe++; visit.pts += 2;
+          local.lpe++; local.pts += 1;
+        } else {
+          local.pts += 1; local.lpe++;
+          visit.pts += 1; visit.lpe++;
+        }
+      } else {
+        if (gl > gv) {
+          local.g++; local.pts += 3; visit.p++;
+        } else if (gl < gv) {
+          visit.g++; visit.pts += 3; local.p++;
         }
       }
+    }
 
-      const sort = (rows: Row[]) =>
-        [...rows].sort((a, b) =>
-          b.pts - a.pts ||
-          (b.gf - b.gc) - (a.gf - a.gc) ||
-          b.gf - a.gf
-        );
+    const sort = (rows: Row[]) =>
+      [...rows].sort((a, b) =>
+        b.pts - a.pts ||
+        (b.gf - b.gc) - (a.gf - a.gc) ||
+        b.gf - a.gf
+      );
 
-      const all = Object.values(stats);
-      setRowsLigamx(sort(all.filter(r => EQUIPOS_LIGAMX.has(r.equipo))));
-      setRowsMls(sort(all.filter(r => !EQUIPOS_LIGAMX.has(r.equipo))));
-      setLoading(false);
-    };
+    const all = Object.values(stats);
+    setRowsLigamx(sort(all.filter(r => EQUIPOS_LIGAMX.has(r.equipo))));
+    setRowsMls(sort(all.filter(r => !EQUIPOS_LIGAMX.has(r.equipo))));
+    setLoading(false);
+  };
+
+  useEffect(() => {
     cargar();
+  }, []);
+
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        cargar();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
   }, []);
 
   return (
