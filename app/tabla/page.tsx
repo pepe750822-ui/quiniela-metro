@@ -549,6 +549,22 @@ export default function TablaPage() {
   // Keep j8Groups for backward compat — not used anymore for J8 rendering
   const j8Groups: any[] = [];
 
+  // J7-specific split: finalized before PTS checkpoint, pending after
+  const j8FinForJ7: any[] = (esJ8Multi && jornada === 7) ? j8Sorted.filter((p: any) => p.estado === 'finalizado') : [];
+  const j8PendForJ7: any[] = (esJ8Multi && jornada === 7) ? j8Sorted.filter((p: any) => p.estado !== 'finalizado') : [];
+  const buildJ7Runs = (arr: any[]) => {
+    const runs: { key: string; count: number; meta: typeof J8_GRUPO_META[string] }[] = [];
+    for (const p of arr) {
+      const last = runs[runs.length - 1];
+      const meta = J8_GRUPO_META[p.grupo] ?? { label: p.grupo, color: '#94a3b8', bg: 'rgba(148,163,184,0.06)', border: 'rgba(148,163,184,0.3)' };
+      if (last && last.key === p.grupo) { last.count++; }
+      else runs.push({ key: p.grupo, count: 1, meta });
+    }
+    return runs;
+  };
+  const j8RunsFin = (esJ8Multi && jornada === 7) ? buildJ7Runs(j8FinForJ7) : [];
+  const j8RunsPend = (esJ8Multi && jornada === 7) ? buildJ7Runs(j8PendForJ7) : [];
+
   // Campeón declarado cuando la Final (J9) está finalizada (no aplica para ligamx2026)
   const campeonDeclarado = jornada === 6 && TEMPORADA_ACTIVA !== 'ligamx2026' && campeonJ6Declarado !== null;
 
@@ -704,16 +720,42 @@ export default function TablaPage() {
           <thead className="sticky top-0 z-20">
             {esJ8Multi && j8Runs.length > 0 && (
               <tr style={{ borderBottom: '1px solid rgba(234,88,12,0.15)' }}>
-                <th colSpan={jornada === 7 ? 4 : 2} style={{ background: 'var(--bg-base)' }} />
-                {j8Runs.map((run, i) => (
-                  <th key={`${run.key}-${i}`}
-                    colSpan={run.count}
-                    className="px-2 py-1 text-center text-[10px] uppercase tracking-widest"
-                    style={{ background: run.meta.bg, color: run.meta.color, fontFamily: 'var(--font-rajdhani)', borderLeft: `2px solid ${run.meta.border}`, borderBottom: '1px solid rgba(234,88,12,0.15)' }}>
-                    {run.meta.label}
-                  </th>
-                ))}
-                <th colSpan={jornada === 7 ? 2 : 1} style={{ background: 'var(--bg-base)', borderBottom: '1px solid rgba(234,88,12,0.15)' }} />
+                {jornada === 7 ? (
+                  <>
+                    <th colSpan={2} style={{ background: 'var(--bg-base)' }} />
+                    {j8RunsFin.map((run, i) => (
+                      <th key={`fin-${run.key}-${i}`}
+                        colSpan={run.count}
+                        className="px-2 py-1 text-center text-[10px] uppercase tracking-widest"
+                        style={{ background: run.meta.bg, color: run.meta.color, fontFamily: 'var(--font-rajdhani)', borderLeft: `2px solid ${run.meta.border}`, borderBottom: '1px solid rgba(234,88,12,0.15)' }}>
+                        {run.meta.label}
+                      </th>
+                    ))}
+                    <th style={{ background: 'var(--bg-base)', borderBottom: '1px solid rgba(234,88,12,0.15)' }} />
+                    {j8RunsPend.map((run, i) => (
+                      <th key={`pend-${run.key}-${i}`}
+                        colSpan={run.count}
+                        className="px-2 py-1 text-center text-[10px] uppercase tracking-widest"
+                        style={{ background: run.meta.bg, color: run.meta.color, fontFamily: 'var(--font-rajdhani)', borderLeft: `2px solid ${run.meta.border}`, borderBottom: '1px solid rgba(234,88,12,0.15)' }}>
+                        {run.meta.label}
+                      </th>
+                    ))}
+                    <th colSpan={2} style={{ background: 'var(--bg-base)', borderBottom: '1px solid rgba(234,88,12,0.15)' }} />
+                  </>
+                ) : (
+                  <>
+                    <th colSpan={2} style={{ background: 'var(--bg-base)' }} />
+                    {j8Runs.map((run, i) => (
+                      <th key={`${run.key}-${i}`}
+                        colSpan={run.count}
+                        className="px-2 py-1 text-center text-[10px] uppercase tracking-widest"
+                        style={{ background: run.meta.bg, color: run.meta.color, fontFamily: 'var(--font-rajdhani)', borderLeft: `2px solid ${run.meta.border}`, borderBottom: '1px solid rgba(234,88,12,0.15)' }}>
+                        {run.meta.label}
+                      </th>
+                    ))}
+                    <th colSpan={1} style={{ background: 'var(--bg-base)', borderBottom: '1px solid rgba(234,88,12,0.15)' }} />
+                  </>
+                )}
               </tr>
             )}
             {esJ6LC && (
@@ -747,16 +789,10 @@ export default function TablaPage() {
                 style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
                 PTS
               </th>
-              {TEMPORADA_ACTIVA === 'ligamx2026' && ((jornada >= 2 && jornada <= 3) || jornada === 5 || jornada === 7) && (
+              {TEMPORADA_ACTIVA === 'ligamx2026' && ((jornada >= 2 && jornada <= 3) || jornada === 5) && (
                 <th className="px-2 py-2 text-center min-w-[64px]"
                   style={{ background: 'var(--bg-base)', borderLeft: '2px solid rgba(99,102,241,0.5)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '0.75rem', color: '#818cf8' }}>
                   {labelPtsAnteriores().header}
-                </th>
-              )}
-              {esJ8Multi && jornada === 7 && (
-                <th className="px-2 py-2 text-center min-w-[70px]"
-                  style={{ background: 'var(--bg-base)', borderLeft: '2px solid rgba(16,185,129,0.5)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '0.75rem', color: '#10b981' }}>
-                  PTS J6+J7
                 </th>
               )}
               {esJ6LC ? (
@@ -832,46 +868,88 @@ export default function TablaPage() {
                 <>
                   {esJ8Multi ? (
                     <>
-                      {j8Sorted.map((partido: any) =>
-                        partido.estado === 'finalizado' ? (
-                          <th key={partido.id}
-                            className="px-2 py-2 text-center min-w-[70px]"
-                            style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
-                            <div className="flex items-center justify-center gap-1 mb-1">
-                              <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
-                              <span style={{ fontSize: '0.625rem', color: '#475569' }}>vs</span>
-                              <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
-                            </div>
-                            <div className="rounded px-1 py-0.5 font-bold text-xs"
-                              style={{ background: 'rgba(234,88,12,0.2)', border: '1px solid rgba(234,88,12,0.3)', color: '#fb923c' }}>
-                              {partido.goles_local}-{partido.goles_visitante}
-                            </div>
+                      {jornada === 7 ? (
+                        <>
+                          {j8FinForJ7.map((partido: any) => (
+                            <th key={partido.id}
+                              className="px-2 py-2 text-center min-w-[70px]"
+                              style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
+                              <div className="flex items-center justify-center gap-1 mb-1">
+                                <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
+                                <span style={{ fontSize: '0.625rem', color: '#475569' }}>vs</span>
+                                <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
+                              </div>
+                              <div className="rounded px-1 py-0.5 font-bold text-xs"
+                                style={{ background: 'rgba(234,88,12,0.2)', border: '1px solid rgba(234,88,12,0.3)', color: '#fb923c' }}>
+                                {partido.goles_local}-{partido.goles_visitante}
+                              </div>
+                            </th>
+                          ))}
+                          <th className="px-2 py-2 text-center min-w-[70px]"
+                            style={{ background: 'var(--bg-base)', borderLeft: '2px solid rgba(16,185,129,0.5)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '0.75rem', color: '#10b981' }}>
+                            PTS J6+J7
                           </th>
-                        ) : (
-                          <th key={partido.id} id={`col-${partido.id}`} data-estado="pendiente"
-                            className="px-2 py-2 text-center min-w-[70px]"
-                            style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
-                            <div className="flex items-center justify-center gap-1 mb-1">
-                              <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
-                              <span style={{ fontSize: '0.625rem', color: '#475569' }}>vs</span>
-                              <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
-                            </div>
-                            {partido.estado === 'en_curso'
-                              ? <div className="rounded px-1 py-0.5 text-[10px] font-bold animate-pulse" style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>🔴 EN VIVO</div>
-                              : <div style={{ fontSize: '0.625rem', color: '#334155' }}>pendiente</div>}
+                          {j8PendForJ7.map((partido: any) => (
+                            <th key={partido.id} id={`col-${partido.id}`} data-estado="pendiente"
+                              className="px-2 py-2 text-center min-w-[70px]"
+                              style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
+                              <div className="flex items-center justify-center gap-1 mb-1">
+                                <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
+                                <span style={{ fontSize: '0.625rem', color: '#475569' }}>vs</span>
+                                <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
+                              </div>
+                              {partido.estado === 'en_curso'
+                                ? <div className="rounded px-1 py-0.5 text-[10px] font-bold animate-pulse" style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>🔴 EN VIVO</div>
+                                : <div style={{ fontSize: '0.625rem', color: '#334155' }}>pendiente</div>}
+                            </th>
+                          ))}
+                          <th className="px-3 py-2 text-center min-w-[72px]"
+                            style={{ background: 'var(--bg-base)', borderLeft: '2px solid rgba(251,191,36,0.4)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '0.75rem', color: '#fbbf24' }}>
+                            🏆
                           </th>
-                        )
+                          <th id="col-pts" className="px-3 py-2 text-center min-w-[55px]"
+                            style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
+                            PTS
+                          </th>
+                        </>
+                      ) : (
+                        <>
+                          {j8Sorted.map((partido: any) =>
+                            partido.estado === 'finalizado' ? (
+                              <th key={partido.id}
+                                className="px-2 py-2 text-center min-w-[70px]"
+                                style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
+                                <div className="flex items-center justify-center gap-1 mb-1">
+                                  <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
+                                  <span style={{ fontSize: '0.625rem', color: '#475569' }}>vs</span>
+                                  <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
+                                </div>
+                                <div className="rounded px-1 py-0.5 font-bold text-xs"
+                                  style={{ background: 'rgba(234,88,12,0.2)', border: '1px solid rgba(234,88,12,0.3)', color: '#fb923c' }}>
+                                  {partido.goles_local}-{partido.goles_visitante}
+                                </div>
+                              </th>
+                            ) : (
+                              <th key={partido.id} id={`col-${partido.id}`} data-estado="pendiente"
+                                className="px-2 py-2 text-center min-w-[70px]"
+                                style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
+                                <div className="flex items-center justify-center gap-1 mb-1">
+                                  <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
+                                  <span style={{ fontSize: '0.625rem', color: '#475569' }}>vs</span>
+                                  <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
+                                </div>
+                                {partido.estado === 'en_curso'
+                                  ? <div className="rounded px-1 py-0.5 text-[10px] font-bold animate-pulse" style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>🔴 EN VIVO</div>
+                                  : <div style={{ fontSize: '0.625rem', color: '#334155' }}>pendiente</div>}
+                              </th>
+                            )
+                          )}
+                          <th id="col-pts" className="px-3 py-2 text-center min-w-[55px]"
+                            style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
+                            PTS
+                          </th>
+                        </>
                       )}
-                      {jornada === 7 && (
-                        <th className="px-3 py-2 text-center min-w-[72px]"
-                          style={{ background: 'var(--bg-base)', borderLeft: '2px solid rgba(251,191,36,0.4)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '0.75rem', color: '#fbbf24' }}>
-                          🏆
-                        </th>
-                      )}
-                      <th id="col-pts" className="px-3 py-2 text-center min-w-[55px]"
-                        style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
-                        PTS
-                      </th>
                     </>
                   ) : (
                     <>
@@ -1125,22 +1203,13 @@ export default function TablaPage() {
                     style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
                     {totalPuntos}
                   </td>
-                  {TEMPORADA_ACTIVA === 'ligamx2026' && ((jornada >= 2 && jornada <= 3) || jornada === 5 || jornada === 7) && (
+                  {TEMPORADA_ACTIVA === 'ligamx2026' && ((jornada >= 2 && jornada <= 3) || jornada === 5) && (
                     <td className="px-2 py-2 text-center"
                       style={{ borderLeft: '2px solid rgba(99,102,241,0.5)', borderBottom: '1px solid var(--border-color)', minWidth: 64 }}>
                       <div style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: '#818cf8' }}>
                         {getPtsAnteriores(part)}
                       </div>
                       <div style={{ fontSize: '0.55rem', color: '#475569', lineHeight: 1 }}>{labelPtsAnteriores().sub}</div>
-                    </td>
-                  )}
-                  {esJ8Multi && jornada === 7 && (
-                    <td className="px-3 py-2 text-center"
-                      style={{ borderLeft: '2px solid rgba(16,185,129,0.5)', borderBottom: '1px solid var(--border-color)', minWidth: 70 }}>
-                      <div style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.25rem', color: '#10b981' }}>
-                        {totalPuntos}
-                      </div>
-                      <div style={{ fontSize: '0.5rem', color: '#475569', lineHeight: 1 }}>J6+J7</div>
                     </td>
                   )}
                   {esJ6LC ? (
@@ -1159,12 +1228,33 @@ export default function TablaPage() {
                     <>
                       {esJ8Multi ? (
                         <>
-                          {j8Sorted.map((p: any) => p.estado === 'finalizado' ? renderFinalizadoCell(p) : renderPendienteCell(p))}
-                          {campCell}
-                          <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
-                            style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
-                            {totalPuntos}
-                          </td>
+                          {jornada === 7 ? (
+                            <>
+                              {j8FinForJ7.map((p: any) => renderFinalizadoCell(p))}
+                              <td className="px-3 py-2 text-center"
+                                style={{ borderLeft: '2px solid rgba(16,185,129,0.5)', borderBottom: '1px solid var(--border-color)', minWidth: 70 }}>
+                                <div style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.25rem', color: '#10b981' }}>
+                                  {totalPuntos}
+                                </div>
+                                <div style={{ fontSize: '0.5rem', color: '#475569', lineHeight: 1 }}>J6+J7</div>
+                              </td>
+                              {j8PendForJ7.map((p: any) => renderPendienteCell(p))}
+                              {campCell}
+                              <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
+                                style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
+                                {totalPuntos}
+                              </td>
+                            </>
+                          ) : (
+                            <>
+                              {j8Sorted.map((p: any) => p.estado === 'finalizado' ? renderFinalizadoCell(p) : renderPendienteCell(p))}
+                              {campCell}
+                              <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
+                                style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
+                                {totalPuntos}
+                              </td>
+                            </>
+                          )}
                         </>
                       ) : (
                         <>
