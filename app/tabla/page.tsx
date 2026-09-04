@@ -786,8 +786,8 @@ export default function TablaPage() {
                 <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>Jugador</span>
               </th>
               <th className="sticky left-[130px] z-20 px-3 py-2 text-center min-w-[55px]"
-                style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
-                PTS
+                style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 7 ? '0.75rem' : '1rem', color: '#ea580c' }}>
+                {TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 7 ? 'PTS J6' : 'PTS'}
               </th>
               {TEMPORADA_ACTIVA === 'ligamx2026' && ((jornada >= 2 && jornada <= 3) || jornada === 5) && (
                 <th className="px-2 py-2 text-center min-w-[64px]"
@@ -908,8 +908,8 @@ export default function TablaPage() {
                             🏆
                           </th>
                           <th id="col-pts" className="px-3 py-2 text-center min-w-[55px]"
-                            style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
-                            PTS
+                            style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '0.75rem', color: '#ea580c' }}>
+                            PTS TOTAL
                           </th>
                         </>
                       ) : (
@@ -1201,7 +1201,7 @@ export default function TablaPage() {
                   </td>
                   <td className="sticky left-[130px] z-20 px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
                     style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
-                    {totalPuntos}
+                    {TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 7 ? getPtsAnteriores(part) : totalPuntos}
                   </td>
                   {TEMPORADA_ACTIVA === 'ligamx2026' && ((jornada >= 2 && jornada <= 3) || jornada === 5) && (
                     <td className="px-2 py-2 text-center"
