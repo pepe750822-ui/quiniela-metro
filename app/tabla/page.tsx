@@ -567,6 +567,8 @@ export default function TablaPage() {
   };
   const j8RunsFin = (esJ8Multi && jornada === 7) ? buildJ7Runs(j8FinForJ7) : [];
   const j8RunsPend = (esJ8Multi && jornada === 7) ? buildJ7Runs(j8PendForJ7) : [];
+  const j8RunsFinForJ8 = (esJ8Multi && jornada === 8) ? buildJ7Runs(j8FinForJ8) : [];
+  const j8RunsPendForJ8 = (esJ8Multi && jornada === 8) ? buildJ7Runs(j8PendForJ8) : [];
 
   // Campeón declarado cuando la Final (J9) está finalizada (no aplica para ligamx2026)
   const campeonDeclarado = jornada === 6 && TEMPORADA_ACTIVA !== 'ligamx2026' && campeonJ6Declarado !== null;
@@ -748,8 +750,17 @@ export default function TablaPage() {
                 ) : (
                   <>
                     <th colSpan={2} style={{ background: 'var(--bg-base)' }} />
-                    {j8Runs.map((run, i) => (
-                      <th key={`${run.key}-${i}`}
+                    {j8RunsFinForJ8.map((run, i) => (
+                      <th key={`fin-${run.key}-${i}`}
+                        colSpan={run.count}
+                        className="px-2 py-1 text-center text-[10px] uppercase tracking-widest"
+                        style={{ background: run.meta.bg, color: run.meta.color, fontFamily: 'var(--font-rajdhani)', borderLeft: `2px solid ${run.meta.border}`, borderBottom: '1px solid rgba(234,88,12,0.15)' }}>
+                        {run.meta.label}
+                      </th>
+                    ))}
+                    <th style={{ background: 'var(--bg-base)', borderBottom: '1px solid rgba(234,88,12,0.15)' }} />
+                    {j8RunsPendForJ8.map((run, i) => (
+                      <th key={`pend-${run.key}-${i}`}
                         colSpan={run.count}
                         className="px-2 py-1 text-center text-[10px] uppercase tracking-widest"
                         style={{ background: run.meta.bg, color: run.meta.color, fontFamily: 'var(--font-rajdhani)', borderLeft: `2px solid ${run.meta.border}`, borderBottom: '1px solid rgba(234,88,12,0.15)' }}>
@@ -1262,7 +1273,6 @@ export default function TablaPage() {
                                 <div style={{ fontSize: '0.5rem', color: '#475569', lineHeight: 1 }}>J7+J8</div>
                               </td>
                               {j8PendForJ8.map((p: any) => renderPendienteCell(p))}
-                              {campCell}
                               <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
                                 style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
                                 {totalPuntos}
