@@ -245,8 +245,8 @@ export default function TablaPage() {
     }
 
     // Cargar puntos acumulados de jornadas anteriores (LC: J2/J3 · Liga MX: J5 acumula J4)
-    if (TEMPORADA_ACTIVA === 'ligamx2026' && ((jornada >= 2 && jornada <= 3) || jornada === 5 || jornada === 7 || jornada === 8)) {
-      const jornadasAnt = jornada === 5 ? [4] : jornada === 7 ? [6] : jornada === 8 ? [7] : Array.from({ length: jornada - 1 }, (_, i) => i + 1);
+    if (TEMPORADA_ACTIVA === 'ligamx2026' && ((jornada >= 2 && jornada <= 3) || jornada === 5 || jornada === 7)) {
+      const jornadasAnt = jornada === 5 ? [4] : jornada === 7 ? [6] : Array.from({ length: jornada - 1 }, (_, i) => i + 1);
       const { data: partidosAnt } = await supabase
         .from('quiniela_partidos')
         .select('id')
@@ -493,7 +493,7 @@ export default function TablaPage() {
 
   const calcTotalConF1 = (part: any) => {
     const jPts = calcTotal(part);
-    if (TEMPORADA_ACTIVA === 'ligamx2026' && ((jornada >= 2 && jornada <= 3) || jornada === 5 || jornada === 7 || jornada === 8)) return jPts + getPtsAnteriores(part);
+    if (TEMPORADA_ACTIVA === 'ligamx2026' && ((jornada >= 2 && jornada <= 3) || jornada === 5 || jornada === 7)) return jPts + getPtsAnteriores(part);
     return jPts;
   };
 
@@ -800,8 +800,8 @@ export default function TablaPage() {
                 <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>Jugador</span>
               </th>
               <th className="sticky left-[130px] z-20 px-3 py-2 text-center min-w-[55px]"
-                style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: TEMPORADA_ACTIVA === 'ligamx2026' && (jornada === 7 || jornada === 8) ? '0.75rem' : '1rem', color: '#ea580c' }}>
-                {TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 7 ? 'PTS J6' : TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 8 ? 'PTS J7' : 'PTS'}
+                style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 7 ? '0.75rem' : '1rem', color: '#ea580c' }}>
+                {TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 7 ? 'PTS J6' : 'PTS'}
               </th>
               {TEMPORADA_ACTIVA === 'ligamx2026' && ((jornada >= 2 && jornada <= 3) || jornada === 5) && (
                 <th className="px-2 py-2 text-center min-w-[64px]"
@@ -945,7 +945,7 @@ export default function TablaPage() {
                           ))}
                           <th className="px-2 py-2 text-center min-w-[70px]"
                             style={{ background: 'var(--bg-base)', borderLeft: '2px solid rgba(16,185,129,0.5)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '0.75rem', color: '#10b981' }}>
-                            PTS J7+J8
+                            PTS J8
                           </th>
                           {j8PendForJ8.map((partido: any) => (
                             <th key={partido.id} id={`col-${partido.id}`} data-estado="pendiente"
@@ -1218,7 +1218,7 @@ export default function TablaPage() {
                   </td>
                   <td className="sticky left-[130px] z-20 px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
                     style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
-                    {TEMPORADA_ACTIVA === 'ligamx2026' && (jornada === 7 || jornada === 8) ? getPtsAnteriores(part) : totalPuntos}
+                    {TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 7 ? getPtsAnteriores(part) : totalPuntos}
                   </td>
                   {TEMPORADA_ACTIVA === 'ligamx2026' && ((jornada >= 2 && jornada <= 3) || jornada === 5) && (
                     <td className="px-2 py-2 text-center"
@@ -1270,7 +1270,7 @@ export default function TablaPage() {
                                 <div style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.25rem', color: '#10b981' }}>
                                   {totalPuntos}
                                 </div>
-                                <div style={{ fontSize: '0.5rem', color: '#475569', lineHeight: 1 }}>J7+J8</div>
+                                <div style={{ fontSize: '0.5rem', color: '#475569', lineHeight: 1 }}>J8</div>
                               </td>
                               {j8PendForJ8.map((p: any) => renderPendienteCell(p))}
                               <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
