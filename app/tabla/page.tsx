@@ -245,8 +245,8 @@ export default function TablaPage() {
     }
 
     // Cargar puntos acumulados de jornadas anteriores (LC: J2/J3 · Liga MX: J5 acumula J4)
-    if (TEMPORADA_ACTIVA === 'ligamx2026' && ((jornada >= 2 && jornada <= 3) || jornada === 5 || jornada === 7)) {
-      const jornadasAnt = jornada === 5 ? [4] : jornada === 7 ? [6] : Array.from({ length: jornada - 1 }, (_, i) => i + 1);
+    if (TEMPORADA_ACTIVA === 'ligamx2026' && ((jornada >= 2 && jornada <= 3) || jornada === 5 || jornada === 7 || jornada === 8)) {
+      const jornadasAnt = jornada === 5 ? [4] : jornada === 7 ? [6] : jornada === 8 ? [7] : Array.from({ length: jornada - 1 }, (_, i) => i + 1);
       const { data: partidosAnt } = await supabase
         .from('quiniela_partidos')
         .select('id')
@@ -487,12 +487,13 @@ export default function TablaPage() {
     if (jornada === 3) return { header: 'PTS J1+J2', sub: 'J1+J2' };
     if (jornada === 5) return { header: 'PTS J4', sub: 'J4' };
     if (jornada === 7) return { header: 'PTS J6', sub: 'J6' };
+    if (jornada === 8) return { header: 'PTS J7', sub: 'J7' };
     return { header: '', sub: '' };
   };
 
   const calcTotalConF1 = (part: any) => {
     const jPts = calcTotal(part);
-    if (TEMPORADA_ACTIVA === 'ligamx2026' && ((jornada >= 2 && jornada <= 3) || jornada === 5 || jornada === 7)) return jPts + getPtsAnteriores(part);
+    if (TEMPORADA_ACTIVA === 'ligamx2026' && ((jornada >= 2 && jornada <= 3) || jornada === 5 || jornada === 7 || jornada === 8)) return jPts + getPtsAnteriores(part);
     return jPts;
   };
 
@@ -552,6 +553,8 @@ export default function TablaPage() {
   // J7-specific split: finalized before PTS checkpoint, pending after
   const j8FinForJ7: any[] = (esJ8Multi && jornada === 7) ? j8Sorted.filter((p: any) => p.estado === 'finalizado') : [];
   const j8PendForJ7: any[] = (esJ8Multi && jornada === 7) ? j8Sorted.filter((p: any) => p.estado !== 'finalizado') : [];
+  const j8FinForJ8: any[] = (esJ8Multi && jornada === 8) ? j8Sorted.filter((p: any) => p.estado === 'finalizado') : [];
+  const j8PendForJ8: any[] = (esJ8Multi && jornada === 8) ? j8Sorted.filter((p: any) => p.estado !== 'finalizado') : [];
   const buildJ7Runs = (arr: any[]) => {
     const runs: { key: string; count: number; meta: typeof J8_GRUPO_META[string] }[] = [];
     for (const p of arr) {
@@ -786,8 +789,8 @@ export default function TablaPage() {
                 <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>Jugador</span>
               </th>
               <th className="sticky left-[130px] z-20 px-3 py-2 text-center min-w-[55px]"
-                style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 7 ? '0.75rem' : '1rem', color: '#ea580c' }}>
-                {TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 7 ? 'PTS J6' : 'PTS'}
+                style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: TEMPORADA_ACTIVA === 'ligamx2026' && (jornada === 7 || jornada === 8) ? '0.75rem' : '1rem', color: '#ea580c' }}>
+                {TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 7 ? 'PTS J6' : TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 8 ? 'PTS J7' : 'PTS'}
               </th>
               {TEMPORADA_ACTIVA === 'ligamx2026' && ((jornada >= 2 && jornada <= 3) || jornada === 5) && (
                 <th className="px-2 py-2 text-center min-w-[64px]"
@@ -914,39 +917,42 @@ export default function TablaPage() {
                         </>
                       ) : (
                         <>
-                          {j8Sorted.map((partido: any) =>
-                            partido.estado === 'finalizado' ? (
-                              <th key={partido.id}
-                                className="px-2 py-2 text-center min-w-[70px]"
-                                style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
-                                <div className="flex items-center justify-center gap-1 mb-1">
-                                  <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
-                                  <span style={{ fontSize: '0.625rem', color: '#475569' }}>vs</span>
-                                  <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
-                                </div>
-                                <div className="rounded px-1 py-0.5 font-bold text-xs"
-                                  style={{ background: 'rgba(234,88,12,0.2)', border: '1px solid rgba(234,88,12,0.3)', color: '#fb923c' }}>
-                                  {partido.goles_local}-{partido.goles_visitante}
-                                </div>
-                              </th>
-                            ) : (
-                              <th key={partido.id} id={`col-${partido.id}`} data-estado="pendiente"
-                                className="px-2 py-2 text-center min-w-[70px]"
-                                style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
-                                <div className="flex items-center justify-center gap-1 mb-1">
-                                  <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
-                                  <span style={{ fontSize: '0.625rem', color: '#475569' }}>vs</span>
-                                  <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
-                                </div>
-                                {partido.estado === 'en_curso'
-                                  ? <div className="rounded px-1 py-0.5 text-[10px] font-bold animate-pulse" style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>🔴 EN VIVO</div>
-                                  : <div style={{ fontSize: '0.625rem', color: '#334155' }}>pendiente</div>}
-                              </th>
-                            )
-                          )}
+                          {j8FinForJ8.map((partido: any) => (
+                            <th key={partido.id}
+                              className="px-2 py-2 text-center min-w-[70px]"
+                              style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
+                              <div className="flex items-center justify-center gap-1 mb-1">
+                                <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
+                                <span style={{ fontSize: '0.625rem', color: '#475569' }}>vs</span>
+                                <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
+                              </div>
+                              <div className="rounded px-1 py-0.5 font-bold text-xs"
+                                style={{ background: 'rgba(234,88,12,0.2)', border: '1px solid rgba(234,88,12,0.3)', color: '#fb923c' }}>
+                                {partido.goles_local}-{partido.goles_visitante}
+                              </div>
+                            </th>
+                          ))}
+                          <th className="px-2 py-2 text-center min-w-[70px]"
+                            style={{ background: 'var(--bg-base)', borderLeft: '2px solid rgba(16,185,129,0.5)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '0.75rem', color: '#10b981' }}>
+                            PTS J7+J8
+                          </th>
+                          {j8PendForJ8.map((partido: any) => (
+                            <th key={partido.id} id={`col-${partido.id}`} data-estado="pendiente"
+                              className="px-2 py-2 text-center min-w-[70px]"
+                              style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
+                              <div className="flex items-center justify-center gap-1 mb-1">
+                                <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
+                                <span style={{ fontSize: '0.625rem', color: '#475569' }}>vs</span>
+                                <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
+                              </div>
+                              {partido.estado === 'en_curso'
+                                ? <div className="rounded px-1 py-0.5 text-[10px] font-bold animate-pulse" style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>🔴 EN VIVO</div>
+                                : <div style={{ fontSize: '0.625rem', color: '#334155' }}>pendiente</div>}
+                            </th>
+                          ))}
                           <th id="col-pts" className="px-3 py-2 text-center min-w-[55px]"
-                            style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
-                            PTS
+                            style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '0.75rem', color: '#ea580c' }}>
+                            PTS TOTAL
                           </th>
                         </>
                       )}
@@ -1201,7 +1207,7 @@ export default function TablaPage() {
                   </td>
                   <td className="sticky left-[130px] z-20 px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
                     style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
-                    {TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 7 ? getPtsAnteriores(part) : totalPuntos}
+                    {TEMPORADA_ACTIVA === 'ligamx2026' && (jornada === 7 || jornada === 8) ? getPtsAnteriores(part) : totalPuntos}
                   </td>
                   {TEMPORADA_ACTIVA === 'ligamx2026' && ((jornada >= 2 && jornada <= 3) || jornada === 5) && (
                     <td className="px-2 py-2 text-center"
@@ -1247,7 +1253,15 @@ export default function TablaPage() {
                             </>
                           ) : (
                             <>
-                              {j8Sorted.map((p: any) => p.estado === 'finalizado' ? renderFinalizadoCell(p) : renderPendienteCell(p))}
+                              {j8FinForJ8.map((p: any) => renderFinalizadoCell(p))}
+                              <td className="px-3 py-2 text-center"
+                                style={{ borderLeft: '2px solid rgba(16,185,129,0.5)', borderBottom: '1px solid var(--border-color)', minWidth: 70 }}>
+                                <div style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.25rem', color: '#10b981' }}>
+                                  {totalPuntos}
+                                </div>
+                                <div style={{ fontSize: '0.5rem', color: '#475569', lineHeight: 1 }}>J7+J8</div>
+                              </td>
+                              {j8PendForJ8.map((p: any) => renderPendienteCell(p))}
                               {campCell}
                               <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
                                 style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
