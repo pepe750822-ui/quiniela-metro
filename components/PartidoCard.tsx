@@ -53,13 +53,30 @@ export default function PartidoCard({ partido, prediccion, participacionPagada, 
     && fechaPartido < new Date('2026-08-14T06:00:00Z');
   const mostrarTerminacion = partido.jornada >= 5 || esLeaguesCup;
 
-  const puntosInfo = prediccion
-    ? prediccion.puntos_ganados === 3
-      ? { color: '#10b981', bg: 'rgba(16,185,129,0.1)',  border: 'rgba(16,185,129,0.2)',  label: '+3 pts' }
-      : prediccion.puntos_ganados === 1
-      ? { color: '#f97316', bg: 'rgba(249,115,22,0.1)',  border: 'rgba(249,115,22,0.2)',  label: '+1 pt'  }
-      : { color: '#ef4444', bg: 'rgba(239,68,68,0.1)',   border: 'rgba(239,68,68,0.2)',   label: '0 pts'  }
-    : null;
+  const esLC = partido.grupo === 'LC';
+
+  const lmxBadge = (!esLC && prediccion && fin) ? (() => {
+    const pts = prediccion.puntos_ganados;
+    if (pts >= 3) return { color: '#10b981', bg: 'rgba(16,185,129,0.1)', border: 'rgba(16,185,129,0.2)', label: '⚽⚽⚽ 3pts exacto' };
+    if (pts === 1) return { color: '#f97316', bg: 'rgba(249,115,22,0.1)', border: 'rgba(249,115,22,0.2)', label: '⚽ 1pt resultado' };
+    return { color: '#ef4444', bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.2)', label: '✗ 0pts' };
+  })() : null;
+
+  const lcDesglose = (esLC && prediccion && fin) ? (() => {
+    const pts = prediccion.puntos_ganados;
+    const ptsClasif = (partido.clasificado && prediccion.clasificado_pred === partido.clasificado) ? 1 : 0;
+    const ptsComo   = (partido.como_termino && prediccion.como_termina_pred === partido.como_termino) ? 1 : 0;
+    const ptsBase   = Math.max(0, pts - ptsClasif - ptsComo);
+    const emojiComo = partido.como_termino === 'penales' ? '🥅'
+      : partido.como_termino === 'tiempo_extra' ? '⏩' : '⏱️';
+    const banderaClasif = prediccion.clasificado_pred
+      ? (partido.equipo_local === prediccion.clasificado_pred ? (partido.bandera_local ?? '')
+        : partido.equipo_visitante === prediccion.clasificado_pred ? (partido.bandera_visitante ?? '')
+        : BANDERAS_EQUIPOS[prediccion.clasificado_pred] ?? prediccion.clasificado_pred)
+      : null;
+    const totalColor = pts >= 4 ? '#eab308' : pts === 3 ? '#10b981' : pts === 2 ? '#60a5fa' : pts === 1 ? '#f97316' : '#ef4444';
+    return { pts, ptsBase, ptsClasif, ptsComo, emojiComo, banderaClasif, totalColor };
+  })() : null;
 
   return (
     <motion.div
@@ -253,19 +270,65 @@ export default function PartidoCard({ partido, prediccion, participacionPagada, 
                 </div>
               )}
             </div>
-            {partido.estado === 'finalizado' && puntosInfo && (
+            {fin && !esLC && lmxBadge && (
               <span
                 className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0"
                 style={{
-                  background: puntosInfo.bg,
-                  color: puntosInfo.color,
-                  border: `1px solid ${puntosInfo.border}`,
+                  background: lmxBadge.bg,
+                  color: lmxBadge.color,
+                  border: `1px solid ${lmxBadge.border}`,
                 }}
               >
-                {puntosInfo.label}
+                {lmxBadge.label}
               </span>
             )}
           </div>
+
+          {/* Desglose LC */}
+          {fin && esLC && lcDesglose && (
+            <div
+              className="rounded-xl px-3 py-2 space-y-1"
+              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', fontSize: 11 }}
+            >
+              <div className="flex items-center justify-between">
+                <span style={{ color: '#94a3b8' }}>
+                  {lcDesglose.ptsBase >= 3 ? '⚽⚽⚽ Exacto' : lcDesglose.ptsBase >= 1 ? '⚽ Resultado' : '✗ Fallo'}
+                </span>
+                <span style={{ color: lcDesglose.ptsBase >= 3 ? '#10b981' : lcDesglose.ptsBase >= 1 ? '#f97316' : '#ef4444', fontWeight: 700 }}>
+                  {lcDesglose.ptsBase >= 3 ? '+3pts' : lcDesglose.ptsBase >= 1 ? '+1pt' : '0pts'}
+                </span>
+              </div>
+              {partido.clasificado && (
+                <div className="flex items-center justify-between">
+                  <span style={{ color: '#94a3b8' }}>
+                    {lcDesglose.banderaClasif ?? '?'} Clasificado
+                  </span>
+                  <span style={{ color: lcDesglose.ptsClasif ? '#10b981' : '#ef4444', fontWeight: 700 }}>
+                    {lcDesglose.ptsClasif ? '+1pt' : '+0'}
+                  </span>
+                </div>
+              )}
+              {partido.como_termino && (
+                <div className="flex items-center justify-between">
+                  <span style={{ color: '#94a3b8' }}>
+                    {lcDesglose.emojiComo} Terminación
+                  </span>
+                  <span style={{ color: lcDesglose.ptsComo ? '#10b981' : '#ef4444', fontWeight: 700 }}>
+                    {lcDesglose.ptsComo ? '+1pt' : '+0'}
+                  </span>
+                </div>
+              )}
+              <div
+                className="flex items-center justify-between"
+                style={{ borderTop: '1px solid rgba(148,163,184,0.15)', paddingTop: 4, marginTop: 2 }}
+              >
+                <span style={{ color: '#64748b', fontWeight: 600 }}>Total</span>
+                <span style={{ color: lcDesglose.totalColor, fontWeight: 700, fontSize: 13 }}>
+                  {lcDesglose.pts}pts
+                </span>
+              </div>
+            </div>
+          )}
 
           <div className="flex gap-2 flex-wrap">
             {participacionPagada === false && (
