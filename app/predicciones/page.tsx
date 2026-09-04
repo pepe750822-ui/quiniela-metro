@@ -599,6 +599,15 @@ export default function PrediccionesPage() {
     }
   }, [userId, jornada, cargarQuinielas, cargarPredicciones, cargarCampeon, cargarPozoYParticipacion, cargarJ6Campeon, cargarLcCampeonPick]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Polling cada 60s para reflejar partidos recién finalizados
+  useEffect(() => {
+    const interval = setInterval(() => {
+      cargarPartidos();
+      if (userId) cargarPredicciones();
+    }, 60_000);
+    return () => clearInterval(interval);
+  }, [cargarPartidos, cargarPredicciones, userId]);
+
   const cargarPicksClasificacion = async (uid: string) => {
     const { data } = await supabase
       .from('quiniela_picks_clasificacion')
