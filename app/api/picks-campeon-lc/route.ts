@@ -10,12 +10,13 @@ const supabaseAdmin = createClient(
 const responseSchema = z.array(z.object({
   user_id: z.string().uuid(),
   equipo: z.string().min(1),
+  acerto: z.boolean().nullable().optional(),
 }));
 
 export async function GET() {
   const { data, error } = await supabaseAdmin
     .from('quiniela_prediccion_campeon_lc')
-    .select('user_id, equipo')
+    .select('user_id, equipo, acerto')
     .eq('temporada', 'ligamx2026');
 
   if (error) {

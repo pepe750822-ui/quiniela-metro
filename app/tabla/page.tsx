@@ -23,10 +23,7 @@ const DEADLINE_LMX_J4 = new Date('2026-08-15T23:00:00Z'); // Sáb 15 ago 18:00 C
 const DEADLINE_LMX_J5 = new Date('2026-08-22T01:00:00Z'); // Vie 21 ago 20:00 CDMX
 
 const jornadaInicial = () => {
-  if (TEMPORADA_ACTIVA === 'ligamx2026') {
-    if (new Date() > new Date('2026-09-07T06:00:00Z')) return 8;
-    return 7;
-  }
+  if (TEMPORADA_ACTIVA === 'ligamx2026') return 8;
   return 1;
 };
 
@@ -43,6 +40,8 @@ export default function TablaPage() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [campeonPicks, setCampeonPicks] = useState<Record<string, string>>({});
   const [bonosCampeon, setBonosCampeon] = useState<Record<string, number>>({});
+  const [acertosLc, setAcertosLc] = useState<Record<string, boolean | null>>({});
+  const [campeonLcDeclarado, setCampeonLcDeclarado] = useState(false);
   const [picksClasificacion, setPicksClasificacion] = useState<Record<string, { ligamx: string[]; mls: string[] }>>({});
   const [clasificadosLc, setClasificadosLc] = useState<{ ligamx: string[]; mls: string[] }>({ ligamx: [], mls: [] });
   const [loading, setLoading]           = useState(false);
@@ -200,6 +199,11 @@ export default function TablaPage() {
         const res = await fetch('/api/picks-campeon-lc');
         const { picks = [] } = await res.json();
         (picks || []).forEach((p: any) => { picksMap[`${p.user_id}:null`] = p.equipo; });
+        // Leer acerto para mostrar ✅/✗ en columna 🏆
+        const acMap: Record<string, boolean | null> = {};
+        (picks || []).forEach((p: any) => { acMap[p.user_id] = p.acerto ?? null; });
+        setAcertosLc(acMap);
+        setCampeonLcDeclarado((picks || []).some((p: any) => p.acerto !== null && p.acerto !== undefined));
       } else {
         const { data: picks } = await supabase
           .from('quiniela_prediccion_campeon')
@@ -211,18 +215,30 @@ export default function TablaPage() {
     }
     setCampeonPicks(picksMap);
 
-    // Bonos de campeón (solo J6, no aplica para ligamx2026 LC)
+    // Bonos de campeón: J6 no-LC, o J7 LC (jornada=10)
     const bonosMap: Record<string, number> = {};
-    if (jornada === 6 && userIds.length && TEMPORADA_ACTIVA !== 'ligamx2026') {
-      const { data: bonos } = await supabase
-        .from('quiniela_bono_campeon')
-        .select('user_id, quiniela_extra_id, puntos')
-        .eq('jornada', 6)
-        .in('user_id', userIds);
-      (bonos || []).forEach((b: any) => {
-        const k = `${b.user_id}:${b.quiniela_extra_id ?? 'null'}`;
-        bonosMap[k] = (bonosMap[k] || 0) + b.puntos;
-      });
+    if (userIds.length) {
+      if (jornada === 6 && TEMPORADA_ACTIVA !== 'ligamx2026') {
+        const { data: bonos } = await supabase
+          .from('quiniela_bono_campeon')
+          .select('user_id, quiniela_extra_id, puntos')
+          .eq('jornada', 6)
+          .in('user_id', userIds);
+        (bonos || []).forEach((b: any) => {
+          const k = `${b.user_id}:${b.quiniela_extra_id ?? 'null'}`;
+          bonosMap[k] = (bonosMap[k] || 0) + b.puntos;
+        });
+      } else if (jornada === 7 && TEMPORADA_ACTIVA === 'ligamx2026') {
+        const { data: bonos } = await supabase
+          .from('quiniela_bono_campeon')
+          .select('user_id, puntos')
+          .eq('jornada', 10)
+          .in('user_id', userIds);
+        (bonos || []).forEach((b: any) => {
+          const k = `${b.user_id}:null`;
+          bonosMap[k] = (bonosMap[k] || 0) + b.puntos;
+        });
+      }
     }
     setBonosCampeon(bonosMap);
 
@@ -466,7 +482,9 @@ export default function TablaPage() {
     const base = pool
       .filter((p: any) => partidos.find((partido: any) => partido.id === p.partido_id && partido.estado === 'finalizado'))
       .reduce((sum: number, p: any) => sum + (p.puntos_ganados || 0), 0);
-    const bono = jornada === 6 ? (bonosCampeon[`${part.user_id}:${part.quiniela_extra_id ?? 'null'}`] || 0) : 0;
+    const bono = (jornada === 6 && TEMPORADA_ACTIVA !== 'ligamx2026') || (jornada === 7 && TEMPORADA_ACTIVA === 'ligamx2026')
+      ? (bonosCampeon[`${part.user_id}:${part.quiniela_extra_id ?? 'null'}`] || 0)
+      : 0;
     let ptsClas = 0;
     if (TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 1) {
       const userPicks = picksClasificacion[part.user_id];
@@ -1064,8 +1082,13 @@ export default function TablaPage() {
               const campKey   = `${part.user_id}:${part.quiniela_extra_id ?? 'null'}`;
               const campPick  = campeonPicks[campKey];
               const campBono  = bonosCampeon[campKey];
-              const campAcerto = campBono !== undefined && campBono > 0;
-              const campFallo  = campeonDeclarado && !campAcerto;
+              const esLcJ7 = TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 7;
+              const campAcerto = esLcJ7
+                ? acertosLc[part.user_id] === true
+                : campBono !== undefined && campBono > 0;
+              const campFallo = esLcJ7
+                ? campeonLcDeclarado && acertosLc[part.user_id] === false
+                : campeonDeclarado && !campAcerto;
 
               const renderFinalizadoCell = (partido: any) => {
                 const pred = getPred(part.user_id, partido.id, part.quiniela_extra_id);
