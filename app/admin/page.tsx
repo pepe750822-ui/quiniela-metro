@@ -73,6 +73,16 @@ export default function AdminPage() {
   const [campeonJ6Result, setCampeonJ6Result] = useState<string | null>(null);
   const [confirmandoCampeonJ6, setConfirmandoCampeonJ6] = useState(false);
 
+  // Campeón LC
+  const [campeonLcEquipo, setCampeonLcEquipo] = useState('');
+  const [campeonLcLoading, setCampeonLcLoading] = useState(false);
+  const [campeonLcResult, setCampeonLcResult] = useState<string | null>(null);
+  const [confirmandoCampeonLc, setConfirmandoCampeonLc] = useState(false);
+  const [campeonLcDetalle, setCampeonLcDetalle] = useState<{
+    acertaron: { user_id: string; equipo: string }[];
+    fallaron:  { user_id: string; equipo: string }[];
+  } | null>(null);
+
   // Clasificados LC
   const [clasificadosLcLigamx, setClasificadosLcLigamx] = useState<string[]>([]);
   const [clasificadosLcMls, setClasificadosLcMls] = useState<string[]>([]);
@@ -121,6 +131,7 @@ export default function AdminPage() {
     magicLink: false,
     grupos: false,
     clasificadosLc: false,
+    campeonLc: false,
   });
   const toggleSeccion = (seccion: keyof typeof seccionesAbiertas) => {
     setSeccionesAbiertas(prev => ({ ...prev, [seccion]: !prev[seccion] }));
@@ -851,6 +862,41 @@ export default function AdminPage() {
       toast.error('Error: ' + (e as Error).message);
     }
     setClasificandoLc(false);
+  };
+
+  const declararCampeonLc = async () => {
+    if (!campeonLcEquipo) return;
+    setConfirmandoCampeonLc(false);
+    setCampeonLcLoading(true);
+    setCampeonLcResult(null);
+    setCampeonLcDetalle(null);
+    try {
+      const res = await fetch('/api/admin/campeon-lc', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          equipo: campeonLcEquipo,
+          secret: process.env.NEXT_PUBLIC_CLEANUP_SECRET || 'quiniela-metro-cleanup-2026',
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Error desconocido');
+      const { acertaron, fallaron, total } = json as {
+        acertaron: { user_id: string; equipo: string }[];
+        fallaron:  { user_id: string; equipo: string }[];
+        total: number;
+      };
+      setCampeonLcDetalle({ acertaron, fallaron });
+      setCampeonLcResult(
+        `✅ Campeón LC declarado (${campeonLcEquipo}) — ${acertaron.length}/${total} acertaron (+5 pts)`
+      );
+      toast.success(`🏆 ${acertaron.length} jugador${acertaron.length !== 1 ? 'es' : ''} recibe${acertaron.length !== 1 ? 'n' : ''} +5 pts`);
+    } catch (e: unknown) {
+      const msg = (e as Error).message;
+      setCampeonLcResult(`❌ Error: ${msg}`);
+      toast.error(msg);
+    }
+    setCampeonLcLoading(false);
   };
 
   const registrarPago = async () => {
@@ -2052,6 +2098,160 @@ export default function AdminPage() {
                 style={{ background: '#10b981', color: '#000' }}>
                 {clasificandoLc ? '…' : `Guardar MLS (${clasificadosLcMls.length} equipos) ✓`}
               </button>
+            </div>
+          </div>
+        )}
+      </section>
+      )}
+
+      {/* ── CAMPEÓN LEAGUES CUP ── */}
+      {TEMPORADA_ACTIVA === 'ligamx2026' && (
+      <section className="space-y-1">
+        <button
+          onClick={() => toggleSeccion('campeonLc')}
+          className="w-full flex items-center justify-between px-4 py-4 rounded-xl hover:border-orange-500/30 transition-all"
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: 'var(--accent-gold)' }}>
+            🏆 CAMPEÓN LEAGUES CUP — declarar y dar +5 pts
+          </span>
+          <span style={{ color: '#64748b' }}>{seccionesAbiertas.campeonLc ? '▲' : '▼'}</span>
+        </button>
+        {seccionesAbiertas.campeonLc && (
+          <div className="rounded-2xl p-4 space-y-3" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+            <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+              Declara el campeón de la Leagues Cup. Otorga <strong>+5 pts</strong> a quienes
+              acertaron en <code>quiniela_prediccion_campeon_lc</code> (temporada ligamx2026).
+              Acción idempotente — puedes corregirla.
+            </p>
+            <div>
+              <label className="text-xs uppercase tracking-widest font-semibold block mb-1.5"
+                style={{ color: 'var(--text-secondary)' }}>
+                Equipo campeón LC
+              </label>
+              <select
+                value={campeonLcEquipo}
+                onChange={e => { setCampeonLcEquipo(e.target.value); setCampeonLcResult(null); setCampeonLcDetalle(null); }}
+                className="w-full rounded-xl px-3 py-2.5 text-sm outline-none"
+                style={{
+                  background: 'var(--bg-card-hover)',
+                  border: '1px solid var(--border)',
+                  color: campeonLcEquipo ? 'var(--text-primary)' : 'var(--text-secondary)',
+                  fontFamily: 'var(--font-rajdhani)',
+                }}
+              >
+                <option value="">Seleccionar equipo campeón LC...</option>
+                {clasificadosLcLigamx.length > 0 && (
+                  <optgroup label="Liga MX">
+                    {[...clasificadosLcLigamx].sort().map(eq => (
+                      <option key={eq} value={eq}>{eq}</option>
+                    ))}
+                  </optgroup>
+                )}
+                {clasificadosLcMls.length > 0 && (
+                  <optgroup label="MLS">
+                    {[...clasificadosLcMls].sort().map(eq => (
+                      <option key={eq} value={eq}>{eq}</option>
+                    ))}
+                  </optgroup>
+                )}
+                {clasificadosLcLigamx.length === 0 && clasificadosLcMls.length === 0 && (
+                  <>
+                    {['América','Cruz Azul','Monterrey','Tigres','Guadalajara','Pachuca','Pumas','Toluca'].map(eq => (
+                      <option key={eq} value={eq}>{eq}</option>
+                    ))}
+                  </>
+                )}
+              </select>
+            </div>
+
+            {/* Resultado */}
+            {campeonLcResult && (
+              <div className="rounded-xl p-3 text-xs font-semibold"
+                style={{
+                  background: campeonLcResult.startsWith('✅') ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
+                  border: `1px solid ${campeonLcResult.startsWith('✅') ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                  color: campeonLcResult.startsWith('✅') ? '#22c55e' : '#ef4444',
+                }}>
+                {campeonLcResult}
+              </div>
+            )}
+
+            {/* Detalle: quién acertó / no acertó */}
+            {campeonLcDetalle && (
+              <div className="space-y-3 pt-1">
+                {campeonLcDetalle.acertaron.length > 0 && (
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: '#22c55e' }}>
+                      ✅ Acertaron ({campeonLcDetalle.acertaron.length})
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {campeonLcDetalle.acertaron.map(p => {
+                        const j = jugadores.find(jg => jg.id === p.user_id);
+                        return (
+                          <span key={p.user_id}
+                            className="px-2 py-0.5 rounded-lg text-xs font-semibold"
+                            style={{ background: 'rgba(34,197,94,0.15)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.3)' }}>
+                            {j?.apodo || p.user_id.slice(0, 8)}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+                {campeonLcDetalle.fallaron.length > 0 && (
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: '#ef4444' }}>
+                      ❌ No acertaron ({campeonLcDetalle.fallaron.length})
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {campeonLcDetalle.fallaron.map(p => {
+                        const j = jugadores.find(jg => jg.id === p.user_id);
+                        return (
+                          <span key={p.user_id}
+                            className="px-2 py-0.5 rounded-lg text-xs font-semibold"
+                            style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)' }}
+                            title={p.equipo}>
+                            {j?.apodo || p.user_id.slice(0, 8)} ({p.equipo})
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Botón */}
+            <div className="flex gap-2">
+              {confirmandoCampeonLc ? (
+                <>
+                  <button
+                    onClick={declararCampeonLc}
+                    disabled={campeonLcLoading}
+                    className="flex-1 py-3 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-40"
+                    style={{ background: 'rgba(239,68,68,0.2)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.4)', fontFamily: 'var(--font-rajdhani)' }}
+                  >
+                    {campeonLcLoading ? '⏳ Aplicando...' : '⚠️ Confirmar'}
+                  </button>
+                  <button
+                    onClick={() => setConfirmandoCampeonLc(false)}
+                    disabled={campeonLcLoading}
+                    className="flex-1 py-3 rounded-xl font-bold text-sm transition-all active:scale-95"
+                    style={{ border: '1px solid var(--border)', color: 'var(--text-secondary)', fontFamily: 'var(--font-rajdhani)' }}
+                  >
+                    Cancelar
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => setConfirmandoCampeonLc(true)}
+                  disabled={!campeonLcEquipo || campeonLcLoading}
+                  className="w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-40"
+                  style={{ background: 'rgba(251,191,36,0.2)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.4)', fontFamily: 'var(--font-rajdhani)' }}
+                >
+                  {campeonLcLoading ? '⏳ Aplicando...' : '🏆 Declarar Campeón LC y dar +5 pts'}
+                </button>
+              )}
             </div>
           </div>
         )}
