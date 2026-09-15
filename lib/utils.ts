@@ -150,6 +150,7 @@ export const getNombreJornadaLigaMX = (j: number) => {
   if (j === 6) return 'J6+LC Cuartos';
   if (j === 7) return 'J7+LC Semis';
   if (j === 8) return 'J8+Champions';
+  if (j === 9) return 'J9+J10+Selección+UEFA';
   return `J${j}`;
 };
 

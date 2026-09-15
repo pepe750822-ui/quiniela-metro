@@ -667,7 +667,7 @@ export default function DashboardPage() {
   const pozosVisibles = pozosCompletos.filter(p => p.participantes > 0);
 
   const jornadasDisponibles = TEMPORADA_ACTIVA === 'ligamx2026'
-    ? [...new Set(pozosCompletos.filter(p => p.participantes > 0 && p.jornada <= 8).map(p => p.jornada))]
+    ? [...new Set(pozosCompletos.filter(p => p.participantes > 0 && p.jornada <= 9).map(p => p.jornada))]
     : [...new Set(pozosCompletos.map(p => p.jornada))];
 
   const compartirRanking = () => {
