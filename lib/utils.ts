@@ -197,7 +197,7 @@ export const BANDERAS_EQUIPOS: Record<string, string> = {
   'France': '🇫🇷',
   'Italy': '🇮🇹',
   'Spain': '🇪🇸',
-  'Países Bajos': '🇳🇱',
+  'Países Bajos': '🇳🇱', // NL
   'Uruguay': '🇺🇾',
   'Colombia': '🇨🇴',
   'Japón': '🇯🇵',
