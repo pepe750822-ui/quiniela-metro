@@ -124,7 +124,7 @@ export default function PartidoCard({ partido, prediccion, participacionPagada, 
       <div className="px-4 py-4 flex items-center justify-between gap-2">
         {/* Local */}
         <div className="flex-1 flex flex-col items-center gap-2 min-w-0">
-          <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="lg" />
+          <Bandera emoji={partido.bandera_local || BANDERAS_EQUIPOS[partido.equipo_local] || ''} nombre={partido.equipo_local} size="lg" />
           <span
             className="text-xs font-bold text-center leading-tight w-full truncate"
             style={{
@@ -200,7 +200,7 @@ export default function PartidoCard({ partido, prediccion, participacionPagada, 
 
         {/* Visitante */}
         <div className="flex-1 flex flex-col items-center gap-2 min-w-0">
-          <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="lg" />
+          <Bandera emoji={partido.bandera_visitante || BANDERAS_EQUIPOS[partido.equipo_visitante] || ''} nombre={partido.equipo_visitante} size="lg" />
           <span
             className="text-xs font-bold text-center leading-tight w-full truncate"
             style={{
