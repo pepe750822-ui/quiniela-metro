@@ -323,7 +323,7 @@ export default function PrediccionesPage() {
   const [partidoActivo, setPartidoActivo] = useState<Partido | null>(null);
   const [loading, setLoading]             = useState(true);
   const [jornada, setJornada]             = useState(() => {
-    if (TEMPORADA_ACTIVA === 'ligamx2026') return 8;
+    if (TEMPORADA_ACTIVA === 'ligamx2026') return 9;
     return 1;
   });
   const [jornadas, setJornadas]           = useState<number[]>([]);
