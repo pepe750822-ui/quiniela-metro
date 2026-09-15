@@ -1,4 +1,4 @@
-'use client';
+'use client'; // v2 — bandera fallback to BANDERAS_EQUIPOS
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
