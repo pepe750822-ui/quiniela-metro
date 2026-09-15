@@ -62,13 +62,13 @@ export function Bandera({ emoji: _emoji, nombre, size = 'md' }: BanderaProps) {
     <span
       className="inline-flex items-center justify-center text-center leading-tight"
       style={{
-        fontSize: Math.max(7, w * 0.22),
+        fontSize: _emoji ? w * 0.75 : Math.max(7, w * 0.22),
         color: 'var(--text-secondary)',
         width: w,
         maxWidth: w * 2,
       }}
     >
-      {nombre}
+      {_emoji || nombre}
     </span>
   );
 }
