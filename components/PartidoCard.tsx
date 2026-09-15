@@ -55,6 +55,9 @@ export default function PartidoCard({ partido, prediccion, participacionPagada, 
 
   const esLC = partido.grupo === 'LC';
 
+  const debugBandera = partido.bandera_local || BANDERAS_EQUIPOS[partido.equipo_local] || '';
+  console.log('bandera debug:', partido.equipo_local, '->', debugBandera);
+
   const lmxBadge = (!esLC && prediccion && fin) ? (() => {
     const pts = prediccion.puntos_ganados;
     if (pts >= 3) return { color: '#10b981', bg: 'rgba(16,185,129,0.1)', border: 'rgba(16,185,129,0.2)', label: '⚽⚽⚽ 3pts exacto' };
@@ -124,7 +127,6 @@ export default function PartidoCard({ partido, prediccion, participacionPagada, 
       <div className="px-4 py-4 flex items-center justify-between gap-2">
         {/* Local */}
         <div className="flex-1 flex flex-col items-center gap-2 min-w-0">
-          {console.log('bandera debug:', { equipo: partido.equipo_local, bandera_db: partido.bandera_local, bandera_map: BANDERAS_EQUIPOS[partido.equipo_local], final: partido.bandera_local || BANDERAS_EQUIPOS[partido.equipo_local] || '' })}
           <Bandera emoji={partido.bandera_local || BANDERAS_EQUIPOS[partido.equipo_local] || ''} nombre={partido.equipo_local} size="lg" />
           <span
             className="text-xs font-bold text-center leading-tight w-full truncate"
