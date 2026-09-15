@@ -329,6 +329,7 @@ export default function PrediccionesPage() {
   const [jornadas, setJornadas]           = useState<number[]>([]);
   const [pozo, setPozo]                   = useState<Pozo | null>(null);
   const selectorRef                       = useRef<HTMLDivElement>(null);
+  const initialScrollDone                 = useRef(false);
   const [participando, setParticipando]   = useState<boolean | null>(null);
   const [publicado, setPublicado]         = useState<boolean>(false);
   const [publicando, setPublicando]       = useState<boolean>(false);
@@ -648,9 +649,10 @@ export default function PrediccionesPage() {
   }, []);
 
   useEffect(() => {
-    if (partidos.length === 0) return;
+    if (partidos.length === 0 || initialScrollDone.current) return;
     const primerPendiente = partidos.find(p => p.estado === 'pendiente');
     if (primerPendiente) {
+      initialScrollDone.current = true;
       setTimeout(() => {
         const el = document.getElementById(`partido-${primerPendiente.id}`);
         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1093,7 +1095,7 @@ export default function PrediccionesPage() {
         {jornadas.filter(j => TEMPORADA_ACTIVA === 'ligamx2026' ? j <= 8 : j <= 6).map(j => {
           const cerrada = TEMPORADA_ACTIVA === 'ligamx2026' ? new Date() > getDeadline(j) : j < 2 || new Date() > getDeadline(j);
           return (
-            <Pill key={j} active={jornada === j} onClick={() => setJornada(j)} faded={cerrada && jornada !== j}>
+            <Pill key={j} active={jornada === j} onClick={() => { initialScrollDone.current = false; setJornada(j); }} faded={cerrada && jornada !== j}>
               {cerrada && jornada !== j && <span style={{ fontSize: '0.55rem', marginRight: 2 }}>🔒</span>}
               {TEMPORADA_ACTIVA === 'ligamx2026' ? (j <= 3 ? `J${j}` : labelJornada(j)) : labelJornada(j)}
             </Pill>
