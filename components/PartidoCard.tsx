@@ -55,8 +55,6 @@ export default function PartidoCard({ partido, prediccion, participacionPagada, 
 
   const esLC = partido.grupo === 'LC';
 
-  const debugBandera = partido.bandera_local || BANDERAS_EQUIPOS[partido.equipo_local] || '';
-  console.log('bandera debug:', partido.equipo_local, '->', debugBandera);
 
   const lmxBadge = (!esLC && prediccion && fin) ? (() => {
     const pts = prediccion.puntos_ganados;
