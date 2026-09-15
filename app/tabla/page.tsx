@@ -575,8 +575,8 @@ export default function TablaPage() {
   // J7-specific split: finalized before PTS checkpoint, pending after
   const j8FinForJ7: any[] = (esJ8Multi && jornada === 7) ? j8Sorted.filter((p: any) => p.estado === 'finalizado') : [];
   const j8PendForJ7: any[] = (esJ8Multi && jornada === 7) ? j8Sorted.filter((p: any) => p.estado !== 'finalizado') : [];
-  const j8FinForJ8: any[] = (esJ8Multi && jornada === 8) ? j8Sorted.filter((p: any) => p.estado === 'finalizado') : [];
-  const j8PendForJ8: any[] = (esJ8Multi && jornada === 8) ? j8Sorted.filter((p: any) => p.estado !== 'finalizado') : [];
+  const j8FinForJ8: any[] = (esJ8Multi && jornada >= 8) ? j8Sorted.filter((p: any) => p.estado === 'finalizado') : [];
+  const j8PendForJ8: any[] = (esJ8Multi && jornada >= 8) ? j8Sorted.filter((p: any) => p.estado !== 'finalizado') : [];
   const buildJ7Runs = (arr: any[]) => {
     const runs: { key: string; count: number; meta: typeof J8_GRUPO_META[string] }[] = [];
     for (const p of arr) {
@@ -589,8 +589,8 @@ export default function TablaPage() {
   };
   const j8RunsFin = (esJ8Multi && jornada === 7) ? buildJ7Runs(j8FinForJ7) : [];
   const j8RunsPend = (esJ8Multi && jornada === 7) ? buildJ7Runs(j8PendForJ7) : [];
-  const j8RunsFinForJ8 = (esJ8Multi && jornada === 8) ? buildJ7Runs(j8FinForJ8) : [];
-  const j8RunsPendForJ8 = (esJ8Multi && jornada === 8) ? buildJ7Runs(j8PendForJ8) : [];
+  const j8RunsFinForJ8 = (esJ8Multi && jornada >= 8) ? buildJ7Runs(j8FinForJ8) : [];
+  const j8RunsPendForJ8 = (esJ8Multi && jornada >= 8) ? buildJ7Runs(j8PendForJ8) : [];
 
   // Campeón declarado cuando la Final (J9) está finalizada (no aplica para ligamx2026)
   const campeonDeclarado = jornada === 6 && TEMPORADA_ACTIVA !== 'ligamx2026' && campeonJ6Declarado !== null;
@@ -967,7 +967,7 @@ export default function TablaPage() {
                           ))}
                           <th className="px-2 py-2 text-center min-w-[70px]"
                             style={{ background: 'var(--bg-base)', borderLeft: '2px solid rgba(16,185,129,0.5)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '0.75rem', color: '#10b981' }}>
-                            PTS J8
+                            PTS J{jornada}
                           </th>
                           {j8PendForJ8.map((partido: any) => (
                             <th key={partido.id} id={`col-${partido.id}`} data-estado="pendiente"
@@ -1297,7 +1297,7 @@ export default function TablaPage() {
                                 <div style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.25rem', color: '#10b981' }}>
                                   {totalPuntos}
                                 </div>
-                                <div style={{ fontSize: '0.5rem', color: '#475569', lineHeight: 1 }}>J8</div>
+                                <div style={{ fontSize: '0.5rem', color: '#475569', lineHeight: 1 }}>J{jornada}</div>
                               </td>
                               {j8PendForJ8.map((p: any) => renderPendienteCell(p))}
                               <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
