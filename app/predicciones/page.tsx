@@ -974,7 +974,7 @@ export default function PrediccionesPage() {
           }}
         >
           {TEMPORADA_ACTIVA === 'ligamx2026'
-            ? (jornada >= 4 && jornada <= 5 ? 'Liga MX Apertura 2026' : jornada === 8 ? 'J8 + Champions League' : jornada >= 6 ? 'Leagues Cup 2026' : 'Leagues Cup — Fase 1')
+            ? (jornada === 9 ? 'J9 + J10 + Selección + UEFA' : jornada >= 4 && jornada <= 5 ? 'Liga MX Apertura 2026' : jornada === 8 ? 'J8 + Champions League' : jornada >= 6 ? 'Leagues Cup 2026' : 'Leagues Cup — Fase 1')
             : 'PREDICCIONES'}
         </h1>
         <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
@@ -1092,7 +1092,7 @@ export default function PrediccionesPage() {
         className="flex gap-2 overflow-x-auto pb-1"
         style={{ scrollbarWidth: 'none' }}
       >
-        {jornadas.filter(j => TEMPORADA_ACTIVA === 'ligamx2026' ? j <= 8 : j <= 6).map(j => {
+        {jornadas.filter(j => TEMPORADA_ACTIVA === 'ligamx2026' ? j <= 9 : j <= 6).map(j => {
           const cerrada = TEMPORADA_ACTIVA === 'ligamx2026' ? new Date() > getDeadline(j) : j < 2 || new Date() > getDeadline(j);
           return (
             <Pill key={j} active={jornada === j} onClick={() => { initialScrollDone.current = false; setJornada(j); }} faded={cerrada && jornada !== j}>
