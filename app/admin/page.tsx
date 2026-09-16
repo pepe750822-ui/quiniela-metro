@@ -120,7 +120,7 @@ export default function AdminPage() {
   const [seccionesAbiertas, setSeccionesAbiertas] = useState({
     faseFinalJ6: true,
     pago: false,
-    pozos: false,
+    pozos: true,
     apodos: false,
     usuarios: false,
     resultados: false,
@@ -138,7 +138,7 @@ export default function AdminPage() {
   };
 
   // POZOS — jornada abierta
-  const [jornadaAbierta, setJornadaAbierta] = useState<number>(1);
+  const [jornadaAbierta, setJornadaAbierta] = useState<number>(9);
 
   // Grupos Mundial
   const [grupos, setGrupos] = useState<any[]>([]);
