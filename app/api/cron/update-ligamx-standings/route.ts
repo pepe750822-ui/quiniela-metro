@@ -1,6 +1,13 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
+const EQUIPOS: Record<string, string> = {
+  'CD Guadalajara': 'Guadalajara',
+  'Santos Laguna': 'Santos',
+  'FC Juárez': 'Juárez',
+  'Atlético de San Luis': 'San Luis',
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const secret = searchParams.get('secret')
@@ -15,56 +22,35 @@ export async function GET(request: Request) {
   )
 
   try {
-    const season = 2026
-    const league = 310 // Liga MX
-
     const response = await fetch(
-      `https://v3.football.api-sports.io/standings?league=${league}&season=${season}`,
-      {
-        headers: {
-          'x-apisports-key': process.env.API_SPORTS_KEY!
-        }
-      }
+      'https://www.thesportsdb.com/api/v1/json/3/lookuptable.php?l=4350&s=2026-2027'
     )
 
     const data = await response.json()
 
-    // Debug: log full API response in case of empty standings
-    if (data.errors && Object.keys(data.errors).length > 0) {
-      console.error('API-Sports errors:', JSON.stringify(data.errors))
-      return NextResponse.json({
-        message: 'API-Sports error',
-        errors: data.errors,
-        season
-      }, { status: 502 })
-    }
-
-    if (!data.response?.length || !data.response[0].league?.standings?.[0]?.length) {
-      console.error('API-Sports empty response:', JSON.stringify(data).substring(0, 1000))
+    if (!data.table?.length) {
       return NextResponse.json({
         message: 'No standings data available',
-        raw: JSON.stringify(data).substring(0, 2000),
-        season
+        raw: JSON.stringify(data).substring(0, 1000)
       })
     }
 
-    const standings = data.response[0].league.standings[0]
+    const standings = data.table
 
     let actualizados = 0
     let insertados = 0
 
     for (const team of standings) {
-      const equipo = team.team.name
-      const pj = team.all.played
-      const g = team.all.win
-      const e = team.all.draw
-      const p = team.all.lose
-      const gf = team.all.goals.for
-      const gc = team.all.goals.against
-      const dg = team.goalsDiff
-      const pts = team.points
+      const equipo = EQUIPOS[team.strTeam] || team.strTeam
+      const pj = parseInt(team.intPlayed)
+      const g = parseInt(team.intWin)
+      const e = parseInt(team.intDraw)
+      const p = parseInt(team.intLoss)
+      const gf = parseInt(team.intGoalsFor)
+      const gc = parseInt(team.intGoalsAgainst)
+      const dg = parseInt(team.intGoalDifference)
+      const pts = parseInt(team.intPoints)
 
-      // Upsert: try update first, if no rows affected, insert
       const { data: existing, error: selectError } = await supabase
         .from('ligamx_posiciones')
         .select('id')
@@ -80,7 +66,7 @@ export async function GET(request: Request) {
       if (existing) {
         const { error: updateError } = await supabase
           .from('ligamx_posiciones')
-          .update({ pj, g, e, p, gf, gc, dg, pts, updated_at: new Date().toISOString() })
+          .update({ pj, g, e, p, gf, gc, dg, pts, updated_at: team.dateUpdated })
           .eq('id', existing.id)
 
         if (!updateError) actualizados++
@@ -91,7 +77,7 @@ export async function GET(request: Request) {
             equipo,
             temporada: 'ligamx2026',
             pj, g, e, p, gf, gc, dg, pts,
-            updated_at: new Date().toISOString()
+            updated_at: team.dateUpdated
           })
 
         if (!insertError) insertados++
@@ -100,7 +86,6 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       message: 'OK',
-      season,
       teams_processed: standings.length,
       actualizados,
       insertados
