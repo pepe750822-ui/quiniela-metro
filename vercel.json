@@ -7,6 +7,10 @@
     {
       "path": "/api/cron/update-matches",
       "schedule": "0 20 * * *"
+    },
+    {
+      "path": "/api/cron/update-ligamx-standings",
+      "schedule": "0 3 * * *"
     }
   ]
 }
