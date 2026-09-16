@@ -29,9 +29,21 @@ export async function GET(request: Request) {
 
     const data = await response.json()
 
+    // Debug: log full API response in case of empty standings
+    if (data.errors && Object.keys(data.errors).length > 0) {
+      console.error('API-Sports errors:', JSON.stringify(data.errors))
+      return NextResponse.json({
+        message: 'API-Sports error',
+        errors: data.errors,
+        season
+      }, { status: 502 })
+    }
+
     if (!data.response?.length || !data.response[0].league?.standings?.[0]?.length) {
+      console.error('API-Sports empty response:', JSON.stringify(data).substring(0, 1000))
       return NextResponse.json({
         message: 'No standings data available',
+        raw: JSON.stringify(data).substring(0, 2000),
         season
       })
     }
