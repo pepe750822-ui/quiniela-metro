@@ -189,11 +189,8 @@ export default function PosicionesPage() {
     };
 
     for (const p of (partidos ?? [])) {
-      // Para ligamx2026 solo incluir partidos de Liga MX (grupo LMX o jornada >= 4 con equipos LMX)
-      if (esLigaMX && p.grupo !== 'LMX' && p.grupo !== 'LMX9' && p.grupo !== 'LMX10') {
-        if (!EQUIPOS_LIGAMX.has(p.equipo_local) || !EQUIPOS_LIGAMX.has(p.equipo_visitante)) continue;
-        if ((p.jornada ?? 0) < 4) continue;
-      }
+      // Para ligamx2026 solo incluir partidos de Liga MX — excluye LC, UCL, ENG, etc.
+      if (esLigaMX && !['LMX', 'LMX9', 'LMX10'].includes(p.grupo)) continue;
 
       const gl = p.goles_local ?? 0;
       const gv = p.goles_visitante ?? 0;
