@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Bandera } from '@/components/Bandera';
-import { TEMPORADA_ACTIVA } from '@/lib/utils';
+import { LOGOS_LIGAMX, TEMPORADA_ACTIVA } from '@/lib/utils';
 
 const EQUIPOS_LIGAMX = new Set([
   'América', 'Atlante', 'Atlas', 'Cruz Azul', 'Guadalajara', 'Juárez',
@@ -24,68 +24,157 @@ interface Row {
   pts: number;
 }
 
-function TablaLigaMX({ rows }: { rows: Row[] }) {
-  const cutoff = 8;
+type TablaOficial = 'ligamx_posiciones' | 'ucl_posiciones';
+
+interface PosicionOficial {
+  equipo: string;
+  pos?: number | null;
+  pj: number;
+  g: number;
+  e: number;
+  p: number;
+  gf: number;
+  gc: number;
+  dg: number;
+  pts: number;
+  updated_at?: string | null;
+}
+
+function zonaFila(tabla: TablaOficial, i: number, total: number): { color: string | null; bg: string } {
+  if (tabla === 'ucl_posiciones') {
+    if (i < 8)  return { color: '34,197,94',  bg: '0.05' };
+    if (i < 24) return { color: '251,191,36', bg: '0.05' };
+    return { color: '239,68,68', bg: '0.05' };
+  }
+  if (i < 8) return { color: '34,197,94', bg: '0.05' };
+  if (total >= 18 && i >= total - 3) return { color: '239,68,68', bg: '0.05' };
+  return { color: null, bg: '0' };
+}
+
+function PosicionesOficiales({ tabla }: { tabla: TablaOficial }) {
+  const [rows, setRows]           = useState<PosicionOficial[]>([]);
+  const [loading, setLoading]     = useState(true);
+  const [updatedAt, setUpdatedAt] = useState<string | null>(null);
+  const esUcl = tabla === 'ucl_posiciones';
+
+  const cargar = async () => {
+    const base = supabase
+      .from(tabla)
+      .select(esUcl ? 'equipo, pos, pj, g, e, p, gf, gc, dg, pts, updated_at' : 'equipo, pj, g, e, p, gf, gc, dg, pts, updated_at')
+      .eq('temporada', TEMPORADA_ACTIVA);
+    const { data, error } = await (esUcl
+      ? base.order('pos', { ascending: true })
+      : base.order('pts', { ascending: false }).order('dg', { ascending: false }));
+
+    if (!error && data) {
+      const lista = data as unknown as PosicionOficial[];
+      setRows(lista);
+      const latest = lista.reduce((acc, r) => (r.updated_at && r.updated_at > acc ? r.updated_at : acc), '');
+      setUpdatedAt(latest || null);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    setLoading(true);
+    cargar();
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') cargar();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tabla]);
+
+  const total = rows.length;
+
   return (
     <div className="mb-8">
       <div className="overflow-x-auto rounded-xl" style={{ border: '1px solid var(--border-color)' }}>
         <table className="w-full text-sm border-collapse">
           <thead>
             <tr style={{ background: 'var(--bg-card)', borderBottom: '1px solid var(--border-color)' }}>
-              <th className="text-left px-3 py-2 w-6 text-xs" style={{ color: '#475569' }}>#</th>
-              <th className="text-left px-2 py-2" style={{ color: '#94a3b8', fontFamily: 'var(--font-rajdhani)', fontWeight: 700 }}>Equipo</th>
-              {['PJ','G','E','P','GF','GC','DG','PTS'].map(h => (
-                <th key={h} className="text-center px-2 py-2 text-xs font-bold"
-                  style={{ color: h === 'PTS' ? '#ea580c' : '#64748b', minWidth: 24 }}>
+              <th className="text-left px-3 py-2 w-5 text-xs" style={{ color: '#475569' }}>#</th>
+              <th className="text-left px-2 py-2 text-xs font-bold"
+                style={{ color: '#94a3b8', fontFamily: 'var(--font-rajdhani)', fontWeight: 700 }}>
+                Equipo
+              </th>
+              {['PJ', 'G', 'E', 'P', 'GF', 'GC', 'DG', 'PTS'].map(h => (
+                <th key={h} className="text-center px-1.5 py-2 text-xs font-bold"
+                  style={{ color: h === 'PTS' ? '#ea580c' : '#64748b', minWidth: 22 }}>
                   {h}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {rows.map((r, i) => {
-              const clasifica = i < cutoff;
+            {loading && (
+              <tr>
+                <td colSpan={10} className="text-center py-10 text-sm" style={{ color: '#475569' }}>Cargando…</td>
+              </tr>
+            )}
+            {!loading && rows.length === 0 && (
+              <tr>
+                <td colSpan={10} className="text-center py-10 text-sm" style={{ color: '#475569' }}>Sin datos disponibles</td>
+              </tr>
+            )}
+            {!loading && rows.map((r, i) => {
+              const zona = zonaFila(tabla, i, total);
+              const logo = esUcl ? undefined : LOGOS_LIGAMX[r.equipo];
               return (
                 <tr key={r.equipo}
                   style={{
                     borderBottom: '1px solid var(--border-color)',
-                    background: clasifica ? 'rgba(34,197,94,0.05)' : 'transparent',
-                    borderLeft: clasifica ? '3px solid rgba(34,197,94,0.6)' : '3px solid transparent',
+                    background: zona.color ? `rgba(${zona.color},${zona.bg})` : 'transparent',
+                    borderLeft: zona.color ? `3px solid rgba(${zona.color},0.55)` : '3px solid transparent',
                   }}>
-                  <td className="px-3 py-2 text-xs tabular-nums" style={{ color: '#475569' }}>{i + 1}</td>
-                  <td className="px-2 py-2">
+                  <td className="px-3 py-2 text-xs tabular-nums" style={{ color: '#475569' }}>{r.pos ?? i + 1}</td>
+                  <td className="px-2 py-1.5">
                     <div className="flex items-center gap-1.5">
-                      <Bandera emoji="" nombre={r.equipo} size="sm" />
+                      {logo && (
+                        <img src={logo} alt={r.equipo} width={20} height={20}
+                          style={{ objectFit: 'contain', flexShrink: 0 }} />
+                      )}
                       <span className="text-xs font-semibold whitespace-nowrap"
                         style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--text-primary)' }}>
                         {r.equipo}
                       </span>
-                      {clasifica && <span style={{ fontSize: '0.5rem', color: '#22c55e', fontWeight: 700 }}>✓Q</span>}
                     </div>
                   </td>
-                  {[r.pj, r.g, r.e, r.p, r.gf, r.gc, r.gf - r.gc].map((v, j) => (
-                    <td key={j} className="text-center px-2 py-2 text-xs tabular-nums" style={{ color: '#94a3b8' }}>{v}</td>
+                  {[r.pj, r.g, r.e, r.p, r.gf, r.gc, r.dg].map((v, j) => (
+                    <td key={j} className="text-center px-1.5 py-2 text-xs tabular-nums"
+                      style={{ color: j === 6 && v > 0 ? '#22c55e' : j === 6 && v < 0 ? '#ef4444' : '#94a3b8' }}>
+                      {j === 6 && v > 0 ? `+${v}` : v}
+                    </td>
                   ))}
-                  <td className="text-center px-2 py-2 font-bold tabular-nums"
+                  <td className="text-center px-1.5 py-2 font-bold tabular-nums"
                     style={{ fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
                     {r.pts}
                   </td>
                 </tr>
               );
             })}
-            {rows.length === 0 && (
-              <tr>
-                <td colSpan={10} className="text-center py-8 text-sm" style={{ color: '#475569' }}>
-                  Sin resultados finalizados aún
-                </td>
-              </tr>
-            )}
           </tbody>
         </table>
       </div>
-      <div className="flex flex-wrap gap-3 mt-2 text-xs" style={{ color: '#475569' }}>
-        <span><span style={{ color: '#22c55e' }}>■</span> Top {cutoff} clasifican a Liguilla</span>
-        <span>G=+3pts · E=+1pt · P=0pts</span>
+      <div className="flex flex-wrap gap-4 mt-3 text-xs" style={{ color: '#64748b' }}>
+        {esUcl ? (
+          <>
+            <span><span style={{ color: '#22c55e' }}>■</span> 1–8 Octavos directo</span>
+            <span><span style={{ color: '#fbbf24' }}>■</span> 9–24 Playoff</span>
+            <span><span style={{ color: '#ef4444' }}>■</span> 25–36 Eliminados</span>
+          </>
+        ) : (
+          <>
+            <span><span style={{ color: '#22c55e' }}>■</span> Top 8 — Liguilla</span>
+            <span><span style={{ color: '#ef4444' }}>■</span> Bottom 3 — Descenso</span>
+          </>
+        )}
+        {updatedAt && (
+          <span style={{ marginLeft: 'auto', color: '#475569' }}>
+            Act. {new Date(updatedAt).toLocaleDateString('es-MX', { day: '2-digit', month: 'short' })}
+          </span>
+        )}
       </div>
     </div>
   );
@@ -170,6 +259,7 @@ export default function PosicionesPage() {
   const [rowsLigamx, setRowsLigamx] = useState<Row[]>([]);
   const [rowsMls, setRowsMls]       = useState<Row[]>([]);
   const [loading, setLoading]       = useState(true);
+  const [tab, setTab]               = useState<'lmx' | 'ucl'>('lmx');
 
   const esLigaMX = TEMPORADA_ACTIVA === 'ligamx2026';
 
@@ -265,10 +355,12 @@ export default function PosicionesPage() {
   };
 
   useEffect(() => {
+    if (esLigaMX) return;
     cargar();
   }, []);
 
   useEffect(() => {
+    if (esLigaMX) return;
     const onVisible = () => {
       if (document.visibilityState === 'visible') cargar();
     };
@@ -282,16 +374,42 @@ export default function PosicionesPage() {
         fontFamily: 'var(--font-bebas)', fontSize: '2rem',
         color: '#ea580c', letterSpacing: '0.05em', marginBottom: '0.25rem',
       }}>
-        {esLigaMX ? 'Liga MX Apertura 2026 — Posiciones' : 'Leagues Cup — Posiciones'}
+        {esLigaMX
+          ? (tab === 'ucl' ? 'Champions League — Posiciones' : 'Liga MX Apertura 2026 — Posiciones')
+          : 'Leagues Cup — Posiciones'}
       </h1>
-      <p className="text-xs mb-6" style={{ color: '#475569' }}>
-        Solo partidos finalizados · {TEMPORADA_ACTIVA}
+      <p className="text-xs mb-4" style={{ color: '#475569' }}>
+        {esLigaMX
+          ? (tab === 'ucl' ? 'Fase de liga · 36 equipos' : 'Tabla oficial')
+          : `Solo partidos finalizados · ${TEMPORADA_ACTIVA}`}
       </p>
 
-      {loading ? (
+      {esLigaMX && (
+        <div className="flex gap-2 mb-4" role="tablist">
+          {([['lmx', '⚽ LMX'], ['ucl', '⭐ UCL']] as const).map(([key, label]) => (
+            <button
+              key={key}
+              role="tab"
+              aria-selected={tab === key}
+              onClick={() => setTab(key)}
+              className="px-4 py-1.5 rounded-lg text-sm font-bold transition-all active:scale-95 min-h-[36px]"
+              style={{
+                background: tab === key ? '#ea580c' : 'var(--bg-card)',
+                color: tab === key ? '#fff' : 'var(--text-secondary)',
+                border: `1px solid ${tab === key ? '#ea580c' : 'var(--border)'}`,
+                fontFamily: 'var(--font-rajdhani)',
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {esLigaMX ? (
+        <PosicionesOficiales tabla={tab === 'ucl' ? 'ucl_posiciones' : 'ligamx_posiciones'} />
+      ) : loading ? (
         <div className="text-center py-16 text-sm" style={{ color: '#475569' }}>Cargando…</div>
-      ) : esLigaMX ? (
-        <TablaLigaMX rows={rowsLigamx} />
       ) : (
         <>
           <TablaLC rows={rowsLigamx} titulo="🇲🇽 Liga MX" cutoff={4} />
