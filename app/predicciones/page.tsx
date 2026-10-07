@@ -323,7 +323,7 @@ export default function PrediccionesPage() {
   const [partidoActivo, setPartidoActivo] = useState<Partido | null>(null);
   const [loading, setLoading]             = useState(true);
   const [jornada, setJornada]             = useState(() => {
-    if (TEMPORADA_ACTIVA === 'ligamx2026') return 9;
+    if (TEMPORADA_ACTIVA === 'ligamx2026') return 10;
     return 1;
   });
   const [jornadas, setJornadas]           = useState<number[]>([]);
@@ -390,7 +390,7 @@ export default function PrediccionesPage() {
       .order('jornada')
       .then(({ data }) => {
         const unicas = [...new Set((data ?? []).map((p: { jornada: number }) => p.jornada))]
-          .filter(j => TEMPORADA_ACTIVA !== 'ligamx2026' || j <= 9);
+          .filter(j => TEMPORADA_ACTIVA !== 'ligamx2026' || j <= 10);
         setJornadas(unicas);
       });
   }, [router]);
@@ -974,7 +974,7 @@ export default function PrediccionesPage() {
           }}
         >
           {TEMPORADA_ACTIVA === 'ligamx2026'
-            ? (jornada === 9 ? 'J9 + J10 + Selección + UEFA' : jornada >= 4 && jornada <= 5 ? 'Liga MX Apertura 2026' : jornada === 8 ? 'J8 + Champions League' : jornada >= 6 ? 'Leagues Cup 2026' : 'Leagues Cup — Fase 1')
+            ? (jornada === 10 ? 'J11 + Champions J2' : jornada === 9 ? 'J9 + J10 + Selección + UEFA' : jornada >= 4 && jornada <= 5 ? 'Liga MX Apertura 2026' : jornada === 8 ? 'J8 + Champions League' : jornada >= 6 ? 'Leagues Cup 2026' : 'Leagues Cup — Fase 1')
             : 'PREDICCIONES'}
         </h1>
         <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
@@ -1092,7 +1092,7 @@ export default function PrediccionesPage() {
         className="flex gap-2 overflow-x-auto pb-1"
         style={{ scrollbarWidth: 'none' }}
       >
-        {jornadas.filter(j => TEMPORADA_ACTIVA === 'ligamx2026' ? j <= 9 : j <= 6).map(j => {
+        {jornadas.filter(j => TEMPORADA_ACTIVA === 'ligamx2026' ? j <= 10 : j <= 6).map(j => {
           const cerrada = TEMPORADA_ACTIVA === 'ligamx2026' ? new Date() > getDeadline(j) : j < 2 || new Date() > getDeadline(j);
           return (
             <Pill key={j} active={jornada === j} onClick={() => { initialScrollDone.current = false; setJornada(j); }} faded={cerrada && jornada !== j}>
@@ -1521,6 +1521,8 @@ export default function PrediccionesPage() {
                   MEX:  { label: '🇲🇽 Selección México',  color: '#22c55e', bg: 'rgba(34,197,94,0.08)',  border: 'rgba(34,197,94,0.25)'  },
                   LMX9: { label: '⚽ J9 Liga MX',         color: '#818cf8', bg: 'rgba(99,102,241,0.08)', border: 'rgba(99,102,241,0.25)' },
                   LMX10:{ label: '⚽ J10 Liga MX',        color: '#a78bfa', bg: 'rgba(139,92,246,0.08)', border: 'rgba(139,92,246,0.25)' },
+                  LMX11:{ label: '⚽ J11 Liga MX',        color: '#818cf8', bg: 'rgba(99,102,241,0.08)', border: 'rgba(99,102,241,0.25)' },
+                  UCL2: { label: '⭐ Champions J2',       color: '#fbbf24', bg: 'rgba(251,191,36,0.08)', border: 'rgba(251,191,36,0.25)' },
                 };
                 const sorted = [...resolvedPartidos].sort(
                   (a, b) => new Date(a.fecha_hora).getTime() - new Date(b.fecha_hora).getTime()

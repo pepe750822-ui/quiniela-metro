@@ -190,7 +190,7 @@ export default function PosicionesPage() {
 
     for (const p of (partidos ?? [])) {
       // Para ligamx2026 solo incluir partidos de Liga MX — excluye LC, UCL, ENG, etc.
-      if (esLigaMX && !['LMX', 'LMX9', 'LMX10'].includes(p.grupo)) continue;
+      if (esLigaMX && !['LMX', 'LMX9', 'LMX10', 'LMX11'].includes(p.grupo)) continue;
 
       const gl = p.goles_local ?? 0;
       const gv = p.goles_visitante ?? 0;

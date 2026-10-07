@@ -23,7 +23,7 @@ const DEADLINE_LMX_J4 = new Date('2026-08-15T23:00:00Z'); // Sáb 15 ago 18:00 C
 const DEADLINE_LMX_J5 = new Date('2026-08-22T01:00:00Z'); // Vie 21 ago 20:00 CDMX
 
 const jornadaInicial = () => {
-  if (TEMPORADA_ACTIVA === 'ligamx2026') return 9;
+  if (TEMPORADA_ACTIVA === 'ligamx2026') return 10;
   return 1;
 };
 
@@ -73,7 +73,7 @@ export default function TablaPage() {
         .eq('temporada', TEMPORADA_ACTIVA)
         .order('jornada');
       const unicas = [...new Set((data ?? []).map((p: any) => p.jornada as number))]
-        .filter(j => TEMPORADA_ACTIVA !== 'ligamx2026' || j <= 9);
+        .filter(j => TEMPORADA_ACTIVA !== 'ligamx2026' || j <= 10);
       if (unicas.length > 0) setJornadasDisponibles(unicas);
     };
     verificarAdmin();
@@ -554,6 +554,8 @@ export default function TablaPage() {
     MEX:  { label: '🇲🇽 Selección México',  color: '#22c55e', bg: 'rgba(34,197,94,0.06)',  border: 'rgba(34,197,94,0.3)'  },
     LMX9: { label: '⚽ J9 Liga MX',         color: '#818cf8', bg: 'rgba(99,102,241,0.06)', border: 'rgba(99,102,241,0.3)' },
     LMX10:{ label: '⚽ J10 Liga MX',        color: '#a78bfa', bg: 'rgba(139,92,246,0.06)', border: 'rgba(139,92,246,0.3)' },
+    LMX11:{ label: '⚽ J11 Liga MX',        color: '#818cf8', bg: 'rgba(99,102,241,0.06)', border: 'rgba(99,102,241,0.3)' },
+    UCL2: { label: '⭐ Champions J2',       color: '#fbbf24', bg: 'rgba(251,191,36,0.06)', border: 'rgba(251,191,36,0.3)' },
   };
   // All J8 partidos sorted chronologically
   const j8Sorted: any[] = esJ8Multi
