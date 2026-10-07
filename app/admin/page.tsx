@@ -16,10 +16,20 @@ interface ParticipacionConNombre extends Participacion {
   quinielaNombre: string | null;
 }
 
+const nombreBaseParticipante = (p: ParticipacionConNombre) =>
+  p.jugadorApodo || p.jugadorNombre.split(' ')[0] || 'Sin nombre';
+
 const mostrarNombreParticipante = (p: ParticipacionConNombre) => {
-  const base = p.jugadorApodo || p.jugadorNombre.split(' ')[0] || 'Sin nombre';
+  const base = nombreBaseParticipante(p);
   return p.quinielaNombre ? `${base} — 🎫 ${p.quinielaNombre}` : base;
 };
+
+const BadgeQuinielaExtra = ({ nombre }: { nombre: string }) => (
+  <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold"
+    style={{ background: 'rgba(96,165,250,0.15)', color: '#60a5fa', border: '1px solid rgba(96,165,250,0.35)' }}>
+    {nombre} 🏷️
+  </span>
+);
 
 const formatPagadoAt = (ts?: string | null) => {
   if (!ts) return null;
@@ -897,6 +907,7 @@ export default function AdminPage() {
       .eq('user_id', jugadorId)
       .eq('jornada', jornada)
       .eq('temporada', TEMPORADA_ACTIVA)
+      .is('quiniela_extra_id', null)
       .maybeSingle();
 
     if (partExistente) {
@@ -1548,8 +1559,9 @@ export default function AdminPage() {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 flex-wrap">
                                 <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-                                  {mostrarNombreParticipante(p)}
+                                  {nombreBaseParticipante(p)}
                                 </p>
+                                {p.quinielaNombre && <BadgeQuinielaExtra nombre={p.quinielaNombre} />}
                                 <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold"
                                   style={{ background: 'rgba(234,88,12,0.2)', color: '#ea580c', border: '1px solid rgba(234,88,12,0.4)' }}>
                                   ⏳ Pendiente de pago
@@ -1590,8 +1602,9 @@ export default function AdminPage() {
                         {confirmadas.map(p => (
                           <div key={p.id} className="flex items-center justify-between">
                             <div>
-                              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                                {mostrarNombreParticipante(p)}
+                              <p className="text-sm flex items-center gap-2 flex-wrap" style={{ color: 'var(--text-secondary)' }}>
+                                {nombreBaseParticipante(p)}
+                                {p.quinielaNombre && <BadgeQuinielaExtra nombre={p.quinielaNombre} />}
                               </p>
                               {p.jugadorReferencia && (
                                 <p className="text-xs" style={{ color: '#60a5fa' }}>📋 {p.jugadorReferencia}</p>
@@ -1625,7 +1638,7 @@ export default function AdminPage() {
                     {/* Jugadores sin participación en esta jornada */}
                     {pozoBaseJornada === pozo.jornada && pozo.estado !== 'pagado' && (() => {
                       const conParticipacion = new Set(
-                        participaciones.filter(p => p.jornada === pozoBaseJornada).map(p => p.user_id)
+                        participaciones.filter(p => p.jornada === pozoBaseJornada && !p.quiniela_extra_id).map(p => p.user_id)
                       );
                       const sinParticipacion = [...jugadores]
                         .filter(j => !conParticipacion.has(j.id))
