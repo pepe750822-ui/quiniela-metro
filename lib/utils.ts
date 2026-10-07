@@ -90,6 +90,12 @@ export const LOGOS_LIGAMX: Record<string, string> = {
   'Sabah FK':            '/logos/sabah.png',
   'Bodø/Glimt':          '/logos/bodo.png',
   'LASK Linz':           '/logos/lask.png',
+  // Alias usados en Champions J2 (grupo UCL2)
+  'Stuttgart':           '/logos/stuttgart.png',
+  'Viking':              '/logos/viking.png',
+  'Leipzig':             '/logos/leipzig.png',
+  'LASK':                '/logos/lask.png',
+  'Roma':                '/logos/asroma.svg',
 };
 
 export const emailCorto = (email: string) => email.split('@')[0];
