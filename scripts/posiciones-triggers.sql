@@ -2,7 +2,7 @@
 -- Incrementales (UPSERT): suman el resultado sobre lo ya cargado, no recalculan desde cero.
 -- Si un partido ya finalizado cambia (marcador/equipos/estado), primero se resta su aporte anterior
 -- y luego se suma el nuevo, por lo que re-guardar el mismo marcador no duplica nada.
--- No modifican la columna pos de ucl_posiciones.
+-- El trigger de Champions re-rankea pos de toda la temporada tras cada cambio.
 
 create unique index if not exists ligamx_posiciones_temporada_equipo_key
   on public.ligamx_posiciones (temporada, equipo);
@@ -138,10 +138,30 @@ begin
   end if;
 end $$;
 
+-- Re-ranking: pts DESC, dg DESC, gf DESC. Los empates exactos conservan su pos actual (luego equipo)
+-- para que el orden no cambie arbitrariamente entre ejecuciones.
+create or replace function public._ucl_reranking(p_temporada text) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  update public.ucl_posiciones
+  set pos = ranking.pos
+  from (
+    select id,
+           row_number() over (
+             order by pts desc, dg desc, gf desc, pos asc nulls last, equipo
+           )::int as pos
+    from public.ucl_posiciones
+    where temporada = p_temporada
+  ) as ranking
+  where ucl_posiciones.id = ranking.id
+    and ucl_posiciones.temporada = p_temporada
+    and ucl_posiciones.pos is distinct from ranking.pos;
+end $$;
+
 create or replace function public.trg_posiciones_ucl() returns trigger
 language plpgsql security definer set search_path = public as $$
 declare
-  grupos text[] := array['UCL','UCL2','UCL3','ENG'];
+  grupos text[] := array['UCL','UCL2','UCL3'];
 begin
   if (OLD.estado, OLD.grupo, OLD.temporada, OLD.equipo_local, OLD.equipo_visitante, OLD.goles_local, OLD.goles_visitante)
      is not distinct from
@@ -154,12 +174,14 @@ begin
      and OLD.goles_local is not null and OLD.goles_visitante is not null then
     perform public._ucl_aplicar(OLD.temporada, OLD.equipo_local,     OLD.goles_local,     OLD.goles_visitante, -1);
     perform public._ucl_aplicar(OLD.temporada, OLD.equipo_visitante, OLD.goles_visitante, OLD.goles_local,     -1);
+    perform public._ucl_reranking(OLD.temporada);
   end if;
 
   if NEW.estado = 'finalizado' and NEW.grupo = any(grupos)
      and NEW.goles_local is not null and NEW.goles_visitante is not null then
     perform public._ucl_aplicar(NEW.temporada, NEW.equipo_local,     NEW.goles_local,     NEW.goles_visitante, 1);
     perform public._ucl_aplicar(NEW.temporada, NEW.equipo_visitante, NEW.goles_visitante, NEW.goles_local,     1);
+    perform public._ucl_reranking(NEW.temporada);
   end if;
 
   return null;
@@ -171,5 +193,5 @@ create trigger trg_posiciones_ucl
   on public.quiniela_partidos
   for each row
   when ((OLD.estado = 'finalizado' or NEW.estado = 'finalizado')
-        and (OLD.grupo in ('UCL','UCL2','UCL3','ENG') or NEW.grupo in ('UCL','UCL2','UCL3','ENG')))
+        and (OLD.grupo in ('UCL','UCL2','UCL3') or NEW.grupo in ('UCL','UCL2','UCL3')))
   execute function public.trg_posiciones_ucl();
