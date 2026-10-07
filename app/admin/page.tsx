@@ -88,6 +88,7 @@ export default function AdminPage() {
   const [pagoJugadorId, setPagoJugadorId] = useState('');
   const [pagoJornada, setPagoJornada]     = useState<number>(1);
   const [registrando, setRegistrando]     = useState(false);
+  const [registrandoPozoId, setRegistrandoPozoId] = useState<string | null>(null);
 
   // Edición de apodos y referencias
   const [editandoApodo, setEditandoApodo] = useState<string | null>(null);
@@ -887,55 +888,64 @@ export default function AdminPage() {
     setCampeonLcLoading(false);
   };
 
-  const registrarPago = async () => {
-    if (!pagoJugadorId || !pagoJornada) return;
-    setRegistrando(true);
-
-    const jugador = jugadores.find(j => j.id === pagoJugadorId);
+  const registrarPagoDe = async (jugadorId: string, jornada: number): Promise<boolean> => {
+    const jugador = jugadores.find(j => j.id === jugadorId);
 
     const { data: partExistente } = await supabase
       .from('quiniela_participaciones')
       .select('id, pagado')
-      .eq('user_id', pagoJugadorId)
-      .eq('jornada', pagoJornada)
+      .eq('user_id', jugadorId)
+      .eq('jornada', jornada)
       .eq('temporada', TEMPORADA_ACTIVA)
       .maybeSingle();
 
     if (partExistente) {
       if (partExistente.pagado) {
-        toast.error(`${mostrarNombre(jugador ?? { nombre: 'Jugador', apodo: null })} ya tiene pago confirmado en ${getNombreJornada(pagoJornada)}`);
-        setRegistrando(false);
-        return;
+        toast.error(`${mostrarNombre(jugador ?? { nombre: 'Jugador', apodo: null })} ya tiene pago confirmado en ${getNombreJornada(jornada)}`);
+        return false;
       }
       const { error } = await supabase
         .from('quiniela_participaciones')
         .update({ pagado: true, pagado_at: new Date().toISOString() })
         .eq('id', partExistente.id);
-      if (error) { toast.error('Error al actualizar participación'); setRegistrando(false); return; }
+      if (error) { toast.error('Error al actualizar participación'); return false; }
     } else {
-      const monto = getMontoJornada(pagoJornada);
+      const monto = getMontoJornada(jornada);
       const { error } = await supabase
         .from('quiniela_participaciones')
-        .insert({ user_id: pagoJugadorId, jornada: pagoJornada, pagado: true, monto, pagado_at: new Date().toISOString(), temporada: TEMPORADA_ACTIVA });
-      if (error) { toast.error('Error al crear participación'); setRegistrando(false); return; }
+        .insert({ user_id: jugadorId, jornada, pagado: true, monto, pagado_at: new Date().toISOString(), temporada: TEMPORADA_ACTIVA });
+      if (error) { toast.error('Error al crear participación'); return false; }
     }
 
-    const pozo = pozos.find(pz => pz.jornada === pagoJornada);
-    const montoPozo = getMontoJornada(pagoJornada);
+    const pozo = pozos.find(pz => pz.jornada === jornada);
+    const montoPozo = getMontoJornada(jornada);
     await supabase
       .from('quiniela_pozo')
       .update({
         total_mxn:     (pozo?.total_mxn ?? 0) + montoPozo,
         participantes: (pozo?.participantes ?? 0) + 1,
       })
-      .eq('jornada', pagoJornada)
+      .eq('jornada', jornada)
       .eq('temporada', TEMPORADA_ACTIVA);
 
     const nombre = jugador ? mostrarNombre(jugador) : 'Jugador';
-    toast.success(`✅ Pago de ${nombre} registrado en ${getNombreJornada(pagoJornada)}`);
-    setPagoJugadorId('');
-    setRegistrando(false);
+    toast.success(`✅ Pago de ${nombre} registrado en ${getNombreJornada(jornada)}`);
     cargarPozos();
+    return true;
+  };
+
+  const registrarPago = async () => {
+    if (!pagoJugadorId || !pagoJornada) return;
+    setRegistrando(true);
+    const ok = await registrarPagoDe(pagoJugadorId, pagoJornada);
+    if (ok) setPagoJugadorId('');
+    setRegistrando(false);
+  };
+
+  const registrarPagoDesdePozo = async (jugadorId: string, jornada: number) => {
+    setRegistrandoPozoId(jugadorId);
+    await registrarPagoDe(jugadorId, jornada);
+    setRegistrandoPozoId(null);
   };
 
   const descargarCSV = async () => {
@@ -1611,6 +1621,51 @@ export default function AdminPage() {
                         Sin participaciones registradas.
                       </p>
                     )}
+
+                    {/* Jugadores sin participación en esta jornada */}
+                    {pozoBaseJornada === pozo.jornada && pozo.estado !== 'pagado' && (() => {
+                      const conParticipacion = new Set(
+                        participaciones.filter(p => p.jornada === pozoBaseJornada).map(p => p.user_id)
+                      );
+                      const sinParticipacion = [...jugadores]
+                        .filter(j => !conParticipacion.has(j.id))
+                        .sort((a, b) => {
+                          if (!a.last_seen && !b.last_seen) return 0;
+                          if (!a.last_seen) return 1;
+                          if (!b.last_seen) return -1;
+                          return new Date(b.last_seen).getTime() - new Date(a.last_seen).getTime();
+                        });
+                      if (sinParticipacion.length === 0) return null;
+                      return (
+                        <details className="px-4 py-3" style={{ borderTop: '1px solid var(--border)' }}>
+                          <summary className="text-[10px] uppercase tracking-widest font-semibold cursor-pointer"
+                            style={{ color: '#64748b' }}>
+                            👤 Sin participación ({sinParticipacion.length})
+                          </summary>
+                          <div className="mt-2 space-y-1">
+                            {sinParticipacion.map(j => (
+                              <div key={j.id} className="flex items-center justify-between gap-2">
+                                <div className="min-w-0">
+                                  <p className="text-sm truncate" style={{ color: 'var(--text-secondary)' }}>
+                                    {mostrarNombre(j)}
+                                  </p>
+                                  {j.referencia_admin && (
+                                    <p className="text-xs" style={{ color: '#60a5fa' }}>📋 {j.referencia_admin}</p>
+                                  )}
+                                </div>
+                                <button
+                                  onClick={() => registrarPagoDesdePozo(j.id, pozoBaseJornada)}
+                                  disabled={registrandoPozoId === j.id}
+                                  className="text-xs px-3 py-1.5 rounded-xl font-bold disabled:opacity-50 transition-all active:scale-95 whitespace-nowrap shrink-0"
+                                  style={{ background: '#10b981', color: '#000' }}>
+                                  {registrandoPozoId === j.id ? '…' : '✅ Registrar pago'}
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </details>
+                      );
+                    })()}
                   </div>
                 )}
               </div>
