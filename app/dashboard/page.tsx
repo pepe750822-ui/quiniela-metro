@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { RankingConJugador, Pozo } from '@/types';
@@ -641,6 +641,15 @@ export default function DashboardPage() {
         });
       }
     }, 800);
+  }, [pozos]);
+
+  const jornadaAutoElegida = useRef(false);
+  useEffect(() => {
+    if (TEMPORADA_ACTIVA !== 'ligamx2026' || jornadaAutoElegida.current || pozos.length === 0) return;
+    const activas = pozos.filter(p => p.participantes > 0 && p.jornada <= 10).map(p => p.jornada);
+    if (activas.length === 0) return;
+    jornadaAutoElegida.current = true;
+    setJornadaSeleccionada(Math.max(...activas));
   }, [pozos]);
 
   const jornadasConPozo = new Set(pozos.map(p => p.jornada));

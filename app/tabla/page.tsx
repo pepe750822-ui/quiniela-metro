@@ -74,7 +74,10 @@ export default function TablaPage() {
         .order('jornada');
       const unicas = [...new Set((data ?? []).map((p: any) => p.jornada as number))]
         .filter(j => TEMPORADA_ACTIVA !== 'ligamx2026' || j <= 10);
-      if (unicas.length > 0) setJornadasDisponibles(unicas);
+      if (unicas.length > 0) {
+        setJornadasDisponibles(unicas);
+        setJornada(Math.max(...unicas));
+      }
     };
     verificarAdmin();
     cargarJornadas();
