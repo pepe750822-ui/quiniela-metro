@@ -49,10 +49,6 @@ export default function AdminPage() {
   const [adminId, setAdminId]     = useState<string | null>(null);
   const [resultados, setResultados] = useState<Record<string, { local: number; visitante: number }>>({});
   const [guardando, setGuardando]   = useState<string | null>(null);
-  const [extras, setExtras] = useState<Record<string, {
-    clasificado: string;
-    como_termino: 'reglamentario' | 'tiempo_extra' | 'penales';
-  }>>({});
 
   // Apodos
   const [jugadores, setJugadores] = useState<Jugador[]>([]);
@@ -428,17 +424,11 @@ export default function AdminPage() {
       return;
     }
     const partidoObj = partidos.find(p => p.id === partidoId);
-    const ext = extras[partidoId];
     const fechaPartidoH = partidoObj ? new Date(partidoObj.fecha_hora) : null;
     const esLeaguesCupH = TEMPORADA_ACTIVA === 'ligamx2026' && !!fechaPartidoH
       && fechaPartidoH >= new Date('2026-08-04T00:00:00Z')
       && fechaPartidoH < new Date('2026-08-14T00:00:00Z');
     const esElim = (partidoObj?.jornada ?? 0) >= 5 || esLeaguesCupH;
-
-    if (esElim && (!ext?.clasificado || !ext?.como_termino)) {
-      toast.error('Debes seleccionar quién ganó y cómo terminó');
-      return;
-    }
 
     setGuardando(partidoId);
     const updatePayload: Record<string, unknown> = {
@@ -447,8 +437,7 @@ export default function AdminPage() {
       estado: 'finalizado',
     };
     if (esElim) {
-      updatePayload.clasificado  = ext?.clasificado  || null;
-      updatePayload.como_termino = ext?.como_termino || 'reglamentario';
+      updatePayload.como_termino = 'reglamentario';
     }
     console.log('Guardando resultado:', partidoId, updatePayload);
     const { error } = await supabase
@@ -486,7 +475,6 @@ export default function AdminPage() {
     if (error) {
       toast.error('Error: ' + error.message);
     } else {
-      setExtras(prev => { const n = { ...prev }; delete n[partidoId]; return n; });
       toast.success('🔄 Resultado limpiado');
       await cargarPartidos();
     }
@@ -1270,33 +1258,6 @@ export default function AdminPage() {
                               className="w-14 h-12 text-center text-xl font-bold rounded-xl outline-none"
                               style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontFamily: 'var(--font-bebas)' }} />
                           </div>
-                          <div className="flex flex-col sm:flex-row gap-2">
-                            <div className="flex-1">
-                              <label className="block text-xs mb-1" style={{ color: '#64748b' }}>¿Quién clasificó?</label>
-                              <select
-                                value={extras[partido.id]?.clasificado ?? ''}
-                                onChange={e => setExtras(prev => ({ ...prev, [partido.id]: { ...prev[partido.id], clasificado: e.target.value, como_termino: prev[partido.id]?.como_termino ?? 'reglamentario' } }))}
-                                className="w-full rounded-lg px-2 py-1.5 text-sm outline-none"
-                                style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}>
-                                <option value="">— seleccionar —</option>
-                                <option value={partido.equipo_local}>{partido.equipo_local}</option>
-                                <option value={partido.equipo_visitante}>{partido.equipo_visitante}</option>
-                              </select>
-                            </div>
-                            <div className="flex-1">
-                              <label className="block text-xs mb-1" style={{ color: '#64748b' }}>¿Cómo terminó?</label>
-                              <select
-                                value={extras[partido.id]?.como_termino ?? ''}
-                                onChange={e => setExtras(prev => ({ ...prev, [partido.id]: { ...prev[partido.id], clasificado: prev[partido.id]?.clasificado ?? '', como_termino: e.target.value as 'reglamentario' | 'tiempo_extra' | 'penales' } }))}
-                                className="w-full rounded-lg px-2 py-1.5 text-sm outline-none"
-                                style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}>
-                                <option value="">— seleccionar —</option>
-                                <option value="reglamentario">⏱️ Tiempo reglamentario</option>
-                                <option value="tiempo_extra">⏩ Tiempo extra</option>
-                                <option value="penales">🥅 Penales</option>
-                              </select>
-                            </div>
-                          </div>
                           <button onClick={() => handleGuardar(partido.id)}
                             disabled={guardando === partido.id}
                             className="w-full h-12 rounded-xl font-bold text-sm disabled:opacity-40 transition-all active:scale-95"
@@ -1896,11 +1857,6 @@ export default function AdminPage() {
         <div className="space-y-3">
           {partidos.map(partido => {
             const res = resultados[partido.id];
-            const fechaP = new Date(partido.fecha_hora);
-            const esLeaguesCup = TEMPORADA_ACTIVA === 'ligamx2026'
-              && fechaP >= new Date('2026-08-04T00:00:00Z')
-              && fechaP < new Date('2026-08-14T00:00:00Z');
-            const necesitaExtras = partido.jornada >= 5 || esLeaguesCup;
             return (
               <div key={partido.id} id={`partido-${partido.id}`} className="rounded-2xl p-4 space-y-3"
                 style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
@@ -1941,14 +1897,12 @@ export default function AdminPage() {
                         }))}
                         className="w-14 h-12 text-center text-xl font-bold rounded-xl outline-none"
                         style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontFamily: 'var(--font-bebas)' }} />
-                      {!necesitaExtras && (
-                        <button onClick={() => handleGuardar(partido.id)}
-                          disabled={guardando === partido.id}
-                          className="h-12 px-4 rounded-xl font-bold text-sm disabled:opacity-40 transition-all active:scale-95"
-                          style={{ background: '#10b981', color: '#000' }}>
-                          {guardando === partido.id ? '…' : 'Guardar ✓'}
-                        </button>
-                      )}
+                      <button onClick={() => handleGuardar(partido.id)}
+                        disabled={guardando === partido.id}
+                        className="h-12 px-4 rounded-xl font-bold text-sm disabled:opacity-40 transition-all active:scale-95"
+                        style={{ background: '#10b981', color: '#000' }}>
+                        {guardando === partido.id ? '…' : 'Guardar ✓'}
+                      </button>
                       <button onClick={() => handleLimpiar(partido.id)}
                         className="h-12 px-3 rounded-xl text-sm transition-all active:scale-95"
                         style={{ background: '#334155', color: '#94a3b8' }}
@@ -1956,45 +1910,6 @@ export default function AdminPage() {
                         🔄
                       </button>
                     </div>
-                    {necesitaExtras && (
-                      <div className="flex flex-col sm:flex-row gap-2 px-1">
-                        <div className="flex-1">
-                          <label className="block text-xs mb-1" style={{ color: '#64748b' }}>
-                            {esLeaguesCup ? '¿Quién ganó?' : '¿Quién clasificó?'}
-                          </label>
-                          <select
-                            value={extras[partido.id]?.clasificado ?? ''}
-                            onChange={e => setExtras(prev => ({ ...prev, [partido.id]: { ...prev[partido.id], clasificado: e.target.value, como_termino: prev[partido.id]?.como_termino ?? 'reglamentario' } }))}
-                            className="w-full rounded-lg px-2 py-1.5 text-sm outline-none"
-                            style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}>
-                            <option value="">— seleccionar —</option>
-                            <option value={partido.equipo_local}>{partido.equipo_local}</option>
-                            <option value={partido.equipo_visitante}>{partido.equipo_visitante}</option>
-                          </select>
-                        </div>
-                        <div className="flex-1">
-                          <label className="block text-xs mb-1" style={{ color: '#64748b' }}>¿Cómo terminó?</label>
-                          <select
-                            value={extras[partido.id]?.como_termino ?? ''}
-                            onChange={e => setExtras(prev => ({ ...prev, [partido.id]: { ...prev[partido.id], clasificado: prev[partido.id]?.clasificado ?? '', como_termino: e.target.value as 'reglamentario' | 'tiempo_extra' | 'penales' } }))}
-                            className="w-full rounded-lg px-2 py-1.5 text-sm outline-none"
-                            style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}>
-                            <option value="">— seleccionar —</option>
-                            <option value="reglamentario">⏱️ Reglamentario</option>
-                            {!esLeaguesCup && <option value="tiempo_extra">⏩ Tiempo extra</option>}
-                            <option value="penales">🥅 Penales</option>
-                          </select>
-                        </div>
-                      </div>
-                    )}
-                    {necesitaExtras && (
-                      <button onClick={() => handleGuardar(partido.id)}
-                        disabled={guardando === partido.id}
-                        className="w-full h-12 rounded-xl font-bold text-sm disabled:opacity-40 transition-all active:scale-95"
-                        style={{ background: '#10b981', color: '#000' }}>
-                        {guardando === partido.id ? '…' : 'Guardar ✓'}
-                      </button>
-                    )}
                   </div>
                 )}
                 {partido.estado === 'finalizado' && (
@@ -2002,7 +1917,7 @@ export default function AdminPage() {
                     <p className="font-bold text-lg" style={{ fontFamily: 'var(--font-bebas)', color: 'var(--accent-gold)' }}>
                       {partido.goles_local} – {partido.goles_visitante}
                     </p>
-                    {necesitaExtras && (partido as any).clasificado && (
+                    {(partido as any).clasificado && (
                       <p className="text-xs flex items-center justify-center gap-1.5" style={{ color: '#94a3b8' }}>
                         <Bandera emoji={BANDERAS_EQUIPOS[(partido as any).clasificado] ?? ''} nombre={(partido as any).clasificado} size="sm" />
                         {(partido as any).clasificado}
