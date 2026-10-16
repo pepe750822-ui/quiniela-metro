@@ -65,7 +65,7 @@ end $$;
 create or replace function public.trg_posiciones_ligamx() returns trigger
 language plpgsql security definer set search_path = public as $$
 declare
-  grupos text[] := array['LMX','LMX9','LMX10','LMX11'];
+  grupos text[] := array['LMX','LMX9','LMX10','LMX11','LMX12'];
 begin
   if (OLD.estado, OLD.grupo, OLD.temporada, OLD.equipo_local, OLD.equipo_visitante, OLD.goles_local, OLD.goles_visitante)
      is not distinct from
@@ -95,7 +95,7 @@ create trigger trg_posiciones_ligamx
   on public.quiniela_partidos
   for each row
   when ((OLD.estado = 'finalizado' or NEW.estado = 'finalizado')
-        and (OLD.grupo in ('LMX','LMX9','LMX10','LMX11') or NEW.grupo in ('LMX','LMX9','LMX10','LMX11')))
+        and (OLD.grupo in ('LMX','LMX9','LMX10','LMX11','LMX12') or NEW.grupo in ('LMX','LMX9','LMX10','LMX11','LMX12')))
   execute function public.trg_posiciones_ligamx();
 
 -- ── Champions ────────────────────────────────────────────────────────────

@@ -158,6 +158,7 @@ export const getNombreJornadaLigaMX = (j: number) => {
   if (j === 8) return 'J8+Champions';
   if (j === 9) return 'J9+J10+Selección+UEFA';
   if (j === 10) return 'J11 + Champions J2';
+  if (j === 11) return 'J12 + Champions J3';
   return `J${j}`;
 };
 
