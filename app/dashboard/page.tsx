@@ -34,6 +34,46 @@ const nomParticipante = (j: { nombre: string; email: string; apodo: string | nul
 const iniParticipante = (j: { nombre: string; apodo: string | null } | null) =>
   (j?.apodo || j?.nombre || 'J').substring(0, 2).toUpperCase();
 
+// ── Desempate del pozo de la jornada anterior (nombre visible 'J11 + Champions J2') ──
+const JORNADA_POZO_ANTERIOR = 10;
+const JUGADORES_DESEMPATE = ['TOKEN', 'J. Manuel', 'ALV', 'JLG'] as const;
+
+interface DesempateRow {
+  key: string;
+  user_id: string;
+  nombre: string;
+  quinielaNombre: string | null;
+  puntos: number;
+  exactos: number;
+  clave: string | null;
+}
+
+const normNombre = (s?: string | null) =>
+  (s ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase()
+    .replace(/\./g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+// Coincide por apodo o por nombre: completo, primera palabra o dos primeras
+const claveDesempate = (nombre?: string | null, apodo?: string | null): string | null => {
+  for (const raw of [apodo, nombre]) {
+    const completo = normNombre(raw);
+    if (!completo) continue;
+    const partes = completo.split(' ');
+    for (const cand of [completo, partes[0], partes.slice(0, 2).join(' ')]) {
+      const hit = JUGADORES_DESEMPATE.find(j => normNombre(j) === cand);
+      if (hit) return hit;
+    }
+  }
+  return null;
+};
+
+const ordenDesempate = (clave: string | null) =>
+  (JUGADORES_DESEMPATE as readonly string[]).indexOf(clave ?? '');
+
 function useCountdown(target: Date) {
   const [diff, setDiff]       = useState(0);
   const [mounted, setMounted] = useState(false);
@@ -162,6 +202,8 @@ export default function DashboardPage() {
     TEMPORADA_ACTIVA === 'ligamx2026' ? 11 : 1
   );
   const [participantesJornada, setParticipantesJornada] = useState<ParticipanteItem[]>([]);
+  const [rankingJ11, setRankingJ11]                 = useState<DesempateRow[]>([]);
+  const [cargandoDesempate, setCargandoDesempate]   = useState(false);
   const { d, h, m, s, started, mounted: countdownReady } = useCountdown(INAUGURAL);
 
   const [campeonPick, setCampeonPick]           = useState<string | null>(null);
@@ -631,6 +673,85 @@ export default function DashboardPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { cargarRanking(); }, [jornadaSeleccionada]);
 
+  // ── Puntos del pozo de la jornada anterior, para el desempate de la jornada 11 ──
+  const cargarPozoAnterior = useCallback(async () => {
+    setCargandoDesempate(true);
+    const J = JORNADA_POZO_ANTERIOR;
+
+    const { data: parts } = await supabase
+      .from('quiniela_participaciones')
+      .select('id, user_id, quiniela_extra_id')
+      .eq('jornada', J)
+      .eq('pagado', true)
+      .eq('temporada', TEMPORADA_ACTIVA);
+
+    const entradas = (parts ?? []) as { id: string; user_id: string; quiniela_extra_id: string | null }[];
+    const userIds  = [...new Set(entradas.map(p => p.user_id))];
+
+    if (userIds.length === 0) {
+      setRankingJ11([]);
+      setCargandoDesempate(false);
+      return;
+    }
+
+    const { data: preds } = await supabase
+      .from('quiniela_predicciones')
+      .select(`
+        user_id,
+        quiniela_extra_id,
+        puntos_ganados,
+        partido:quiniela_partidos!inner(estado, jornada, temporada)
+      `)
+      .eq('partido.estado', 'finalizado')
+      .eq('partido.jornada', J)
+      .eq('partido.temporada', TEMPORADA_ACTIVA)
+      .in('user_id', userIds);
+
+    const { data: jugadores } = await supabase
+      .from('quiniela_jugadores')
+      .select('id, nombre, apodo')
+      .in('id', userIds);
+
+    const extraIds = [...new Set(entradas.map(p => p.quiniela_extra_id).filter(Boolean))] as string[];
+    const { data: extras } = extraIds.length
+      ? await supabase.from('quiniela_extra').select('id, nombre').in('id', extraIds)
+      : { data: [] };
+
+    const puntajes: Record<string, { puntos: number; exactos: number }> = {};
+    (preds ?? []).forEach((p: { user_id: string; quiniela_extra_id: string | null; puntos_ganados: number | null }) => {
+      const key = `${p.user_id}:${p.quiniela_extra_id ?? 'null'}`;
+      if (!puntajes[key]) puntajes[key] = { puntos: 0, exactos: 0 };
+      puntajes[key].puntos += p.puntos_ganados || 0;
+      if (p.puntos_ganados === 3) puntajes[key].exactos++;
+    });
+
+    const filas: DesempateRow[] = entradas.map(p => {
+      const key = `${p.user_id}:${p.quiniela_extra_id ?? 'null'}`;
+      const jug = (jugadores ?? []).find((j: { id: string }) => j.id === p.user_id) as
+        { nombre?: string; apodo?: string | null } | undefined;
+      return {
+        key,
+        user_id: p.user_id,
+        nombre:  jug?.apodo || jug?.nombre?.split(' ')[0] || 'Jugador',
+        quinielaNombre: p.quiniela_extra_id
+          ? ((extras ?? []) as { id: string; nombre: string }[]).find(q => q.id === p.quiniela_extra_id)?.nombre ?? null
+          : null,
+        puntos:  puntajes[key]?.puntos  ?? 0,
+        exactos: puntajes[key]?.exactos ?? 0,
+        clave:   claveDesempate(jug?.nombre, jug?.apodo),
+      };
+    }).sort((a, b) => b.puntos - a.puntos || a.nombre.localeCompare(b.nombre));
+
+    setRankingJ11(filas);
+    setCargandoDesempate(false);
+  }, []);
+
+  useEffect(() => {
+    if (jornadaSeleccionada !== 11) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    cargarPozoAnterior();
+  }, [jornadaSeleccionada, cargarPozoAnterior]);
+
   useEffect(() => {
     setTimeout(() => {
       const el = document.getElementById('pozo-j6');
@@ -700,6 +821,62 @@ export default function DashboardPage() {
 
     window.open(`https://wa.me/?text=${mensaje}`, '_blank');
   };
+
+  // Sub-tabla del desempate: solo los 4 jugadores, una participación por jugador
+  // (se prefiere la quiniela principal; si hay varias del mismo tipo, la de más puntos)
+  const filasDesempate = (() => {
+    const porClave = new Map<string, DesempateRow>();
+    for (const r of rankingJ11) {
+      if (!r.clave) continue;
+      const prev = porClave.get(r.clave);
+      if (!prev) { porClave.set(r.clave, r); continue; }
+      const rPrincipal    = r.quinielaNombre === null;
+      const prevPrincipal = prev.quinielaNombre === null;
+      if (rPrincipal !== prevPrincipal ? rPrincipal : r.puntos > prev.puntos) porClave.set(r.clave, r);
+    }
+    return [...porClave.values()].sort((a, b) =>
+      b.puntos - a.puntos || ordenDesempate(a.clave) - ordenDesempate(b.clave)
+    );
+  })();
+  const maxPuntosDesempate = filasDesempate.length
+    ? Math.max(...filasDesempate.map(r => r.puntos))
+    : 0;
+
+  const filaDesempate = (r: DesempateRow, pos: number, lider: boolean) => (
+    <div
+      key={r.key}
+      className="flex items-center gap-3 px-4 py-3 rounded-2xl"
+      style={{
+        background: lider ? 'rgba(251,191,36,0.08)' : 'var(--bg-card)',
+        border: `1px solid ${lider ? 'rgba(251,191,36,0.45)' : 'var(--border)'}`,
+      }}
+    >
+      <span className="w-6 text-center text-sm font-bold" style={{ color: lider ? '#fbbf24' : 'var(--text-secondary)' }}>
+        {lider ? '🏆' : pos}
+      </span>
+      <div
+        className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-black flex-shrink-0"
+        style={{ background: 'linear-gradient(135deg, #ea580c, #f97316)' }}
+      >
+        {r.nombre.slice(0, 2).toUpperCase()}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="font-semibold text-sm truncate" style={{ color: lider ? 'var(--accent-gold)' : 'var(--text-primary)', fontFamily: 'var(--font-rajdhani)' }}>
+          {r.nombre}
+        </p>
+        {r.quinielaNombre && (
+          <p className="text-xs" style={{ color: '#ea580c' }}>🎫 {r.quinielaNombre}</p>
+        )}
+        <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>{r.exactos} exactos ✅</p>
+      </div>
+      <div className="text-right">
+        <p style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.5rem', color: lider ? '#fbbf24' : 'var(--text-primary)', lineHeight: 1 }}>
+          {r.puntos}
+        </p>
+        <p className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>pts</p>
+      </div>
+    </div>
+  );
 
   return (
     <main
@@ -933,6 +1110,60 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
+
+      {/* Desempate — pozo de la jornada anterior (J11 + Champions J2) */}
+      {jornadaSeleccionada === 11 && (
+        <div className="space-y-4" style={{ animation: 'fadeInUp 0.5s ease-out 0.35s both' }}>
+          <div>
+            <h2 className="font-bebas text-2xl" style={{ color: '#fbbf24' }}>
+              🏆 Desempate — Pozo jornada anterior
+            </h2>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+              {labelJornada(JORNADA_POZO_ANTERIOR)} · puntos de la jornada 11
+            </p>
+          </div>
+
+          {cargandoDesempate ? (
+            <div className="flex justify-center py-8">
+              <div className="h-8 w-8 border-2 border-t-transparent rounded-full animate-spin"
+                style={{ borderColor: 'var(--accent-gold)', borderTopColor: 'transparent' }} />
+            </div>
+          ) : rankingJ11.length === 0 ? (
+            <p className="text-sm text-center" style={{ color: '#64748b' }}>
+              ⏳ Aún no hay resultados del pozo anterior
+            </p>
+          ) : (
+            <>
+              {/* 1. Ranking normal de la jornada 11, todos los jugadores */}
+              <div className="space-y-2">
+                <p className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: 'var(--text-secondary)' }}>
+                  Ranking completo — todos los jugadores
+                </p>
+                {rankingJ11.map((r, i) => filaDesempate(r, i + 1, false))}
+              </div>
+
+              {/* 2. Sub-tabla solo los 4 del desempate */}
+              <div className="space-y-2 pt-2">
+                <p className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: '#fbbf24' }}>
+                  Desempate — solo los 4
+                </p>
+                {filasDesempate.length === 0 ? (
+                  <p className="text-sm" style={{ color: '#64748b' }}>
+                    No se encontraron TOKEN, J. Manuel, ALV ni JLG en este pozo
+                  </p>
+                ) : (
+                  <>
+                    {filasDesempate.map((r, i) => filaDesempate(r, i + 1, r.puntos === maxPuntosDesempate))}
+                    <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                      🏆 = va primero entre los 4 con {maxPuntosDesempate} pts
+                    </p>
+                  </>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       {/* Grupo WhatsApp */}
       <a
