@@ -5,6 +5,8 @@ import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { RankingConJugador, Pozo } from '@/types';
 import RankingTable from '@/components/RankingTable';
+import DesempateTabla from '@/components/DesempateTabla';
+import { JORNADA_DESEMPATE, cargarDesempateJ11, DesempateRow } from '@/lib/desempate';
 import { getNombreJornada, getMontoJornada, TEMPORADA_ACTIVA, getNombreJornadaLigaMX } from '@/lib/utils';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
@@ -33,48 +35,6 @@ const nomParticipante = (j: { nombre: string; email: string; apodo: string | nul
 
 const iniParticipante = (j: { nombre: string; apodo: string | null } | null) =>
   (j?.apodo || j?.nombre || 'J').substring(0, 2).toUpperCase();
-
-// ── Desempate de la jornada 11 (nombre visible 'J12 + Champions J3') ──
-const JORNADA_DESEMPATE = 11;
-const JUGADORES_DESEMPATE = ['TOKEN', 'J. Manuel', 'ALV', 'JLG'] as const;
-
-interface DesempateRow {
-  key: string;
-  nombre: string;
-  clave: string;
-  puntos: number;
-  exactos: number;
-}
-
-const normNombre = (s?: string | null) =>
-  (s ?? '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toUpperCase()
-    .replace(/\./g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-
-// Coincide por apodo o por nombre: completo, primera palabra o dos primeras.
-// También ignora espacios/dígitos de separación para variantes tipo 'JMANUEL'.
-const claveDesempate = (nombre?: string | null, apodo?: string | null): string | null => {
-  for (const raw of [apodo, nombre]) {
-    const completo = normNombre(raw);
-    if (!completo) continue;
-    const partes = completo.split(' ');
-    for (const cand of [completo, partes[0], partes.slice(0, 2).join(' ')]) {
-      const hit = JUGADORES_DESEMPATE.find(j => {
-        const objetivo = normNombre(j);
-        return objetivo === cand || objetivo.replace(/\s+/g, '') === cand.replace(/\s+/g, '');
-      });
-      if (hit) return hit;
-    }
-  }
-  return null;
-};
-
-const ordenDesempate = (clave: string | null) =>
-  (JUGADORES_DESEMPATE as readonly string[]).indexOf(clave ?? '');
 
 function useCountdown(target: Date) {
   const [diff, setDiff]       = useState(0);
@@ -678,58 +638,7 @@ export default function DashboardPage() {
   // ── Desempate de la jornada 11: puntos de los 4 jugadores ──
   const cargarDesempate = useCallback(async () => {
     setCargandoDesempate(true);
-
-    // 1. Localizar a los 4 jugadores por apodo o nombre
-    const { data: jugadores } = await supabase
-      .from('quiniela_jugadores')
-      .select('id, nombre, apodo');
-
-    const porClave = new Map<string, { id: string; nombre: string; apodo: string | null; clave: string }>();
-    ((jugadores ?? []) as { id: string; nombre: string; apodo: string | null }[]).forEach(j => {
-      const clave = claveDesempate(j.nombre, j.apodo);
-      if (clave && !porClave.has(clave)) porClave.set(clave, { ...j, clave });
-    });
-
-    const ids = [...porClave.values()].map(j => j.id);
-    if (ids.length === 0) {
-      setFilasDesempate([]);
-      setCargandoDesempate(false);
-      return;
-    }
-
-    // 2. Puntos de la jornada 11 en la quiniela principal (partidos finalizados)
-    const { data: preds } = await supabase
-      .from('quiniela_predicciones')
-      .select(`
-        user_id,
-        puntos_ganados,
-        partido:quiniela_partidos!inner(estado, jornada, temporada)
-      `)
-      .is('quiniela_extra_id', null)
-      .eq('partido.estado', 'finalizado')
-      .eq('partido.jornada', JORNADA_DESEMPATE)
-      .eq('partido.temporada', TEMPORADA_ACTIVA)
-      .in('user_id', ids);
-
-    const puntajes: Record<string, { puntos: number; exactos: number }> = {};
-    (preds ?? []).forEach((p: { user_id: string; puntos_ganados: number | null }) => {
-      if (!puntajes[p.user_id]) puntajes[p.user_id] = { puntos: 0, exactos: 0 };
-      puntajes[p.user_id].puntos += p.puntos_ganados || 0;
-      if (p.puntos_ganados === 3) puntajes[p.user_id].exactos++;
-    });
-
-    // 3. Siempre las 4 filas, con 0 pts si aún no hay resultados
-    const filas: DesempateRow[] = [...porClave.values()]
-      .map(j => ({
-        key:     j.clave,
-        nombre:  j.apodo || j.nombre.split(' ')[0] || 'Jugador',
-        clave:   j.clave,
-        puntos:  puntajes[j.id]?.puntos  ?? 0,
-        exactos: puntajes[j.id]?.exactos ?? 0,
-      }))
-      .sort((a, b) => b.puntos - a.puntos || ordenDesempate(a.clave) - ordenDesempate(b.clave));
-
-    setFilasDesempate(filas);
+    setFilasDesempate(await cargarDesempateJ11());
     setCargandoDesempate(false);
   }, []);
 
@@ -808,45 +717,6 @@ export default function DashboardPage() {
 
     window.open(`https://wa.me/?text=${mensaje}`, '_blank');
   };
-
-  const maxPuntosDesempate = filasDesempate.length
-    ? Math.max(...filasDesempate.map(r => r.puntos))
-    : 0;
-  // Hay líder solo si alguien ya sumó; con todos en 0 el desempate sigue abierto
-  const hayLiderDesempate = maxPuntosDesempate > 0;
-
-  const filaDesempate = (r: DesempateRow, pos: number, lider: boolean) => (
-    <div
-      key={r.key}
-      className="flex items-center gap-3 px-4 py-3 rounded-2xl"
-      style={{
-        background: lider ? 'rgba(251,191,36,0.08)' : 'var(--bg-card)',
-        border: `1px solid ${lider ? 'rgba(251,191,36,0.45)' : 'var(--border)'}`,
-      }}
-    >
-      <span className="w-6 text-center text-sm font-bold" style={{ color: lider ? '#fbbf24' : 'var(--text-secondary)' }}>
-        {lider ? '🏆' : pos}
-      </span>
-      <div
-        className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-black flex-shrink-0"
-        style={{ background: 'linear-gradient(135deg, #ea580c, #f97316)' }}
-      >
-        {r.nombre.slice(0, 2).toUpperCase()}
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="font-semibold text-sm truncate" style={{ color: lider ? 'var(--accent-gold)' : 'var(--text-primary)', fontFamily: 'var(--font-rajdhani)' }}>
-          {r.nombre}
-        </p>
-        <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>{r.exactos} exactos ✅</p>
-      </div>
-      <div className="text-right">
-        <p style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.5rem', color: lider ? '#fbbf24' : 'var(--text-primary)', lineHeight: 1 }}>
-          {r.puntos}
-        </p>
-        <p className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>pts</p>
-      </div>
-    </div>
-  );
 
   return (
     <main
@@ -1083,40 +953,8 @@ export default function DashboardPage() {
 
       {/* Desempate jornada 11 — solo los 4 jugadores (TOKEN, J. Manuel, ALV, JLG) */}
       {jornadaSeleccionada === JORNADA_DESEMPATE && (
-        <div className="space-y-4" style={{ animation: 'fadeInUp 0.5s ease-out 0.35s both' }}>
-          <div>
-            <h2 className="font-bebas text-2xl" style={{ color: '#fbbf24' }}>
-              🏆 Desempate — Pozo jornada anterior
-            </h2>
-            <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-              {labelJornada(JORNADA_DESEMPATE)} · puntos de la jornada 11
-            </p>
-          </div>
-
-          {cargandoDesempate ? (
-            <div className="flex justify-center py-8">
-              <div className="h-8 w-8 border-2 border-t-transparent rounded-full animate-spin"
-                style={{ borderColor: 'var(--accent-gold)', borderTopColor: 'transparent' }} />
-            </div>
-          ) : filasDesempate.length === 0 ? (
-            <p className="text-sm" style={{ color: '#64748b' }}>
-              No se encontraron TOKEN, J. Manuel, ALV ni JLG
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {filasDesempate.map((r, i) => filaDesempate(r, i + 1, hayLiderDesempate && r.puntos === maxPuntosDesempate))}
-              <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                {hayLiderDesempate
-                  ? `🏆 va primero entre los 4 con ${maxPuntosDesempate} pts`
-                  : 'Sin puntos todavía: el desempate sigue abierto'}
-              </p>
-              {filasDesempate.length < JUGADORES_DESEMPATE.length && (
-                <p className="text-[11px]" style={{ color: '#f97316' }}>
-                  Solo se encontraron {filasDesempate.length} de los 4 jugadores
-                </p>
-              )}
-            </div>
-          )}
+        <div style={{ animation: 'fadeInUp 0.5s ease-out 0.35s both' }}>
+          <DesempateTabla filas={filasDesempate} cargando={cargandoDesempate} />
         </div>
       )}
 

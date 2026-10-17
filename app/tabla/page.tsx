@@ -1,12 +1,14 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Bandera } from '@/components/Bandera';
 import { getNombreJornada, getNombreJornadaLigaMX, BANDERAS_EQUIPOS, LOGOS_LIGAMX, TEMPORADA_ACTIVA } from '@/lib/utils';
 import ReglasFaseFinal from '@/components/ReglasFaseFinal';
+import DesempateTabla from '@/components/DesempateTabla';
+import { JORNADA_DESEMPATE, cargarDesempateJ11, DesempateRow } from '@/lib/desempate';
 
 const tableBodyVariants = {
   hidden: {},
@@ -35,6 +37,8 @@ export default function TablaPage() {
   const [predicciones, setPredicciones] = useState<any[]>([]);
   const [participaciones, setParticipaciones] = useState<any[]>([]);
   const [pozoParticipantes, setPozoParticipantes] = useState<number | null>(null);
+  const [desempateJ11, setDesempateJ11]           = useState<DesempateRow[]>([]);
+  const [cargandoDesempate, setCargandoDesempate] = useState(false);
   const [campeonJ6Declarado, setCampeonJ6Declarado] = useState<string | null>(null);
   const [esAdmin, setEsAdmin]           = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -84,6 +88,19 @@ export default function TablaPage() {
   }, []);
 
   useEffect(() => { refreshData(); }, [jornada]);
+
+  // ── Desempate jornada 11: misma sub-tabla que el dashboard ──
+  const cargarDesempate = useCallback(async () => {
+    setCargandoDesempate(true);
+    setDesempateJ11(await cargarDesempateJ11());
+    setCargandoDesempate(false);
+  }, []);
+
+  useEffect(() => {
+    if (TEMPORADA_ACTIVA !== 'ligamx2026' || jornada !== JORNADA_DESEMPATE) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    cargarDesempate();
+  }, [jornada, cargarDesempate]);
 
   useEffect(() => {
     const onVisible = () => {
@@ -1435,6 +1452,13 @@ export default function TablaPage() {
           </>
         )}
       </div>
+
+      {/* Desempate jornada 11 — misma sub-tabla que el dashboard */}
+      {TEMPORADA_ACTIVA === 'ligamx2026' && jornada === JORNADA_DESEMPATE && (
+        <div className="px-4 mt-6">
+          <DesempateTabla filas={desempateJ11} cargando={cargandoDesempate} />
+        </div>
+      )}
 
       {/* Tablas para impresión — ocultas en pantalla */}
       <div className="hidden print:block">
