@@ -689,11 +689,17 @@ export default function DashboardPage() {
   }
   pozosCompletos.sort((a, b) => a.jornada - b.jornada);
 
-  // Solo mostrar pozos que tienen participantes reales (oculta jornadas futuras vacías)
-  const pozosVisibles = pozosCompletos.filter(p => p.participantes > 0);
+  // Solo mostrar pozos con participantes reales (oculta jornadas futuras vacías).
+  // En ligamx2026 el pozo abierto de la jornada más reciente se muestra aunque aún esté vacío.
+  const jornadaMasReciente = TEMPORADA_ACTIVA === 'ligamx2026' && pozosCompletos.length > 0
+    ? Math.max(...pozosCompletos.map(p => p.jornada))
+    : null;
+  const mostrarPozo = (p: Pozo) =>
+    p.participantes > 0 || (p.jornada === jornadaMasReciente && p.estado === 'abierto');
+  const pozosVisibles = pozosCompletos.filter(mostrarPozo);
 
   const jornadasDisponibles = TEMPORADA_ACTIVA === 'ligamx2026'
-    ? [...new Set(pozosCompletos.filter(p => p.participantes > 0).map(p => p.jornada))]
+    ? [...new Set(pozosVisibles.map(p => p.jornada))]
     : [...new Set(pozosCompletos.map(p => p.jornada))];
 
   const compartirRanking = () => {
