@@ -76,8 +76,7 @@ export default function TablaPage() {
         .select('jornada')
         .eq('temporada', TEMPORADA_ACTIVA)
         .order('jornada');
-      const unicas = [...new Set((data ?? []).map((p: any) => p.jornada as number))]
-        .filter(j => TEMPORADA_ACTIVA !== 'ligamx2026' || j <= 11);
+      const unicas = [...new Set((data ?? []).map((p: any) => p.jornada as number))];
       if (unicas.length > 0) {
         setJornadasDisponibles(unicas);
         setJornada(Math.max(...unicas));
@@ -578,6 +577,13 @@ export default function TablaPage() {
     UCL2: { label: '⭐ Champions J2',       color: '#fbbf24', bg: 'rgba(251,191,36,0.06)', border: 'rgba(251,191,36,0.3)' },
     LMX12:{ label: '⚽ J12 Liga MX',        color: '#4f46e5', bg: 'rgba(79,70,229,0.06)',  border: 'rgba(79,70,229,0.3)'  },
     UCL3: { label: '⭐ Champions J3',       color: '#f59e0b', bg: 'rgba(245,158,11,0.06)', border: 'rgba(245,158,11,0.3)' },
+    LMX14:   { label: 'Liga MX J14',       color: '#818cf8', bg: 'rgba(99,102,241,0.06)',  border: 'rgba(99,102,241,0.3)'  },
+    LMX15:   { label: 'Liga MX J15',       color: '#a78bfa', bg: 'rgba(139,92,246,0.06)',  border: 'rgba(139,92,246,0.3)'  },
+    EPL8:    { label: 'Premier League F8', color: '#60a5fa', bg: 'rgba(96,165,250,0.06)',  border: 'rgba(96,165,250,0.3)'  },
+    EPL9:    { label: 'Premier League F9', color: '#60a5fa', bg: 'rgba(96,165,250,0.06)',  border: 'rgba(96,165,250,0.3)'  },
+    LALIGA10:{ label: 'LaLiga F10',        color: '#f87171', bg: 'rgba(248,113,113,0.06)', border: 'rgba(248,113,113,0.3)' },
+    BUND8:   { label: 'Bundesliga F8',     color: '#f43f5e', bg: 'rgba(244,63,94,0.06)',   border: 'rgba(244,63,94,0.3)'   },
+    SERIEA10:{ label: 'Serie A F10',       color: '#2dd4bf', bg: 'rgba(45,212,191,0.06)',  border: 'rgba(45,212,191,0.3)'  },
   };
   // All J8 partidos sorted chronologically
   const j8Sorted: any[] = esJ8Multi

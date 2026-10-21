@@ -327,6 +327,9 @@ export default function PrediccionesPage() {
     return 1;
   });
   const [jornadas, setJornadas]           = useState<number[]>([]);
+  // En ligamx2026 la jornada por defecto es la ultima con partidos; no se carga nada hasta conocerla
+  // para no crear participaciones en una jornada equivocada.
+  const [jornadaResuelta, setJornadaResuelta] = useState(TEMPORADA_ACTIVA !== 'ligamx2026');
   const [pozo, setPozo]                   = useState<Pozo | null>(null);
   const selectorRef                       = useRef<HTMLDivElement>(null);
   const initialScrollDone                 = useRef(false);
@@ -389,10 +392,11 @@ export default function PrediccionesPage() {
       .eq('temporada', TEMPORADA_ACTIVA)
       .order('jornada')
       .then(({ data }) => {
-        const unicas = [...new Set((data ?? []).map((p: { jornada: number }) => p.jornada))]
-          .filter(j => TEMPORADA_ACTIVA !== 'ligamx2026' || j <= 11);
+        const unicas = [...new Set((data ?? []).map((p: { jornada: number }) => p.jornada))];
         setJornadas(unicas);
-      });
+        if (TEMPORADA_ACTIVA === 'ligamx2026' && unicas.length > 0) setJornada(Math.max(...unicas));
+        setJornadaResuelta(true);
+      }, () => setJornadaResuelta(true));
   }, [router]);
 
   const cargarQuinielas = useCallback(async (uid: string, j: number) => {
@@ -584,9 +588,9 @@ export default function PrediccionesPage() {
     setLcCampeonPickTemp(data?.equipo ?? null);
   }, [userId]);
 
-  useEffect(() => { cargarPartidos(); }, [cargarPartidos]);
+  useEffect(() => { if (jornadaResuelta) cargarPartidos(); }, [cargarPartidos, jornadaResuelta]);
   useEffect(() => {
-    if (userId) {
+    if (userId && jornadaResuelta) {
       cargarQuinielas(userId, jornada);
       cargarPredicciones();
       cargarCampeon();
@@ -595,7 +599,7 @@ export default function PrediccionesPage() {
       if (jornada === 6 && TEMPORADA_ACTIVA === 'ligamx2026') cargarLcCampeonPick();
       if (TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 1) cargarPicksClasificacion(userId);
     }
-  }, [userId, jornada, cargarQuinielas, cargarPredicciones, cargarCampeon, cargarPozoYParticipacion, cargarJ6Campeon, cargarLcCampeonPick]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [userId, jornada, jornadaResuelta, cargarQuinielas, cargarPredicciones, cargarCampeon, cargarPozoYParticipacion, cargarJ6Campeon, cargarLcCampeonPick]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Polling cada 60s para reflejar partidos recién finalizados
   useEffect(() => {
@@ -903,7 +907,7 @@ export default function PrediccionesPage() {
 
   const estaBloquado = (partido: Partido) => {
     if (partido.estado === 'finalizado') return true;
-    if (TEMPORADA_ACTIVA === 'ligamx2026' && jornada >= 2 && jornada <= 7) {
+    if (TEMPORADA_ACTIVA === 'ligamx2026' && jornada >= 2) {
       return new Date() >= new Date(partido.fecha_hora);
     }
     if (jornada === 6) {
@@ -974,7 +978,7 @@ export default function PrediccionesPage() {
           }}
         >
           {TEMPORADA_ACTIVA === 'ligamx2026'
-            ? (jornada === 11 ? 'J12 + Champions J3' : jornada === 10 ? 'J11 + Champions J2' : jornada === 9 ? 'J9 + J10 + Selección + UEFA' : jornada >= 4 && jornada <= 5 ? 'Liga MX Apertura 2026' : jornada === 8 ? 'J8 + Champions League' : jornada >= 6 ? 'Leagues Cup 2026' : 'Leagues Cup — Fase 1')
+            ? (jornada === 12 ? 'Liga MX J14 + J15 + Europa' : jornada === 11 ? 'J12 + Champions J3' : jornada === 10 ? 'J11 + Champions J2' : jornada === 9 ? 'J9 + J10 + Selección + UEFA' : jornada >= 4 && jornada <= 5 ? 'Liga MX Apertura 2026' : jornada === 8 ? 'J8 + Champions League' : jornada >= 6 ? 'Leagues Cup 2026' : 'Leagues Cup — Fase 1')
             : 'PREDICCIONES'}
         </h1>
         <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
@@ -1092,7 +1096,7 @@ export default function PrediccionesPage() {
         className="flex gap-2 overflow-x-auto pb-1"
         style={{ scrollbarWidth: 'none' }}
       >
-        {jornadas.filter(j => TEMPORADA_ACTIVA === 'ligamx2026' ? j <= 11 : j <= 6).map(j => {
+        {jornadas.filter(j => TEMPORADA_ACTIVA === 'ligamx2026' || j <= 6).map(j => {
           const cerrada = TEMPORADA_ACTIVA === 'ligamx2026' ? new Date() > getDeadline(j) : j < 2 || new Date() > getDeadline(j);
           return (
             <Pill key={j} active={jornada === j} onClick={() => { initialScrollDone.current = false; setJornada(j); }} faded={cerrada && jornada !== j}>
@@ -1525,6 +1529,13 @@ export default function PrediccionesPage() {
                   UCL2: { label: '⭐ Champions J2',       color: '#fbbf24', bg: 'rgba(251,191,36,0.08)', border: 'rgba(251,191,36,0.25)' },
                   LMX12:{ label: '⚽ J12 Liga MX',        color: '#4f46e5', bg: 'rgba(79,70,229,0.08)',  border: 'rgba(79,70,229,0.25)'  },
                   UCL3: { label: '⭐ Champions J3',       color: '#f59e0b', bg: 'rgba(245,158,11,0.08)', border: 'rgba(245,158,11,0.25)' },
+                  LMX14:   { label: 'Liga MX J14',       color: '#818cf8', bg: 'rgba(99,102,241,0.08)',  border: 'rgba(99,102,241,0.25)'  },
+                  LMX15:   { label: 'Liga MX J15',       color: '#a78bfa', bg: 'rgba(139,92,246,0.08)',  border: 'rgba(139,92,246,0.25)'  },
+                  EPL8:    { label: 'Premier League F8', color: '#60a5fa', bg: 'rgba(96,165,250,0.08)',  border: 'rgba(96,165,250,0.25)'  },
+                  EPL9:    { label: 'Premier League F9', color: '#60a5fa', bg: 'rgba(96,165,250,0.08)',  border: 'rgba(96,165,250,0.25)'  },
+                  LALIGA10:{ label: 'LaLiga F10',        color: '#f87171', bg: 'rgba(248,113,113,0.08)', border: 'rgba(248,113,113,0.25)' },
+                  BUND8:   { label: 'Bundesliga F8',     color: '#f43f5e', bg: 'rgba(244,63,94,0.08)',   border: 'rgba(244,63,94,0.25)'   },
+                  SERIEA10:{ label: 'Serie A F10',       color: '#2dd4bf', bg: 'rgba(45,212,191,0.08)',  border: 'rgba(45,212,191,0.25)'  },
                 };
                 const sorted = [...resolvedPartidos].sort(
                   (a, b) => new Date(a.fecha_hora).getTime() - new Date(b.fecha_hora).getTime()
