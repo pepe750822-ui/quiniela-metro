@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { RankingConJugador, Pozo } from '@/types';
 import RankingTable from '@/components/RankingTable';
 import DesempateTabla from '@/components/DesempateTabla';
-import { JORNADA_DESEMPATE, cargarDesempateJ11, DesempateRow } from '@/lib/desempate';
+import { JORNADA_DESEMPATE, cargarDesempateJ11, DESEMPATE_POZO_J11, cargarDesempatePozoJ11, DesempateRow } from '@/lib/desempate';
 import { getNombreJornada, getMontoJornada, TEMPORADA_ACTIVA, getNombreJornadaLigaMX } from '@/lib/utils';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
@@ -166,6 +166,8 @@ export default function DashboardPage() {
   const [participantesJornada, setParticipantesJornada] = useState<ParticipanteItem[]>([]);
   const [filasDesempate, setFilasDesempate]         = useState<DesempateRow[]>([]);
   const [cargandoDesempate, setCargandoDesempate]   = useState(false);
+  const [filasEmpateJ11, setFilasEmpateJ11]         = useState<DesempateRow[]>([]);
+  const [cargandoEmpateJ11, setCargandoEmpateJ11]   = useState(false);
   const { d, h, m, s, started, mounted: countdownReady } = useCountdown(INAUGURAL);
 
   const [campeonPick, setCampeonPick]           = useState<string | null>(null);
@@ -648,6 +650,19 @@ export default function DashboardPage() {
     cargarDesempate();
   }, [jornadaSeleccionada, cargarDesempate]);
 
+  // ── Desempate del pozo de la jornada 11 entre los empatados, con puntos de la jornada 12 ──
+  useEffect(() => {
+    if (TEMPORADA_ACTIVA !== 'ligamx2026' || jornadaSeleccionada !== DESEMPATE_POZO_J11.jornadaPuntos) return;
+    let activo = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCargandoEmpateJ11(true);
+    cargarDesempatePozoJ11()
+      .then(filas => { if (activo) setFilasEmpateJ11(filas); })
+      .catch(() => { if (activo) setFilasEmpateJ11([]); })
+      .finally(() => { if (activo) setCargandoEmpateJ11(false); });
+    return () => { activo = false; };
+  }, [jornadaSeleccionada]);
+
   useEffect(() => {
     setTimeout(() => {
       const el = document.getElementById('pozo-j6');
@@ -961,6 +976,19 @@ export default function DashboardPage() {
       {jornadaSeleccionada === JORNADA_DESEMPATE && (
         <div style={{ animation: 'fadeInUp 0.5s ease-out 0.35s both' }}>
           <DesempateTabla filas={filasDesempate} cargando={cargandoDesempate} />
+        </div>
+      )}
+
+      {/* Desempate del pozo de la jornada 11: solo entre los empatados, con puntos de la jornada 12 */}
+      {TEMPORADA_ACTIVA === 'ligamx2026' && jornadaSeleccionada === DESEMPATE_POZO_J11.jornadaPuntos
+        && (cargandoEmpateJ11 || filasEmpateJ11.length > 0) && (
+        <div style={{ animation: 'fadeInUp 0.5s ease-out 0.35s both' }}>
+          <DesempateTabla
+            filas={filasEmpateJ11}
+            cargando={cargandoEmpateJ11}
+            dinamico
+            subtitulo={`${labelJornada(DESEMPATE_POZO_J11.jornadaPozo)} · empatados en el primer lugar · puntos de la jornada ${DESEMPATE_POZO_J11.jornadaPuntos}`}
+          />
         </div>
       )}
 

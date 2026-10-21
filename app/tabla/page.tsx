@@ -5,10 +5,10 @@ import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Bandera } from '@/components/Bandera';
-import { getNombreJornada, getNombreJornadaLigaMX, BANDERAS_EQUIPOS, LOGOS_LIGAMX, TEMPORADA_ACTIVA } from '@/lib/utils';
+import { getNombreJornada, getNombreJornadaLigaMX, labelJornada, BANDERAS_EQUIPOS, LOGOS_LIGAMX, TEMPORADA_ACTIVA } from '@/lib/utils';
 import ReglasFaseFinal from '@/components/ReglasFaseFinal';
 import DesempateTabla from '@/components/DesempateTabla';
-import { JORNADA_DESEMPATE, cargarDesempateJ11, DesempateRow } from '@/lib/desempate';
+import { JORNADA_DESEMPATE, cargarDesempateJ11, DESEMPATE_POZO_J11, cargarDesempatePozoJ11, DesempateRow } from '@/lib/desempate';
 
 const tableBodyVariants = {
   hidden: {},
@@ -39,6 +39,8 @@ export default function TablaPage() {
   const [pozoParticipantes, setPozoParticipantes] = useState<number | null>(null);
   const [desempateJ11, setDesempateJ11]           = useState<DesempateRow[]>([]);
   const [cargandoDesempate, setCargandoDesempate] = useState(false);
+  const [empateJ11, setEmpateJ11]                 = useState<DesempateRow[]>([]);
+  const [cargandoEmpateJ11, setCargandoEmpateJ11] = useState(false);
   const [campeonJ6Declarado, setCampeonJ6Declarado] = useState<string | null>(null);
   const [esAdmin, setEsAdmin]           = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -100,6 +102,19 @@ export default function TablaPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     cargarDesempate();
   }, [jornada, cargarDesempate]);
+
+  // ── Desempate del pozo de la jornada 11 entre los empatados, con puntos de la jornada 12 ──
+  useEffect(() => {
+    if (TEMPORADA_ACTIVA !== 'ligamx2026' || jornada !== DESEMPATE_POZO_J11.jornadaPuntos) return;
+    let activo = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCargandoEmpateJ11(true);
+    cargarDesempatePozoJ11()
+      .then(filas => { if (activo) setEmpateJ11(filas); })
+      .catch(() => { if (activo) setEmpateJ11([]); })
+      .finally(() => { if (activo) setCargandoEmpateJ11(false); });
+    return () => { activo = false; };
+  }, [jornada]);
 
   useEffect(() => {
     const onVisible = () => {
@@ -1463,6 +1478,19 @@ export default function TablaPage() {
       {TEMPORADA_ACTIVA === 'ligamx2026' && jornada === JORNADA_DESEMPATE && (
         <div className="px-4 mt-6">
           <DesempateTabla filas={desempateJ11} cargando={cargandoDesempate} />
+        </div>
+      )}
+
+      {/* Desempate del pozo de la jornada 11: solo entre los empatados, con puntos de la jornada 12 */}
+      {TEMPORADA_ACTIVA === 'ligamx2026' && jornada === DESEMPATE_POZO_J11.jornadaPuntos
+        && (cargandoEmpateJ11 || empateJ11.length > 0) && (
+        <div className="px-4 mt-6">
+          <DesempateTabla
+            filas={empateJ11}
+            cargando={cargandoEmpateJ11}
+            dinamico
+            subtitulo={`${labelJornada(DESEMPATE_POZO_J11.jornadaPozo)} · empatados en el primer lugar · puntos de la jornada ${DESEMPATE_POZO_J11.jornadaPuntos}`}
+          />
         </div>
       )}
 

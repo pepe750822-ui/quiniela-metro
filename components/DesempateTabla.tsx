@@ -6,6 +6,9 @@ import { labelJornada } from '@/lib/utils';
 interface Props {
   filas: DesempateRow[];
   cargando?: boolean;
+  // Desempate dinámico (empatados detectados): reemplaza los textos fijos de los 4 jugadores
+  subtitulo?: string;
+  dinamico?: boolean;
 }
 
 const filaDesempate = (r: DesempateRow, pos: number, lider: boolean) => (
@@ -30,7 +33,7 @@ const filaDesempate = (r: DesempateRow, pos: number, lider: boolean) => (
       <p className="font-semibold text-sm truncate" style={{ color: lider ? 'var(--accent-gold)' : 'var(--text-primary)', fontFamily: 'var(--font-rajdhani)' }}>
         {r.nombre}
       </p>
-      <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>{r.exactos} exactos ✅</p>
+      <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>{r.detalle ?? `${r.exactos} exactos ✅`}</p>
     </div>
     <div className="text-right">
       <p style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.5rem', color: lider ? '#fbbf24' : 'var(--text-primary)', lineHeight: 1 }}>
@@ -41,10 +44,11 @@ const filaDesempate = (r: DesempateRow, pos: number, lider: boolean) => (
   </div>
 );
 
-export default function DesempateTabla({ filas, cargando = false }: Props) {
+export default function DesempateTabla({ filas, cargando = false, subtitulo, dinamico = false }: Props) {
   const maxPuntos = filas.length ? Math.max(...filas.map(r => r.puntos)) : 0;
   // Hay líder solo si alguien ya sumó; con todos en 0 el desempate sigue abierto
   const hayLider = maxPuntos > 0;
+  const lideres = filas.filter(r => r.puntos === maxPuntos).length;
 
   return (
     <div className="space-y-4">
@@ -53,7 +57,7 @@ export default function DesempateTabla({ filas, cargando = false }: Props) {
           🏆 Desempate — Pozo jornada anterior
         </h2>
         <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-          {labelJornada(JORNADA_DESEMPATE)} · puntos de la jornada 11
+          {subtitulo ?? `${labelJornada(JORNADA_DESEMPATE)} · puntos de la jornada 11`}
         </p>
       </div>
 
@@ -70,11 +74,13 @@ export default function DesempateTabla({ filas, cargando = false }: Props) {
         <div className="space-y-2">
           {filas.map((r, i) => filaDesempate(r, i + 1, hayLider && r.puntos === maxPuntos))}
           <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-            {hayLider
-              ? `🏆 va primero entre los 4 con ${maxPuntos} pts`
-              : 'Sin puntos todavía: el desempate sigue abierto'}
+            {!hayLider
+              ? 'Sin puntos todavía: el desempate sigue abierto'
+              : lideres > 1 && dinamico
+              ? `Siguen empatados con ${maxPuntos} pts: el desempate sigue abierto`
+              : `🏆 va primero entre los ${dinamico ? filas.length : 4} con ${maxPuntos} pts`}
           </p>
-          {filas.length < JUGADORES_DESEMPATE.length && (
+          {!dinamico && filas.length < JUGADORES_DESEMPATE.length && (
             <p className="text-[11px]" style={{ color: '#f97316' }}>
               Solo se encontraron {filas.length} de los 4 jugadores
             </p>
