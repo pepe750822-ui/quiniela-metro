@@ -678,10 +678,8 @@ export default function DashboardPage() {
   const jornadaAutoElegida = useRef(false);
   useEffect(() => {
     if (TEMPORADA_ACTIVA !== 'ligamx2026' || jornadaAutoElegida.current || pozos.length === 0) return;
-    const activas = pozos.filter(p => p.participantes > 0).map(p => p.jornada);
-    if (activas.length === 0) return;
     jornadaAutoElegida.current = true;
-    setJornadaSeleccionada(Math.max(...activas));
+    setJornadaSeleccionada(Math.max(...pozos.map(p => p.jornada)));
   }, [pozos]);
 
   const jornadasConPozo = new Set(pozos.map(p => p.jornada));
