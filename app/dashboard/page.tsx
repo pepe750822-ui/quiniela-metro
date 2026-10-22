@@ -178,7 +178,10 @@ export default function DashboardPage() {
   const [userEmail, setUserEmail] = useState<string>('');
   const [userName, setUserName] = useState<string>('');
 
+  const cargaId = useRef(0);
+
   const cargarRanking = useCallback(async () => {
+    const miCarga = ++cargaId.current;
     setLoading(true);
 
     if (jornadaSeleccionada === 'general') {
@@ -197,6 +200,7 @@ export default function DashboardPage() {
       const genCampeonMap: Record<string, string> = {};
       (genCampeones ?? []).forEach((c: { user_id: string; equipo: string }) => { genCampeonMap[c.user_id] = c.equipo; });
 
+      if (miCarga !== cargaId.current) return;
       setParticipantesJornada([]);
       setRanking(
         rankItems.map((r: { user_id: string; puntos_totales: number; exactos_totales: number }) => {
@@ -242,6 +246,7 @@ export default function DashboardPage() {
         user_id: p.user_id, quiniela_extra_id: p.quiniela_extra_id,
       }));
       const allUserIdsLC = [...new Set(pagadosLC.map(p => p.user_id))];
+      if (miCarga !== cargaId.current) return;
       setPagadosIds(allUserIdsLC);
       setParticipantesJornada([]);
 
@@ -321,6 +326,7 @@ export default function DashboardPage() {
         ? await supabase.from('quiniela_extra').select('id, nombre').in('id', extraIdsLC)
         : { data: [] };
 
+      if (miCarga !== cargaId.current) return;
       setRanking(rankingOrdenadoLC.map(r => {
         const jug = (rankJugadoresLC ?? []).find((jg: { id: string }) => jg.id === r.user_id);
         const quinielaNombre = r.quiniela_extra_id
@@ -416,6 +422,7 @@ export default function DashboardPage() {
           }))
         : (pagadosConPrediccion ?? []) as { user_id: string; quiniela_extra_id: string | null }[];
 
+    if (miCarga !== cargaId.current) return;
     setParticipantesJornada(participantesConNombre);
 
     // user_ids únicos para el badge y para la query de puntos
@@ -538,6 +545,7 @@ export default function DashboardPage() {
       campeonMap[`${c.user_id}:${c.quiniela_extra_id ?? 'null'}`] = c.equipo;
     });
 
+    if (miCarga !== cargaId.current) return;
     setRanking(
       rankingOrdenado.map(r => {
         const jug = (rankJugadores ?? []).find((jg: { id: string }) => jg.id === r.user_id);
