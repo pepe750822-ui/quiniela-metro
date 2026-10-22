@@ -47,6 +47,9 @@ export const LOGOS_LIGAMX: Record<string, string> = {
   // Premier League
   'Arsenal':             '/logos/arsenal.svg',
   'Chelsea':             '/logos/chelsea.svg',
+  'Tottenham':           '/logos/tottenham.svg',
+  'Tottenham Hotspur':   '/logos/tottenham.svg',
+  'Spurs':               '/logos/tottenham.svg',
   // Champions League
   'Inter de Milán':      '/logos/inter.svg',
   'Liverpool':           '/logos/liverpool.svg',
@@ -61,6 +64,7 @@ export const LOGOS_LIGAMX: Record<string, string> = {
   'Atlético Madrid':     '/logos/atletico.svg',
   'Bayer Leverkusen':    '/logos/leverkusen.svg',
   'AC Milan':            '/logos/acmilan.svg',
+  'Milan':               '/logos/acmilan.svg',
   'Juventus':            '/logos/juventus.svg',
   'Benfica':             '/logos/benfica.svg',
   'Ajax':                '/logos/ajax.svg',
