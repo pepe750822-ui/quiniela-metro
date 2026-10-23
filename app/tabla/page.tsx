@@ -54,6 +54,11 @@ export default function TablaPage() {
   const [ptsAnteriores, setPtsAnteriores] = useState<Record<string, number>>({});
   const tablaRef    = useRef<HTMLDivElement>(null);
   const selectorRef = useRef<HTMLDivElement>(null);
+  const cargaId     = useRef(0);
+  const refreshDataRef = useRef<() => Promise<void>>(async () => {});
+  // Hasta que cargarJornadas() fije la jornada real no se carga nada: evita pedir datos de la
+  // jornada inicial (11) que luego se descartarían o se mezclarían con los de la jornada 12.
+  const [jornadaLista, setJornadaLista] = useState(false);
 
   useEffect(() => {
     const activeBtn = selectorRef.current?.querySelector('[data-active="true"]');
@@ -73,22 +78,30 @@ export default function TablaPage() {
       setEsAdmin(data?.rol === 'admin');
     };
     const cargarJornadas = async () => {
-      const { data } = await supabase
-        .from('quiniela_partidos')
-        .select('jornada')
-        .eq('temporada', TEMPORADA_ACTIVA)
-        .order('jornada');
-      const unicas = [...new Set((data ?? []).map((p: any) => p.jornada as number))];
-      if (unicas.length > 0) {
-        setJornadasDisponibles(unicas);
-        setJornada(Math.max(...unicas));
+      try {
+        const { data } = await supabase
+          .from('quiniela_partidos')
+          .select('jornada')
+          .eq('temporada', TEMPORADA_ACTIVA)
+          .order('jornada');
+        const unicas = [...new Set((data ?? []).map((p: any) => p.jornada as number))];
+        if (unicas.length > 0) {
+          setJornadasDisponibles(unicas);
+          setJornada(Math.max(...unicas));
+        }
+      } finally {
+        setJornadaLista(true);
       }
     };
     verificarAdmin();
     cargarJornadas();
   }, []);
 
-  useEffect(() => { refreshData(); }, [jornada]);
+  useEffect(() => {
+    if (!jornadaLista) return;
+    refreshData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jornada, jornadaLista]);
 
   // ── Desempate jornada 11: misma sub-tabla que el dashboard ──
   const cargarDesempate = useCallback(async () => {
@@ -98,14 +111,14 @@ export default function TablaPage() {
   }, []);
 
   useEffect(() => {
-    if (TEMPORADA_ACTIVA !== 'ligamx2026' || jornada !== JORNADA_DESEMPATE) return;
+    if (!jornadaLista || TEMPORADA_ACTIVA !== 'ligamx2026' || jornada !== JORNADA_DESEMPATE) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
     cargarDesempate();
-  }, [jornada, cargarDesempate]);
+  }, [jornada, jornadaLista, cargarDesempate]);
 
   // ── Desempate del pozo de la jornada 11 entre los empatados, con puntos de la jornada 12 ──
   useEffect(() => {
-    if (TEMPORADA_ACTIVA !== 'ligamx2026' || jornada !== DESEMPATE_POZO_J11.jornadaPuntos) return;
+    if (!jornadaLista || TEMPORADA_ACTIVA !== 'ligamx2026' || jornada !== DESEMPATE_POZO_J11.jornadaPuntos) return;
     let activo = true;
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setCargandoEmpateJ11(true);
@@ -114,15 +127,14 @@ export default function TablaPage() {
       .catch(() => { if (activo) setEmpateJ11([]); })
       .finally(() => { if (activo) setCargandoEmpateJ11(false); });
     return () => { activo = false; };
-  }, [jornada]);
+  }, [jornada, jornadaLista]);
 
   useEffect(() => {
     const onVisible = () => {
-      if (document.visibilityState === 'visible') refreshData();
+      if (document.visibilityState === 'visible') refreshDataRef.current();
     };
     document.addEventListener('visibilitychange', onVisible);
     return () => document.removeEventListener('visibilitychange', onVisible);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -140,8 +152,12 @@ export default function TablaPage() {
     }
   }, [partidos]);
 
-  const refreshData = async () => {
-    setLoading(true);
+  // Cada carga lleva un id. Si arranca otra más reciente (cambio de jornada, volver a la pestaña,
+  // botón Actualizar) la anterior se descarta y nunca pisa el estado con datos de otra jornada.
+  // El estado se confirma de una sola vez al final para que no se vea una mezcla a medias.
+  const cargarTabla = async (miCarga: number) => {
+    const vigente = () => miCarga === cargaId.current;
+
     const partidosQuery = supabase
       .from('quiniela_partidos')
       .select('id, jornada, equipo_local, equipo_visitante, bandera_local, bandera_visitante, goles_local, goles_visitante, estado, grupo, fecha_hora, clasificado, como_termino')
@@ -152,7 +168,7 @@ export default function TablaPage() {
       : TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 1
         ? await partidosQuery.eq('jornada', jornada).lt('fecha_hora', '2026-08-07T23:00:00Z')
         : await partidosQuery.eq('jornada', jornada);
-    setPartidos(parts || []);
+    if (!vigente()) return;
 
     // Para J6 (Fase Final), incluir participaciones de J7+ igual que partidos
     const particsQuery = supabase
@@ -167,6 +183,7 @@ export default function TablaPage() {
         : TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 7
         ? await particsQuery.in('jornada', [6, 7])
         : await particsQuery.eq('jornada', jornada);
+    if (!vigente()) return;
     // Deduplicar por (user_id, quiniela_extra_id) manteniendo la participación de menor jornada
     let partics: any[] = [];
     if ((jornada === 6 && TEMPORADA_ACTIVA !== 'ligamx2026')
@@ -191,19 +208,20 @@ export default function TablaPage() {
     if (quinielaIds.length) {
       const { data: quinielasData } = await supabase
         .from('quiniela_extra').select('id, nombre').in('id', quinielaIds);
+      if (!vigente()) return;
       (quinielasData || []).forEach((q: any) => { quinielasMap[q.id] = q.nombre; });
     }
-    setParticipaciones((partics || []).map((p: any) => ({
+    const participacionesNuevas = (partics || []).map((p: any) => ({
       ...p,
       quiniela: p.quiniela_extra_id ? { nombre: quinielasMap[p.quiniela_extra_id] ?? null } : null,
-    })));
+    }));
 
     const userIds = [...new Set(partics?.map((p: any) => p.user_id) || [])];
     const { data: jugs } = await supabase
       .from('quiniela_jugadores')
       .select('id, nombre, apodo, referencia_admin, email')
       .in('id', userIds);
-    setJugadores(jugs || []);
+    if (!vigente()) return;
 
     const partidoIds = parts?.map((p: any) => p.id) || [];
 
@@ -214,7 +232,7 @@ export default function TablaPage() {
       body: JSON.stringify({ partidoIds }),
     });
     const { predicciones: allPreds = [] } = await predsRes.json();
-    setPredicciones(allPreds);
+    if (!vigente()) return;
 
     const { data: pozoDat } = await supabase
       .from('quiniela_pozo')
@@ -222,32 +240,34 @@ export default function TablaPage() {
       .eq('jornada', jornada)
       .eq('temporada', TEMPORADA_ACTIVA)
       .single();
-    setPozoParticipantes(pozoDat?.participantes ?? null);
-    setCampeonJ6Declarado(pozoDat?.campeon_j6 ?? null);
+    if (!vigente()) return;
 
     // Campeón elegido (J6 y J7) — información pública: se muestran los picks de todos
     const picksMap: Record<string, string> = {};
+    let acertosNuevos: Record<string, boolean | null> | null = null;
+    let campeonLcDeclaradoNuevo = false;
     if ((jornada === 6 || jornada === 7) && userIds.length) {
       if (TEMPORADA_ACTIVA === 'ligamx2026') {
         // API con service_role para bypassear RLS y mostrar el pick de todos los usuarios
         const res = await fetch('/api/picks-campeon-lc');
         const { picks = [] } = await res.json();
+        if (!vigente()) return;
         (picks || []).forEach((p: any) => { picksMap[`${p.user_id}:null`] = p.equipo; });
         // Leer acerto para mostrar ✅/✗ en columna 🏆
         const acMap: Record<string, boolean | null> = {};
         (picks || []).forEach((p: any) => { acMap[p.user_id] = p.acerto ?? null; });
-        setAcertosLc(acMap);
-        setCampeonLcDeclarado((picks || []).some((p: any) => p.acerto !== null && p.acerto !== undefined));
+        acertosNuevos = acMap;
+        campeonLcDeclaradoNuevo = (picks || []).some((p: any) => p.acerto !== null && p.acerto !== undefined);
       } else {
         const { data: picks } = await supabase
           .from('quiniela_prediccion_campeon')
           .select('user_id, quiniela_extra_id, equipo')
           .eq('jornada', 6)
           .in('user_id', userIds);
+        if (!vigente()) return;
         (picks || []).forEach((p: any) => { picksMap[`${p.user_id}:${p.quiniela_extra_id ?? 'null'}`] = p.equipo; });
       }
     }
-    setCampeonPicks(picksMap);
 
     // Bonos de campeón: J6 no-LC, o J7 LC (jornada=10)
     const bonosMap: Record<string, number> = {};
@@ -258,6 +278,7 @@ export default function TablaPage() {
           .select('user_id, quiniela_extra_id, puntos')
           .eq('jornada', 6)
           .in('user_id', userIds);
+        if (!vigente()) return;
         (bonos || []).forEach((b: any) => {
           const k = `${b.user_id}:${b.quiniela_extra_id ?? 'null'}`;
           bonosMap[k] = (bonosMap[k] || 0) + b.puntos;
@@ -268,33 +289,37 @@ export default function TablaPage() {
           .select('user_id, puntos')
           .eq('jornada', 10)
           .in('user_id', userIds);
+        if (!vigente()) return;
         (bonos || []).forEach((b: any) => {
           const k = `${b.user_id}:null`;
           bonosMap[k] = (bonosMap[k] || 0) + b.puntos;
         });
       }
     }
-    setBonosCampeon(bonosMap);
 
+    let picksClasificacionNuevo: Record<string, { ligamx: string[]; mls: string[] }> | null = null;
+    let clasificadosLcNuevo: { ligamx: string[]; mls: string[] } | null = null;
     if (TEMPORADA_ACTIVA === 'ligamx2026' && jornada <= 3) {
       const res = await fetch('/api/picks-clasificacion');
       const { picks = [], clasificados = [] } = await res.json();
-      const picksMap: Record<string, { ligamx: string[]; mls: string[] }> = {};
+      if (!vigente()) return;
+      const picksClasif: Record<string, { ligamx: string[]; mls: string[] }> = {};
       picks.forEach((p: any) => {
-        if (!picksMap[p.user_id]) picksMap[p.user_id] = { ligamx: [], mls: [] };
-        if (p.liga === 'ligamx') picksMap[p.user_id].ligamx = p.equipos;
-        if (p.liga === 'mls')    picksMap[p.user_id].mls = p.equipos;
+        if (!picksClasif[p.user_id]) picksClasif[p.user_id] = { ligamx: [], mls: [] };
+        if (p.liga === 'ligamx') picksClasif[p.user_id].ligamx = p.equipos;
+        if (p.liga === 'mls')    picksClasif[p.user_id].mls = p.equipos;
       });
-      setPicksClasificacion(picksMap);
+      picksClasificacionNuevo = picksClasif;
       const lcMap: { ligamx: string[]; mls: string[] } = { ligamx: [], mls: [] };
       clasificados.forEach((c: any) => {
         if (c.liga === 'ligamx') lcMap.ligamx = c.equipos;
         if (c.liga === 'mls')    lcMap.mls = c.equipos;
       });
-      setClasificadosLc(lcMap);
+      clasificadosLcNuevo = lcMap;
     }
 
     // Cargar puntos acumulados de jornadas anteriores (LC: J2/J3 · Liga MX: J5 acumula J4)
+    let ptsAnt: Record<string, number> = {};
     if (TEMPORADA_ACTIVA === 'ligamx2026' && ((jornada >= 2 && jornada <= 3) || jornada === 5 || jornada === 7)) {
       const jornadasAnt = jornada === 5 ? [4] : jornada === 7 ? [6] : Array.from({ length: jornada - 1 }, (_, i) => i + 1);
       const { data: partidosAnt } = await supabase
@@ -303,6 +328,7 @@ export default function TablaPage() {
         .eq('temporada', TEMPORADA_ACTIVA)
         .in('jornada', jornadasAnt)
         .eq('estado', 'finalizado');
+      if (!vigente()) return;
       if (partidosAnt?.length) {
         const resAnt = await fetch('/api/predicciones-tabla', {
           method: 'POST',
@@ -310,6 +336,7 @@ export default function TablaPage() {
           body: JSON.stringify({ partidoIds: partidosAnt.map((p: any) => p.id) }),
         });
         const { predicciones: predsAnt = [] } = await resAnt.json();
+        if (!vigente()) return;
         const dedupMap: Record<string, number> = {};
         predsAnt.forEach((p: any) => {
           if (p.puntos_ganados != null && p.quiniela_extra_id === null) {
@@ -324,16 +351,42 @@ export default function TablaPage() {
           const userId = dk.split(':')[0];
           ptsByUser[userId] = (ptsByUser[userId] || 0) + pts;
         });
-        setPtsAnteriores(ptsByUser);
-      } else {
-        setPtsAnteriores({});
+        ptsAnt = ptsByUser;
       }
-    } else {
-      setPtsAnteriores({});
     }
 
-    setLoading(false);
+    // Sin más awaits desde aquí: se confirma todo junto (React lo agrupa en un solo render)
+    if (!vigente()) return;
+    setPartidos(parts || []);
+    setParticipaciones(participacionesNuevas);
+    setJugadores(jugs || []);
+    setPredicciones(allPreds);
+    setPozoParticipantes(pozoDat?.participantes ?? null);
+    setCampeonJ6Declarado(pozoDat?.campeon_j6 ?? null);
+    if (acertosNuevos) {
+      setAcertosLc(acertosNuevos);
+      setCampeonLcDeclarado(campeonLcDeclaradoNuevo);
+    }
+    setCampeonPicks(picksMap);
+    setBonosCampeon(bonosMap);
+    if (picksClasificacionNuevo && clasificadosLcNuevo) {
+      setPicksClasificacion(picksClasificacionNuevo);
+      setClasificadosLc(clasificadosLcNuevo);
+    }
+    setPtsAnteriores(ptsAnt);
   };
+
+  const refreshData = async () => {
+    const miCarga = ++cargaId.current;
+    setLoading(true);
+    try {
+      await cargarTabla(miCarga);
+    } finally {
+      if (miCarga === cargaId.current) setLoading(false);
+    }
+  };
+  // El listener de visibilitychange se registra una sola vez: debe llamar a la versión más reciente
+  useEffect(() => { refreshDataRef.current = refreshData; });
 
   const mostrarNombre = (userId: string) => {
     const jugador = jugadores.find((j: any) => j.id === userId);
