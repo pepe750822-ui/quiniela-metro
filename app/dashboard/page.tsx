@@ -8,6 +8,7 @@ import RankingTable from '@/components/RankingTable';
 import DesempateTabla from '@/components/DesempateTabla';
 import { JORNADA_DESEMPATE, cargarDesempateJ11, DESEMPATE_POZO_J11, cargarDesempatePozoJ11, DesempateRow } from '@/lib/desempate';
 import { getNombreJornada, getMontoJornada, TEMPORADA_ACTIVA, getNombreJornadaLigaMX } from '@/lib/utils';
+import { cargarJornadaActual } from '@/lib/jornadaActual';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 
@@ -26,6 +27,8 @@ const JugadorAnimado = dynamic(
 );
 
 const INAUGURAL = new Date('2026-06-11T20:00:00Z'); // 15:00 CDMX = 20:00 UTC
+
+const JORNADA_INICIAL = TEMPORADA_ACTIVA === 'ligamx2026' ? 11 : 1;
 
 const labelJornada = (j: number) =>
   TEMPORADA_ACTIVA === 'ligamx2026' ? getNombreJornadaLigaMX(j) : getNombreJornada(j);
@@ -161,7 +164,7 @@ export default function DashboardPage() {
   const [pendienteIds, setPendienteIds]         = useState<string[]>([]);
   const [pagadosIds, setPagadosIds]             = useState<string[]>([]);
   const [jornadaSeleccionada, setJornadaSeleccionada] = useState<number | 'general' | 'lc_total'>(
-    TEMPORADA_ACTIVA === 'ligamx2026' ? 11 : 1
+    JORNADA_INICIAL
   );
   const [participantesJornada, setParticipantesJornada] = useState<ParticipanteItem[]>([]);
   const [filasDesempate, setFilasDesempate]         = useState<DesempateRow[]>([]);
@@ -687,7 +690,16 @@ export default function DashboardPage() {
   useEffect(() => {
     if (TEMPORADA_ACTIVA !== 'ligamx2026' || jornadaAutoElegida.current || pozos.length === 0) return;
     jornadaAutoElegida.current = true;
-    setJornadaSeleccionada(Math.max(...pozos.map(p => p.jornada)));
+    const jornadasConPozoAuto = pozos.map(p => p.jornada);
+    const masAltaConPozo = Math.max(...jornadasConPozoAuto);
+    // Jornada actual (la más baja con partidos pendientes); si la consulta falla, la más alta con pozo.
+    // No pisa la jornada si el usuario ya eligió otra mientras se consultaba.
+    cargarJornadaActual(jornadasConPozoAuto)
+      .catch(() => null)
+      .then(actual => {
+        const elegida = actual ?? masAltaConPozo;
+        setJornadaSeleccionada(prev => (prev === JORNADA_INICIAL ? elegida : prev));
+      });
   }, [pozos]);
 
   const jornadasConPozo = new Set(pozos.map(p => p.jornada));
