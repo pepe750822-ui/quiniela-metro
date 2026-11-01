@@ -8,6 +8,7 @@ import { Bandera } from '@/components/Bandera';
 import { getNombreJornada, getNombreJornadaLigaMX, labelJornada, BANDERAS_EQUIPOS, LOGOS_LIGAMX, TEMPORADA_ACTIVA } from '@/lib/utils';
 import ReglasFaseFinal from '@/components/ReglasFaseFinal';
 import DesempateTabla from '@/components/DesempateTabla';
+import { calcularJornadaActual } from '@/lib/jornadaActual';
 import { JORNADA_DESEMPATE, cargarDesempateJ11, DESEMPATE_POZO_J11, cargarDesempatePozoJ11, DesempateRow } from '@/lib/desempate';
 
 const tableBodyVariants = {
@@ -81,13 +82,16 @@ export default function TablaPage() {
       try {
         const { data } = await supabase
           .from('quiniela_partidos')
-          .select('jornada')
+          .select('jornada, estado')
           .eq('temporada', TEMPORADA_ACTIVA)
           .order('jornada');
-        const unicas = [...new Set((data ?? []).map((p: any) => p.jornada as number))];
+        const partidosJornada = (data ?? []) as { jornada: number; estado: string | null }[];
+        const unicas = [...new Set(partidosJornada.map(p => p.jornada))];
         if (unicas.length > 0) {
           setJornadasDisponibles(unicas);
-          setJornada(Math.max(...unicas));
+          // Jornada actual (la más baja con partidos pendientes); no pisa una jornada ya elegida por el usuario.
+          const actual = calcularJornadaActual(partidosJornada) ?? Math.max(...unicas);
+          setJornada(prev => (prev === jornadaInicial() ? actual : prev));
         }
       } finally {
         setJornadaLista(true);
