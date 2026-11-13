@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 
 import { cargarJornadaActual } from '@/lib/jornadaActual';
+import TrenMetro from '@/components/ui/TrenMetro';
 
 const featureContainer = {
   hidden: {},
@@ -63,9 +64,10 @@ export default function LandingPage() {
             <span className="flex items-center justify-center rounded-[10px]" style={{ width: 40, height: 40, background: '#F5F0E7', color: '#C8006A' }}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="9" /><path d="M12 7l4 3-1.5 5h-5L8 10Z" /></svg>
             </span>
-            <span className="senal" style={{ fontSize: 12 }}>
+            <span className="senal flex-1" style={{ fontSize: 12 }}>
               Línea Quiniela{jornada ? ` · Estación J${jornada}` : ''}
             </span>
+            <TrenMetro size={76} className="shrink-0 -my-3" />
           </div>
           <h1 className="font-display" style={{ fontSize: 'clamp(64px, 22vw, 92px)', lineHeight: 0.9 }}>
             Quiniela<br />Metro
