@@ -27,7 +27,7 @@ function Inicial({ p }: { p: ParticipanteVista }) {
   return (
     <div
       className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-      style={{ background: 'rgba(234,88,12,0.2)', color: 'var(--accent-gold)' }}
+      style={{ background: 'rgba(200,0,106,0.2)', color: 'var(--accent-gold)' }}
     >
       {iniciales(p.jugador)}
     </div>
@@ -144,14 +144,14 @@ export default function JornadaPage() {
       style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1.5rem)' }}
     >
       <div style={{ animation: 'fadeInUp 0.4s ease-out' }}>
-        <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: '2rem', color: 'var(--accent-gold)', lineHeight: 1, letterSpacing: '0.05em' }}>
+        <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: '2rem', color: 'var(--text-primary)', fontWeight: 800, textTransform: 'uppercase', lineHeight: 1 }}>
           JORNADA {jornada}
         </h1>
         <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
           Predicciones de los participantes
         </p>
         <p className="text-[10px] mt-2 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-          ✅ <strong style={{ color: '#10b981' }}>Válido</strong> = publicado y pago confirmado · ⏳ <strong style={{ color: '#f59e0b' }}>Pago pendiente</strong> = publicado, esperando confirmación
+          ✅ <strong style={{ color: 'var(--ex)' }}>Válido</strong> = publicado y pago confirmado · ⏳ <strong style={{ color: 'var(--rs)' }}>Pago pendiente</strong> = publicado, esperando confirmación
         </p>
       </div>
 
@@ -176,7 +176,7 @@ export default function JornadaPage() {
                 className="rounded-2xl overflow-hidden"
                 style={{
                   background: 'var(--bg-card)',
-                  border: `1px solid ${esYo ? 'rgba(234,88,12,0.4)' : 'var(--border)'}`,
+                  border: `1px solid ${esYo ? 'rgba(200,0,106,0.4)' : 'var(--border)'}`,
                   animation: `fadeInUp 0.4s ease-out ${i * 60}ms both`,
                 }}
               >
@@ -193,23 +193,23 @@ export default function JornadaPage() {
                         style={{ color: esYo ? 'var(--accent-gold)' : 'var(--text-primary)' }}>
                         {mostrarNombre(p.jugador)}
                         {esYo && (
-                          <span className="text-[9px] bg-orange-600 text-black px-1.5 py-0.5 rounded-full font-black">TÚ</span>
+                          <span className="text-[12px] bg-orange-600 text-white px-1.5 py-0.5 rounded-md font-bold">TÚ</span>
                         )}
                         {p.jugador?.badge_ultimo && (
                           <span className="text-[10px] px-2 py-0.5 rounded-full"
-                            style={{ background: 'rgba(202,138,4,0.15)', border: '1px solid rgba(202,138,4,0.3)', color: '#facc15' }}>
+                            style={{ background: 'rgba(202,138,4,0.15)', border: '1px solid rgba(202,138,4,0.3)', color: 'var(--rs)' }}>
                             🤡 Último J{p.jugador.badge_ultimo.replace('J', '')}
                           </span>
                         )}
                         {p.jugador?.badge_campeon && (
                           <span className="text-[10px] px-2 py-0.5 rounded-full"
-                            style={{ background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.4)', color: '#fbbf24' }}>
+                            style={{ background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.4)', color: 'var(--rs)' }}>
                             🏆 {p.jugador.badge_campeon}
                           </span>
                         )}
                       </p>
                       {p.quiniela?.nombre && (
-                        <span className="text-xs block" style={{ color: '#ea580c' }}>
+                        <span className="text-xs block" style={{ color: 'var(--brand)' }}>
                           🎫 {p.quiniela.nombre}
                         </span>
                       )}
@@ -218,17 +218,17 @@ export default function JornadaPage() {
                   <div className="flex items-center gap-2">
                     {!p.publicado ? (
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                        style={{ background: 'rgba(100,116,139,0.15)', color: '#64748b' }}>
+                        style={{ background: 'rgba(116,108,97,0.15)', color: 'var(--text-muted)' }}>
                         🔒 Sin publicar
                       </span>
                     ) : p.pagado ? (
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                        style={{ background: 'rgba(16,185,129,0.15)', color: '#10b981' }}>
+                        style={{ background: 'rgba(18,161,80,0.15)', color: 'var(--ex)' }}>
                         ✅ Válido
                       </span>
                     ) : (
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                        style={{ background: 'rgba(234,170,12,0.15)', color: '#f59e0b' }}>
+                        style={{ background: 'rgba(234,170,12,0.15)', color: 'var(--rs)' }}>
                         ⏳ Pago pendiente
                       </span>
                     )}
@@ -241,7 +241,7 @@ export default function JornadaPage() {
                 {/* Contenido — solo visible si expandido */}
                 {abierto && (
                   !p.publicado ? (
-                    <div className="px-4 py-3 text-sm" style={{ color: '#64748b' }}>
+                    <div className="px-4 py-3 text-sm" style={{ color: 'var(--text-muted)' }}>
                       🔒 Aún no ha publicado sus predicciones
                     </div>
                   ) : (

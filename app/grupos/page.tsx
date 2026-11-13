@@ -100,8 +100,8 @@ export default function GruposPage() {
             className="px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest shrink-0 transition-all active:scale-95"
             style={{
               fontFamily: 'var(--font-rajdhani)',
-              background: grupoActivo === g ? 'rgba(234,88,12,0.2)' : 'var(--bg-card)',
-              border: grupoActivo === g ? '1px solid rgba(234,88,12,0.6)' : '1px solid var(--border)',
+              background: grupoActivo === g ? 'rgba(200,0,106,0.2)' : 'var(--bg-card)',
+              border: grupoActivo === g ? '1px solid rgba(200,0,106,0.6)' : '1px solid var(--border)',
               color: grupoActivo === g ? 'var(--accent-gold)' : 'var(--text-secondary)',
             }}
           >
@@ -125,7 +125,7 @@ export default function GruposPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-xs" style={{ minWidth: 340 }}>
                 <thead>
-                  <tr style={{ background: 'rgba(234,88,12,0.1)', borderBottom: '1px solid var(--border)' }}>
+                  <tr style={{ background: 'rgba(200,0,106,0.1)', borderBottom: '1px solid var(--border)' }}>
                     <th className="text-left px-3 py-2.5" style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-rajdhani)', fontWeight: 700, letterSpacing: '0.08em' }}>
                       Equipo
                     </th>
@@ -149,7 +149,7 @@ export default function GruposPage() {
                         key={eq.id}
                         style={{
                           background: i === 0
-                            ? 'rgba(234,88,12,0.07)'
+                            ? 'rgba(200,0,106,0.07)'
                             : i % 2 === 0 ? 'var(--bg-card)' : 'var(--bg-card-hover)',
                           borderBottom: '1px solid var(--border)',
                           borderLeft: i < 2 ? '3px solid var(--accent-gold)' : i === 2 ? '3px solid #ca8a04' : '3px solid transparent',
@@ -217,7 +217,7 @@ export default function GruposPage() {
                 </span>
               </div>
             </div>
-            <p className="text-[10px] mt-3" style={{ color: '#475569', fontFamily: 'var(--font-rajdhani)' }}>
+            <p className="text-[10px] mt-3" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-rajdhani)' }}>
               Desempate: puntos directos → DG directa → goles directos → DG general → goles general → tarjetas → ranking FIFA
             </p>
           </div>

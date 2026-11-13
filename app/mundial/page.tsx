@@ -53,9 +53,9 @@ export default function MundialPage() {
             onClick={() => setSeason(y)}
             className="px-3 py-1 rounded-lg text-sm font-bold transition-all active:scale-95"
             style={{
-              background: season === y ? '#ea580c' : 'rgba(255,255,255,0.06)',
-              color: season === y ? '#fff' : '#64748b',
-              border: `1px solid ${season === y ? '#ea580c' : 'rgba(255,255,255,0.1)'}`,
+              background: season === y ? 'var(--brand)' : 'rgba(255,255,255,0.06)',
+              color: season === y ? '#fff' : 'var(--text-muted)',
+              border: `1px solid ${season === y ? 'var(--brand)' : 'rgba(255,255,255,0.1)'}`,
             }}
           >
             {y}

@@ -79,7 +79,7 @@ export default function PosicionesLmxPage() {
         >
           POSICIONES
         </h1>
-        <p style={{ fontFamily: 'var(--font-rajdhani)', color: '#64748b', fontSize: '0.85rem', marginTop: 2 }}>
+        <p style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: 2 }}>
           Liga MX · Apertura 2026
         </p>
       </div>
@@ -89,15 +89,15 @@ export default function PosicionesLmxPage() {
         <table className="w-full text-sm border-collapse">
           <thead>
             <tr style={{ background: 'var(--bg-card)', borderBottom: '1px solid var(--border-color)' }}>
-              <th className="text-left px-3 py-2 w-5 text-xs" style={{ color: '#475569' }}>#</th>
+              <th className="text-left px-3 py-2 w-5 text-xs" style={{ color: 'var(--text-muted)' }}>#</th>
               <th className="text-left px-2 py-2 text-xs font-bold"
-                style={{ color: '#94a3b8', fontFamily: 'var(--font-rajdhani)', fontWeight: 700 }}>
+                style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-rajdhani)', fontWeight: 700 }}>
                 Equipo
               </th>
               {['PJ', 'G', 'E', 'P', 'GF', 'GC', 'DG', 'PTS'].map(h => (
                 <th key={h}
                   className="text-center px-1.5 py-2 text-xs font-bold"
-                  style={{ color: h === 'PTS' ? '#ea580c' : '#64748b', minWidth: 22 }}>
+                  style={{ color: h === 'PTS' ? 'var(--brand)' : 'var(--text-muted)', minWidth: 22 }}>
                   {h}
                 </th>
               ))}
@@ -106,7 +106,7 @@ export default function PosicionesLmxPage() {
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={10} className="text-center py-10 text-sm" style={{ color: '#475569' }}>
+                <td colSpan={10} className="text-center py-10 text-sm" style={{ color: 'var(--text-muted)' }}>
                   Cargando…
                 </td>
               </tr>
@@ -114,7 +114,7 @@ export default function PosicionesLmxPage() {
 
             {!loading && rows.length === 0 && (
               <tr>
-                <td colSpan={10} className="text-center py-10 text-sm" style={{ color: '#475569' }}>
+                <td colSpan={10} className="text-center py-10 text-sm" style={{ color: 'var(--text-muted)' }}>
                   Sin datos disponibles
                 </td>
               </tr>
@@ -151,7 +151,7 @@ export default function PosicionesLmxPage() {
                     borderLeft: rowBorder,
                   }}
                 >
-                  <td className="px-3 py-2 text-xs tabular-nums" style={{ color: '#475569' }}>{i + 1}</td>
+                  <td className="px-3 py-2 text-xs tabular-nums" style={{ color: 'var(--text-muted)' }}>{i + 1}</td>
 
                   {/* Equipo con logo */}
                   <td className="px-2 py-1.5">
@@ -171,13 +171,13 @@ export default function PosicionesLmxPage() {
 
                   {[r.pj, r.g, r.e, r.p, r.gf, r.gc, r.dg].map((v, j) => (
                     <td key={j} className="text-center px-1.5 py-2 text-xs tabular-nums"
-                      style={{ color: j === 6 && v > 0 ? '#22c55e' : j === 6 && v < 0 ? '#ef4444' : '#94a3b8' }}>
+                      style={{ color: j === 6 && v > 0 ? 'var(--ex)' : j === 6 && v < 0 ? 'var(--fl)' : 'var(--text-secondary)' }}>
                       {j === 6 && v > 0 ? `+${v}` : v}
                     </td>
                   ))}
 
                   <td className="text-center px-1.5 py-2 font-bold tabular-nums"
-                    style={{ fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
+                    style={{ fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: 'var(--brand)' }}>
                     {r.pts}
                   </td>
                 </motion.tr>
@@ -188,11 +188,11 @@ export default function PosicionesLmxPage() {
       </div>
 
       {/* Leyenda */}
-      <div className="flex flex-wrap gap-4 mt-3 text-xs" style={{ color: '#64748b' }}>
-        <span><span style={{ color: '#22c55e' }}>■</span> Top 8 — Liguilla</span>
-        <span><span style={{ color: '#ef4444' }}>■</span> Bottom 3 — Descenso</span>
+      <div className="flex flex-wrap gap-4 mt-3 text-xs" style={{ color: 'var(--text-muted)' }}>
+        <span><span style={{ color: 'var(--ex)' }}>■</span> Top 8 — Liguilla</span>
+        <span><span style={{ color: 'var(--fl)' }}>■</span> Bottom 3 — Descenso</span>
         {updatedAt && (
-          <span style={{ marginLeft: 'auto', color: '#475569' }}>
+          <span style={{ marginLeft: 'auto', color: 'var(--text-muted)' }}>
             Act. {new Date(updatedAt).toLocaleDateString('es-MX', { day: '2-digit', month: 'short' })}
           </span>
         )}

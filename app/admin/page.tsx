@@ -1152,7 +1152,7 @@ export default function AdminPage() {
                 className="px-2.5 py-1 rounded-lg text-xs font-bold transition-all"
                 style={{
                   background: jornadaCSV === j ? '#1e3a5f' : 'var(--bg-card)',
-                  color: jornadaCSV === j ? '#60a5fa' : '#64748b',
+                  color: jornadaCSV === j ? '#60a5fa' : 'var(--text-muted)',
                   border: `1px solid ${jornadaCSV === j ? '#3b82f6' : 'var(--border)'}`,
                 }}>
                 {getNombreJornada(j)}
@@ -1172,7 +1172,7 @@ export default function AdminPage() {
           onClick={actualizarResultados}
           disabled={actualizando}
           className="flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-50"
-          style={{ background: '#ea580c', color: '#fff', fontFamily: 'var(--font-rajdhani)' }}>
+          style={{ background: 'var(--brand)', color: '#fff', fontFamily: 'var(--font-rajdhani)' }}>
           {actualizando ? '⏳ Actualizando...' : '🔄 Actualizar resultados'}
         </button>
       </div>
@@ -1182,11 +1182,11 @@ export default function AdminPage() {
         <button
           onClick={() => toggleSeccion('faseFinalJ6')}
           className="w-full flex items-center justify-between px-4 py-4 rounded-xl hover:border-orange-500/50 transition-all"
-          style={{ background: 'linear-gradient(135deg, rgba(234,88,12,0.18), rgba(251,191,36,0.08))', border: '2px solid rgba(234,88,12,0.5)' }}>
+          style={{ background: 'var(--brand-soft)', border: '2px solid rgba(200,0,106,0.5)' }}>
           <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.2rem', color: 'var(--accent-gold)' }}>
             🏆 FASE FINAL J6 — Cuartos de Final
           </span>
-          <span style={{ color: '#64748b' }}>{seccionesAbiertas.faseFinalJ6 ? '▲' : '▼'}</span>
+          <span style={{ color: 'var(--text-muted)' }}>{seccionesAbiertas.faseFinalJ6 ? '▲' : '▼'}</span>
         </button>
         {seccionesAbiertas.faseFinalJ6 && (
           <div className="space-y-4">
@@ -1198,11 +1198,11 @@ export default function AdminPage() {
                 <div className="rounded-2xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
                   <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>💰 Pozo J6</p>
                   <div className="flex items-center justify-between">
-                    <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.8rem', color: '#ea580c' }}>${pozoJ6.total_mxn} MXN</span>
+                    <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.8rem', color: 'var(--brand)' }}>${pozoJ6.total_mxn} MXN</span>
                     <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>👥 {pozoJ6.participantes} participantes</span>
                   </div>
                   <span className="text-[10px] px-2 py-0.5 rounded-full mt-1 inline-block font-bold uppercase"
-                    style={{ background: 'rgba(234,88,12,0.15)', color: '#ea580c' }}>
+                    style={{ background: 'rgba(200,0,106,0.15)', color: 'var(--brand)' }}>
                     {pozoJ6.estado}
                   </span>
                 </div>
@@ -1218,18 +1218,18 @@ export default function AdminPage() {
               return (
                 <div className="rounded-2xl p-4 space-y-2" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
                   <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
-                    👥 Participantes J6 — <span style={{ color: '#10b981' }}>{pagados.length} pagados</span> · <span style={{ color: '#ea580c' }}>{pendientes.length} pendientes</span>
+                    👥 Participantes J6 — <span style={{ color: 'var(--ex)' }}>{pagados.length} pagados</span> · <span style={{ color: 'var(--brand)' }}>{pendientes.length} pendientes</span>
                   </p>
                   {pagados.map(p => (
                     <div key={p.id} className="flex items-center justify-between text-xs py-0.5">
                       <span style={{ color: 'var(--text-primary)' }}>{mostrarNombreParticipante(p)}</span>
-                      <span style={{ color: '#10b981' }}>✅</span>
+                      <span style={{ color: 'var(--ex)' }}>✅</span>
                     </div>
                   ))}
                   {pendientes.map(p => (
                     <div key={p.id} className="flex items-center justify-between text-xs py-0.5">
                       <span style={{ color: 'var(--text-secondary)' }}>{mostrarNombreParticipante(p)}</span>
-                      <span style={{ color: '#ea580c' }}>⏳</span>
+                      <span style={{ color: 'var(--brand)' }}>⏳</span>
                     </div>
                   ))}
                 </div>
@@ -1242,7 +1242,7 @@ export default function AdminPage() {
                 ⚽ Partidos de Cuartos (J6)
               </p>
               {partidos.filter(p => p.jornada === 6).length === 0 ? (
-                <p className="text-sm text-center py-4 rounded-xl" style={{ color: '#64748b', background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                <p className="text-sm text-center py-4 rounded-xl" style={{ color: 'var(--text-muted)', background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
                   Sin partidos J6 cargados aún
                 </p>
               ) : (
@@ -1255,8 +1255,8 @@ export default function AdminPage() {
                         <span>{new Date(partido.fecha_hora).toLocaleString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'America/Mexico_City' })}</span>
                         <span className="px-2 py-0.5 rounded-full font-bold uppercase text-[10px]"
                           style={{
-                            background: partido.estado === 'finalizado' ? 'rgba(100,116,139,0.15)' : 'rgba(234,88,12,0.15)',
-                            color:      partido.estado === 'finalizado' ? '#64748b' : 'var(--accent-gold)',
+                            background: partido.estado === 'finalizado' ? 'rgba(116,108,97,0.15)' : 'rgba(200,0,106,0.15)',
+                            color:      partido.estado === 'finalizado' ? 'var(--text-muted)' : 'var(--accent-gold)',
                           }}>
                           {partido.estado}
                         </span>
@@ -1282,7 +1282,7 @@ export default function AdminPage() {
                           <button onClick={() => handleGuardar(partido.id)}
                             disabled={guardando === partido.id}
                             className="w-full h-12 rounded-xl font-bold text-sm disabled:opacity-40 transition-all active:scale-95"
-                            style={{ background: '#10b981', color: '#000' }}>
+                            style={{ background: 'var(--ex)', color: '#000' }}>
                             {guardando === partido.id ? '…' : 'Guardar ✓'}
                           </button>
                         </div>
@@ -1293,7 +1293,7 @@ export default function AdminPage() {
                             {partido.goles_local} – {partido.goles_visitante}
                           </p>
                           {(partido as Partido & { clasificado?: string; como_termino?: string }).clasificado && (
-                            <p className="text-xs" style={{ color: '#94a3b8' }}>
+                            <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                               ✅ {(partido as Partido & { clasificado?: string; como_termino?: string }).clasificado}
                               {(partido as Partido & { clasificado?: string; como_termino?: string }).como_termino === 'tiempo_extra' ? ' · ⏩' : (partido as Partido & { clasificado?: string; como_termino?: string }).como_termino === 'penales' ? ' · 🥅' : ''}
                             </p>
@@ -1320,7 +1320,7 @@ export default function AdminPage() {
           <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: 'var(--accent-gold)' }}>
             💰 REGISTRAR PAGO
           </span>
-          <span style={{ color: '#64748b' }}>{seccionesAbiertas.pago ? '▲' : '▼'}</span>
+          <span style={{ color: 'var(--text-muted)' }}>{seccionesAbiertas.pago ? '▲' : '▼'}</span>
         </button>
         {seccionesAbiertas.pago && (
           <div className="space-y-3 rounded-2xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
@@ -1358,9 +1358,9 @@ export default function AdminPage() {
                     onClick={() => setPagoJornada(j)}
                     className="flex-1 py-2 rounded-xl text-sm font-bold transition-all active:scale-95"
                     style={{
-                      background: pagoJornada === j ? '#ea580c' : 'var(--bg-card-hover)',
+                      background: pagoJornada === j ? 'var(--brand)' : 'var(--bg-card-hover)',
                       color: pagoJornada === j ? '#fff' : 'var(--text-secondary)',
-                      border: `1px solid ${pagoJornada === j ? '#ea580c' : 'var(--border)'}`,
+                      border: `1px solid ${pagoJornada === j ? 'var(--brand)' : 'var(--border)'}`,
                       fontFamily: 'var(--font-rajdhani)',
                     }}
                   >
@@ -1374,7 +1374,7 @@ export default function AdminPage() {
               onClick={registrarPago}
               disabled={!pagoJugadorId || registrando}
               className="w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-40"
-              style={{ background: '#10b981', color: '#000', fontFamily: 'var(--font-rajdhani)' }}
+              style={{ background: 'var(--ex)', color: '#000', fontFamily: 'var(--font-rajdhani)' }}
             >
               {registrando ? '…' : `✅ Confirmar pago $${getMontoJornada(pagoJornada)} MXN`}
             </button>
@@ -1391,7 +1391,7 @@ export default function AdminPage() {
           <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: 'var(--accent-gold)' }}>
             🔗 MAGIC LINK
           </span>
-          <span style={{ color: '#64748b' }}>{seccionesAbiertas.magicLink ? '▲' : '▼'}</span>
+          <span style={{ color: 'var(--text-muted)' }}>{seccionesAbiertas.magicLink ? '▲' : '▼'}</span>
         </button>
         {seccionesAbiertas.magicLink && (
           <div className="space-y-3 rounded-2xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
@@ -1408,8 +1408,8 @@ export default function AdminPage() {
               value={emailMagic}
               onChange={e => setEmailMagic(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && generarMagicLink()}
-              className="w-full bg-[#0a0a0a] border border-[#1e1e2e]
-              rounded-lg px-3 py-2 text-white text-sm outline-none
+              className="w-full bg-[var(--bg-base)] border border-[var(--border-color)]
+              rounded-lg px-3 py-2 text-[var(--text-primary)] text-sm outline-none
               focus:border-orange-500"
             />
             
@@ -1423,7 +1423,7 @@ export default function AdminPage() {
             </button>
 
             {magicLink && (
-              <div className="bg-[#0a0a0a] border border-green-500/30
+              <div className="bg-[var(--bg-base)] border border-green-500/30
               rounded-xl p-3">
                 <p className="text-green-400 text-xs font-bold mb-2">
                   ✅ Link listo — mándalo por WhatsApp:
@@ -1468,7 +1468,7 @@ export default function AdminPage() {
           <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: 'var(--accent-gold)' }}>
             🏆 POZOS — ${pozos.reduce((s, p) => s + (p.total_mxn ?? 0), 0)} MXN · {pozos.reduce((s, p) => s + (p.participantes ?? 0), 0)} participantes
           </span>
-          <span style={{ color: '#64748b' }}>{seccionesAbiertas.pozos ? '▲' : '▼'}</span>
+          <span style={{ color: 'var(--text-muted)' }}>{seccionesAbiertas.pozos ? '▲' : '▼'}</span>
         </button>
         {seccionesAbiertas.pozos && (
         <div className="space-y-2">
@@ -1500,16 +1500,16 @@ export default function AdminPage() {
                     <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full"
                       style={{
                         background: pozo.estado === 'abierto'
-                          ? 'rgba(234,88,12,0.15)' : pozo.estado === 'cerrado'
-                          ? 'rgba(100,116,139,0.15)' : 'rgba(16,185,129,0.15)',
+                          ? 'rgba(200,0,106,0.15)' : pozo.estado === 'cerrado'
+                          ? 'rgba(116,108,97,0.15)' : 'rgba(18,161,80,0.15)',
                         color: pozo.estado === 'abierto'
                           ? 'var(--accent-gold)' : pozo.estado === 'cerrado'
-                          ? '#64748b' : '#10b981',
+                          ? 'var(--text-muted)' : 'var(--ex)',
                       }}>
                       {pozo.estado}
                     </span>
                   </div>
-                  <span style={{ color: '#64748b', flexShrink: 0 }}>{isOpen ? '▲' : '▼'}</span>
+                  <span style={{ color: 'var(--text-muted)', flexShrink: 0 }}>{isOpen ? '▲' : '▼'}</span>
                 </button>
 
                 {/* Contenido colapsable */}
@@ -1524,14 +1524,14 @@ export default function AdminPage() {
                           onClick={() => handleDeclararGanador(pozo.jornada)}
                           disabled={declarando === pozo.jornada}
                           className="text-xs px-3 py-1.5 rounded-lg font-bold disabled:opacity-50 transition-all active:scale-95"
-                          style={{ background: 'rgba(234,88,12,0.2)', color: 'var(--accent-gold)', border: '1px solid rgba(234,88,12,0.3)' }}>
+                          style={{ background: 'rgba(200,0,106,0.2)', color: 'var(--accent-gold)', border: '1px solid rgba(200,0,106,0.3)' }}>
                           {declarando === pozo.jornada ? '…' : '🏆 Declarar ganador'}
                         </button>
                         <button
                           onClick={() => declararUltimo(pozo.jornada)}
                           disabled={declarandoUltimo === pozo.jornada}
                           className="text-xs px-3 py-1.5 rounded-lg font-bold disabled:opacity-50 transition-all active:scale-95"
-                          style={{ background: 'rgba(202,138,4,0.2)', color: '#facc15', border: '1px solid rgba(202,138,4,0.3)' }}>
+                          style={{ background: 'rgba(202,138,4,0.2)', color: 'var(--rs)', border: '1px solid rgba(202,138,4,0.3)' }}>
                           {declarandoUltimo === pozo.jornada ? '…' : '🤡 Último lugar'}
                         </button>
                       </div>
@@ -1540,8 +1540,8 @@ export default function AdminPage() {
                     {/* Ganador si existe */}
                     {pozo.ganador_nombre && (
                       <div className="px-4 py-2 text-sm"
-                        style={{ background: 'rgba(16,185,129,0.08)', borderBottom: '1px solid rgba(16,185,129,0.2)' }}>
-                        <span className="font-bold" style={{ color: '#10b981' }}>🥇 Ganador: {pozo.ganador_nombre}</span>
+                        style={{ background: 'rgba(18,161,80,0.08)', borderBottom: '1px solid rgba(18,161,80,0.2)' }}>
+                        <span className="font-bold" style={{ color: 'var(--ex)' }}>🥇 Ganador: {pozo.ganador_nombre}</span>
                         <span className="ml-2 text-xs" style={{ color: 'var(--text-secondary)' }}>· ${pozo.total_mxn} MXN</span>
                       </div>
                     )}
@@ -1549,13 +1549,13 @@ export default function AdminPage() {
                     {/* Pagos pendientes */}
                     {pendientes.length > 0 && (
                       <div className="px-4 py-3 space-y-2">
-                        <p className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: '#ea580c' }}>
+                        <p className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: 'var(--brand)' }}>
                           ⏳ Pendientes de pago ({pendientes.length})
                         </p>
                         {pendientes.map(p => (
                           <div key={p.id}
                             className="flex items-center justify-between gap-2 rounded-xl px-3 py-2.5"
-                            style={{ background: 'rgba(234,88,12,0.08)', border: '1px solid rgba(234,88,12,0.3)' }}>
+                            style={{ background: 'rgba(200,0,106,0.08)', border: '1px solid rgba(200,0,106,0.3)' }}>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 flex-wrap">
                                 <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
@@ -1563,7 +1563,7 @@ export default function AdminPage() {
                                 </p>
                                 {p.quinielaNombre && <BadgeQuinielaExtra nombre={p.quinielaNombre} />}
                                 <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold"
-                                  style={{ background: 'rgba(234,88,12,0.2)', color: '#ea580c', border: '1px solid rgba(234,88,12,0.4)' }}>
+                                  style={{ background: 'rgba(200,0,106,0.2)', color: 'var(--brand)', border: '1px solid rgba(200,0,106,0.4)' }}>
                                   ⏳ Pendiente de pago
                                 </span>
                               </div>
@@ -1577,13 +1577,13 @@ export default function AdminPage() {
                                 onClick={() => handleConfirmarPago(p)}
                                 disabled={confirmando === p.id}
                                 className="text-xs px-3 py-2 rounded-xl font-bold disabled:opacity-50 transition-all active:scale-95 whitespace-nowrap"
-                                style={{ background: '#10b981', color: '#000' }}>
+                                style={{ background: 'var(--ex)', color: '#000' }}>
                                 {confirmando === p.id ? '…' : '✅ Confirmar pago'}
                               </button>
                               <button
                                 onClick={() => handleEliminarParticipacion(p)}
                                 className="text-xs px-2 py-2 rounded-xl font-bold transition-all active:scale-95"
-                                style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)' }}>
+                                style={{ background: 'rgba(239,68,68,0.15)', color: 'var(--fl)', border: '1px solid rgba(239,68,68,0.3)' }}>
                                 🗑️
                               </button>
                             </div>
@@ -1596,7 +1596,7 @@ export default function AdminPage() {
                     {confirmadas.length > 0 && (
                       <div className="px-4 py-3 space-y-1"
                         style={{ borderTop: pendientes.length > 0 ? '1px solid var(--border)' : 'none' }}>
-                        <p className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: '#10b981' }}>
+                        <p className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: 'var(--ex)' }}>
                           ✅ Confirmados ({confirmadas.length})
                         </p>
                         {confirmadas.map(p => (
@@ -1613,7 +1613,7 @@ export default function AdminPage() {
                                 <p className="text-xs text-slate-500">{emailCorto(p.jugadorEmail)}</p>
                               )}
                               {formatPagadoAt(p.pagado_at) && (
-                                <p className="text-[10px]" style={{ color: '#475569' }}>
+                                <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
                                   📅 {formatPagadoAt(p.pagado_at)}
                                 </p>
                               )}
@@ -1621,7 +1621,7 @@ export default function AdminPage() {
                             <button
                               onClick={() => handleEliminarParticipacion(p)}
                               className="text-xs px-2 py-1 rounded-lg transition-all active:scale-95"
-                              style={{ background: 'rgba(239,68,68,0.12)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}>
+                              style={{ background: 'rgba(239,68,68,0.12)', color: 'var(--fl)', border: '1px solid rgba(239,68,68,0.2)' }}>
                               🗑️
                             </button>
                           </div>
@@ -1652,7 +1652,7 @@ export default function AdminPage() {
                       return (
                         <details className="px-4 py-3" style={{ borderTop: '1px solid var(--border)' }}>
                           <summary className="text-[10px] uppercase tracking-widest font-semibold cursor-pointer"
-                            style={{ color: '#64748b' }}>
+                            style={{ color: 'var(--text-muted)' }}>
                             👤 Sin participación ({sinParticipacion.length})
                           </summary>
                           <div className="mt-2 space-y-1">
@@ -1670,7 +1670,7 @@ export default function AdminPage() {
                                   onClick={() => registrarPagoDesdePozo(j.id, pozoBaseJornada)}
                                   disabled={registrandoPozoId === j.id}
                                   className="text-xs px-3 py-1.5 rounded-xl font-bold disabled:opacity-50 transition-all active:scale-95 whitespace-nowrap shrink-0"
-                                  style={{ background: '#10b981', color: '#000' }}>
+                                  style={{ background: 'var(--ex)', color: '#000' }}>
                                   {registrandoPozoId === j.id ? '…' : '✅ Registrar pago'}
                                 </button>
                               </div>
@@ -1697,7 +1697,7 @@ export default function AdminPage() {
           <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: 'var(--accent-gold)' }}>
             👤 APODOS Y REFERENCIAS — {jugadores.length} jugadores
           </span>
-          <span style={{ color: '#64748b' }}>{seccionesAbiertas.apodos ? '▲' : '▼'}</span>
+          <span style={{ color: 'var(--text-muted)' }}>{seccionesAbiertas.apodos ? '▲' : '▼'}</span>
         </button>
         {seccionesAbiertas.apodos && (
         <div className="space-y-3">
@@ -1712,7 +1712,7 @@ export default function AdminPage() {
 
               {/* Apodo público */}
               <div className="mb-2">
-                <p className="text-xs mb-1" style={{ color: '#64748b' }}>Apodo público (visible para todos)</p>
+                <p className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>Apodo público (visible para todos)</p>
                 {editandoApodo === jugador.id ? (
                   <div className="flex gap-2">
                     <input
@@ -1728,8 +1728,8 @@ export default function AdminPage() {
                       placeholder="Apodo..."
                       maxLength={20}
                       autoFocus
-                      className="flex-1 rounded-lg px-3 py-1.5 text-sm text-white outline-none"
-                      style={{ background: '#0a0a0a', border: '1px solid #ea580c' }}
+                      className="flex-1 rounded-lg px-3 py-1.5 text-sm text-[var(--text-primary)] outline-none"
+                      style={{ background: 'var(--bg-base)', border: '1px solid #C8006A' }}
                     />
                     <button
                       onClick={async () => {
@@ -1746,27 +1746,27 @@ export default function AdminPage() {
                         }
                       }}
                       className="px-3 py-1.5 rounded-lg text-sm font-bold transition-all active:scale-95"
-                      style={{ background: '#ea580c', color: '#fff' }}>
+                      style={{ background: 'var(--brand)', color: '#fff' }}>
                       ✓
                     </button>
                     <button
                       onClick={() => setEditandoApodo(null)}
                       className="px-2 text-sm transition-colors"
-                      style={{ color: '#64748b' }}>
+                      style={{ color: 'var(--text-muted)' }}>
                       ✕
                     </button>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
                     {jugador.apodo ? (
-                      <span className="text-sm" style={{ color: '#ea580c' }}>🏷️ {jugador.apodo}</span>
+                      <span className="text-sm" style={{ color: 'var(--brand)' }}>🏷️ {jugador.apodo}</span>
                     ) : (
-                      <span className="text-sm" style={{ color: '#334155' }}>Sin apodo</span>
+                      <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Sin apodo</span>
                     )}
                     <button
                       onClick={() => { setEditandoApodo(jugador.id); setApodoTemp(jugador.apodo ?? ''); }}
                       className="text-xs transition-colors"
-                      style={{ color: '#475569' }}>
+                      style={{ color: 'var(--text-muted)' }}>
                       ✏️ Editar
                     </button>
                   </div>
@@ -1774,8 +1774,8 @@ export default function AdminPage() {
               </div>
 
               {/* Referencia interna */}
-              <div className="mt-2 pt-2" style={{ borderTop: '1px solid #1e1e2e' }}>
-                <p className="text-xs mb-1" style={{ color: '#64748b' }}>🔒 Referencia interna (solo tú la ves)</p>
+              <div className="mt-2 pt-2" style={{ borderTop: '1px solid #26231F' }}>
+                <p className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>🔒 Referencia interna (solo tú la ves)</p>
                 {editandoReferencia === jugador.id ? (
                   <div className="flex gap-2">
                     <input
@@ -1785,8 +1785,8 @@ export default function AdminPage() {
                       placeholder="Ej: Compañero turno mañana, Primo de Amy..."
                       maxLength={50}
                       autoFocus
-                      className="flex-1 rounded-lg px-3 py-1.5 text-sm text-white outline-none"
-                      style={{ background: '#0a0a0a', border: '1px solid #ea580c' }}
+                      className="flex-1 rounded-lg px-3 py-1.5 text-sm text-[var(--text-primary)] outline-none"
+                      style={{ background: 'var(--bg-base)', border: '1px solid #C8006A' }}
                       onKeyDown={e => {
                         if (e.key === 'Enter') guardarReferencia(jugador.id);
                         if (e.key === 'Escape') setEditandoReferencia(null);
@@ -1795,13 +1795,13 @@ export default function AdminPage() {
                     <button
                       onClick={() => guardarReferencia(jugador.id)}
                       className="px-3 py-1.5 rounded-lg text-sm font-bold transition-all active:scale-95"
-                      style={{ background: '#ea580c', color: '#fff' }}>
+                      style={{ background: 'var(--brand)', color: '#fff' }}>
                       ✓
                     </button>
                     <button
                       onClick={() => setEditandoReferencia(null)}
                       className="px-2 text-sm transition-colors"
-                      style={{ color: '#64748b' }}>
+                      style={{ color: 'var(--text-muted)' }}>
                       ✕
                     </button>
                   </div>
@@ -1810,12 +1810,12 @@ export default function AdminPage() {
                     {jugador.referencia_admin ? (
                       <span className="text-sm" style={{ color: '#60a5fa' }}>📋 {jugador.referencia_admin}</span>
                     ) : (
-                      <span className="text-sm" style={{ color: '#334155' }}>Sin referencia</span>
+                      <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Sin referencia</span>
                     )}
                     <button
                       onClick={() => { setEditandoReferencia(jugador.id); setReferenciaTemp(jugador.referencia_admin ?? ''); }}
                       className="text-xs transition-colors"
-                      style={{ color: '#475569' }}>
+                      style={{ color: 'var(--text-muted)' }}>
                       ✏️
                     </button>
                   </div>
@@ -1836,7 +1836,7 @@ export default function AdminPage() {
           <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: 'var(--accent-gold)' }}>
             👥 USUARIOS — {jugadores.length} registrados
           </span>
-          <span style={{ color: '#64748b' }}>{seccionesAbiertas.usuarios ? '▲' : '▼'}</span>
+          <span style={{ color: 'var(--text-muted)' }}>{seccionesAbiertas.usuarios ? '▲' : '▼'}</span>
         </button>
         {seccionesAbiertas.usuarios && (
         <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
@@ -1854,7 +1854,7 @@ export default function AdminPage() {
                 <div className="flex items-center gap-3 min-w-0">
                   <div
                     className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-                    style={{ background: 'linear-gradient(135deg, #ea580c, #c2410c)' }}
+                    style={{ background: 'var(--brand)' }}
                   >
                     {inicialesJugador(jugador)}
                   </div>
@@ -1862,11 +1862,11 @@ export default function AdminPage() {
                     <p className="text-sm font-semibold flex items-center gap-1"
                       style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-rajdhani)' }}>
                       {mostrarNombre(jugador)}
-                      {jugador.rol === 'admin' && <span style={{ color: '#ea580c' }}>⚙️</span>}
+                      {jugador.rol === 'admin' && <span style={{ color: 'var(--brand)' }}>⚙️</span>}
                     </p>
-                    <p className="text-xs truncate" style={{ color: '#64748b' }}>{jugador.email}</p>
+                    <p className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>{jugador.email}</p>
                     {jugador.apodo && (
-                      <p className="text-xs" style={{ color: '#ea580c' }}>🏷️ {jugador.apodo}</p>
+                      <p className="text-xs" style={{ color: 'var(--brand)' }}>🏷️ {jugador.apodo}</p>
                     )}
                     {jugador.referencia_admin && (
                       <p className="text-xs" style={{ color: '#60a5fa' }}>📋 {jugador.referencia_admin}</p>
@@ -1887,7 +1887,7 @@ export default function AdminPage() {
                           ))}
                         </div>
                       ) : (
-                        <p className="text-xs mt-1" style={{ color: '#475569' }}>Sin quinielas registradas</p>
+                        <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Sin quinielas registradas</p>
                       );
                     })()}
                   </div>
@@ -1895,13 +1895,13 @@ export default function AdminPage() {
                 <div className="shrink-0 ml-3 text-right">
                   {jugador.last_seen ? (
                     <>
-                      <p className="text-xs" style={{ color: '#475569' }}>{timeAgo(jugador.last_seen)}</p>
+                      <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{timeAgo(jugador.last_seen)}</p>
                       {jugador.ultima_pagina && (
-                        <p className="text-xs" style={{ color: '#64748b' }}>📍 {jugador.ultima_pagina}</p>
+                        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>📍 {jugador.ultima_pagina}</p>
                       )}
                     </>
                   ) : (
-                    <p className="text-xs" style={{ color: '#64748b' }}>Sin actividad reciente</p>
+                    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Sin actividad reciente</p>
                   )}
                 </div>
               </div>
@@ -1919,7 +1919,7 @@ export default function AdminPage() {
           <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: 'var(--accent-gold)' }}>
             🛠️ RESULTADOS — {partidos.length} partidos
           </span>
-          <span style={{ color: '#64748b' }}>{seccionesAbiertas.resultados ? '▲' : '▼'}</span>
+          <span style={{ color: 'var(--text-muted)' }}>{seccionesAbiertas.resultados ? '▲' : '▼'}</span>
         </button>
         {seccionesAbiertas.resultados && (
         <div className="space-y-3">
@@ -1932,8 +1932,8 @@ export default function AdminPage() {
                   <span>Grupo {partido.grupo} · J{partido.jornada}</span>
                   <span className="px-2 py-0.5 rounded-full font-bold uppercase text-[10px]"
                     style={{
-                      background: partido.estado === 'finalizado' ? 'rgba(100,116,139,0.15)' : 'rgba(234,88,12,0.15)',
-                      color:      partido.estado === 'finalizado' ? '#64748b' : 'var(--accent-gold)',
+                      background: partido.estado === 'finalizado' ? 'rgba(116,108,97,0.15)' : 'rgba(200,0,106,0.15)',
+                      color:      partido.estado === 'finalizado' ? 'var(--text-muted)' : 'var(--accent-gold)',
                     }}>
                     {partido.estado}
                   </span>
@@ -1968,12 +1968,12 @@ export default function AdminPage() {
                       <button onClick={() => handleGuardar(partido.id)}
                         disabled={guardando === partido.id}
                         className="h-12 px-4 rounded-xl font-bold text-sm disabled:opacity-40 transition-all active:scale-95"
-                        style={{ background: '#10b981', color: '#000' }}>
+                        style={{ background: 'var(--ex)', color: '#000' }}>
                         {guardando === partido.id ? '…' : 'Guardar ✓'}
                       </button>
                       <button onClick={() => handleLimpiar(partido.id)}
                         className="h-12 px-3 rounded-xl text-sm transition-all active:scale-95"
-                        style={{ background: '#334155', color: '#94a3b8' }}
+                        style={{ background: 'var(--text-muted)', color: 'var(--text-secondary)' }}
                         title="Limpiar resultado">
                         🔄
                       </button>
@@ -1986,7 +1986,7 @@ export default function AdminPage() {
                       {partido.goles_local} – {partido.goles_visitante}
                     </p>
                     {(partido as any).clasificado && (
-                      <p className="text-xs flex items-center justify-center gap-1.5" style={{ color: '#94a3b8' }}>
+                      <p className="text-xs flex items-center justify-center gap-1.5" style={{ color: 'var(--text-secondary)' }}>
                         <Bandera emoji={BANDERAS_EQUIPOS[(partido as any).clasificado] ?? ''} nombre={(partido as any).clasificado} size="sm" />
                         {(partido as any).clasificado}
                         {(partido as any).como_termino && (
@@ -2015,7 +2015,7 @@ export default function AdminPage() {
           <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: 'var(--accent-gold)' }}>
             🏆 CLASIFICADOS LEAGUES CUP — LC2026
           </span>
-          <span style={{ color: '#64748b' }}>{seccionesAbiertas.clasificadosLc ? '▲' : '▼'}</span>
+          <span style={{ color: 'var(--text-muted)' }}>{seccionesAbiertas.clasificadosLc ? '▲' : '▼'}</span>
         </button>
         {seccionesAbiertas.clasificadosLc && (
           <div className="rounded-2xl p-4 space-y-6" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
@@ -2033,8 +2033,8 @@ export default function AdminPage() {
                       className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold transition-all"
                       style={{
                         background: sel ? 'rgba(34,197,94,0.2)' : 'var(--bg-card-hover)',
-                        border: `1px solid ${sel ? '#22c55e' : 'var(--border)'}`,
-                        color: sel ? '#22c55e' : 'var(--text-secondary)',
+                        border: `1px solid ${sel ? 'var(--ex)' : 'var(--border)'}`,
+                        color: sel ? 'var(--ex)' : 'var(--text-secondary)',
                       }}>
                       <Bandera emoji="" nombre={eq} size="sm" />
                       {eq}
@@ -2046,7 +2046,7 @@ export default function AdminPage() {
                 onClick={() => handleGuardarClasificadosLc('ligamx')}
                 disabled={clasificandoLc}
                 className="w-full h-10 rounded-xl font-bold text-sm disabled:opacity-40 transition-all active:scale-95"
-                style={{ background: '#10b981', color: '#000' }}>
+                style={{ background: 'var(--ex)', color: '#000' }}>
                 {clasificandoLc ? '…' : `Guardar Liga MX (${clasificadosLcLigamx.length} equipos) ✓`}
               </button>
             </div>
@@ -2065,8 +2065,8 @@ export default function AdminPage() {
                       className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold transition-all"
                       style={{
                         background: sel ? 'rgba(34,197,94,0.2)' : 'var(--bg-card-hover)',
-                        border: `1px solid ${sel ? '#22c55e' : 'var(--border)'}`,
-                        color: sel ? '#22c55e' : 'var(--text-secondary)',
+                        border: `1px solid ${sel ? 'var(--ex)' : 'var(--border)'}`,
+                        color: sel ? 'var(--ex)' : 'var(--text-secondary)',
                       }}>
                       <Bandera emoji="" nombre={eq} size="sm" />
                       {eq}
@@ -2078,7 +2078,7 @@ export default function AdminPage() {
                 onClick={() => handleGuardarClasificadosLc('mls')}
                 disabled={clasificandoLc}
                 className="w-full h-10 rounded-xl font-bold text-sm disabled:opacity-40 transition-all active:scale-95"
-                style={{ background: '#10b981', color: '#000' }}>
+                style={{ background: 'var(--ex)', color: '#000' }}>
                 {clasificandoLc ? '…' : `Guardar MLS (${clasificadosLcMls.length} equipos) ✓`}
               </button>
             </div>
@@ -2097,7 +2097,7 @@ export default function AdminPage() {
           <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: 'var(--accent-gold)' }}>
             🏆 CAMPEÓN LEAGUES CUP — declarar y dar +5 pts
           </span>
-          <span style={{ color: '#64748b' }}>{seccionesAbiertas.campeonLc ? '▲' : '▼'}</span>
+          <span style={{ color: 'var(--text-muted)' }}>{seccionesAbiertas.campeonLc ? '▲' : '▼'}</span>
         </button>
         {seccionesAbiertas.campeonLc && (
           <div className="rounded-2xl p-4 space-y-3" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
@@ -2153,7 +2153,7 @@ export default function AdminPage() {
                 style={{
                   background: campeonLcResult.startsWith('✅') ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
                   border: `1px solid ${campeonLcResult.startsWith('✅') ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
-                  color: campeonLcResult.startsWith('✅') ? '#22c55e' : '#ef4444',
+                  color: campeonLcResult.startsWith('✅') ? 'var(--ex)' : 'var(--fl)',
                 }}>
                 {campeonLcResult}
               </div>
@@ -2164,7 +2164,7 @@ export default function AdminPage() {
               <div className="space-y-3 pt-1">
                 {campeonLcDetalle.acertaron.length > 0 && (
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: '#22c55e' }}>
+                    <p className="text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: 'var(--ex)' }}>
                       ✅ Acertaron ({campeonLcDetalle.acertaron.length})
                     </p>
                     <div className="flex flex-wrap gap-1.5">
@@ -2173,7 +2173,7 @@ export default function AdminPage() {
                         return (
                           <span key={p.user_id}
                             className="px-2 py-0.5 rounded-lg text-xs font-semibold"
-                            style={{ background: 'rgba(34,197,94,0.15)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.3)' }}>
+                            style={{ background: 'rgba(34,197,94,0.15)', color: 'var(--ex)', border: '1px solid rgba(34,197,94,0.3)' }}>
                             {j?.apodo || p.user_id.slice(0, 8)}
                           </span>
                         );
@@ -2183,7 +2183,7 @@ export default function AdminPage() {
                 )}
                 {campeonLcDetalle.fallaron.length > 0 && (
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: '#ef4444' }}>
+                    <p className="text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: 'var(--fl)' }}>
                       ❌ No acertaron ({campeonLcDetalle.fallaron.length})
                     </p>
                     <div className="flex flex-wrap gap-1.5">
@@ -2192,7 +2192,7 @@ export default function AdminPage() {
                         return (
                           <span key={p.user_id}
                             className="px-2 py-0.5 rounded-lg text-xs font-semibold"
-                            style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)' }}
+                            style={{ background: 'rgba(239,68,68,0.1)', color: 'var(--fl)', border: '1px solid rgba(239,68,68,0.3)' }}
                             title={p.equipo}>
                             {j?.apodo || p.user_id.slice(0, 8)} ({p.equipo})
                           </span>
@@ -2212,7 +2212,7 @@ export default function AdminPage() {
                     onClick={declararCampeonLc}
                     disabled={campeonLcLoading}
                     className="flex-1 py-3 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-40"
-                    style={{ background: 'rgba(239,68,68,0.2)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.4)', fontFamily: 'var(--font-rajdhani)' }}
+                    style={{ background: 'rgba(239,68,68,0.2)', color: 'var(--fl)', border: '1px solid rgba(239,68,68,0.4)', fontFamily: 'var(--font-rajdhani)' }}
                   >
                     {campeonLcLoading ? '⏳ Aplicando...' : '⚠️ Confirmar'}
                   </button>
@@ -2230,7 +2230,7 @@ export default function AdminPage() {
                   onClick={() => setConfirmandoCampeonLc(true)}
                   disabled={!campeonLcEquipo || campeonLcLoading}
                   className="w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-40"
-                  style={{ background: 'rgba(251,191,36,0.2)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.4)', fontFamily: 'var(--font-rajdhani)' }}
+                  style={{ background: 'rgba(251,191,36,0.2)', color: 'var(--rs)', border: '1px solid rgba(251,191,36,0.4)', fontFamily: 'var(--font-rajdhani)' }}
                 >
                   {campeonLcLoading ? '⏳ Aplicando...' : '🏆 Declarar Campeón LC y dar +5 pts'}
                 </button>
@@ -2250,7 +2250,7 @@ export default function AdminPage() {
           <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: 'var(--accent-gold)' }}>
             📝 NOTAS DEL ADMIN — {notas.length} nota{notas.length !== 1 ? 's' : ''}
           </span>
-          <span style={{ color: '#64748b' }}>{seccionesAbiertas.notas ? '▲' : '▼'}</span>
+          <span style={{ color: 'var(--text-muted)' }}>{seccionesAbiertas.notas ? '▲' : '▼'}</span>
         </button>
         {seccionesAbiertas.notas && (
           <div className="rounded-2xl p-4 space-y-2" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
@@ -2261,23 +2261,23 @@ export default function AdminPage() {
                 value={nuevaNota}
                 onChange={e => setNuevaNota(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && agregarNota()}
-                className="flex-1 rounded-lg px-3 py-2 text-white text-sm outline-none focus:border-orange-500"
-                style={{ background: '#0a0a0a', border: '1px solid #1e1e2e' }}
+                className="flex-1 rounded-lg px-3 py-2 text-[var(--text-primary)] text-sm outline-none focus:border-orange-500"
+                style={{ background: 'var(--bg-base)', border: '1px solid #26231F' }}
               />
               <button
                 onClick={agregarNota}
                 className="px-4 py-2 rounded-lg font-bold text-sm transition-all active:scale-95"
-                style={{ background: '#ea580c', color: '#fff' }}>
+                style={{ background: 'var(--brand)', color: '#fff' }}>
                 ✓
               </button>
             </div>
 
             {notas.map((nota, i) => (
               <div key={i} className="flex items-start justify-between py-2 gap-2"
-                style={{ borderBottom: i < notas.length - 1 ? '1px solid #1e1e2e' : 'none' }}>
+                style={{ borderBottom: i < notas.length - 1 ? '1px solid #26231F' : 'none' }}>
                 <div>
                   <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{nota.texto}</p>
-                  <p className="text-xs mt-0.5" style={{ color: '#475569' }}>{nota.fecha}</p>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{nota.fecha}</p>
                 </div>
                 <button
                   onClick={() => eliminarNota(i)}
@@ -2288,7 +2288,7 @@ export default function AdminPage() {
             ))}
 
             {notas.length === 0 && (
-              <p className="text-sm text-center py-4" style={{ color: '#475569' }}>
+              <p className="text-sm text-center py-4" style={{ color: 'var(--text-muted)' }}>
                 Sin notas — escribe algo arriba
               </p>
             )}
@@ -2305,7 +2305,7 @@ export default function AdminPage() {
           <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: 'var(--accent-gold)' }}>
             🏆 CAMPEÓN MUNDIAL — declaración manual
           </span>
-          <span style={{ color: '#64748b' }}>{seccionesAbiertas.campeon ? '▲' : '▼'}</span>
+          <span style={{ color: 'var(--text-muted)' }}>{seccionesAbiertas.campeon ? '▲' : '▼'}</span>
         </button>
         {seccionesAbiertas.campeon && (
           <div className="rounded-2xl p-4 space-y-3" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
@@ -2338,7 +2338,7 @@ export default function AdminPage() {
               onClick={declararCampeonManual}
               disabled={!equipoCampeonManual || declarandoCampeon}
               className="w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-40"
-              style={{ background: 'rgba(251,191,36,0.2)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.4)', fontFamily: 'var(--font-rajdhani)' }}
+              style={{ background: 'rgba(251,191,36,0.2)', color: 'var(--rs)', border: '1px solid rgba(251,191,36,0.4)', fontFamily: 'var(--font-rajdhani)' }}
             >
               {declarandoCampeon ? '⏳ Declarando...' : '🏆 Declarar campeón'}
             </button>
@@ -2355,7 +2355,7 @@ export default function AdminPage() {
           <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: 'var(--accent-gold)' }}>
             🏆 BONO CAMPEÓN — sumar +5 pts
           </span>
-          <span style={{ color: '#64748b' }}>{seccionesAbiertas.bonoCampeon ? '▲' : '▼'}</span>
+          <span style={{ color: 'var(--text-muted)' }}>{seccionesAbiertas.bonoCampeon ? '▲' : '▼'}</span>
         </button>
         {seccionesAbiertas.bonoCampeon && (
           <div className="rounded-2xl p-4 space-y-3" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
@@ -2364,7 +2364,7 @@ export default function AdminPage() {
               Solo debe ejecutarse <strong>después de la Final</strong>.
             </p>
             <div className="rounded-xl p-3 text-xs flex items-start gap-2"
-              style={{ background: 'rgba(234,88,12,0.1)', border: '1px solid rgba(234,88,12,0.25)', color: '#f97316' }}>
+              style={{ background: 'rgba(200,0,106,0.1)', border: '1px solid rgba(200,0,106,0.25)', color: 'var(--brand)' }}>
               <span>⚠️</span>
               <span>Esta acción es irreversible. Verifica que el campeón ya esté declarado antes de ejecutar.</span>
             </div>
@@ -2373,7 +2373,7 @@ export default function AdminPage() {
                 style={{
                   background: bonoCampeonResult?.startsWith('✅') ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
                   border: `1px solid ${bonoCampeonResult?.startsWith('✅') ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
-                  color: bonoCampeonResult?.startsWith('✅') ? '#22c55e' : '#ef4444',
+                  color: bonoCampeonResult?.startsWith('✅') ? 'var(--ex)' : 'var(--fl)',
                 }}>
                 {bonoCampeonResult}
               </div>
@@ -2385,7 +2385,7 @@ export default function AdminPage() {
                     onClick={aplicarBonoCampeon}
                     disabled={bonoCampeonLoading}
                     className="flex-1 py-3 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-40"
-                    style={{ background: 'rgba(239,68,68,0.2)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.4)', fontFamily: 'var(--font-rajdhani)' }}
+                    style={{ background: 'rgba(239,68,68,0.2)', color: 'var(--fl)', border: '1px solid rgba(239,68,68,0.4)', fontFamily: 'var(--font-rajdhani)' }}
                   >
                     {bonoCampeonLoading ? '⏳ Aplicando...' : '⚠️ Confirmar'}
                   </button>
@@ -2403,7 +2403,7 @@ export default function AdminPage() {
                   onClick={() => setConfirmandoBono(true)}
                   disabled={bonoCampeonLoading}
                   className="w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-40"
-                  style={{ background: 'rgba(251,191,36,0.2)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.4)', fontFamily: 'var(--font-rajdhani)' }}
+                  style={{ background: 'rgba(251,191,36,0.2)', color: 'var(--rs)', border: '1px solid rgba(251,191,36,0.4)', fontFamily: 'var(--font-rajdhani)' }}
                 >
                   {bonoCampeonLoading ? '⏳ Aplicando...' : '🏆 Aplicar Bono a Campeón'}
                 </button>
@@ -2422,7 +2422,7 @@ export default function AdminPage() {
           <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: 'var(--accent-gold)' }}>
             🏆 CAMPEÓN J6 (CUARTOS) — declarar y dar +5 pts
           </span>
-          <span style={{ color: '#64748b' }}>{seccionesAbiertas.campeonJ6 ? '▲' : '▼'}</span>
+          <span style={{ color: 'var(--text-muted)' }}>{seccionesAbiertas.campeonJ6 ? '▲' : '▼'}</span>
         </button>
         {seccionesAbiertas.campeonJ6 && (
           <div className="rounded-2xl p-4 space-y-3" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
@@ -2463,7 +2463,7 @@ export default function AdminPage() {
                 style={{
                   background: campeonJ6Result.startsWith('✅') ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
                   border: `1px solid ${campeonJ6Result.startsWith('✅') ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
-                  color: campeonJ6Result.startsWith('✅') ? '#22c55e' : '#ef4444',
+                  color: campeonJ6Result.startsWith('✅') ? 'var(--ex)' : 'var(--fl)',
                 }}>
                 {campeonJ6Result}
               </div>
@@ -2475,7 +2475,7 @@ export default function AdminPage() {
                     onClick={declararCampeonJ6}
                     disabled={campeonJ6Loading}
                     className="flex-1 py-3 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-40"
-                    style={{ background: 'rgba(239,68,68,0.2)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.4)', fontFamily: 'var(--font-rajdhani)' }}
+                    style={{ background: 'rgba(239,68,68,0.2)', color: 'var(--fl)', border: '1px solid rgba(239,68,68,0.4)', fontFamily: 'var(--font-rajdhani)' }}
                   >
                     {campeonJ6Loading ? '⏳ Aplicando...' : '⚠️ Confirmar'}
                   </button>
@@ -2493,7 +2493,7 @@ export default function AdminPage() {
                   onClick={() => setConfirmandoCampeonJ6(true)}
                   disabled={!campeonJ6Equipo || campeonJ6Loading}
                   className="w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-40"
-                  style={{ background: 'rgba(251,191,36,0.2)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.4)', fontFamily: 'var(--font-rajdhani)' }}
+                  style={{ background: 'rgba(251,191,36,0.2)', color: 'var(--rs)', border: '1px solid rgba(251,191,36,0.4)', fontFamily: 'var(--font-rajdhani)' }}
                 >
                   {campeonJ6Loading ? '⏳ Aplicando...' : '🏆 Declarar Campeón J6 y dar +5 pts'}
                 </button>
@@ -2515,7 +2515,7 @@ export default function AdminPage() {
           <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: 'var(--accent-gold)' }}>
             🌎 GRUPOS — tabla de posiciones
           </span>
-          <span style={{ color: '#64748b' }}>{seccionesAbiertas.grupos ? '▲' : '▼'}</span>
+          <span style={{ color: 'var(--text-muted)' }}>{seccionesAbiertas.grupos ? '▲' : '▼'}</span>
         </button>
         {seccionesAbiertas.grupos && (
           <div className="rounded-2xl p-4 space-y-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
@@ -2524,7 +2524,7 @@ export default function AdminPage() {
               onClick={recalcularGrupos}
               disabled={recalculando}
               className="w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-40"
-              style={{ background: 'rgba(234,88,12,0.2)', color: 'var(--accent-gold)', border: '1px solid rgba(234,88,12,0.4)', fontFamily: 'var(--font-rajdhani)' }}
+              style={{ background: 'rgba(200,0,106,0.2)', color: 'var(--accent-gold)', border: '1px solid rgba(200,0,106,0.4)', fontFamily: 'var(--font-rajdhani)' }}
             >
               {recalculando ? '⏳ Calculando...' : '🔄 Recalcular grupos desde resultados'}
             </button>
@@ -2538,8 +2538,8 @@ export default function AdminPage() {
                   className="px-3 py-1 rounded-lg text-xs font-bold shrink-0 transition-all"
                   style={{
                     fontFamily: 'var(--font-rajdhani)',
-                    background: grupoTabAdmin === g ? 'rgba(234,88,12,0.2)' : 'var(--bg-card-hover)',
-                    border: grupoTabAdmin === g ? '1px solid rgba(234,88,12,0.6)' : '1px solid var(--border)',
+                    background: grupoTabAdmin === g ? 'rgba(200,0,106,0.2)' : 'var(--bg-card-hover)',
+                    border: grupoTabAdmin === g ? '1px solid rgba(200,0,106,0.6)' : '1px solid var(--border)',
                     color: grupoTabAdmin === g ? 'var(--accent-gold)' : 'var(--text-secondary)',
                   }}
                 >
@@ -2604,9 +2604,9 @@ export default function AdminPage() {
                           disabled={guardandoEquipo === eq.id}
                           className="w-full py-2 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-40"
                           style={{
-                            background: 'rgba(234,88,12,0.15)',
+                            background: 'rgba(200,0,106,0.15)',
                             color: 'var(--accent-gold)',
-                            border: '1px solid rgba(234,88,12,0.3)',
+                            border: '1px solid rgba(200,0,106,0.3)',
                             fontFamily: 'var(--font-rajdhani)',
                           }}
                         >

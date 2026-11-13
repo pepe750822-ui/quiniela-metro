@@ -49,8 +49,8 @@ function Contador({
           style={{
             width: 44,
             height: 44,
-            background: 'rgba(255,255,255,0.05)',
-            border: '1px solid rgba(255,255,255,0.1)',
+            background: 'var(--bg-card-hover)',
+            border: '1px solid var(--border-color)',
             color: 'var(--text-primary)',
           }}
         >
@@ -86,7 +86,7 @@ function Contador({
           style={{
             width: 44,
             height: 44,
-            background: 'linear-gradient(135deg, #ea580c, #f97316)',
+            background: 'var(--brand)',
             color: '#fff',
           }}
         >
@@ -288,8 +288,8 @@ export default function PrediccionForm({
         className="w-full max-w-sm flex flex-col rounded-t-3xl sm:rounded-3xl"
         style={{
           background: 'var(--bg-surface)',
-          border: '1px solid rgba(234,88,12,0.2)',
-          boxShadow: '0 -8px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(234,88,12,0.1)',
+          border: '1px solid rgba(200,0,106,0.2)',
+          boxShadow: '0 -8px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(200,0,106,0.1)',
           maxHeight: '85dvh',
         }}
         onClick={(e) => e.stopPropagation()}
@@ -303,7 +303,7 @@ export default function PrediccionForm({
             {/* Handle */}
             <div
               className="w-10 h-1 rounded-full mx-auto"
-              style={{ background: 'rgba(255,255,255,0.12)' }}
+              style={{ background: 'var(--border-color)' }}
             />
 
             {/* Title */}
@@ -320,12 +320,12 @@ export default function PrediccionForm({
               >
                 <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
                 {partido.equipo_local}
-                <span style={{ color: 'rgba(255,255,255,0.2)' }}>vs</span>
+                <span style={{ color: 'var(--text-muted)' }}>vs</span>
                 {partido.equipo_visitante}
                 <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
               </p>
               {necesitaTerminacion && (
-                <p className="text-[11px]" style={{ color: '#64748b' }}>
+                <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
                   ⏱️ Marcador a 90 minutos (tiempo reglamentario)
                 </p>
               )}
@@ -334,14 +334,14 @@ export default function PrediccionForm({
             {/* Score counters */}
             <div
               className="flex items-center justify-around py-3 rounded-2xl"
-              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}
+              style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border-color)' }}
             >
               <Contador value={local}  onChange={setLocal}  label={partido.equipo_local}     />
               <span
                 style={{
                   fontFamily: 'var(--font-bebas)',
                   fontSize: '2.5rem',
-                  color: 'rgba(255,255,255,0.1)',
+                  color: 'var(--text-muted)',
                   lineHeight: 1,
                   marginTop: '1.5rem',
                 }}
@@ -352,7 +352,7 @@ export default function PrediccionForm({
             </div>
 
             {necesitaTerminacion && (
-              <p className="text-[10px] text-center leading-relaxed" style={{ color: '#475569' }}>
+              <p className="text-[10px] text-center leading-relaxed" style={{ color: 'var(--text-muted)' }}>
                 Empate a 90 min y predijiste empate = 1pt, aunque continúe a penales.
               </p>
             )}
@@ -369,7 +369,7 @@ export default function PrediccionForm({
                     ¿Quién gana?
                   </p>
                   {!esLeaguesCup && (
-                    <p className="text-[10px] text-center" style={{ color: '#475569' }}>
+                    <p className="text-[10px] text-center" style={{ color: 'var(--text-muted)' }}>
                       Independiente del marcador a 90 min
                     </p>
                   )}
@@ -383,7 +383,7 @@ export default function PrediccionForm({
                         className="flex-1 py-2.5 rounded-xl text-xs font-bold cursor-pointer flex flex-col items-center gap-1"
                         style={{
                           background: clasificadoPred === equipo
-                            ? 'linear-gradient(135deg, #ea580c, #f97316)'
+                            ? 'var(--brand)'
                             : 'rgba(255,255,255,0.04)',
                           color: clasificadoPred === equipo ? '#fff' : 'var(--text-secondary)',
                           border: `1px solid ${clasificadoPred === equipo ? 'transparent' : 'rgba(255,255,255,0.07)'}`,
@@ -416,7 +416,7 @@ export default function PrediccionForm({
                         style={{
                           fontSize: '0.62rem',
                           background: comoTerminaPred === key
-                            ? 'linear-gradient(135deg, #ea580c, #f97316)'
+                            ? 'var(--brand)'
                             : 'rgba(255,255,255,0.04)',
                           color: comoTerminaPred === key ? '#fff' : 'var(--text-secondary)',
                           border: `1px solid ${comoTerminaPred === key ? 'transparent' : 'rgba(255,255,255,0.07)'}`,
@@ -438,7 +438,7 @@ export default function PrediccionForm({
             className="px-5 pt-3 pb-24 flex gap-3 shrink-0"
             style={{
               background: 'var(--bg-surface)',
-              borderTop: '1px solid rgba(255,255,255,0.06)',
+              borderTop: '1px solid var(--border-color)',
             }}
           >
             <motion.button
@@ -447,7 +447,7 @@ export default function PrediccionForm({
               onClick={onCancelar}
               className="flex-1 py-3.5 rounded-2xl font-semibold text-sm min-h-[52px] cursor-pointer"
               style={{
-                border: '1px solid rgba(255,255,255,0.08)',
+                border: '1px solid var(--border-color)',
                 color: 'var(--text-secondary)',
                 background: 'transparent',
                 fontFamily: 'var(--font-rajdhani)',
@@ -463,13 +463,13 @@ export default function PrediccionForm({
               className="flex-1 py-3.5 rounded-2xl font-bold text-sm min-h-[52px] cursor-pointer"
               style={{
                 background: loading
-                  ? 'rgba(234,88,12,0.4)'
-                  : 'linear-gradient(135deg, #ea580c 0%, #f97316 100%)',
+                  ? 'rgba(200,0,106,0.4)'
+                  : 'var(--brand)',
                 color: '#fff',
                 fontFamily: 'var(--font-rajdhani)',
                 letterSpacing: '0.03em',
                 opacity: loading ? 0.7 : 1,
-                boxShadow: loading ? 'none' : '0 4px 20px rgba(234,88,12,0.3)',
+                boxShadow: loading ? 'none' : '0 4px 20px rgba(200,0,106,0.3)',
               }}
             >
               {loading

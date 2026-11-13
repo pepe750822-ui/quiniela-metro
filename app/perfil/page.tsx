@@ -67,28 +67,28 @@ export default function PerfilPage() {
       style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1.5rem)' }}
     >
       <div style={{ animation: 'fadeInUp 0.4s ease-out' }}>
-        <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: '2rem', color: 'var(--accent-gold)', lineHeight: 1, letterSpacing: '0.05em' }}>
+        <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: '2rem', color: 'var(--text-primary)', fontWeight: 800, textTransform: 'uppercase', lineHeight: 1 }}>
           PERFIL
         </h1>
       </div>
 
       <div
         className="rounded-xl p-4"
-        style={{ background: '#12121a', border: '1px solid #1e1e2e', animation: 'fadeInUp 0.4s ease-out 0.1s both' }}
+        style={{ background: 'var(--bg-surface)', border: '1px solid #26231F', animation: 'fadeInUp 0.4s ease-out 0.1s both' }}
       >
-        <h3 className="text-xl mb-3" style={{ fontFamily: 'var(--font-bebas)', color: '#ea580c' }}>
+        <h3 className="text-xl mb-3" style={{ fontFamily: 'var(--font-bebas)', color: 'var(--brand)' }}>
           👤 Tu apodo en el ranking
         </h3>
 
         {!editando && apodoActual ? (
           <div className="flex items-center gap-3">
-            <span className="font-bold text-xl" style={{ color: '#ea580c', fontFamily: 'var(--font-rajdhani)' }}>
+            <span className="font-bold text-xl" style={{ color: 'var(--brand)', fontFamily: 'var(--font-rajdhani)' }}>
               🏷️ {apodoActual}
             </span>
             <button
               onClick={() => { setEditando(true); setApodoTemp(apodoActual); }}
               className="text-xs transition-colors"
-              style={{ color: '#64748b' }}
+              style={{ color: 'var(--text-muted)' }}
             >
               ✏️ Cambiar
             </button>
@@ -109,14 +109,14 @@ export default function PerfilPage() {
                 placeholder="Ej: Capibara, El Panda, Suavecito..."
                 maxLength={20}
                 autoFocus={editando}
-                className="flex-1 rounded-lg px-3 py-2 text-white text-sm outline-none"
-                style={{ background: '#0a0a0a', border: '1px solid #ea580c' }}
+                className="flex-1 rounded-lg px-3 py-2 text-[var(--text-primary)] text-sm outline-none"
+                style={{ background: 'var(--bg-base)', border: '1px solid #C8006A' }}
               />
               <button
                 onClick={guardarApodo}
                 disabled={guardando}
                 className="px-4 py-2 rounded-lg text-sm font-bold transition-all active:scale-95 disabled:opacity-50"
-                style={{ background: '#ea580c', color: '#fff', fontFamily: 'var(--font-rajdhani)' }}
+                style={{ background: 'var(--brand)', color: '#fff', fontFamily: 'var(--font-rajdhani)' }}
               >
                 {guardando ? '...' : 'Guardar'}
               </button>
@@ -124,7 +124,7 @@ export default function PerfilPage() {
                 <button
                   onClick={() => setEditando(false)}
                   className="px-2 text-sm transition-colors"
-                  style={{ color: '#64748b' }}
+                  style={{ color: 'var(--text-muted)' }}
                 >
                   ✕
                 </button>
@@ -133,7 +133,7 @@ export default function PerfilPage() {
           </div>
         )}
 
-        <p className="text-xs mt-2" style={{ color: '#64748b' }}>
+        <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
           Máximo 20 caracteres. Aparece en ranking y jornadas.
         </p>
       </div>
@@ -141,14 +141,14 @@ export default function PerfilPage() {
       {/* Historial de pagos */}
       <div
         className="rounded-xl p-4"
-        style={{ background: '#12121a', border: '1px solid #1e1e2e', animation: 'fadeInUp 0.4s ease-out 0.2s both' }}
+        style={{ background: 'var(--bg-surface)', border: '1px solid #26231F', animation: 'fadeInUp 0.4s ease-out 0.2s both' }}
       >
-        <h3 className="text-xl mb-3" style={{ fontFamily: 'var(--font-bebas)', color: '#ea580c' }}>
+        <h3 className="text-xl mb-3" style={{ fontFamily: 'var(--font-bebas)', color: 'var(--brand)' }}>
           💳 MIS PAGOS
         </h3>
 
         {participaciones.length === 0 ? (
-          <p className="text-sm" style={{ color: '#64748b' }}>
+          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
             No tienes participaciones registradas aún.
           </p>
         ) : (
@@ -156,11 +156,11 @@ export default function PerfilPage() {
             {participaciones.filter(part => part.jornada <= 6).map(part => (
               <div key={part.id}
                 className="rounded-xl p-4"
-                style={{ background: '#0a0a0a', border: '1px solid #1e1e2e' }}
+                style={{ background: 'var(--bg-base)', border: '1px solid #26231F' }}
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-bold text-white" style={{ fontFamily: 'var(--font-rajdhani)' }}>
+                    <p className="font-bold" style={{ color: 'var(--text-primary)' }}>
                       Jornada {part.jornada}
                       {part.quiniela?.nombre && (
                         <span className="text-orange-400 ml-2 text-sm">
@@ -168,7 +168,7 @@ export default function PerfilPage() {
                         </span>
                       )}
                     </p>
-                    <p className="text-xs mt-0.5" style={{ color: '#64748b' }}>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
                       {part.pagado_at
                         ? new Date(part.pagado_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })
                         : 'Sin fecha de pago'
@@ -176,22 +176,22 @@ export default function PerfilPage() {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg" style={{ fontFamily: 'var(--font-bebas)', color: '#ea580c' }}>
+                    <p className="text-lg" style={{ fontFamily: 'var(--font-bebas)', color: 'var(--brand)' }}>
                       ${getMontoJornada(part.jornada)} MXN
                     </p>
                     {part.pagado ? (
-                      <span className="text-xs px-2 py-0.5 rounded-full" style={{ color: '#34d399', background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.2)' }}>
+                      <span className="text-xs px-2 py-0.5 rounded-full" style={{ color: 'var(--ex)', background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.2)' }}>
                         ✅ Confirmado
                       </span>
                     ) : (
-                      <span className="text-xs px-2 py-0.5 rounded-full" style={{ color: '#fb923c', background: 'rgba(251,146,60,0.1)', border: '1px solid rgba(251,146,60,0.2)' }}>
+                      <span className="text-xs px-2 py-0.5 rounded-full" style={{ color: 'var(--brand)', background: 'rgba(229,71,154,0.1)', border: '1px solid rgba(229,71,154,0.2)' }}>
                         ⏳ Pendiente
                       </span>
                     )}
                   </div>
                 </div>
                 {part.publicado && (
-                  <p className="text-xs mt-2" style={{ color: '#475569' }}>
+                  <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
                     📢 Quiniela publicada
                   </p>
                 )}
@@ -202,8 +202,8 @@ export default function PerfilPage() {
       </div>
 
       {/* Cerrar sesión */}
-      <div className="mt-8 pt-6" style={{ borderTop: '1px solid #1e1e2e' }}>
-        <p className="text-xs text-center mb-3" style={{ color: '#475569' }}>
+      <div className="mt-8 pt-6" style={{ borderTop: '1px solid #26231F' }}>
+        <p className="text-xs text-center mb-3" style={{ color: 'var(--text-muted)' }}>
           ¿Quieres entrar con otra cuenta de Google?
         </p>
         <button
@@ -218,18 +218,18 @@ export default function PerfilPage() {
           }}
           className="w-full py-3 rounded-xl text-sm transition-all"
           style={{
-            background: '#12121a',
-            border: '1px solid #1e1e2e',
-            color: '#64748b',
+            background: 'var(--bg-surface)',
+            border: '1px solid #26231F',
+            color: 'var(--text-muted)',
             fontFamily: 'var(--font-rajdhani)',
           }}
           onMouseEnter={e => {
             (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(239,68,68,0.3)';
-            (e.currentTarget as HTMLButtonElement).style.color = '#f87171';
+            (e.currentTarget as HTMLButtonElement).style.color = 'var(--fl)';
           }}
           onMouseLeave={e => {
-            (e.currentTarget as HTMLButtonElement).style.borderColor = '#1e1e2e';
-            (e.currentTarget as HTMLButtonElement).style.color = '#64748b';
+            (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--bg-card-hover)';
+            (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)';
           }}
         >
           Cambiar de cuenta

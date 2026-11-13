@@ -199,14 +199,14 @@ export default function LoginPage() {
       <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.04 }} xmlns="http://www.w3.org/2000/svg">
         <defs>
           <pattern id="hex" x="0" y="0" width="56" height="100" patternUnits="userSpaceOnUse">
-            <polygon points="28,2 54,16 54,44 28,58 2,44 2,16" fill="none" stroke="#ea580c" strokeWidth="1"/>
-            <polygon points="28,52 54,66 54,94 28,108 2,94 2,66" fill="none" stroke="#ea580c" strokeWidth="1"/>
+            <polygon points="28,2 54,16 54,44 28,58 2,44 2,16" fill="none" stroke="var(--brand)" strokeWidth="1"/>
+            <polygon points="28,52 54,66 54,94 28,108 2,94 2,66" fill="none" stroke="var(--brand)" strokeWidth="1"/>
           </pattern>
         </defs>
         <rect width="100%" height="100%" fill="url(#hex)"/>
       </svg>
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-80 h-80 rounded-full pointer-events-none"
-        style={{ background: 'radial-gradient(circle, rgba(234,88,12,0.08) 0%, transparent 70%)' }} />
+        style={{ background: 'radial-gradient(circle, rgba(200,0,106,0.08) 0%, transparent 70%)' }} />
 
       <motion.div
         className="relative z-10 w-full max-w-sm space-y-6"
@@ -217,7 +217,7 @@ export default function LoginPage() {
         {/* Header */}
         <motion.div className="text-center" variants={loginItem}>
           <img src="/icons/icon-192.png" alt="Quiniela Metro" className="w-20 h-20 rounded-2xl mx-auto mb-3 shadow-lg shadow-orange-500/30" />
-          <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: '3rem', color: 'var(--accent-gold)', lineHeight: 1, letterSpacing: '0.05em' }}>
+          <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: '3rem', color: 'var(--text-primary)', fontWeight: 800, textTransform: 'uppercase', lineHeight: 1 }}>
             QUINIELA METRO
           </h1>
           <p className="mt-1 text-sm font-semibold" style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--text-secondary)' }}>
@@ -381,7 +381,7 @@ export default function LoginPage() {
                     type="submit"
                     disabled={resetLoading}
                     className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm text-white transition-all active:scale-95 disabled:opacity-60"
-                    style={{ background: '#475569', fontFamily: 'var(--font-rajdhani)' }}
+                    style={{ background: 'var(--text-muted)', fontFamily: 'var(--font-rajdhani)' }}
                   >
                     {resetLoading ? <Spinner /> : '🔑'}
                     {resetLoading ? 'Enviando…' : 'Enviar correo de recuperación'}

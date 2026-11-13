@@ -57,10 +57,10 @@ export default function InstruccionesPage() {
     >
       {/* Header */}
       <div className="mb-6" style={{ animation: 'fadeInUp 0.4s ease-out' }}>
-        <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: '2rem', color: '#ea580c', lineHeight: 1, letterSpacing: '0.05em' }}>
+        <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: '2rem', color: 'var(--text-primary)', fontWeight: 800, textTransform: 'uppercase', lineHeight: 1 }}>
           📖 CÓMO FUNCIONA
         </h1>
-        <p className="text-sm mt-1" style={{ color: '#94a3b8' }}>
+        <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
           Guía rápida para participar en Quiniela Metro Mundial 2026
         </p>
       </div>
@@ -72,8 +72,8 @@ export default function InstruccionesPage() {
             key={paso.numero}
             className="rounded-2xl p-5"
             style={{
-              background: '#12121a',
-              border: '1px solid #1e1e2e',
+              background: 'var(--bg-surface)',
+              border: '1px solid #26231F',
               animation: `fadeInUp 0.4s ease-out ${i * 60}ms both`,
             }}
           >
@@ -81,7 +81,7 @@ export default function InstruccionesPage() {
               {/* Número */}
               <div
                 className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-sm"
-                style={{ background: '#ea580c', fontFamily: 'var(--font-bebas)', fontSize: '1.1rem' }}
+                style={{ background: 'var(--brand)', fontFamily: 'var(--font-bebas)', fontSize: '1.1rem' }}
               >
                 {paso.numero}
               </div>
@@ -90,7 +90,7 @@ export default function InstruccionesPage() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-2xl">{paso.emoji}</span>
-                  <h3 style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: '#fb923c', letterSpacing: '0.04em' }}>
+                  <h3 style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: 'var(--brand)', letterSpacing: '0.04em' }}>
                     {paso.titulo}
                   </h3>
                 </div>
@@ -109,9 +109,9 @@ export default function InstruccionesPage() {
       {/* Footer CTA */}
       <div
         className="mt-6 rounded-2xl p-4 text-center"
-        style={{ background: 'rgba(234,88,12,0.08)', border: '1px solid rgba(234,88,12,0.3)', animation: 'fadeInUp 0.4s ease-out 0.5s both' }}
+        style={{ background: 'rgba(200,0,106,0.08)', border: '1px solid rgba(200,0,106,0.3)', animation: 'fadeInUp 0.4s ease-out 0.5s both' }}
       >
-        <p className="text-sm font-semibold" style={{ color: '#fb923c', fontFamily: 'var(--font-rajdhani)' }}>
+        <p className="text-sm font-semibold" style={{ color: 'var(--brand)', fontFamily: 'var(--font-rajdhani)' }}>
           ¿Dudas? Escríbenos al WhatsApp
         </p>
         <p className="text-lg font-bold mt-1" style={{ color: '#fff', fontFamily: 'var(--font-bebas)', letterSpacing: '0.05em' }}>
@@ -125,7 +125,7 @@ export default function InstruccionesPage() {
         target="_blank"
         rel="noopener noreferrer"
         className="flex items-center justify-center gap-3 w-full py-4 rounded-xl font-bold hover:opacity-80 transition-all mt-6"
-        style={{ background: 'rgba(22,163,74,0.15)', border: '1px solid rgba(34,197,94,0.3)', color: '#4ade80', fontFamily: 'var(--font-rajdhani)' }}>
+        style={{ background: 'rgba(22,163,74,0.15)', border: '1px solid rgba(34,197,94,0.3)', color: 'var(--ex)', fontFamily: 'var(--font-rajdhani)' }}>
         💬 Únete al grupo de WhatsApp
       </a>
     </main>

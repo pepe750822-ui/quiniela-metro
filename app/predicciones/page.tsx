@@ -92,13 +92,13 @@ function MiniBracket({ partidos, visible, onPredicir }: { partidos: Partido[]; v
   }) {
     return (
       <div className="flex items-center justify-between px-2 py-1 gap-1"
-        style={{ background: winner ? 'rgba(234,88,12,0.14)' : 'transparent', height: 24 }}>
+        style={{ background: winner ? 'rgba(200,0,106,0.14)' : 'transparent', height: 24 }}>
         <div className="flex items-center gap-1.5 min-w-0">
           {bandera && !isDef(nombre) && <Bandera emoji={bandera} nombre={nombre} size="sm" />}
           <span className="text-[10px] truncate leading-tight" style={{
             fontFamily: 'var(--font-rajdhani)',
             fontWeight: winner ? 700 : 400,
-            color: isDef(nombre) ? '#475569' : winner ? '#fb923c' : 'var(--text-primary)',
+            color: isDef(nombre) ? 'var(--text-muted)' : winner ? 'var(--brand)' : 'var(--text-primary)',
           }}>
             {isDef(nombre) ? '???' : nombre}
           </span>
@@ -106,7 +106,7 @@ function MiniBracket({ partidos, visible, onPredicir }: { partidos: Partido[]; v
         {goles !== null && (
           <span className="text-xs shrink-0" style={{
             fontFamily: 'var(--font-bebas)',
-            color: winner ? '#fb923c' : 'var(--text-secondary)',
+            color: winner ? 'var(--brand)' : 'var(--text-secondary)',
           }}>{goles}</span>
         )}
       </div>
@@ -129,7 +129,7 @@ function MiniBracket({ partidos, visible, onPredicir }: { partidos: Partido[]; v
       <div onClick={onClick} style={{
         width: CARD_W,
         background: 'var(--bg-surface)',
-        border: `1px solid ${vivo ? 'rgba(234,88,12,0.6)' : 'rgba(255,255,255,0.06)'}`,
+        border: `1px solid ${vivo ? 'rgba(200,0,106,0.6)' : 'rgba(255,255,255,0.06)'}`,
         borderRadius: 6,
         overflow: 'hidden',
         cursor: onClick ? 'pointer' : undefined,
@@ -139,7 +139,7 @@ function MiniBracket({ partidos, visible, onPredicir }: { partidos: Partido[]; v
         onMouseLeave={e => { if (onClick) (e.currentTarget as HTMLElement).style.opacity = '1'; }}
       >
         <TeamRow nombre={local} bandera={bL} goles={fin || vivo ? gl : null} winner={wL} />
-        <div style={{ height: 1, background: 'rgba(255,255,255,0.05)' }} />
+        <div style={{ height: 1, background: 'var(--bg-card-hover)' }} />
         <TeamRow nombre={visit} bandera={bV} goles={fin || vivo ? gv : null} winner={wV} />
       </div>
     );
@@ -179,10 +179,10 @@ function MiniBracket({ partidos, visible, onPredicir }: { partidos: Partido[]; v
       <div key={key} style={{
         position: 'absolute', top: top - CARD_H / 2, left: 0,
         width: CARD_W, height: CARD_H,
-        border: '1px dashed rgba(255,255,255,0.07)', borderRadius: 6,
+        border: '1px dashed var(--border-color)', borderRadius: 6,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
-        <span style={{ fontSize: 9, color: '#475569', fontFamily: 'var(--font-rajdhani)' }}>—</span>
+        <span style={{ fontSize: 9, color: 'var(--text-muted)', fontFamily: 'var(--font-rajdhani)' }}>—</span>
       </div>
     );
   }
@@ -202,14 +202,14 @@ function MiniBracket({ partidos, visible, onPredicir }: { partidos: Partido[]; v
       exit={{ opacity: 0, height: 0 }}
       transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
       className="rounded-2xl p-3 overflow-hidden"
-      style={{ background: 'var(--bg-card)', border: '1px solid rgba(255,255,255,0.06)' }}
+      style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
     >
       <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
         🏆 Fase Final
       </p>
 
       {allEmpty ? (
-        <p style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 11, color: '#475569', textAlign: 'center', padding: '12px 0' }}>
+        <p style={{ fontFamily: 'var(--font-rajdhani)', fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', padding: '12px 0' }}>
           Cargando bracket...
         </p>
       ) : (
@@ -217,7 +217,7 @@ function MiniBracket({ partidos, visible, onPredicir }: { partidos: Partido[]; v
           <div className="overflow-x-auto pb-1" style={{ scrollbarWidth: 'thin' }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', minWidth: 'max-content' }}>
               <div style={{ width: CARD_W, height: BH, position: 'relative', flexShrink: 0 }}>
-                <p className="text-[8px] font-bold uppercase tracking-wider text-center" style={{ color: '#64748b', paddingBottom: 4 }}>Cuartos</p>
+                <p className="text-[8px] font-bold uppercase tracking-wider text-center" style={{ color: 'var(--text-muted)', paddingBottom: 4 }}>Cuartos</p>
                 {cuaSlots.map((p, i) =>
                   p ? (
                     <div key={p.id} style={{ position: 'absolute', top: itemCenter(i) - CARD_H / 2, left: 0 }}>
@@ -228,7 +228,7 @@ function MiniBracket({ partidos, visible, onPredicir }: { partidos: Partido[]; v
               </div>
               <ConnectorCuaToSemi />
               <div style={{ width: CARD_W, height: BH, position: 'relative', flexShrink: 0 }}>
-                <p className="text-[8px] font-bold uppercase tracking-wider text-center" style={{ color: '#64748b', paddingBottom: 4 }}>Semifinales</p>
+                <p className="text-[8px] font-bold uppercase tracking-wider text-center" style={{ color: 'var(--text-muted)', paddingBottom: 4 }}>Semifinales</p>
                 {semiSlots.map((p, i) => {
                   const y = (i * 2 + 1) * SLOT_H;
                   return p ? (
@@ -240,26 +240,26 @@ function MiniBracket({ partidos, visible, onPredicir }: { partidos: Partido[]; v
               </div>
               <ConnectorSemiToFinal />
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: BH, flexShrink: 0 }}>
-                <p className="text-[8px] font-bold uppercase tracking-wider mb-1" style={{ color: '#ea580c' }}>🏆 Final</p>
+                <p className="text-[8px] font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--brand)' }}>🏆 Final</p>
                 {finalCard ? (
                   <MatchCard p={finalCard} onClick={onPredicir ? () => onPredicir(finalCard) : undefined} />
                 ) : (
-                  <div style={{ width: CARD_W, height: CARD_H, border: '1px dashed rgba(255,255,255,0.07)', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span style={{ fontSize: 9, color: '#475569', fontFamily: 'var(--font-rajdhani)' }}>—</span>
+                  <div style={{ width: CARD_W, height: CARD_H, border: '1px dashed var(--border-color)', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ fontSize: 9, color: 'var(--text-muted)', fontFamily: 'var(--font-rajdhani)' }}>—</span>
                   </div>
                 )}
               </div>
             </div>
           </div>
 
-          <div style={{ marginTop: 48, borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 12 }}>
+          <div style={{ marginTop: 48, borderTop: '1px solid var(--border-color)', paddingTop: 12 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span className="text-[8px] font-bold uppercase tracking-wider shrink-0" style={{ color: '#64748b' }}>🥉 3er Lugar</span>
+              <span className="text-[8px] font-bold uppercase tracking-wider shrink-0" style={{ color: 'var(--text-muted)' }}>🥉 3er Lugar</span>
               {tercerCard ? (
                 <MatchCard p={tercerCard} onClick={onPredicir ? () => onPredicir(tercerCard) : undefined} />
               ) : (
-                <div style={{ width: CARD_W, height: CARD_H, border: '1px dashed rgba(255,255,255,0.07)', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ fontSize: 9, color: '#475569', fontFamily: 'var(--font-rajdhani)' }}>—</span>
+                <div style={{ width: CARD_W, height: CARD_H, border: '1px dashed var(--border-color)', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: 9, color: 'var(--text-muted)', fontFamily: 'var(--font-rajdhani)' }}>—</span>
                 </div>
               )}
             </div>
@@ -301,12 +301,12 @@ function Pill({
       className="flex-shrink-0 px-3.5 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap cursor-pointer"
       style={{
         background: active
-          ? 'linear-gradient(135deg, #ea580c, #f97316)'
+          ? 'var(--brand)'
           : 'rgba(255,255,255,0.05)',
-        color: active ? '#fff' : faded ? '#475569' : 'var(--text-secondary)',
+        color: active ? '#fff' : faded ? 'var(--text-muted)' : 'var(--text-secondary)',
         border: active ? 'none' : '1px solid rgba(255,255,255,0.07)',
         fontFamily: 'var(--font-rajdhani)',
-        boxShadow: active ? '0 2px 14px rgba(234,88,12,0.25)' : 'none',
+        boxShadow: active ? '0 2px 14px rgba(200,0,106,0.25)' : 'none',
         transition: 'all 0.15s ease',
       }}
     >
@@ -949,11 +949,11 @@ export default function PrediccionesPage() {
 
   // ── Shared button style helpers ─────────────────────────────────────────
   const publishBtn = (disabled: boolean, variant: 'primary' | 'blue' = 'primary') => ({
-    background: disabled ? 'rgba(255,255,255,0.06)' : variant === 'blue' ? '#3b82f6' : 'linear-gradient(135deg, #ea580c, #f97316)',
-    color: disabled ? '#475569' : '#fff',
+    background: disabled ? 'var(--bg-card-hover)' : variant === 'blue' ? '#3b82f6' : 'var(--brand)',
+    color: disabled ? 'var(--text-muted)' : '#fff',
     border: 'none',
     fontFamily: 'var(--font-rajdhani)',
-    boxShadow: disabled ? 'none' : '0 2px 14px rgba(234,88,12,0.25)',
+    boxShadow: disabled ? 'none' : '0 2px 14px rgba(200,0,106,0.25)',
     cursor: disabled ? 'not-allowed' : 'pointer',
   });
 
@@ -968,13 +968,11 @@ export default function PrediccionesPage() {
         <h1
           style={{
             fontFamily: 'var(--font-bebas)',
-            fontSize: '2.6rem',
+            fontSize: '2.2rem',
             lineHeight: 1,
-            letterSpacing: '0.08em',
-            background: 'linear-gradient(135deg, #f97316 0%, #fbbf24 80%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
+            fontWeight: 800,
+            textTransform: 'uppercase',
+            color: 'var(--text-primary)',
           }}
         >
           {TEMPORADA_ACTIVA === 'ligamx2026'
@@ -997,22 +995,22 @@ export default function PrediccionesPage() {
             transition={{ duration: 0.28 }}
             className="rounded-2xl p-4 space-y-3"
             style={{
-              background: 'linear-gradient(135deg, rgba(234,88,12,0.08) 0%, rgba(249,115,22,0.04) 100%)',
-              border: '1px solid rgba(234,88,12,0.32)',
-              boxShadow: '0 0 28px rgba(234,88,12,0.06)',
+              background: 'var(--brand-soft)',
+              border: '1px solid rgba(200,0,106,0.32)',
+              boxShadow: '0 0 28px rgba(200,0,106,0.06)',
             }}
           >
-            <p className="font-bold" style={{ fontFamily: 'var(--font-rajdhani)', color: '#f97316', fontSize: '1rem' }}>
+            <p className="font-bold" style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--brand)', fontSize: '1rem' }}>
               ⚠️ Tienes predicciones sin pagar en esta jornada
             </p>
             <p className="text-sm font-mono" style={{ color: 'var(--text-secondary)' }}>
               💳 CLABE: <strong style={{ color: 'var(--text-primary)' }}>014180565546539842</strong>
               <br />
               <span style={{ color: 'var(--text-secondary)' }}>Monto: </span>
-              <strong style={{ color: '#f97316' }}>${TEMPORADA_ACTIVA === 'ligamx2026' && jornada >= 6 ? 50 : getMontoJornada(jornada)} MXN</strong>
+              <strong style={{ color: 'var(--brand)' }}>${TEMPORADA_ACTIVA === 'ligamx2026' && jornada >= 6 ? 50 : getMontoJornada(jornada)} MXN</strong>
             </p>
-            <div className="rounded-xl p-3 space-y-2" style={{ background: 'rgba(234,88,12,0.06)', border: '1px solid rgba(234,88,12,0.16)' }}>
-              <p className="font-bold text-sm" style={{ fontFamily: 'var(--font-rajdhani)', color: '#f97316' }}>
+            <div className="rounded-xl p-3 space-y-2" style={{ background: 'rgba(200,0,106,0.06)', border: '1px solid rgba(200,0,106,0.16)' }}>
+              <p className="font-bold text-sm" style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--brand)' }}>
                 📱 Envía por WhatsApp al 55 2326 9241:
               </p>
               <ol className="text-sm space-y-1 list-decimal list-inside" style={{ color: 'var(--text-secondary)' }}>
@@ -1020,7 +1018,7 @@ export default function PrediccionesPage() {
                 <li>Tu correo de Google con el que entraste</li>
                 <li>Tu nombre o apodo para el ranking</li>
               </ol>
-              <p className="text-xs" style={{ color: '#475569', marginTop: '0.5rem' }}>
+              <p className="text-xs" style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>
                 Tu participación se activará en cuanto confirmemos tu pago ✅
               </p>
             </div>
@@ -1035,14 +1033,14 @@ export default function PrediccionesPage() {
           className="rounded-2xl px-4 py-3 space-y-1"
           style={{
             background: participando === true
-              ? 'linear-gradient(135deg, rgba(16,185,129,0.08), rgba(16,185,129,0.03))'
+              ? 'var(--ex-soft)'
               : 'rgba(255,255,255,0.03)',
-            border: `1px solid ${participando === true ? 'rgba(16,185,129,0.22)' : 'rgba(255,255,255,0.06)'}`,
+            border: `1px solid ${participando === true ? 'rgba(18,161,80,0.22)' : 'rgba(255,255,255,0.06)'}`,
           }}
         >
           <div className="flex items-center justify-between">
             <p className="text-xs font-semibold" style={{
-              color: participando === true ? '#10b981' : 'var(--text-secondary)',
+              color: participando === true ? 'var(--ex)' : 'var(--text-secondary)',
               fontFamily: 'var(--font-rajdhani)',
             }}>
               {participando === true
@@ -1080,8 +1078,8 @@ export default function PrediccionesPage() {
           className="flex-shrink-0 px-3.5 py-1.5 rounded-full text-sm cursor-pointer"
           style={{
             background: 'transparent',
-            border: '1px dashed rgba(234,88,12,0.35)',
-            color: '#f97316',
+            border: '1px dashed rgba(200,0,106,0.35)',
+            color: 'var(--brand)',
             fontFamily: 'var(--font-rajdhani)',
           }}
         >
@@ -1113,14 +1111,14 @@ export default function PrediccionesPage() {
           {...fadeUp(0.14)}
           className="rounded-2xl px-4 py-3 space-y-2"
           style={{
-            background: jornadaCompleta ? 'rgba(16,185,129,0.06)' : 'rgba(255,255,255,0.03)',
-            border: `1px solid ${jornadaCompleta ? 'rgba(16,185,129,0.22)' : 'rgba(255,255,255,0.06)'}`,
+            background: jornadaCompleta ? 'rgba(18,161,80,0.06)' : 'rgba(255,255,255,0.03)',
+            border: `1px solid ${jornadaCompleta ? 'rgba(18,161,80,0.22)' : 'rgba(255,255,255,0.06)'}`,
           }}
         >
           <div className="flex items-center justify-between">
             <p className="text-sm font-semibold" style={{
               fontFamily: 'var(--font-rajdhani)',
-              color: jornadaCompleta ? '#10b981' : 'var(--text-primary)',
+              color: jornadaCompleta ? 'var(--ex)' : 'var(--text-primary)',
             }}>
               {jornadaCompleta
                 ? (publicado ? `✅ ¡${labelJornada(jornada)} publicada!` : `✅ ¡${labelJornada(jornada)} completa!`)
@@ -1129,14 +1127,14 @@ export default function PrediccionesPage() {
             <span style={{
               fontFamily: 'var(--font-bebas)',
               fontSize: '1.2rem',
-              color: jornadaCompleta ? '#10b981' : 'var(--accent-gold)',
+              color: jornadaCompleta ? 'var(--ex)' : 'var(--accent-gold)',
               lineHeight: 1,
             }}>
               {porcentaje}%
             </span>
           </div>
 
-          <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+          <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--bg-card-hover)' }}>
             <motion.div
               className="h-1.5 rounded-full"
               initial={{ width: 0 }}
@@ -1144,8 +1142,8 @@ export default function PrediccionesPage() {
               transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
               style={{
                 background: jornadaCompleta
-                  ? 'linear-gradient(90deg, #10b981, #34d399)'
-                  : 'linear-gradient(90deg, #ea580c, #f97316)',
+                  ? 'var(--ex)'
+                  : 'var(--brand)',
               }}
             />
           </div>
@@ -1169,7 +1167,7 @@ export default function PrediccionesPage() {
 
           {(jornada !== 6 || TEMPORADA_ACTIVA === 'ligamx2026') && jornadaCompleta && publicado && (
             <div>
-              <p className="text-xs" style={{ color: '#10b981' }}>
+              <p className="text-xs" style={{ color: 'var(--ex)' }}>
                 Tus predicciones ya son visibles para todos ✓
               </p>
               {Object.keys(prediccionesBorrador).length > 0 && (
@@ -1195,14 +1193,14 @@ export default function PrediccionesPage() {
             animate={{ rotate: 360 }}
             transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
             className="w-8 h-8 rounded-full border-2"
-            style={{ borderColor: 'rgba(234,88,12,0.15)', borderTopColor: '#ea580c' }}
+            style={{ borderColor: 'rgba(200,0,106,0.15)', borderTopColor: 'var(--brand)' }}
           />
           <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>Cargando partidos…</p>
         </div>
       ) : (
         <div className="space-y-3">
           {jornada >= 5 && TEMPORADA_ACTIVA !== 'ligamx2026' && (
-            <motion.div {...fadeUp(0.12)} className="flex gap-3 text-xs flex-wrap" style={{ color: '#64748b' }}>
+            <motion.div {...fadeUp(0.12)} className="flex gap-3 text-xs flex-wrap" style={{ color: 'var(--text-muted)' }}>
               <span>⏱️ Tiempo reglamentario</span>
               <span>⏩ Prórroga</span>
               <span>🥅 Penales</span>
@@ -1222,8 +1220,8 @@ export default function PrediccionesPage() {
                   onClick={() => setBracketVisible(v => !v)}
                   className="w-full flex items-center justify-between rounded-xl px-4 py-3 cursor-pointer"
                   style={{
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(255,255,255,0.07)',
+                    background: 'var(--bg-card-hover)',
+                    border: '1px solid var(--border-color)',
                   }}
                 >
                   <span className="text-xs font-bold uppercase tracking-wider" style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--accent-gold)' }}>
@@ -1249,7 +1247,7 @@ export default function PrediccionesPage() {
               <motion.div
                 {...fadeUp(0.17)}
                 className="rounded-xl p-3 space-y-2"
-                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+                style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border-color)' }}
               >
                 <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
                   📊 Progreso Fase Final
@@ -1262,18 +1260,18 @@ export default function PrediccionesPage() {
                   return (
                     <div key={ronda} className="flex items-center justify-between gap-2" id={ronda === 'semis' ? 'publicar-semis-section' : undefined}>
                       <div className="flex items-center gap-2 min-w-0">
-                        <span style={{ fontSize: 11, color: pub ? '#22c55e' : 'var(--text-secondary)' }}>
+                        <span style={{ fontSize: 11, color: pub ? 'var(--ex)' : 'var(--text-secondary)' }}>
                           {pub ? '✅' : '📋'}
                         </span>
-                        <span className="text-xs font-semibold truncate" style={{ color: pub ? '#22c55e' : 'var(--text-primary)' }}>
+                        <span className="text-xs font-semibold truncate" style={{ color: pub ? 'var(--ex)' : 'var(--text-primary)' }}>
                           {label}
                         </span>
-                        <span className="text-[10px] shrink-0" style={{ color: hechos > 0 ? '#fbbf24' : '#64748b', fontFamily: 'var(--font-rajdhani)' }}>
+                        <span className="text-[10px] shrink-0" style={{ color: hechos > 0 ? 'var(--rs)' : 'var(--text-muted)', fontFamily: 'var(--font-rajdhani)' }}>
                           {hechos}/{total}
                         </span>
                       </div>
                       {ronda === 'cuartos' && !pub ? (
-                        <span className="text-[10px] font-semibold shrink-0" style={{ color: '#64748b' }}>✅ Cuartos cerrados</span>
+                        <span className="text-[10px] font-semibold shrink-0" style={{ color: 'var(--text-muted)' }}>✅ Cuartos cerrados</span>
                       ) : ronda === 'semis' && new Date() <= DEADLINE_SEMIS ? (
                         <motion.button
                           whileTap={{ scale: 0.95 }}
@@ -1285,7 +1283,7 @@ export default function PrediccionesPage() {
                           {publicando ? '⏳' : pub ? 'Actualizar' : 'Publicar'}
                         </motion.button>
                       ) : ronda === 'semis' ? (
-                        <span className="text-[10px] font-semibold shrink-0" style={{ color: '#64748b' }}>🔒 Cerradas</span>
+                        <span className="text-[10px] font-semibold shrink-0" style={{ color: 'var(--text-muted)' }}>🔒 Cerradas</span>
                       ) : hechos === total && !pub ? (
                         <motion.button
                           whileTap={{ scale: 0.95 }}
@@ -1297,9 +1295,9 @@ export default function PrediccionesPage() {
                           {publicando ? '⏳' : 'Publicar'}
                         </motion.button>
                       ) : pub ? (
-                        <span className="text-[10px] font-semibold shrink-0" style={{ color: '#22c55e' }}>Publicado</span>
+                        <span className="text-[10px] font-semibold shrink-0" style={{ color: 'var(--ex)' }}>Publicado</span>
                       ) : (
-                        <span className="text-[10px] shrink-0" style={{ color: '#64748b' }}>{hechos > 0 ? `${hechos}/${total}` : 'Pendiente'}</span>
+                        <span className="text-[10px] shrink-0" style={{ color: 'var(--text-muted)' }}>{hechos > 0 ? `${hechos}/${total}` : 'Pendiente'}</span>
                       )}
                     </div>
                   );
@@ -1331,7 +1329,7 @@ export default function PrediccionesPage() {
                       {label}
                     </p>
                     {ronda === 'cuartos' && !pub ? (
-                      <span className="text-[10px] font-semibold" style={{ color: '#64748b' }}>✅ Cuartos cerrados</span>
+                      <span className="text-[10px] font-semibold" style={{ color: 'var(--text-muted)' }}>✅ Cuartos cerrados</span>
                     ) : ronda === 'semis' && new Date() <= DEADLINE_SEMIS ? (
                       <motion.button
                         whileTap={{ scale: 0.95 }}
@@ -1343,9 +1341,9 @@ export default function PrediccionesPage() {
                         {publicando ? '⏳' : pub ? 'Actualizar Semifinales' : 'Publicar Semifinales'}
                       </motion.button>
                     ) : ronda === 'semis' ? (
-                      <span className="text-[10px] font-semibold" style={{ color: '#64748b' }}>🔒 Cerradas</span>
+                      <span className="text-[10px] font-semibold" style={{ color: 'var(--text-muted)' }}>🔒 Cerradas</span>
                     ) : pub ? (
-                      <span className="text-[10px] font-semibold" style={{ color: '#22c55e' }}>✅ Publicado</span>
+                      <span className="text-[10px] font-semibold" style={{ color: 'var(--ex)' }}>✅ Publicado</span>
                     ) : hechos === total && total > 0 ? (
                       <motion.button
                         whileTap={{ scale: 0.95 }}
@@ -1357,18 +1355,18 @@ export default function PrediccionesPage() {
                         {publicando ? '⏳' : 'Publicar'}
                       </motion.button>
                     ) : (
-                      <span className="text-[10px]" style={{ color: '#64748b' }}>{hechos}/{total}</span>
+                      <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{hechos}/{total}</span>
                     )}
                   </div>
 
                   {ronda === 'semis' && (
-                    <p className="text-[11px] rounded-xl px-3 py-2" style={{ background: 'rgba(251,191,36,0.06)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.15)' }}>
+                    <p className="text-[11px] rounded-xl px-3 py-2" style={{ background: 'rgba(251,191,36,0.06)', color: 'var(--rs)', border: '1px solid rgba(251,191,36,0.15)' }}>
                       ⚽ Llena tus predicciones y presiona <strong>PUBLICAR</strong> para que aparezcan en la tabla.
                     </p>
                   )}
 
                   {ronda === 'final' && new Date() > DEADLINE_FINAL && (
-                    <p className="text-[11px] rounded-xl px-3 py-2" style={{ background: 'rgba(239,68,68,0.06)', color: '#f87171', border: '1px solid rgba(239,68,68,0.15)' }}>
+                    <p className="text-[11px] rounded-xl px-3 py-2" style={{ background: 'rgba(239,68,68,0.06)', color: 'var(--fl)', border: '1px solid rgba(239,68,68,0.15)' }}>
                       🔒 Las predicciones de Final y 3er Lugar cerraron a las 3:00 PM
                     </p>
                   )}
@@ -1390,7 +1388,7 @@ export default function PrediccionesPage() {
             <motion.div
               {...fadeUp(0.2)}
               className="rounded-2xl p-8 text-center space-y-2"
-              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+              style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border-color)' }}
             >
               <p className="text-4xl">⏳</p>
               <p className="font-bold text-sm" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
@@ -1430,7 +1428,7 @@ export default function PrediccionesPage() {
                     <motion.div variants={itemVariants}>
                       <div
                         className="rounded-2xl p-4 space-y-3"
-                        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(234,88,12,0.2)', boxShadow: '0 0 24px rgba(234,88,12,0.05)' }}
+                        style={{ background: 'var(--bg-card-hover)', border: '1px solid rgba(200,0,106,0.2)', boxShadow: '0 0 24px rgba(200,0,106,0.05)' }}
                       >
                         <div>
                           <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
@@ -1442,10 +1440,10 @@ export default function PrediccionesPage() {
                         </div>
                         {cerrado ? (
                           lcCampeonPick ? (
-                            <div className="rounded-xl p-3 flex items-center gap-2" style={{ background: 'rgba(100,116,139,0.06)', border: '1px solid rgba(100,116,139,0.15)' }}>
+                            <div className="rounded-xl p-3 flex items-center gap-2" style={{ background: 'rgba(116,108,97,0.06)', border: '1px solid rgba(116,108,97,0.15)' }}>
                               <span>🔒</span>
                               <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-                                Tu pick: <strong style={{ color: '#fbbf24' }}>{lcCampeonPick}</strong>
+                                Tu pick: <strong style={{ color: 'var(--rs)' }}>{lcCampeonPick}</strong>
                               </span>
                             </div>
                           ) : (
@@ -1455,12 +1453,12 @@ export default function PrediccionesPage() {
                           <>
                             {lcCampeonPick && (
                               <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                                Pick actual: <strong style={{ color: '#fbbf24' }}>{lcCampeonPick}</strong>
+                                Pick actual: <strong style={{ color: 'var(--rs)' }}>{lcCampeonPick}</strong>
                               </p>
                             )}
                             {[{ label: 'Liga MX', equipos: LC_LIGAMX }, { label: 'MLS', equipos: LC_MLS }].map(({ label, equipos }) => (
                               <div key={label} className="space-y-1.5">
-                                <p className="text-[10px] uppercase tracking-widest" style={{ color: '#64748b' }}>{label}</p>
+                                <p className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>{label}</p>
                                 <div className="grid grid-cols-2 gap-2">
                                   {equipos.map(equipo => {
                                     const logo = LOGOS_LIGAMX[equipo];
@@ -1472,7 +1470,7 @@ export default function PrediccionesPage() {
                                         onClick={() => setLcCampeonPickTemp(equipo)}
                                         className="py-2.5 px-2 rounded-xl text-xs font-semibold text-center flex flex-col items-center gap-1 cursor-pointer"
                                         style={{
-                                          background: sel ? 'linear-gradient(135deg, #ea580c, #f97316)' : 'rgba(255,255,255,0.04)',
+                                          background: sel ? 'var(--brand)' : 'rgba(255,255,255,0.04)',
                                           color: sel ? '#fff' : 'var(--text-secondary)',
                                           border: `1px solid ${sel ? 'transparent' : 'rgba(255,255,255,0.06)'}`,
                                           fontFamily: 'var(--font-rajdhani)',
@@ -1481,7 +1479,7 @@ export default function PrediccionesPage() {
                                       >
                                         {logo
                                           ? <img src={logo} alt={equipo} width={24} height={24} className="object-contain" />
-                                          : <span style={{ fontSize: '0.6rem', color: sel ? 'rgba(255,255,255,0.7)' : '#475569' }}>{label}</span>}
+                                          : <span style={{ fontSize: '0.6rem', color: sel ? 'var(--bg-card-hover)' : 'var(--text-muted)' }}>{label}</span>}
                                         <span>{equipo}</span>
                                       </motion.button>
                                     );
@@ -1517,23 +1515,23 @@ export default function PrediccionesPage() {
                 );
               })() : TEMPORADA_ACTIVA === 'ligamx2026' && jornada >= 7 ? (() => {
                 const J8_GRUPO_META: Record<string, { label: string; color: string; bg: string; border: string }> = {
-                  LC:   { label: jornada === 7 ? '🏆 Leagues Cup' : '🏆 Leagues Cup Semis', color: '#fb923c', bg: 'rgba(234,88,12,0.08)',  border: 'rgba(234,88,12,0.25)'  },
+                  LC:   { label: jornada === 7 ? '🏆 Leagues Cup' : '🏆 Leagues Cup Semis', color: 'var(--brand)', bg: 'rgba(200,0,106,0.08)',  border: 'rgba(200,0,106,0.25)'  },
                   LMX:  { label: jornada === 7 ? '⚽ Liga MX J7'  : '⚽ Liga MX',            color: '#818cf8', bg: 'rgba(99,102,241,0.08)', border: 'rgba(99,102,241,0.25)' },
                   ENG:  { label: '🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League',   color: '#60a5fa', bg: 'rgba(96,165,250,0.08)', border: 'rgba(96,165,250,0.25)' },
-                  UCL:  { label: '⭐ Champions League',   color: '#fbbf24', bg: 'rgba(251,191,36,0.08)', border: 'rgba(251,191,36,0.25)' },
+                  UCL:  { label: '⭐ Champions League',   color: 'var(--rs)', bg: 'rgba(251,191,36,0.08)', border: 'rgba(251,191,36,0.25)' },
                   UEFA: { label: '🏆 UEFA Nations League', color: '#3b82f6', bg: 'rgba(59,130,246,0.08)', border: 'rgba(59,130,246,0.25)' },
-                  MEX:  { label: '🇲🇽 Selección México',  color: '#22c55e', bg: 'rgba(34,197,94,0.08)',  border: 'rgba(34,197,94,0.25)'  },
+                  MEX:  { label: '🇲🇽 Selección México',  color: 'var(--ex)', bg: 'rgba(34,197,94,0.08)',  border: 'rgba(34,197,94,0.25)'  },
                   LMX9: { label: '⚽ J9 Liga MX',         color: '#818cf8', bg: 'rgba(99,102,241,0.08)', border: 'rgba(99,102,241,0.25)' },
                   LMX10:{ label: '⚽ J10 Liga MX',        color: '#a78bfa', bg: 'rgba(139,92,246,0.08)', border: 'rgba(139,92,246,0.25)' },
                   LMX11:{ label: '⚽ J11 Liga MX',        color: '#818cf8', bg: 'rgba(99,102,241,0.08)', border: 'rgba(99,102,241,0.25)' },
-                  UCL2: { label: '⭐ Champions J2',       color: '#fbbf24', bg: 'rgba(251,191,36,0.08)', border: 'rgba(251,191,36,0.25)' },
+                  UCL2: { label: '⭐ Champions J2',       color: 'var(--rs)', bg: 'rgba(251,191,36,0.08)', border: 'rgba(251,191,36,0.25)' },
                   LMX12:{ label: '⚽ J12 Liga MX',        color: '#4f46e5', bg: 'rgba(79,70,229,0.08)',  border: 'rgba(79,70,229,0.25)'  },
-                  UCL3: { label: '⭐ Champions J3',       color: '#f59e0b', bg: 'rgba(245,158,11,0.08)', border: 'rgba(245,158,11,0.25)' },
+                  UCL3: { label: '⭐ Champions J3',       color: 'var(--rs)', bg: 'rgba(245,158,11,0.08)', border: 'rgba(245,158,11,0.25)' },
                   LMX14:   { label: 'Liga MX J14',       color: '#818cf8', bg: 'rgba(99,102,241,0.08)',  border: 'rgba(99,102,241,0.25)'  },
                   LMX15:   { label: 'Liga MX J15',       color: '#a78bfa', bg: 'rgba(139,92,246,0.08)',  border: 'rgba(139,92,246,0.25)'  },
                   EPL8:    { label: 'Premier League F8', color: '#60a5fa', bg: 'rgba(96,165,250,0.08)',  border: 'rgba(96,165,250,0.25)'  },
                   EPL9:    { label: 'Premier League F9', color: '#60a5fa', bg: 'rgba(96,165,250,0.08)',  border: 'rgba(96,165,250,0.25)'  },
-                  LALIGA10:{ label: 'LaLiga F10',        color: '#f87171', bg: 'rgba(248,113,113,0.08)', border: 'rgba(248,113,113,0.25)' },
+                  LALIGA10:{ label: 'LaLiga F10',        color: 'var(--fl)', bg: 'rgba(248,113,113,0.08)', border: 'rgba(248,113,113,0.25)' },
                   BUND8:   { label: 'Bundesliga F8',     color: '#f43f5e', bg: 'rgba(244,63,94,0.08)',   border: 'rgba(244,63,94,0.25)'   },
                   SERIEA10:{ label: 'Serie A F10',       color: '#2dd4bf', bg: 'rgba(45,212,191,0.08)',  border: 'rgba(45,212,191,0.25)'  },
                 };
@@ -1547,7 +1545,7 @@ export default function PrediccionesPage() {
                       const grupoKey = partido.grupo ?? '';
                       const showHeader = grupoKey !== lastGrupo;
                       if (showHeader) lastGrupo = grupoKey;
-                      const meta = J8_GRUPO_META[grupoKey] ?? { label: grupoKey, color: '#94a3b8', bg: 'rgba(148,163,184,0.08)', border: 'rgba(148,163,184,0.25)' };
+                      const meta = J8_GRUPO_META[grupoKey] ?? { label: grupoKey, color: 'var(--text-secondary)', bg: 'rgba(163,155,142,0.08)', border: 'rgba(163,155,142,0.25)' };
                       return (
                         <div key={partido.id}>
                           {showHeader && (
@@ -1589,11 +1587,11 @@ export default function PrediccionesPage() {
           {/* ── Progreso bottom (J1-J5, J6-J7 ligamx2026) ── */}
           {(jornada !== 6 || TEMPORADA_ACTIVA === 'ligamx2026') && totalEnJornada > 0 && (
             <div className="mt-4 mb-2">
-              <div className="flex justify-between text-xs mb-2" style={{ color: '#64748b' }}>
+              <div className="flex justify-between text-xs mb-2" style={{ color: 'var(--text-muted)' }}>
                 <span>Progreso {labelJornada(jornada)}</span>
                 <span>{predichasEnJornada}/{totalEnJornada}</span>
               </div>
-              <div className="w-full rounded-full h-1.5 overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+              <div className="w-full rounded-full h-1.5 overflow-hidden" style={{ background: 'var(--bg-card-hover)' }}>
                 <motion.div
                   className="h-1.5 rounded-full"
                   initial={{ width: 0 }}
@@ -1601,8 +1599,8 @@ export default function PrediccionesPage() {
                   transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
                   style={{
                     background: jornadaCompleta
-                      ? 'linear-gradient(90deg, #10b981, #34d399)'
-                      : 'linear-gradient(90deg, #ea580c, #f97316)',
+                      ? 'var(--ex)'
+                      : 'var(--brand)',
                   }}
                 />
               </div>
@@ -1619,7 +1617,7 @@ export default function PrediccionesPage() {
               style={{
                 ...publishBtn(publicando),
                 fontSize: '1rem',
-                boxShadow: publicando ? 'none' : '0 4px 24px rgba(234,88,12,0.3)',
+                boxShadow: publicando ? 'none' : '0 4px 24px rgba(200,0,106,0.3)',
               }}
             >
               {publicando ? '⏳ Publicando...' : '📢 Publicar mi quiniela'}
@@ -1629,7 +1627,7 @@ export default function PrediccionesPage() {
           {(jornada !== 6 || TEMPORADA_ACTIVA === 'ligamx2026') && jornadaCompleta && publicado && (
             <div
               className="w-full py-4 rounded-xl text-center font-bold text-base mt-2"
-              style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.22)', color: '#34d399', fontFamily: 'var(--font-rajdhani)' }}
+              style={{ background: 'rgba(18,161,80,0.08)', border: '1px solid rgba(18,161,80,0.22)', color: 'var(--ex)', fontFamily: 'var(--font-rajdhani)' }}
             >
               ✅ Quiniela publicada
             </div>
@@ -1659,7 +1657,7 @@ export default function PrediccionesPage() {
                 key={liga}
                 {...fadeUp(0.03)}
                 className="rounded-2xl p-4 space-y-3"
-                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+                style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border-color)' }}
               >
                 <div>
                   <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
@@ -1673,13 +1671,13 @@ export default function PrediccionesPage() {
                 {picksDeadlinePasado ? (
                   yaGuardado ? (
                     <div className="space-y-1.5">
-                      <p className="text-[10px] uppercase tracking-widest mb-2" style={{ color: '#64748b' }}>🔒 Tus picks guardados</p>
+                      <p className="text-[10px] uppercase tracking-widest mb-2" style={{ color: 'var(--text-muted)' }}>🔒 Tus picks guardados</p>
                       <div className="grid grid-cols-4 gap-2">
                         {picks.map(eq => (
                           <div key={eq} className="flex flex-col items-center gap-1 rounded-xl py-2 px-1"
-                            style={{ background: 'rgba(234,88,12,0.1)', border: '1px solid rgba(234,88,12,0.25)' }}>
+                            style={{ background: 'rgba(200,0,106,0.1)', border: '1px solid rgba(200,0,106,0.25)' }}>
                             <Bandera emoji="" nombre={eq} size="md" />
-                            <span className="text-[9px] text-center leading-tight" style={{ color: '#fb923c', fontFamily: 'var(--font-rajdhani)', fontWeight: 700 }}>{eq}</span>
+                            <span className="text-[9px] text-center leading-tight" style={{ color: 'var(--brand)', fontFamily: 'var(--font-rajdhani)', fontWeight: 700 }}>{eq}</span>
                           </div>
                         ))}
                       </div>
@@ -1689,7 +1687,7 @@ export default function PrediccionesPage() {
                   )
                 ) : (
                   <>
-                    <p className="text-xs" style={{ color: picks.length === 4 ? '#34d399' : 'var(--text-secondary)' }}>
+                    <p className="text-xs" style={{ color: picks.length === 4 ? 'var(--ex)' : 'var(--text-secondary)' }}>
                       {picks.length === 4 ? '✅ 4 equipos seleccionados' : `Seleccionados: ${picks.length}/4`}
                     </p>
                     <div className="grid grid-cols-3 gap-2">
@@ -1704,7 +1702,7 @@ export default function PrediccionesPage() {
                             onClick={() => toggleEquipo(eq)}
                             className="flex flex-col items-center gap-1 rounded-xl py-2 px-1 cursor-pointer"
                             style={{
-                              background: seleccionado ? 'linear-gradient(135deg, #ea580c, #f97316)' : 'rgba(255,255,255,0.04)',
+                              background: seleccionado ? 'var(--brand)' : 'rgba(255,255,255,0.04)',
                               border: `1px solid ${seleccionado ? 'transparent' : 'rgba(255,255,255,0.07)'}`,
                               opacity: lleno ? 0.35 : 1,
                               transition: 'all 0.12s ease',
@@ -1725,11 +1723,11 @@ export default function PrediccionesPage() {
                       disabled={picks.length !== 4 || picksGuardando}
                       className="w-full py-3 rounded-xl font-bold text-sm mt-1"
                       style={{
-                        background: picks.length === 4 && !picksGuardando ? 'linear-gradient(135deg, #ea580c, #f97316)' : 'rgba(255,255,255,0.06)',
-                        color: picks.length === 4 && !picksGuardando ? '#fff' : '#475569',
+                        background: picks.length === 4 && !picksGuardando ? 'var(--brand)' : 'rgba(255,255,255,0.06)',
+                        color: picks.length === 4 && !picksGuardando ? '#fff' : 'var(--text-muted)',
                         border: 'none', fontFamily: 'var(--font-rajdhani)',
                         cursor: picks.length !== 4 || picksGuardando ? 'not-allowed' : 'pointer',
-                        boxShadow: picks.length === 4 && !picksGuardando ? '0 4px 18px rgba(234,88,12,0.3)' : 'none',
+                        boxShadow: picks.length === 4 && !picksGuardando ? '0 4px 18px rgba(200,0,106,0.3)' : 'none',
                       }}
                     >
                       {picksGuardando ? '⏳ Guardando...' : yaGuardado ? '🔄 Actualizar picks' : '✅ Guardar picks'}
@@ -1747,7 +1745,7 @@ export default function PrediccionesPage() {
         <motion.div
           {...fadeUp(0.03)}
           className="rounded-2xl p-4 space-y-3"
-          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+          style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border-color)' }}
         >
           <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
             🏆 ¿Quién será el Campeón Mundial?
@@ -1759,14 +1757,14 @@ export default function PrediccionesPage() {
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                 className="h-5 w-5 rounded-full border-2"
-                style={{ borderColor: 'rgba(234,88,12,0.15)', borderTopColor: '#ea580c' }}
+                style={{ borderColor: 'rgba(200,0,106,0.15)', borderTopColor: 'var(--brand)' }}
               />
             </div>
           ) : (
             <>
               {campeonAcerto && (
                 <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(251,191,36,0.06)', border: '1px solid rgba(251,191,36,0.22)' }}>
-                  <p className="font-bold" style={{ color: '#fbbf24', fontFamily: 'var(--font-rajdhani)' }}>
+                  <p className="font-bold" style={{ color: 'var(--rs)', fontFamily: 'var(--font-rajdhani)' }}>
                     ✅ ¡Acertaste! — {campeonDeclarado}
                   </p>
                   <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>🏆 Tienes el badge de Campeón</p>
@@ -1774,16 +1772,16 @@ export default function PrediccionesPage() {
               )}
 
               {campeonFallo && (
-                <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(100,116,139,0.08)', border: '1px solid rgba(100,116,139,0.15)' }}>
+                <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(116,108,97,0.08)', border: '1px solid rgba(116,108,97,0.15)' }}>
                   <p className="text-sm font-semibold" style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-rajdhani)' }}>
-                    ❌ No fue {miCampeonPick} — ganó <strong style={{ color: '#fbbf24' }}>{campeonDeclarado}</strong>
+                    ❌ No fue {miCampeonPick} — ganó <strong style={{ color: 'var(--rs)' }}>{campeonDeclarado}</strong>
                   </p>
                 </div>
               )}
 
               {campeonDeclarado && !miCampeonPick && (
                 <p className="text-sm text-center" style={{ color: 'var(--text-secondary)' }}>
-                  No hiciste predicción — ganó <strong style={{ color: '#fbbf24' }}>{campeonDeclarado}</strong>
+                  No hiciste predicción — ganó <strong style={{ color: 'var(--rs)' }}>{campeonDeclarado}</strong>
                 </p>
               )}
 
@@ -1793,19 +1791,19 @@ export default function PrediccionesPage() {
 
               {!campeonDeclarado && campeonDeadlinePasado && miCampeonPick && (
                 <>
-                  <div className="rounded-xl p-3 flex items-center gap-2" style={{ background: 'rgba(100,116,139,0.06)', border: '1px solid rgba(100,116,139,0.15)' }}>
+                  <div className="rounded-xl p-3 flex items-center gap-2" style={{ background: 'rgba(116,108,97,0.06)', border: '1px solid rgba(116,108,97,0.15)' }}>
                     <span>🔒</span>
                     <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-                      Tu campeón: <strong style={{ color: '#fbbf24' }}>{miCampeonPick}</strong>
+                      Tu campeón: <strong style={{ color: 'var(--rs)' }}>{miCampeonPick}</strong>
                     </span>
                   </div>
                   {campeonStats.length > 0 && (
                     <div className="space-y-1 pt-1">
-                      <p className="text-[10px] uppercase tracking-widest" style={{ color: '#64748b' }}>Picks del grupo</p>
+                      <p className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Picks del grupo</p>
                       {campeonStats.map(s => (
                         <div key={s.equipo} className="flex items-center justify-between text-xs py-0.5">
-                          <span style={{ color: s.equipo === miCampeonPick ? '#fbbf24' : 'var(--text-secondary)' }}>{s.equipo}</span>
-                          <span style={{ color: '#64748b' }}>{s.total} jugador{s.total !== 1 ? 'es' : ''}</span>
+                          <span style={{ color: s.equipo === miCampeonPick ? 'var(--rs)' : 'var(--text-secondary)' }}>{s.equipo}</span>
+                          <span style={{ color: 'var(--text-muted)' }}>{s.total} jugador{s.total !== 1 ? 'es' : ''}</span>
                         </div>
                       ))}
                     </div>
@@ -1817,7 +1815,7 @@ export default function PrediccionesPage() {
                 <>
                   {miCampeonPick && (
                     <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                      Pick actual: <strong style={{ color: '#fbbf24' }}>{miCampeonPick}</strong> · Puedes cambiar hasta el 27 jun 2026
+                      Pick actual: <strong style={{ color: 'var(--rs)' }}>{miCampeonPick}</strong> · Puedes cambiar hasta el 27 jun 2026
                     </p>
                   )}
                   <div className="grid grid-cols-3 gap-1.5 max-h-64 overflow-y-auto">
@@ -1829,7 +1827,7 @@ export default function PrediccionesPage() {
                         className="py-2 px-1 rounded-lg text-xs font-semibold text-center cursor-pointer"
                         style={{
                           background: campeonPickTemp === equipo
-                            ? 'linear-gradient(135deg, #ea580c, #f97316)'
+                            ? 'var(--brand)'
                             : 'rgba(255,255,255,0.04)',
                           color: campeonPickTemp === equipo ? '#fff' : 'var(--text-secondary)',
                           border: `1px solid ${campeonPickTemp === equipo ? 'transparent' : 'rgba(255,255,255,0.06)'}`,
@@ -1862,7 +1860,7 @@ export default function PrediccionesPage() {
         <motion.div
           {...fadeUp(0.05)}
           className="rounded-2xl p-4 space-y-2"
-          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+          style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border-color)' }}
         >
           <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}>
             🏆 Predicciones de Campeón
@@ -1877,7 +1875,7 @@ export default function PrediccionesPage() {
                 <span style={{ color: 'var(--text-secondary)' }}>
                   {nombreQuiniela ? `🎫 ${nombreQuiniela}` : 'Tu quiniela'}
                 </span>
-                <span className="font-semibold" style={{ color: '#fbbf24' }}>{pick.equipo}</span>
+                <span className="font-semibold" style={{ color: 'var(--rs)' }}>{pick.equipo}</span>
               </div>
             );
           })}
@@ -1890,9 +1888,9 @@ export default function PrediccionesPage() {
           {...fadeUp(0.03)}
           className="rounded-2xl p-4 space-y-3"
           style={{
-            background: 'rgba(255,255,255,0.03)',
-            border: '1px solid rgba(234,88,12,0.2)',
-            boxShadow: '0 0 24px rgba(234,88,12,0.05)',
+            background: 'var(--bg-card-hover)',
+            border: '1px solid rgba(200,0,106,0.2)',
+            boxShadow: '0 0 24px rgba(200,0,106,0.05)',
           }}
         >
           <div>
@@ -1905,13 +1903,13 @@ export default function PrediccionesPage() {
           </div>
 
           {j6Equipos.length === 0 ? (
-            <p className="text-xs text-center py-2" style={{ color: '#64748b' }}>Equipos pendientes de definirse</p>
+            <p className="text-xs text-center py-2" style={{ color: 'var(--text-muted)' }}>Equipos pendientes de definirse</p>
           ) : new Date() > DEADLINE_J6 ? (
             j6Pick ? (
-              <div className="rounded-xl p-3 flex items-center gap-2" style={{ background: 'rgba(100,116,139,0.06)', border: '1px solid rgba(100,116,139,0.15)' }}>
+              <div className="rounded-xl p-3 flex items-center gap-2" style={{ background: 'rgba(116,108,97,0.06)', border: '1px solid rgba(116,108,97,0.15)' }}>
                 <span>🔒</span>
                 <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-                  Tu pick: <strong style={{ color: '#fbbf24' }}>{j6Pick}</strong>
+                  Tu pick: <strong style={{ color: 'var(--rs)' }}>{j6Pick}</strong>
                 </span>
               </div>
             ) : (
@@ -1921,7 +1919,7 @@ export default function PrediccionesPage() {
             <>
               {j6Pick && (
                 <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                  Pick actual: <strong style={{ color: '#fbbf24' }}>{j6Pick}</strong>
+                  Pick actual: <strong style={{ color: 'var(--rs)' }}>{j6Pick}</strong>
                 </p>
               )}
               <div className="grid grid-cols-2 gap-2">
@@ -1933,7 +1931,7 @@ export default function PrediccionesPage() {
                     className="py-2.5 px-2 rounded-xl text-xs font-semibold text-center flex items-center justify-center gap-1.5 cursor-pointer"
                     style={{
                       background: j6PickTemp === equipo
-                        ? 'linear-gradient(135deg, #ea580c, #f97316)'
+                        ? 'var(--brand)'
                         : 'rgba(255,255,255,0.04)',
                       color: j6PickTemp === equipo ? '#fff' : 'var(--text-secondary)',
                       border: `1px solid ${j6PickTemp === equipo ? 'transparent' : 'rgba(255,255,255,0.06)'}`,
@@ -1980,11 +1978,11 @@ export default function PrediccionesPage() {
               disabled={publicando}
               className="py-4 px-8 rounded-2xl font-bold text-base"
               style={{
-                background: publicando ? 'rgba(255,255,255,0.08)' : rondaPublicada('final') ? '#3b82f6' : 'linear-gradient(135deg, #ea580c, #f97316)',
-                color: publicando ? '#475569' : '#fff',
+                background: publicando ? 'var(--bg-card-hover)' : rondaPublicada('final') ? '#3b82f6' : 'var(--brand)',
+                color: publicando ? 'var(--text-muted)' : '#fff',
                 fontFamily: 'var(--font-rajdhani)',
                 fontSize: '1rem',
-                boxShadow: publicando ? 'none' : rondaPublicada('final') ? '0 8px 32px rgba(59,130,246,0.45)' : '0 8px 32px rgba(234,88,12,0.5)',
+                boxShadow: publicando ? 'none' : rondaPublicada('final') ? '0 8px 32px rgba(59,130,246,0.45)' : '0 8px 32px rgba(200,0,106,0.5)',
                 cursor: publicando ? 'not-allowed' : 'pointer',
                 border: 'none',
                 minWidth: 280,
@@ -2029,7 +2027,7 @@ export default function PrediccionesPage() {
               className="rounded-2xl p-6 w-full max-w-sm"
               style={{
                 background: 'var(--bg-surface)',
-                border: '1px solid rgba(234,88,12,0.2)',
+                border: '1px solid rgba(200,0,106,0.2)',
                 boxShadow: '0 24px 60px rgba(0,0,0,0.5)',
               }}
               onClick={e => e.stopPropagation()}
@@ -2038,7 +2036,7 @@ export default function PrediccionesPage() {
               exit={{ opacity: 0, scale: 0.92, y: 20 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             >
-              <h3 style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.4rem', color: '#f97316', marginBottom: '1rem' }}>
+              <h3 style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.4rem', color: 'var(--brand)', marginBottom: '1rem' }}>
                 🎫 Nueva Quiniela
               </h3>
               <input
@@ -2054,8 +2052,8 @@ export default function PrediccionesPage() {
                 autoFocus
                 className="w-full rounded-xl px-4 py-3 mb-4 outline-none text-sm"
                 style={{
-                  background: 'rgba(255,255,255,0.05)',
-                  border: '1px solid rgba(255,255,255,0.1)',
+                  background: 'var(--bg-card-hover)',
+                  border: '1px solid var(--border-color)',
                   color: 'var(--text-primary)',
                 }}
               />
@@ -2073,7 +2071,7 @@ export default function PrediccionesPage() {
                   whileTap={{ scale: 0.96 }}
                   onClick={() => setShowNuevaQuiniela(false)}
                   className="px-5 py-3 rounded-xl text-sm cursor-pointer"
-                  style={{ color: '#64748b', background: 'transparent', border: '1px solid rgba(255,255,255,0.07)' }}
+                  style={{ color: 'var(--text-muted)', background: 'transparent', border: '1px solid var(--border-color)' }}
                 >
                   Cancelar
                 </motion.button>

@@ -10,7 +10,7 @@ import { JORNADA_DESEMPATE, cargarDesempateJ11, DESEMPATE_POZO_J11, cargarDesemp
 import { getNombreJornada, getMontoJornada, TEMPORADA_ACTIVA, getNombreJornadaLigaMX } from '@/lib/utils';
 import { cargarJornadaActual } from '@/lib/jornadaActual';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
+import { toast } from 'sonner';
 
 const cardVariants = {
   hidden: { opacity: 0, scale: 0.95, y: 16 },
@@ -21,10 +21,6 @@ const staggerContainer = {
   visible: { transition: { staggerChildren: 0.1 } },
 };
 
-const JugadorAnimado = dynamic(
-  () => import('@/components/JugadorAnimado'),
-  { ssr: false }
-);
 
 const INAUGURAL = new Date('2026-06-11T20:00:00Z'); // 15:00 CDMX = 20:00 UTC
 
@@ -71,80 +67,66 @@ function CountdownUnit({ value, label }: { value: number; label: string }) {
   );
 }
 
-const estadoBorderColor: Record<string, string> = {
-  abierto:  'rgba(234,88,12,0.5)',
-  cerrado:  'rgba(100,116,139,0.4)',
-  pagado:   'rgba(16,185,129,0.5)',
-};
-const estadoBg: Record<string, string> = {
-  abierto:  'rgba(234,88,12,0.06)',
-  cerrado:  'rgba(100,116,139,0.06)',
-  pagado:   'rgba(16,185,129,0.06)',
-};
 const estadoLabel: Record<string, string> = {
   abierto:  'ABIERTO',
   cerrado:  'CERRADO',
   pagado:   'PAGADO',
 };
-const estadoColor: Record<string, string> = {
-  abierto:  'var(--accent-gold)',
-  cerrado:  '#64748b',
-  pagado:   '#10b981',
-};
 
 function PozoCard({ pozo, id }: { pozo: Pozo; id?: string }) {
   const ganoAlguien = (pozo.estado === 'cerrado' || pozo.estado === 'pagado') && pozo.ganador_nombre;
+  const abierto = pozo.estado === 'abierto';
   return (
-    <motion.div
+    <motion.section
       id={id}
-      className="rounded-2xl p-4 space-y-3"
-      style={{
-        background: estadoBg[pozo.estado],
-        border: `1px solid ${estadoBorderColor[pozo.estado]}`,
-        borderLeftWidth: '4px',
-        borderLeftColor: estadoBorderColor[pozo.estado],
-      }}
+      aria-label={`Pozo jornada ${pozo.jornada}`}
+      className="relative overflow-hidden rounded-[22px]"
+      style={{ background: 'var(--text-primary)', color: 'var(--bg-base)' }}
       variants={cardVariants}
-      whileHover={{ scale: 1.015 }}
-      whileTap={{ scale: 0.98 }}
+      whileTap={{ scale: 0.99 }}
     >
-      <div className="flex items-center justify-between">
-        <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--text-secondary)' }}>
-          🏆 POZO JORNADA {pozo.jornada}
+      <div className="flex flex-col gap-1 px-5 pb-4 pt-[18px]">
+        <div className="flex items-center justify-between gap-2">
+          <span className="font-senal text-[15px] font-bold uppercase tracking-[0.14em] opacity-80">
+            Pozo · Jornada {pozo.jornada}
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[14px] font-bold" style={{ background: 'var(--bg-base)', color: 'var(--text-primary)' }}>
+            <span className={abierto ? 'en-vivo-dot inline-block h-2.5 w-2.5 rounded-full' : 'inline-block h-2.5 w-2.5 rounded-full'}
+              style={{ background: abierto ? '#12A150' : pozo.estado === 'pagado' ? '#12A150' : 'var(--text-muted)' }} />
+            {estadoLabel[pozo.estado].charAt(0) + estadoLabel[pozo.estado].slice(1).toLowerCase()}
+          </span>
+        </div>
+        <div className="flex items-baseline gap-2">
+          <span className="font-senal text-[84px] font-extrabold leading-[0.95]">${pozo.total_mxn}</span>
+          <span className="font-senal text-[20px] font-bold opacity-70">MXN</span>
+        </div>
+        <p className="text-[15px] font-medium opacity-85">
+          <b className="tabular">{pozo.participantes}</b> pagado{pozo.participantes !== 1 ? 's' : ''}
         </p>
-        <span
-          className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
-          style={{ background: `${estadoBorderColor[pozo.estado]}30`, color: estadoColor[pozo.estado] }}
-        >
-          {estadoLabel[pozo.estado]}
-        </span>
       </div>
 
-      <div className="flex items-end justify-between">
-        <div>
-          <p style={{ fontFamily: 'var(--font-bebas)', fontSize: '2.5rem', color: estadoColor[pozo.estado], lineHeight: 1 }}>
-            ${pozo.total_mxn} <span style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>MXN</span>
-          </p>
-          <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-            👥 {pozo.participantes} participante{pozo.participantes !== 1 ? 's' : ''}
-          </p>
-        </div>
+      {/* Perforado + talón */}
+      <div className="relative mx-3.5" style={{ borderTop: '2px dashed currentColor', opacity: 0.9 }}>
+        <span aria-hidden="true" className="absolute -left-[24px] -top-[11px] h-5 w-5 rounded-full" style={{ background: 'var(--bg-base)' }} />
+        <span aria-hidden="true" className="absolute -right-[24px] -top-[11px] h-5 w-5 rounded-full" style={{ background: 'var(--bg-base)' }} />
+      </div>
+      <div className="flex min-h-[58px] flex-wrap items-center gap-x-3 gap-y-1 px-5 py-2">
+        {ganoAlguien ? (
+          <span className="flex-1 text-[15px] font-semibold">
+            Ganó {pozo.ganador_nombre} · ${pozo.total_mxn}
+          </span>
+        ) : (
+          <span className="flex-1 text-[15px] font-semibold opacity-85">Se lo lleva quien sume más puntos</span>
+        )}
         <Link
           href={`/jornada/${pozo.jornada}`}
-          className="block w-full text-center py-2 rounded-xl text-sm font-semibold transition-all active:scale-95"
-          style={{ background: 'rgba(234,88,12,0.15)', color: '#ea580c', border: '1px solid rgba(234,88,12,0.3)', fontFamily: 'var(--font-rajdhani)' }}
+          className="flex min-h-[44px] items-center gap-1 text-[15px] font-bold underline-offset-4 hover:underline"
         >
-          👁️ Ver predicciones de todos
+          Ver predicciones
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
         </Link>
       </div>
-
-      {ganoAlguien && (
-        <div className="rounded-xl px-3 py-2 space-y-0.5" style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)' }}>
-          <p className="text-sm font-bold" style={{ color: '#10b981' }}>🥇 Ganador: {pozo.ganador_nombre}</p>
-          <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>💰 Premio: ${pozo.total_mxn} MXN</p>
-        </div>
-      )}
-    </motion.div>
+    </motion.section>
   );
 }
 
@@ -762,21 +744,20 @@ export default function DashboardPage() {
       className="max-w-lg mx-auto px-4 pb-24 space-y-6 relative"
       style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1.5rem)' }}
     >
-      {/* Header */}
-      <div className="text-center space-y-1" style={{ animation: 'fadeInUp 0.5s ease-out' }}>
-        <img
-          src="/icons/icon-192.png"
-          alt="Quiniela Metro"
-          className="w-20 h-20 rounded-2xl mx-auto mb-2 shadow-lg shadow-orange-500/20"
-        />
-        <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: '3rem', color: 'var(--accent-gold)', lineHeight: 1, letterSpacing: '0.05em' }}>
-          QUINIELA METRO
-        </h1>
-        <p className="text-sm font-semibold" style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--text-secondary)' }}>
-          Liga MX Apertura 2026 · STC Metro CDMX
-        </p>
-        <JugadorAnimado />
-      </div>
+      {/* Encabezado tipo letrero de estación */}
+      <header className="flex items-center gap-3" style={{ animation: 'fadeInUp 0.4s ease-out' }}>
+        <div className="font-senal flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-[26px] font-extrabold text-white" style={{ background: '#C8006A' }}>
+          {typeof jornadaSeleccionada === 'number' ? jornadaSeleccionada : 'G'}
+        </div>
+        <div className="min-w-0 flex-1">
+          <h1 className="font-senal m-0 text-[32px] font-extrabold uppercase leading-none" style={{ color: 'var(--text-primary)' }}>
+            {jornadaSeleccionada === 'general' ? 'Tabla general'
+              : jornadaSeleccionada === 'lc_total' ? 'Leagues Cup'
+              : labelJornada(jornadaSeleccionada as number)}
+          </h1>
+          <p className="text-[14px] font-medium" style={{ color: 'var(--text-muted)' }}>Liga MX Apertura 2026 · STC Metro CDMX</p>
+        </div>
+      </header>
 
       {/* Countdown */}
       {TEMPORADA_ACTIVA !== 'ligamx2026' && (
@@ -816,34 +797,34 @@ export default function DashboardPage() {
           style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', animation: 'fadeInUp 0.5s ease-out 0.2s both' }}
         >
           {campeonDeclarado && campeonBadge === campeonDeclarado && (
-            <p className="text-sm font-bold" style={{ color: '#fbbf24', fontFamily: 'var(--font-rajdhani)' }}>
+            <p className="text-sm font-bold" style={{ color: 'var(--rs)', fontFamily: 'var(--font-rajdhani)' }}>
               🏆 ¡Acertaste el Campeón! — {campeonDeclarado}
             </p>
           )}
           {campeonDeclarado && campeonPick && campeonPick !== campeonDeclarado && (
             <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-              🏆 Campeón: <strong style={{ color: '#fbbf24' }}>{campeonDeclarado}</strong> · Tu pick: {campeonPick} ❌
+              🏆 Campeón: <strong style={{ color: 'var(--rs)' }}>{campeonDeclarado}</strong> · Tu pick: {campeonPick} ❌
             </p>
           )}
           {campeonDeclarado && !campeonPick && (
             <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-              🏆 Campeón mundial: <strong style={{ color: '#fbbf24' }}>{campeonDeclarado}</strong>
+              🏆 Campeón mundial: <strong style={{ color: 'var(--rs)' }}>{campeonDeclarado}</strong>
             </p>
           )}
           {!campeonDeclarado && Date.now() >= INAUGURAL.getTime() && campeonPick && (
             <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-              🔒 Tu campeón: <strong style={{ color: '#fbbf24' }}>{campeonPick}</strong>
+              🔒 Tu campeón: <strong style={{ color: 'var(--rs)' }}>{campeonPick}</strong>
             </p>
           )}
           {!campeonDeclarado && Date.now() < INAUGURAL.getTime() && !campeonPick && (
             <Link href="/predicciones" className="text-sm font-semibold hover:opacity-80"
-              style={{ color: '#ea580c', fontFamily: 'var(--font-rajdhani)' }}>
+              style={{ color: 'var(--brand)', fontFamily: 'var(--font-rajdhani)' }}>
               🏆 ¿Ya elegiste tu campeón? → Ir a Predicciones
             </Link>
           )}
           {!campeonDeclarado && Date.now() < INAUGURAL.getTime() && campeonPick && (
             <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-              🏆 Tu campeón: <strong style={{ color: '#fbbf24' }}>{campeonPick}</strong>
+              🏆 Tu campeón: <strong style={{ color: 'var(--rs)' }}>{campeonPick}</strong>
             </p>
           )}
         </div>
@@ -863,57 +844,82 @@ export default function DashboardPage() {
 
       {/* Solo visible para el usuario actual si tiene pago pendiente */}
       {participacionPendiente && (
-        <div className="mb-4 bg-orange-600/10 border border-orange-500/30 rounded-2xl p-4 mt-6" style={{ animation: 'fadeInUp 0.5s ease-out 0.28s both' }}>
-          <div className="flex items-center gap-2 mb-2">
-            <h3 className="font-bebas text-lg text-orange-400">
-              {participacionPendiente?.quiniela?.nombre
-                ? `⏳ PAGO PENDIENTE — 🎫 ${participacionPendiente.quiniela.nombre}`
-                : '⏳ TU PAGO ESTÁ PENDIENTE'
-              }
-            </h3>
+        <section
+          aria-label="Pago pendiente"
+          className="space-y-3 rounded-[20px] p-4"
+          style={{ background: 'var(--rs-soft)', border: '2px solid var(--rs)', animation: 'fadeInUp 0.5s ease-out 0.28s both' }}
+        >
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style={{ background: 'var(--rs)', color: 'var(--rs-ink)' }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
+            </div>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-[17px] font-bold" style={{ color: 'var(--text-primary)' }}>
+                {participacionPendiente?.quiniela?.nombre
+                  ? `Pago pendiente · ${participacionPendiente.quiniela.nombre}`
+                  : `Te falta pagar la ${labelJornada(participacionPendiente.jornada)}`}
+              </h3>
+              <p className="text-[14px] leading-snug" style={{ color: 'var(--text-secondary)' }}>
+                Tus predicciones están guardadas, pero entran al pozo cuando se confirme tu pago.
+              </p>
+            </div>
+            <span className="font-senal text-[32px] font-extrabold leading-none" style={{ color: 'var(--text-primary)' }}>
+              ${getMontoJornada(participacionPendiente.jornada)}
+            </span>
           </div>
-          <p className="text-slate-400 text-sm mb-3">
-            Tus predicciones están guardadas pero no 
-            participarás en el pozo hasta que se confirme 
-            tu pago de ${getMontoJornada(participacionPendiente.jornada)} MXN.
-          </p>
-          <div className="bg-[#0a0a0a] rounded-xl p-3 mb-3">
-            <p className="text-xs text-slate-500 mb-1">
-              Datos para transferencia:
-            </p>
-            <p className="text-white text-sm font-bold">
-              Santander — CLABE: 014180565546539842
-            </p>
-            <p className="text-slate-400 text-xs">
-              JOSE LUIS GONZALEZ PEREZ
-            </p>
-          </div>
+          <dl className="m-0 rounded-[14px] px-3.5 py-1" style={{ background: 'var(--bg-card)' }}>
+            <div className="flex min-h-[40px] items-center justify-between" style={{ borderBottom: '1px solid var(--border-color)' }}>
+              <dt className="text-[14px]" style={{ color: 'var(--text-muted)' }}>Banco</dt>
+              <dd className="m-0 text-[15px] font-semibold">Santander</dd>
+            </div>
+            <div className="flex min-h-[40px] items-center justify-between" style={{ borderBottom: '1px solid var(--border-color)' }}>
+              <dt className="text-[14px]" style={{ color: 'var(--text-muted)' }}>Titular</dt>
+              <dd className="m-0 text-[15px] font-semibold">JOSE LUIS GONZALEZ PEREZ</dd>
+            </div>
+            <div className="flex min-h-[56px] items-center justify-between gap-2">
+              <div>
+                <dt className="text-[14px]" style={{ color: 'var(--text-muted)' }}>CLABE</dt>
+                <dd className="tabular m-0 text-[16px] font-bold tracking-wide">014180565546539842</dd>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard?.writeText('014180565546539842').then(
+                    () => toast.success('CLABE copiada'),
+                    () => toast.error('No se pudo copiar'),
+                  );
+                }}
+                className="flex min-h-[44px] items-center gap-1.5 rounded-xl px-3.5 text-[15px] font-bold active:scale-95"
+                style={{ border: '1.5px solid var(--text-primary)' }}
+              >
+                Copiar
+              </button>
+            </div>
+          </dl>
           <a
             href={`https://wa.me/525523269241?text=${encodeURIComponent(
-              '¡Hola! Ya realicé mi pago para la Quiniela Metro Mundial 2026 🏆\n\n' +
+              '¡Hola! Ya realicé mi pago para la Quiniela Metro\n\n' +
               'Por favor confirma mi participación.\n\n' +
               'Nombre: ' + (userName || '') + '\n' +
               'Quiniela: ' + (participacionPendiente?.quiniela?.nombre || 'Principal') + '\n' +
               'Mi correo de registro: ' + (userEmail || '') + '\n' +
               'Jornada: ' + (participacionPendiente?.jornada || 1) + '\n\n' +
-              'Te adjunto mi comprobante de pago 📎'
+              'Te adjunto mi comprobante de pago'
             )}`}
             target="_blank"
-            className="w-full flex items-center justify-center gap-2 bg-green-600 text-white py-3 rounded-xl font-rajdhani font-bold text-sm hover:bg-green-500 transition-all">
-            💬 Avisar al admin — Enviar comprobante
+            rel="noopener noreferrer"
+            className="flex min-h-[52px] w-full items-center justify-center gap-2.5 rounded-[14px] text-[16px] font-bold active:scale-[0.98]"
+            style={{ background: 'var(--wa)', color: 'var(--wa-on)' }}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.5-4.1A8 8 0 1 1 20 11.5z" /></svg>
+            Enviar comprobante por WhatsApp
           </a>
-        </div>
+        </section>
       )}
 
       {/* Ranking por jornada */}
       <div style={{ animation: 'fadeInUp 0.5s ease-out 0.3s both' }}>
-        <h2 className="font-bebas text-2xl mb-3" style={{ color: '#ea580c' }}>
-          {jornadaSeleccionada === 'general' ? '🏆 Clasificación General'
-            : jornadaSeleccionada === 'lc_total' ? '🏆 Leagues Cup — Acumulado'
-            : `Clasificación ${labelJornada(jornadaSeleccionada as number)}`}
-        </h2>
-
-        <div className="flex gap-2 mb-4 flex-wrap">
+        <nav aria-label="Elegir jornada" className="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 pb-1" style={{ scrollbarWidth: 'none' }}>
           {((TEMPORADA_ACTIVA === 'ligamx2026'
             ? (['lc_total', ...jornadasDisponibles] as (number | 'lc_total')[])
             : (['general', ...jornadasDisponibles] as (number | 'general')[])
@@ -921,41 +927,47 @@ export default function DashboardPage() {
             <button
               key={String(j)}
               onClick={() => setJornadaSeleccionada(j)}
-              className="px-4 py-1.5 rounded-lg text-sm font-bold transition-all active:scale-95 min-h-[36px]"
+              aria-pressed={jornadaSeleccionada === j}
+              className="font-senal min-h-[44px] shrink-0 rounded-full px-4 text-[18px] font-bold transition-transform active:scale-95"
               style={{
-                background: jornadaSeleccionada === j ? '#ea580c' : 'var(--bg-card)',
-                color: jornadaSeleccionada === j ? '#fff' : 'var(--text-secondary)',
-                border: `1px solid ${jornadaSeleccionada === j ? '#ea580c' : 'var(--border)'}`,
-                fontFamily: 'var(--font-rajdhani)',
+                background: jornadaSeleccionada === j ? 'var(--text-primary)' : 'var(--bg-card)',
+                color: jornadaSeleccionada === j ? 'var(--bg-base)' : 'var(--text-secondary)',
+                border: `1.5px solid ${jornadaSeleccionada === j ? 'var(--text-primary)' : 'var(--border-color)'}`,
               }}
             >
-              {j === 'general' ? '🏆 General' : j === 'lc_total' ? '🏆 LC Total' : labelJornada(j as number)}
+              {j === 'general' ? 'General' : j === 'lc_total' ? 'LC Total' : labelJornada(j as number)}
             </button>
           ))}
-        </div>
+        </nav>
 
         {loading ? (
-          <div className="flex justify-center py-12">
-            <div className="h-8 w-8 border-2 border-t-transparent rounded-full animate-spin"
-              style={{ borderColor: 'var(--accent-gold)', borderTopColor: 'transparent' }} />
+          <div className="space-y-2" aria-busy="true" aria-label="Cargando ranking">
+            {[0, 1, 2, 3].map(i => (
+              <div key={i} className="flex min-h-[64px] items-center gap-3 rounded-2xl px-3.5" style={{ background: 'var(--bg-card)' }}>
+                <div className="skeleton h-6 w-6 rounded-md" />
+                <div className="skeleton h-4 flex-1 rounded-lg" />
+                <div className="skeleton h-7 w-10 rounded-lg" />
+              </div>
+            ))}
           </div>
         ) : ranking.length > 0 ? (
           <>
             <RankingTable ranking={ranking} userId={userId} pendienteIds={pendienteIds.filter(id => !pagadosIds.includes(id))} jornada={jornadaSeleccionada === 'lc_total' ? 1 : jornadaSeleccionada} />
             <button
               onClick={compartirRanking}
-              className="w-full mt-4 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all hover:opacity-80 active:scale-95"
-              style={{ background: 'rgba(22,163,74,0.15)', border: '1px solid rgba(34,197,94,0.3)', color: '#4ade80', fontFamily: 'var(--font-rajdhani)' }}>
-              💬 Compartir ranking en WhatsApp
+              className="mt-4 flex min-h-[52px] w-full items-center justify-center gap-2.5 rounded-2xl text-[16px] font-bold transition-transform active:scale-[0.98]"
+              style={{ background: 'var(--text-primary)', color: 'var(--bg-base)' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" /></svg>
+              Compartir ranking en WhatsApp
             </button>
           </>
         ) : (
           <div>
-            <p className="text-sm text-center mb-4" style={{ color: '#64748b' }}>
+            <p className="text-sm text-center mb-4" style={{ color: 'var(--text-muted)' }}>
               ⏳ El ranking se actualizará cuando inicien los partidos
             </p>
             {participantesJornada.length === 0 ? (
-              <p className="text-sm text-center" style={{ color: '#475569' }}>
+              <p className="text-sm text-center" style={{ color: 'var(--text-muted)' }}>
                 Aún no hay participantes en esta jornada
               </p>
             ) : (
@@ -964,12 +976,12 @@ export default function DashboardPage() {
                   <div
                     key={p.id}
                     className="flex items-center gap-3 px-4 py-3"
-                    style={{ borderTop: i > 0 ? '1px solid #1e1e2e' : undefined }}
+                    style={{ borderTop: i > 0 ? '1px solid var(--border-color)' : undefined }}
                   >
-                    <span className="text-sm w-6 text-center" style={{ color: '#64748b' }}>{i + 1}</span>
+                    <span className="text-sm w-6 text-center" style={{ color: 'var(--text-muted)' }}>{i + 1}</span>
                     <div
                       className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-                      style={{ background: 'linear-gradient(135deg, #ea580c, #c2410c)' }}
+                      style={{ background: 'var(--brand)' }}
                     >
                       {iniParticipante(p.jugador)}
                     </div>
@@ -978,9 +990,9 @@ export default function DashboardPage() {
                         {nomParticipante(p.jugador)}
                       </p>
                       {p.quinielaNombre && (
-                        <p className="text-xs" style={{ color: '#ea580c' }}>🎫 {p.quinielaNombre}</p>
+                        <p className="text-xs" style={{ color: 'var(--brand)' }}>🎫 {p.quinielaNombre}</p>
                       )}
-                      <p className="text-xs" style={{ color: '#10b981' }}>✅ Confirmado</p>
+                      <p className="text-xs" style={{ color: 'var(--ex)' }}>✅ Confirmado</p>
                     </div>
                   </div>
                 ))}
@@ -1015,9 +1027,15 @@ export default function DashboardPage() {
         href="https://chat.whatsapp.com/LeFSQrZwf9nARVoU7YARhD"
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm hover:opacity-80 transition-all mt-3"
-        style={{ background: 'rgba(22,163,74,0.15)', border: '1px solid rgba(34,197,94,0.3)', color: '#4ade80', fontFamily: 'var(--font-rajdhani)' }}>
-        💬 Únete al grupo de WhatsApp del torneo
+        className="mt-3 flex min-h-[64px] w-full items-center gap-3.5 rounded-2xl px-3.5 py-2.5 transition-transform active:scale-[0.98]"
+        style={{ background: 'var(--bg-card)', border: '1.5px solid var(--border-color)', color: 'var(--text-primary)' }}>
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl" style={{ background: 'var(--wa)', color: 'var(--wa-on)' }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.5-4.1A8 8 0 1 1 20 11.5z" /></svg>
+        </span>
+        <span className="flex-1">
+          <span className="block text-[16px] font-bold">Grupo de WhatsApp</span>
+          <span className="block text-[14px]" style={{ color: 'var(--text-muted)' }}>Avisos, comprobantes y cotorreo</span>
+        </span>
       </a>
     </main>
   );

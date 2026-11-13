@@ -120,7 +120,7 @@ export default function CalendarioPage() {
       <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
 
       <div className="relative z-10 max-w-4xl mx-auto pt-10">
-        <h1 className="text-4xl md:text-5xl mb-2 text-center" style={{ fontFamily: 'var(--font-bebas)', color: 'var(--accent-gold)' }}>
+        <h1 className="text-4xl md:text-5xl mb-2 text-center" style={{ fontFamily: 'var(--font-bebas)', color: 'var(--text-primary)', fontWeight: 800, textTransform: 'uppercase' }}>
           CALENDARIO OFICIAL
         </h1>
         <p className="text-center text-gray-400 mb-10 font-semibold" style={{ fontFamily: 'var(--font-rajdhani)' }}>
@@ -130,7 +130,7 @@ export default function CalendarioPage() {
         <div className="space-y-12">
           {Object.entries(partidosPorFecha).map(([key, lista]) => (
             <div key={key} className="space-y-4" style={{ animation: 'fadeInUp 0.6s ease-out' }}>
-              <div className="sticky top-0 z-20 backdrop-blur-md bg-[#1a1c23]/80 py-3 px-4 rounded-xl border border-white/5 shadow-lg">
+              <div className="sticky top-0 z-20 backdrop-blur-md bg-[var(--bg-base)] py-3 px-4 rounded-xl border border-[var(--border-color)] shadow-lg">
                 <h2 className="text-xl font-bold text-orange-400 capitalize" style={{ fontFamily: 'var(--font-rajdhani)' }}>
                   {formatearDiaCDMX(lista[0].fecha_hora)}
                 </h2>
@@ -138,7 +138,7 @@ export default function CalendarioPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {lista.map(partido => partido.equipo_local === 'A definir' || !partido.equipo_local ? (
-                  <div key={partido.id} id={`partido-${partido.id}`} className="opacity-40 text-slate-500 text-xs rounded-2xl p-3 border border-white/5 bg-white/[0.02] flex items-center justify-between">
+                  <div key={partido.id} id={`partido-${partido.id}`} className="opacity-40 text-slate-500 text-xs rounded-2xl p-3 border border-[var(--border-color)] bg-white/[0.02] flex items-center justify-between">
                     <span>Por definir</span>
                     <span>{formatearFechaCDMX(partido.fecha_hora)}</span>
                   </div>
@@ -176,7 +176,7 @@ export default function CalendarioPage() {
                             <span className={partido.estado === 'en_curso' ? 'text-orange-400' : ''}>{partido.goles_visitante}</span>
                           </div>
                         ) : (
-                          <div className="text-sm font-semibold text-gray-500 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
+                          <div className="text-sm font-semibold text-gray-500 bg-white/5 px-3 py-1.5 rounded-lg border border-[var(--border-color)]">
                             {formatearHoraCDMX(partido.fecha_hora)}
                           </div>
                         )}
@@ -189,7 +189,7 @@ export default function CalendarioPage() {
                     </div>
 
                     {partido.estado === 'finalizado' && partido.clasificado && partido.como_termino && partido.como_termino !== 'reglamentario' && (
-                      <div className="mt-2 text-center text-xs font-semibold" style={{ color: '#94a3b8', fontFamily: 'var(--font-rajdhani)' }}>
+                      <div className="mt-2 text-center text-xs font-semibold" style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-rajdhani)' }}>
                         {partido.como_termino === 'penales' ? '🥅' : partido.como_termino === 'tiempo_extra' ? '⏩' : '⏱️'} {partido.clasificado} avanza{partido.como_termino === 'penales' ? ' en penales' : ' en prórroga'}{partido.como_termino === 'penales' && partido.marcador_penales ? ` (${partido.marcador_penales})` : partido.como_termino === 'tiempo_extra' && partido.marcador_tiempo_extra ? ` (${partido.marcador_tiempo_extra})` : ''}
                       </div>
                     )}

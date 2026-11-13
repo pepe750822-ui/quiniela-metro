@@ -19,25 +19,12 @@ interface Props {
   onPredicir?: (partido: Partido) => void;
 }
 
-const estadoBadge: Record<string, { bg: string; text: string; label: string; glow: string; dot: boolean }> = {
-  pendiente:  { bg: 'rgba(234,88,12,0.12)',   text: '#f97316', label: 'Pendiente', glow: 'rgba(234,88,12,0.08)',  dot: false },
-  en_curso:   { bg: 'rgba(16,185,129,0.12)',  text: '#10b981', label: 'En vivo',   glow: 'rgba(16,185,129,0.12)', dot: true  },
-  finalizado: { bg: 'rgba(100,116,139,0.08)', text: '#64748b', label: 'Final',     glow: 'none',                  dot: false },
-};
-
-const borderAccent: Record<string, string> = {
-  pendiente:  'rgba(234,88,12,0.28)',
-  en_curso:   'rgba(16,185,129,0.45)',
-  finalizado: 'rgba(255,255,255,0.05)',
-};
-
 export default function PartidoCard({ partido, prediccion, participacionPagada, onPredicir }: Props) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
   const fechaStr  = mounted ? formatearDiaCDMX(partido.fecha_hora) : '';
   const horaStr   = mounted ? formatearHoraCDMX(partido.fecha_hora) : '--:--';
-  const badge     = estadoBadge[partido.estado];
   const puedePredicir = partido.estado === 'pendiente' && !!onPredicir;
 
   const gl = partido.goles_local ?? 0;
@@ -58,9 +45,9 @@ export default function PartidoCard({ partido, prediccion, participacionPagada, 
 
   const lmxBadge = (!esLC && prediccion && fin) ? (() => {
     const pts = prediccion.puntos_ganados;
-    if (pts >= 3) return { color: '#10b981', bg: 'rgba(16,185,129,0.1)', border: 'rgba(16,185,129,0.2)', label: '⚽⚽⚽ 3pts exacto' };
-    if (pts === 1) return { color: '#f97316', bg: 'rgba(249,115,22,0.1)', border: 'rgba(249,115,22,0.2)', label: '⚽ 1pt resultado' };
-    return { color: '#ef4444', bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.2)', label: '✗ 0pts' };
+    if (pts >= 3) return { cls: 'pts-3', label: '+3 Exacto' };
+    if (pts === 1) return { cls: 'pts-1', label: '+1 Resultado' };
+    return { cls: 'pts-0', label: '0 Fallo' };
   })() : null;
 
   const lcDesglose = (esLC && prediccion && fin) ? (() => {
@@ -75,140 +62,86 @@ export default function PartidoCard({ partido, prediccion, participacionPagada, 
         : partido.equipo_visitante === prediccion.clasificado_pred ? (partido.bandera_visitante ?? '')
         : BANDERAS_EQUIPOS[prediccion.clasificado_pred] ?? prediccion.clasificado_pred)
       : null;
-    const totalColor = pts >= 4 ? '#eab308' : pts === 3 ? '#10b981' : pts === 2 ? '#60a5fa' : pts === 1 ? '#f97316' : '#ef4444';
+    const totalColor = pts >= 3 ? 'var(--ex)' : pts >= 1 ? 'var(--text-primary)' : 'var(--fl)';
     return { pts, ptsBase, ptsClasif, ptsComo, emojiComo, banderaClasif, totalColor };
   })() : null;
+
+  const etiqueta = partido.grupo
+    ? (partido.grupo === 'LC' ? 'Leagues Cup' : `Grupo ${partido.grupo}`)
+    : `Liga MX J${partido.jornada}`;
+
+  const ptsTxt = (n: number) => (n >= 3 ? '+3' : n >= 1 ? `+${n}` : '0');
+  const ptsCls = (n: number) => (n >= 3 ? 'pts-3' : n >= 1 ? 'pts-1' : 'pts-0');
 
   return (
     <motion.div
       layout
       whileTap={{ scale: 0.99 }}
       transition={{ type: 'spring', damping: 30, stiffness: 400 }}
-      className="rounded-2xl overflow-hidden"
+      className="relative overflow-hidden rounded-[20px]"
       style={{
         background: 'var(--bg-card)',
-        border: `1px solid ${borderAccent[partido.estado]}`,
-        boxShadow: vivo ? '0 0 28px rgba(16,185,129,0.1)' : 'none',
+        boxShadow: vivo ? 'inset 0 0 0 2px var(--live)' : '0 1px 0 rgba(21,18,15,0.05)',
       }}
     >
-      {/* ── Header bar ── */}
-      <div
-        className="px-4 pt-3 pb-2 flex items-center justify-between"
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
-      >
-        <span className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>
-          {partido.grupo ? `Grupo ${partido.grupo} · ` : ''}J{partido.jornada}
-        </span>
-
-        <div
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-full"
-          style={{ background: badge.bg }}
+      {/* ── Encabezado: fecha · etiqueta · estado ── */}
+      <div className="flex items-center gap-2 px-4 pt-3.5 text-[13px] font-medium" style={{ color: 'var(--text-muted)' }}>
+        <span className="truncate">{fin || vivo ? fechaStr : `${fechaStr} · ${horaStr}`}</span>
+        <span
+          className="shrink-0 rounded-md px-1.5 py-px text-[12px] font-bold"
+          style={{ color: 'var(--text-secondary)', border: '1px solid var(--border-color)' }}
         >
-          {badge.dot && (
-            <motion.span
-              className="inline-block w-1.5 h-1.5 rounded-full"
-              style={{ background: badge.text }}
-              animate={{ opacity: [1, 0.25, 1] }}
-              transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
-            />
-          )}
-          <span
-            className="text-[10px] font-bold uppercase tracking-wider"
-            style={{ color: badge.text }}
-          >
-            {badge.label}
+          {etiqueta}
+        </span>
+        <span className="flex-1" />
+        {fin && (
+          <span className="shrink-0 rounded-md px-2 py-0.5 text-[12px] font-bold tracking-wide" style={{ background: 'var(--text-primary)', color: 'var(--bg-base)' }}>
+            FINAL
           </span>
-        </div>
+        )}
+        {vivo && (
+          <span className="flex shrink-0 items-center gap-1.5 text-[13px] font-bold" style={{ color: 'var(--ex)' }}>
+            <span className="en-vivo-dot inline-block h-2.5 w-2.5 rounded-full" style={{ background: 'var(--live)' }} />
+            EN VIVO
+          </span>
+        )}
+        {partido.estado === 'pendiente' && (
+          <span className="shrink-0 rounded-md px-2 py-0.5 text-[12px] font-bold" style={{ border: '1px solid var(--text-muted)' }}>
+            PENDIENTE
+          </span>
+        )}
       </div>
 
-      {/* ── Teams + Score ── */}
-      <div className="px-4 py-4 flex items-center justify-between gap-2">
-        {/* Local */}
-        <div className="flex-1 flex flex-col items-center gap-2 min-w-0">
+      {/* ── Equipos + marcador ── */}
+      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 px-4 pb-4 pt-3">
+        <div className="flex min-w-0 flex-col items-center gap-1.5">
           <Bandera emoji={partido.bandera_local || BANDERAS_EQUIPOS[partido.equipo_local] || ''} nombre={partido.equipo_local} size="lg" />
-          <span
-            className="text-xs font-bold text-center leading-tight w-full truncate"
-            style={{
-              fontFamily: 'var(--font-rajdhani)',
-              color: localWins ? '#f97316' : 'var(--text-primary)',
-            }}
-          >
+          <span className="w-full truncate text-center text-[15px] font-bold leading-tight" style={{ color: 'var(--text-primary)', opacity: visitWins ? 0.6 : 1 }}>
             {partido.equipo_local}
           </span>
         </div>
 
-        {/* Score / Time */}
-        <div className="flex flex-col items-center gap-1 shrink-0">
+        <div className="flex min-w-[92px] shrink-0 flex-col items-center gap-1">
           {fin || vivo ? (
-            <div className="flex items-center gap-1.5">
-              <span
-                style={{
-                  fontFamily: 'var(--font-bebas)',
-                  fontSize: '2.75rem',
-                  lineHeight: 1,
-                  color: localWins ? '#f97316' : 'var(--text-primary)',
-                }}
-              >
-                {gl}
-              </span>
-              <span
-                style={{
-                  fontFamily: 'var(--font-bebas)',
-                  fontSize: '1.75rem',
-                  lineHeight: 1,
-                  color: 'rgba(255,255,255,0.15)',
-                }}
-              >
-                –
-              </span>
-              <span
-                style={{
-                  fontFamily: 'var(--font-bebas)',
-                  fontSize: '2.75rem',
-                  lineHeight: 1,
-                  color: visitWins ? '#f97316' : 'var(--text-primary)',
-                }}
-              >
-                {gv}
-              </span>
-            </div>
+            <span className="font-senal text-[46px] font-extrabold leading-none" style={{ color: 'var(--text-primary)' }}>
+              {gl}–{gv}
+            </span>
           ) : (
-            <div className="flex flex-col items-center">
-              <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                {fechaStr}
-              </span>
-              <span
-                style={{
-                  fontFamily: 'var(--font-bebas)',
-                  fontSize: '1.6rem',
-                  color: 'var(--text-primary)',
-                  lineHeight: 1.1,
-                }}
-              >
-                {horaStr}
-              </span>
-            </div>
+            <>
+              <span className="font-senal text-[26px] font-bold leading-none" style={{ color: 'var(--text-muted)' }}>VS</span>
+              <span className="font-senal text-[18px] font-bold" style={{ color: 'var(--text-primary)' }}>{horaStr}</span>
+            </>
           )}
           {partido.marcador_penales && (
-            <span
-              className="text-[9px] font-semibold px-2 py-0.5 rounded-full"
-              style={{ background: 'rgba(234,88,12,0.1)', color: '#f97316' }}
-            >
+            <span className="rounded-full px-2 py-0.5 text-[12px] font-semibold" style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}>
               Pen: {partido.marcador_penales}
             </span>
           )}
         </div>
 
-        {/* Visitante */}
-        <div className="flex-1 flex flex-col items-center gap-2 min-w-0">
+        <div className="flex min-w-0 flex-col items-center gap-1.5">
           <Bandera emoji={partido.bandera_visitante || BANDERAS_EQUIPOS[partido.equipo_visitante] || ''} nombre={partido.equipo_visitante} size="lg" />
-          <span
-            className="text-xs font-bold text-center leading-tight w-full truncate"
-            style={{
-              fontFamily: 'var(--font-rajdhani)',
-              color: visitWins ? '#f97316' : 'var(--text-primary)',
-            }}
-          >
+          <span className="w-full truncate text-center text-[15px] font-bold leading-tight" style={{ color: 'var(--text-primary)', opacity: localWins ? 0.6 : 1 }}>
             {partido.equipo_visitante}
           </span>
         </div>
@@ -216,70 +149,62 @@ export default function PartidoCard({ partido, prediccion, participacionPagada, 
 
       {/* ── Clasificado (J5+ o Leagues Cup) ── */}
       {(partido.jornada >= 5 || esLeaguesCup) && partido.estado === 'finalizado' && partido.clasificado && (
-        <div
-          className="px-4 py-2 flex items-center gap-2 flex-wrap"
-          style={{ borderTop: '1px solid rgba(255,255,255,0.04)', background: 'rgba(234,88,12,0.03)' }}
-        >
+        <div className="flex flex-wrap items-center gap-2 px-4 pb-3 text-[13px]" style={{ color: 'var(--text-secondary)' }}>
           <Bandera
             emoji={partido.equipo_local === partido.clasificado ? (partido.bandera_local ?? '') : (partido.bandera_visitante ?? '')}
             nombre={partido.clasificado}
             size="sm"
           />
-          <span className="text-xs" style={{ color: '#94a3b8' }}>
-            <strong style={{ color: '#f97316' }}>{partido.clasificado}</strong> clasifica
-          </span>
+          <span><strong style={{ color: 'var(--text-primary)' }}>{partido.clasificado}</strong> clasifica</span>
           {partido.como_termino && (
-            <span className="text-xs ml-auto" style={{ color: '#64748b' }}>
-              {partido.como_termino === 'reglamentario' ? '⏱️ 90 min'
-                : partido.como_termino === 'tiempo_extra' ? '⏩ Prórroga'
-                : '🥅 Penales'}
+            <span className="ml-auto" style={{ color: 'var(--text-muted)' }}>
+              {partido.como_termino === 'reglamentario' ? '90 min'
+                : partido.como_termino === 'tiempo_extra' ? 'Prórroga'
+                : 'Penales'}
             </span>
           )}
         </div>
       )}
 
+      {/* ── Talón del boleto: perforado con muescas ── */}
+      {(prediccion || puedePredicir) && (
+        <div className="relative mx-3.5 perforado" aria-hidden="true">
+          <span className="absolute -left-[24px] -top-[11px] h-5 w-5 rounded-full" style={{ background: 'var(--bg-base)' }} />
+          <span className="absolute -right-[24px] -top-[11px] h-5 w-5 rounded-full" style={{ background: 'var(--bg-base)' }} />
+        </div>
+      )}
+
       {/* ── Mi predicción ── */}
       {prediccion && (
-        <div
-          className="px-4 py-3 space-y-2"
-          style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}
-        >
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="text-[10px] uppercase tracking-wider font-semibold shrink-0" style={{ color: 'var(--text-secondary)' }}>
-                Mi pred:
+        <div className="space-y-2 px-4 py-3">
+          <div className="flex min-h-[36px] items-center justify-between gap-2">
+            <div className="flex min-w-0 items-baseline gap-2.5">
+              <span className="shrink-0 text-[13px] font-semibold" style={{ color: 'var(--text-muted)' }}>
+                Mi predicción
               </span>
-              <span
-                style={{
-                  fontFamily: 'var(--font-bebas)',
-                  fontSize: '1.2rem',
-                  color: 'var(--accent-gold)',
-                  lineHeight: 1,
-                }}
-              >
-                {prediccion.goles_local_pred} – {prediccion.goles_visitante_pred}
+              <span className="font-senal text-[26px] font-extrabold leading-none" style={{ color: 'var(--text-primary)' }}>
+                {prediccion.goles_local_pred}–{prediccion.goles_visitante_pred}
               </span>
               {mostrarTerminacion && prediccion.como_termina_pred && (
-                <span className="text-xs" style={{ color: '#64748b' }}>
-                  {prediccion.como_termina_pred === 'reglamentario' ? '⏱️'
-                    : prediccion.como_termina_pred === 'tiempo_extra' ? '⏩' : '🥅'}
+                <span className="text-[13px]" style={{ color: 'var(--text-muted)' }}>
+                  {prediccion.como_termina_pred === 'reglamentario' ? '90 min'
+                    : prediccion.como_termina_pred === 'tiempo_extra' ? 'Prórroga' : 'Penales'}
                 </span>
               )}
               {mostrarTerminacion && prediccion.clasificado_pred && (
-                <div className="flex items-center gap-1">
-                  <Bandera emoji={BANDERAS_EQUIPOS[prediccion.clasificado_pred] ?? ''} nombre={prediccion.clasificado_pred} size="sm" />
-                </div>
+                <Bandera emoji={BANDERAS_EQUIPOS[prediccion.clasificado_pred] ?? ''} nombre={prediccion.clasificado_pred} size="sm" />
               )}
             </div>
+            {(vivo || (fin && partido.estado !== 'pendiente')) && !puedePredicir && (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" role="img" aria-label="Predicción bloqueada" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
+                <rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" />
+              </svg>
+            )}
+            {vivo && !esLC && (
+              <span className="pts-p shrink-0 rounded-lg px-2.5 py-1.5 text-[14px] font-bold">En juego</span>
+            )}
             {fin && !esLC && lmxBadge && (
-              <span
-                className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0"
-                style={{
-                  background: lmxBadge.bg,
-                  color: lmxBadge.color,
-                  border: `1px solid ${lmxBadge.border}`,
-                }}
-              >
+              <span className={`${lmxBadge.cls} shrink-0 rounded-lg px-2.5 py-1.5 text-[14px] font-bold`}>
                 {lmxBadge.label}
               </span>
             )}
@@ -287,98 +212,59 @@ export default function PartidoCard({ partido, prediccion, participacionPagada, 
 
           {/* Desglose LC */}
           {fin && esLC && lcDesglose && (
-            <div
-              className="rounded-xl px-3 py-2 space-y-1"
-              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', fontSize: 11 }}
-            >
+            <div className="space-y-1.5 rounded-xl px-3 py-2.5 text-[13px]" style={{ background: 'var(--bg-base)' }}>
               <div className="flex items-center justify-between">
-                <span style={{ color: '#94a3b8' }}>
-                  {lcDesglose.ptsBase >= 3 ? '⚽⚽⚽ Exacto' : lcDesglose.ptsBase >= 1 ? '⚽ Resultado' : '✗ Fallo'}
+                <span style={{ color: 'var(--text-secondary)' }}>
+                  {lcDesglose.ptsBase >= 3 ? 'Exacto' : lcDesglose.ptsBase >= 1 ? 'Resultado' : 'Fallo'}
                 </span>
-                <span style={{ color: lcDesglose.ptsBase >= 3 ? '#10b981' : lcDesglose.ptsBase >= 1 ? '#f97316' : '#ef4444', fontWeight: 700 }}>
-                  {lcDesglose.ptsBase >= 3 ? '+3pts' : lcDesglose.ptsBase >= 1 ? '+1pt' : '0pts'}
-                </span>
+                <span className={`${ptsCls(lcDesglose.ptsBase)} rounded-md px-2 py-0.5 font-bold`}>{ptsTxt(lcDesglose.ptsBase)}</span>
               </div>
               {partido.clasificado && (
                 <div className="flex items-center justify-between">
-                  <span style={{ color: '#94a3b8' }}>
-                    {lcDesglose.banderaClasif ?? '?'} Clasificado
-                  </span>
-                  <span style={{ color: lcDesglose.ptsClasif ? '#10b981' : '#ef4444', fontWeight: 700 }}>
-                    {lcDesglose.ptsClasif ? '+1pt' : '+0'}
-                  </span>
+                  <span style={{ color: 'var(--text-secondary)' }}>{lcDesglose.banderaClasif ?? '?'} Clasificado</span>
+                  <span className={`${lcDesglose.ptsClasif ? 'pts-3' : 'pts-0'} rounded-md px-2 py-0.5 font-bold`}>{lcDesglose.ptsClasif ? '+1' : '0'}</span>
                 </div>
               )}
               {partido.como_termino && (
                 <div className="flex items-center justify-between">
-                  <span style={{ color: '#94a3b8' }}>
-                    {lcDesglose.emojiComo} Terminación
-                  </span>
-                  <span style={{ color: lcDesglose.ptsComo ? '#10b981' : '#ef4444', fontWeight: 700 }}>
-                    {lcDesglose.ptsComo ? '+1pt' : '+0'}
-                  </span>
+                  <span style={{ color: 'var(--text-secondary)' }}>Terminación</span>
+                  <span className={`${lcDesglose.ptsComo ? 'pts-3' : 'pts-0'} rounded-md px-2 py-0.5 font-bold`}>{lcDesglose.ptsComo ? '+1' : '0'}</span>
                 </div>
               )}
-              <div
-                className="flex items-center justify-between"
-                style={{ borderTop: '1px solid rgba(148,163,184,0.15)', paddingTop: 4, marginTop: 2 }}
-              >
-                <span style={{ color: '#64748b', fontWeight: 600 }}>Total</span>
-                <span style={{ color: lcDesglose.totalColor, fontWeight: 700, fontSize: 13 }}>
-                  {lcDesglose.pts}pts
-                </span>
+              <div className="flex items-center justify-between pt-1.5" style={{ borderTop: '1px solid var(--border-color)' }}>
+                <span className="font-semibold" style={{ color: 'var(--text-muted)' }}>Total</span>
+                <span className="font-senal text-[20px] font-extrabold" style={{ color: lcDesglose.totalColor }}>{lcDesglose.pts} pts</span>
               </div>
             </div>
           )}
 
-          <div className="flex gap-2 flex-wrap">
-            {participacionPagada === false && (
-              <span
-                className="text-[10px] px-2 py-0.5 rounded-full font-semibold"
-                style={{
-                  background: 'rgba(234,88,12,0.08)',
-                  color: '#f97316',
-                  border: '1px solid rgba(234,88,12,0.2)',
-                }}
-              >
-                ⏳ Pago pendiente
-              </span>
-            )}
-            {participacionPagada === true && (
-              <span
-                className="text-[10px] px-2 py-0.5 rounded-full font-semibold"
-                style={{
-                  background: 'rgba(16,185,129,0.08)',
-                  color: '#10b981',
-                  border: '1px solid rgba(16,185,129,0.2)',
-                }}
-              >
-                ✓ Confirmado
-              </span>
-            )}
-          </div>
+          {participacionPagada === false && (
+            <span className="inline-block rounded-md px-2 py-0.5 text-[13px] font-semibold" style={{ background: 'var(--rs)', color: 'var(--rs-ink)' }}>
+              Pago pendiente
+            </span>
+          )}
+          {participacionPagada === true && (
+            <span className="inline-flex items-center gap-1 text-[13px] font-semibold" style={{ color: 'var(--ex)' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10" /></svg>
+              Pago confirmado
+            </span>
+          )}
         </div>
       )}
 
-      {/* ── CTA button ── */}
+      {/* ── CTA ── */}
       {puedePredicir && (
-        <div className="px-4 pb-4 pt-1">
+        <div className={prediccion ? 'px-4 pb-4' : 'px-4 py-3'}>
           <motion.button
+            type="button"
             whileTap={{ scale: 0.97 }}
             onClick={() => onPredicir(partido)}
-            className="w-full py-3 rounded-xl font-bold text-sm min-h-[48px] cursor-pointer"
-            style={{
-              background: prediccion
-                ? 'rgba(234,88,12,0.1)'
-                : 'linear-gradient(135deg, #ea580c 0%, #f97316 100%)',
-              color: prediccion ? '#f97316' : '#fff',
-              border: prediccion ? '1px solid rgba(234,88,12,0.25)' : 'none',
-              fontFamily: 'var(--font-rajdhani)',
-              letterSpacing: '0.04em',
-              fontSize: '0.9rem',
-            }}
+            className="min-h-[48px] w-full cursor-pointer rounded-xl text-[16px] font-bold"
+            style={prediccion
+              ? { background: 'transparent', color: 'var(--text-primary)', border: '1.5px solid var(--border-color)' }
+              : { background: 'var(--brand)', color: 'var(--brand-on)' }}
           >
-            {prediccion ? 'Editar predicción' : 'Hacer predicción'}
+            {prediccion ? 'Editar predicción' : 'Predecir marcador'}
           </motion.button>
         </div>
       )}
