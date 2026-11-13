@@ -36,7 +36,7 @@ export default function MundialPage() {
     <div className="min-h-screen bg-base pb-24">
 
       <div className="px-4 pt-6 pb-2">
-        <h1 className="font-bebas text-3xl text-orange-500">
+        <h1 className="font-display text-3xl text-orange-500">
           🏆 MUNDIAL 2026
         </h1>
         <p className="text-slate-400 text-sm">
@@ -53,9 +53,9 @@ export default function MundialPage() {
             onClick={() => setSeason(y)}
             className="px-3 py-1 rounded-lg text-sm font-bold transition-all active:scale-95"
             style={{
-              background: season === y ? '#ea580c' : 'rgba(255,255,255,0.06)',
-              color: season === y ? '#fff' : '#64748b',
-              border: `1px solid ${season === y ? '#ea580c' : 'rgba(255,255,255,0.1)'}`,
+              background: season === y ? 'var(--br)' : 'color-mix(in srgb, var(--ink) 6%, transparent)',
+              color: season === y ? 'var(--brI)' : 'var(--mut)',
+              border: `1px solid ${season === y ? 'var(--br)' : 'color-mix(in srgb, var(--ink) 10%, transparent)'}`,
             }}
           >
             {y}

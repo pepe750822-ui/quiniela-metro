@@ -49,8 +49,8 @@ function Contador({
           style={{
             width: 44,
             height: 44,
-            background: 'rgba(255,255,255,0.05)',
-            border: '1px solid rgba(255,255,255,0.1)',
+            background: 'color-mix(in srgb, var(--ink) 5%, transparent)',
+            border: '1px solid color-mix(in srgb, var(--ink) 10%, transparent)',
             color: 'var(--text-primary)',
           }}
         >
@@ -65,7 +65,7 @@ function Contador({
             exit={{ opacity: 0, scale: 0.6, y: 10 }}
             transition={{ type: 'spring', damping: 20, stiffness: 400 }}
             style={{
-              fontFamily: 'var(--font-bebas)',
+              fontFamily: 'var(--font-display)',
               fontSize: '4rem',
               color: 'var(--text-primary)',
               lineHeight: 1,
@@ -86,7 +86,7 @@ function Contador({
           style={{
             width: 44,
             height: 44,
-            background: 'linear-gradient(135deg, #ea580c, #f97316)',
+            background: 'var(--br)',
             color: '#fff',
           }}
         >
@@ -288,8 +288,8 @@ export default function PrediccionForm({
         className="w-full max-w-sm flex flex-col rounded-t-3xl sm:rounded-3xl"
         style={{
           background: 'var(--bg-surface)',
-          border: '1px solid rgba(234,88,12,0.2)',
-          boxShadow: '0 -8px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(234,88,12,0.1)',
+          border: '1px solid color-mix(in srgb, var(--br) 20%, transparent)',
+          boxShadow: '0 -8px 60px rgba(0,0,0,0.6), 0 0 0 1px color-mix(in srgb, var(--br) 10%, transparent)',
           maxHeight: '85dvh',
         }}
         onClick={(e) => e.stopPropagation()}
@@ -303,7 +303,7 @@ export default function PrediccionForm({
             {/* Handle */}
             <div
               className="w-10 h-1 rounded-full mx-auto"
-              style={{ background: 'rgba(255,255,255,0.12)' }}
+              style={{ background: 'color-mix(in srgb, var(--ink) 12%, transparent)' }}
             />
 
             {/* Title */}
@@ -316,16 +316,16 @@ export default function PrediccionForm({
               </p>
               <p
                 className="text-sm font-semibold flex items-center justify-center gap-2 flex-wrap"
-                style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--text-primary)' }}
+                style={{ fontFamily: 'var(--font-sans)', color: 'var(--text-primary)' }}
               >
                 <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
                 {partido.equipo_local}
-                <span style={{ color: 'rgba(255,255,255,0.2)' }}>vs</span>
+                <span style={{ color: 'color-mix(in srgb, var(--ink) 20%, transparent)' }}>vs</span>
                 {partido.equipo_visitante}
                 <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
               </p>
               {necesitaTerminacion && (
-                <p className="text-[11px]" style={{ color: '#64748b' }}>
+                <p className="text-[11px]" style={{ color: 'var(--mut)' }}>
                   ⏱️ Marcador a 90 minutos (tiempo reglamentario)
                 </p>
               )}
@@ -334,14 +334,14 @@ export default function PrediccionForm({
             {/* Score counters */}
             <div
               className="flex items-center justify-around py-3 rounded-2xl"
-              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}
+              style={{ background: 'color-mix(in srgb, var(--ink) 3%, transparent)', border: '1px solid color-mix(in srgb, var(--ink) 5%, transparent)' }}
             >
               <Contador value={local}  onChange={setLocal}  label={partido.equipo_local}     />
               <span
                 style={{
-                  fontFamily: 'var(--font-bebas)',
+                  fontFamily: 'var(--font-display)',
                   fontSize: '2.5rem',
-                  color: 'rgba(255,255,255,0.1)',
+                  color: 'color-mix(in srgb, var(--ink) 10%, transparent)',
                   lineHeight: 1,
                   marginTop: '1.5rem',
                 }}
@@ -352,7 +352,7 @@ export default function PrediccionForm({
             </div>
 
             {necesitaTerminacion && (
-              <p className="text-[10px] text-center leading-relaxed" style={{ color: '#475569' }}>
+              <p className="text-[10px] text-center leading-relaxed" style={{ color: 'var(--mut)' }}>
                 Empate a 90 min y predijiste empate = 1pt, aunque continúe a penales.
               </p>
             )}
@@ -369,7 +369,7 @@ export default function PrediccionForm({
                     ¿Quién gana?
                   </p>
                   {!esLeaguesCup && (
-                    <p className="text-[10px] text-center" style={{ color: '#475569' }}>
+                    <p className="text-[10px] text-center" style={{ color: 'var(--mut)' }}>
                       Independiente del marcador a 90 min
                     </p>
                   )}
@@ -383,11 +383,11 @@ export default function PrediccionForm({
                         className="flex-1 py-2.5 rounded-xl text-xs font-bold cursor-pointer flex flex-col items-center gap-1"
                         style={{
                           background: clasificadoPred === equipo
-                            ? 'linear-gradient(135deg, #ea580c, #f97316)'
-                            : 'rgba(255,255,255,0.04)',
-                          color: clasificadoPred === equipo ? '#fff' : 'var(--text-secondary)',
-                          border: `1px solid ${clasificadoPred === equipo ? 'transparent' : 'rgba(255,255,255,0.07)'}`,
-                          fontFamily: 'var(--font-rajdhani)',
+                            ? 'var(--br)'
+                            : 'color-mix(in srgb, var(--ink) 4%, transparent)',
+                          color: clasificadoPred === equipo ? 'var(--brI)' : 'var(--text-secondary)',
+                          border: `1px solid ${clasificadoPred === equipo ? 'transparent' : 'color-mix(in srgb, var(--ink) 7%, transparent)'}`,
+                          fontFamily: 'var(--font-sans)',
                           transition: 'all 0.15s ease',
                         }}
                       >
@@ -416,11 +416,11 @@ export default function PrediccionForm({
                         style={{
                           fontSize: '0.62rem',
                           background: comoTerminaPred === key
-                            ? 'linear-gradient(135deg, #ea580c, #f97316)'
-                            : 'rgba(255,255,255,0.04)',
-                          color: comoTerminaPred === key ? '#fff' : 'var(--text-secondary)',
-                          border: `1px solid ${comoTerminaPred === key ? 'transparent' : 'rgba(255,255,255,0.07)'}`,
-                          fontFamily: 'var(--font-rajdhani)',
+                            ? 'var(--br)'
+                            : 'color-mix(in srgb, var(--ink) 4%, transparent)',
+                          color: comoTerminaPred === key ? 'var(--brI)' : 'var(--text-secondary)',
+                          border: `1px solid ${comoTerminaPred === key ? 'transparent' : 'color-mix(in srgb, var(--ink) 7%, transparent)'}`,
+                          fontFamily: 'var(--font-sans)',
                           transition: 'all 0.15s ease',
                         }}
                       >
@@ -438,7 +438,7 @@ export default function PrediccionForm({
             className="px-5 pt-3 pb-24 flex gap-3 shrink-0"
             style={{
               background: 'var(--bg-surface)',
-              borderTop: '1px solid rgba(255,255,255,0.06)',
+              borderTop: '1px solid color-mix(in srgb, var(--ink) 6%, transparent)',
             }}
           >
             <motion.button
@@ -447,10 +447,10 @@ export default function PrediccionForm({
               onClick={onCancelar}
               className="flex-1 py-3.5 rounded-2xl font-semibold text-sm min-h-[52px] cursor-pointer"
               style={{
-                border: '1px solid rgba(255,255,255,0.08)',
+                border: '1px solid color-mix(in srgb, var(--ink) 8%, transparent)',
                 color: 'var(--text-secondary)',
                 background: 'transparent',
-                fontFamily: 'var(--font-rajdhani)',
+                fontFamily: 'var(--font-sans)',
               }}
             >
               Cancelar
@@ -463,13 +463,13 @@ export default function PrediccionForm({
               className="flex-1 py-3.5 rounded-2xl font-bold text-sm min-h-[52px] cursor-pointer"
               style={{
                 background: loading
-                  ? 'rgba(234,88,12,0.4)'
-                  : 'linear-gradient(135deg, #ea580c 0%, #f97316 100%)',
+                  ? 'color-mix(in srgb, var(--br) 40%, transparent)'
+                  : 'var(--br)',
                 color: '#fff',
-                fontFamily: 'var(--font-rajdhani)',
+                fontFamily: 'var(--font-sans)',
                 letterSpacing: '0.03em',
                 opacity: loading ? 0.7 : 1,
-                boxShadow: loading ? 'none' : '0 4px 20px rgba(234,88,12,0.3)',
+                boxShadow: loading ? 'none' : 'none',
               }}
             >
               {loading

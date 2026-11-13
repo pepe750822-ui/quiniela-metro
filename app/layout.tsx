@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Bebas_Neue, Rajdhani } from 'next/font/google';
+import { Barlow_Condensed, Inter } from 'next/font/google';
 import './globals.css';
 import Navbar from '@/components/Navbar';
 import InstallBanner from '@/components/InstallBanner';
@@ -7,16 +7,15 @@ import Providers from '@/components/Providers';
 import UpdateLastSeen from '@/components/UpdateLastSeen';
 import { Toaster } from 'sonner';
 
-const bebasNeue = Bebas_Neue({
-  weight: '400',
+const barlow = Barlow_Condensed({
+  weight: ['600', '700', '800'],
   subsets: ['latin'],
-  variable: '--font-bebas',
+  variable: '--font-barlow',
 });
 
-const rajdhani = Rajdhani({
-  weight: ['400', '600', '700'],
+const inter = Inter({
   subsets: ['latin'],
-  variable: '--font-rajdhani',
+  variable: '--font-inter',
 });
 
 export const metadata: Metadata = {
@@ -27,9 +26,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" suppressHydrationWarning>
+    <html lang="es" suppressHydrationWarning className={`${barlow.variable} ${inter.variable}`}>
       <head>
-        <meta name="theme-color" content="#ea580c" />
+        <meta name="theme-color" content="#C8006A" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -38,8 +37,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
       <body
-        className={`${bebasNeue.variable} ${rajdhani.variable} bg-base min-h-screen pb-[calc(4rem+env(safe-area-inset-bottom))]`}
-        style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-rajdhani), sans-serif' }}
+        className="bg-base min-h-screen pb-[calc(72px+env(safe-area-inset-bottom))]"
+        style={{ color: 'var(--ink)', fontFamily: 'var(--font-sans)' }}
       >
         <Providers>
           <InstallBanner />

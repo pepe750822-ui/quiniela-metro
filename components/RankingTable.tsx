@@ -18,18 +18,17 @@ const iniciales = (j?: Jugador | null) => {
   return texto.slice(0, 2).toUpperCase();
 };
 
-function Iniciales({ jugador }: { jugador?: Jugador | null }) {
+function Iniciales({ jugador, grande, lider }: { jugador?: Jugador | null; grande?: boolean; lider?: boolean }) {
+  const t = grande ? 56 : 40;
   return (
     <div
-      className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-black shrink-0"
-      style={{ background: 'linear-gradient(135deg, #ea580c, #f97316)' }}
+      className="rounded-full flex items-center justify-center font-display shrink-0"
+      style={{ width: t, height: t, fontSize: grande ? 22 : 16, background: lider ? 'var(--brS)' : 'var(--sf)', color: lider ? 'var(--br)' : 'var(--ink)', border: `${grande ? 4 : 3}px solid ${lider ? 'var(--br)' : 'var(--ink)'}` }}
     >
       {iniciales(jugador)}
     </div>
   );
 }
-
-const podiumMedal = ['🥇', '🥈', '🥉'];
 
 export default function RankingTable({ ranking, userId, pendienteIds, jornada }: Props) {
   const esJornadaAlta = typeof jornada === 'number' && jornada >= 5;
@@ -50,47 +49,55 @@ export default function RankingTable({ ranking, userId, pendienteIds, jornada }:
 
       {/* Podio top 3 */}
       {top3.length >= 2 && (
-        <div className="flex items-end justify-center gap-3 pt-4">
+        <div className="flex items-end justify-center gap-2 pt-2">
           {[top3[1], top3[0], top3[2]].filter(Boolean).map((entry, visualIdx) => {
             const realIdx = entry === top3[0] ? 0 : entry === top3[1] ? 1 : 2;
-            const glows   = ['rgba(192,192,192,0.15)', 'rgba(234,88,12,0.15)', 'rgba(180,120,60,0.1)'];
+            const lider = realIdx === 0;
+            const alto  = [56, 88, 40][realIdx];
             return (
               <div key={entry.id}
-                className="flex-1 flex flex-col items-center gap-2 rounded-2xl py-3 px-2"
-                style={{ background: glows[visualIdx], animation: `fadeInUp 0.5s ease-out ${visualIdx * 100}ms both` }}
+                className="flex-1 flex flex-col items-center min-w-0"
+                style={{ animation: `fadeInUp 0.4s ease-out ${visualIdx * 80}ms both` }}
               >
-                <span className="text-2xl">{podiumMedal[realIdx]}</span>
-                <Iniciales jugador={entry.jugador} />
-                <p className="text-xs font-semibold text-center leading-tight" style={{ color: 'var(--text-primary)' }}>
+                {lider && (
+                  <svg width="24" height="18" viewBox="0 0 24 18" aria-hidden="true" style={{ color: 'var(--br)', marginBottom: 2 }}>
+                    <path d="M2 16 4 4l5 5 3-7 3 7 5-5 2 12Z" fill="currentColor" />
+                  </svg>
+                )}
+                <Iniciales jugador={entry.jugador} grande={lider} lider={lider} />
+                <p className="text-[14px] font-bold text-center leading-tight mt-1.5 truncate max-w-full" style={{ color: 'var(--ink)' }}>
                   {mostrarNombre(entry.jugador)}
                 </p>
-                {!esJornadaAlta && entry.jugador?.badge_ultimo && (
-                  <span className="text-[9px] px-1.5 py-0.5 rounded-full"
-                    style={{ background: 'rgba(202,138,4,0.15)', border: '1px solid rgba(202,138,4,0.3)', color: '#facc15' }}>
-                    🤡 Último J{entry.jugador.badge_ultimo.replace('J', '')}
-                  </span>
-                )}
-                {entry.jugador?.badge_campeon && (
-                  <span className="text-[9px] px-1.5 py-0.5 rounded-full"
-                    style={{ background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.4)', color: '#fbbf24' }}>
-                    🏆 {entry.jugador.badge_campeon}
-                  </span>
-                )}
-                {!esJornadaAlta && entry.jugador?.campeon_pick && (
-                  <span className="text-[9px] px-1.5 py-0.5 rounded-full"
-                    style={{ background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', color: '#4ade80' }}>
-                    ⚽ {entry.jugador.campeon_pick}
-                  </span>
-                )}
                 {entry.jugador?.quiniela_nombre && (
-                  <span className="text-[9px] text-center block" style={{ color: '#ea580c' }}>
-                    🎫 {entry.jugador.quiniela_nombre}
+                  <span className="text-[12px] text-center block truncate max-w-full" style={{ color: 'var(--br)' }}>
+                    {entry.jugador.quiniela_nombre}
                   </span>
                 )}
-                <p style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.75rem', color: 'var(--accent-gold)', lineHeight: 1 }}>
-                  {entry.puntos_total}
+                <p className="font-display mt-1" style={{ fontSize: lider ? 34 : 26, color: 'var(--ink)', lineHeight: 1 }}>
+                  {entry.puntos_total}<span className="text-[13px] ml-1 normal-case font-sans font-semibold" style={{ color: 'var(--mut)' }}>pts</span>
                 </p>
-                {!esJornadaAlta && <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>{entry.exactos} exactos</p>}
+                {!esJornadaAlta && <p className="text-[12px]" style={{ color: 'var(--mut)' }}>{entry.exactos} exacto{entry.exactos !== 1 ? 's' : ''}</p>}
+                <div className="flex flex-wrap justify-center gap-1 mt-1">
+                  {!esJornadaAlta && entry.jugador?.badge_ultimo && (
+                    <span className="text-[11px] px-1.5 py-0.5 rounded-[6px]" style={{ background: 'var(--pnS)', color: 'var(--ink2)' }}>
+                      🤡 Último J{entry.jugador.badge_ultimo.replace('J', '')}
+                    </span>
+                  )}
+                  {entry.jugador?.badge_campeon && (
+                    <span className="text-[11px] px-1.5 py-0.5 rounded-[6px]" style={{ background: 'var(--rs)', color: '#2B1D00' }}>
+                      🏆 {entry.jugador.badge_campeon}
+                    </span>
+                  )}
+                  {!esJornadaAlta && entry.jugador?.campeon_pick && (
+                    <span className="text-[11px] px-1.5 py-0.5 rounded-[6px]" style={{ background: 'var(--pnS)', color: 'var(--ink2)' }}>
+                      ⚽ {entry.jugador.campeon_pick}
+                    </span>
+                  )}
+                </div>
+                <div className="w-full mt-2 flex items-start justify-center rounded-t-[12px] font-display pt-1.5"
+                  style={{ height: alto, background: lider ? 'var(--br)' : 'var(--sf2)', color: lider ? 'var(--brI)' : 'var(--ink2)', fontSize: lider ? 36 : 26, lineHeight: 1 }}>
+                  {realIdx + 1}
+                </div>
               </div>
             );
           })}
@@ -105,58 +112,57 @@ export default function RankingTable({ ranking, userId, pendienteIds, jornada }:
             const pos  = i + 4;
             return (
               <div key={entry.id}
-                className="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all"
+                className="flex items-center gap-3 px-4 py-3 rounded-[16px] transition-all"
                 style={{
-                  background: esYo ? 'rgba(234,88,12,0.08)' : 'var(--bg-card)',
-                  border: `1px solid ${esYo ? 'rgba(234,88,12,0.4)' : 'var(--border)'}`,
-                  outline: esYo ? '1px solid rgba(234,88,12,0.3)' : 'none',
-                  animation: `fadeInUp 0.4s ease-out ${i * 50}ms both`,
+                  background: 'var(--sf)',
+                  border: `${esYo ? 2 : 1}px solid ${esYo ? 'var(--br)' : 'var(--ln)'}`,
+                                    animation: `fadeInUp 0.4s ease-out ${i * 50}ms both`,
                 }}
               >
-                <span className="w-6 text-center text-sm font-bold" style={{ color: 'var(--text-secondary)' }}>{pos}</span>
+                <span className="w-6 text-center font-display text-[20px]" style={{ color: 'var(--ink2)' }}>{pos}</span>
                 <Iniciales jugador={entry.jugador} />
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-sm truncate flex items-center gap-1.5 flex-wrap"
-                    style={{ color: esYo ? 'var(--accent-gold)' : 'var(--text-primary)' }}>
+                    style={{ color: 'var(--ink)' }}>
                     {mostrarNombre(entry.jugador)}
-                    {esYo && <span className="text-[9px] bg-orange-600 text-black px-1.5 py-0.5 rounded-full font-black">TÚ</span>}
+                    {esYo && <span className="text-[11px] px-1.5 py-0.5 rounded-[6px] font-bold" style={{ background: 'var(--br)', color: 'var(--brI)' }}>TÚ</span>}
                     {pendienteIds?.includes(entry.user_id) && <span className="text-[10px] text-orange-500">⏳</span>}
                     {!esJornadaAlta && entry.jugador?.badge_ultimo && (
                       <span className="text-[10px] px-1.5 py-0.5 rounded-full"
-                        style={{ background: 'rgba(202,138,4,0.15)', border: '1px solid rgba(202,138,4,0.3)', color: '#facc15' }}>
+                        style={{ background: 'color-mix(in srgb, var(--rs) 15%, transparent)', border: '1px solid color-mix(in srgb, var(--rs) 30%, transparent)', color: 'var(--rs)' }}>
                         🤡 Último J{entry.jugador.badge_ultimo.replace('J', '')}
                       </span>
                     )}
                     {entry.jugador?.badge_campeon && (
                       <span className="text-[10px] px-1.5 py-0.5 rounded-full"
-                        style={{ background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.4)', color: '#fbbf24' }}>
+                        style={{ background: 'color-mix(in srgb, var(--rs) 15%, transparent)', border: '1px solid color-mix(in srgb, var(--rs) 40%, transparent)', color: 'var(--rs)' }}>
                         🏆 {entry.jugador.badge_campeon}
                       </span>
                     )}
                     {!esJornadaAlta && entry.jugador?.campeon_pick && (
                       <span className="text-[10px] px-1.5 py-0.5 rounded-full"
-                        style={{ background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', color: '#4ade80' }}>
+                        style={{ background: 'color-mix(in srgb, var(--ex) 15%, transparent)', border: '1px solid color-mix(in srgb, var(--ex) 30%, transparent)', color: 'var(--ex)' }}>
                         ⚽ {entry.jugador.campeon_pick}
                       </span>
                     )}
                   </p>
                   {entry.jugador?.quiniela_nombre && (
-                    <span className="text-xs block" style={{ color: '#ea580c' }}>
+                    <span className="text-xs block" style={{ color: 'var(--br)' }}>
                       🎫 {entry.jugador.quiniela_nombre}
                     </span>
                   )}
                   <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                    {!esJornadaAlta && `${entry.exactos} exactos ✅`}
-                    {pendienteIds?.includes(entry.user_id) && <span className="ml-1 text-orange-500">· Pago pendiente</span>}
+                    {!esJornadaAlta && `${entry.exactos} exactos`}
+                    {pendienteIds?.includes(entry.user_id) && <span className="ml-1 font-semibold" style={{ color: 'var(--fl)' }}>· Pago pendiente</span>}
                   </p>
                   {entry.jugador?.email && (
-                    <p className="text-[10px] truncate" style={{ color: '#334155' }}>
+                    <p className="text-[10px] truncate" style={{ color: 'var(--mut)' }}>
                       {emailCorto(entry.jugador.email)}
                     </p>
                   )}
                 </div>
                 <div className="text-right">
-                  <p style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.5rem', color: 'var(--text-primary)', lineHeight: 1 }}>
+                  <p style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', color: 'var(--ink)', lineHeight: 1 }}>
                     {entry.puntos_total}
                   </p>
                   <p className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>pts</p>
@@ -174,57 +180,57 @@ export default function RankingTable({ ranking, userId, pendienteIds, jornada }:
             const esYo = entry.user_id === userId;
             return (
               <div key={entry.id}
-                className="flex items-center gap-3 px-4 py-3 rounded-2xl"
+                className="flex items-center gap-3 px-4 py-3 rounded-[16px]"
                 style={{
-                  background: esYo ? 'rgba(234,88,12,0.08)' : 'var(--bg-card)',
-                  border: `1px solid ${esYo ? 'rgba(234,88,12,0.4)' : 'var(--border)'}`,
+                  background: 'var(--sf)',
+                  border: `${esYo ? 2 : 1}px solid ${esYo ? 'var(--br)' : 'var(--ln)'}`,
                   animation: `fadeInUp 0.4s ease-out ${i * 50}ms both`,
                 }}
               >
-                <span className="text-xl w-8 text-center">{podiumMedal[i] ?? `${i + 1}.`}</span>
+                <span className="w-6 text-center font-display text-[20px]" style={{ color: i === 0 ? 'var(--br)' : 'var(--ink2)' }}>{i + 1}</span>
                 <Iniciales jugador={entry.jugador} />
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-sm truncate flex items-center gap-1.5 flex-wrap"
-                    style={{ color: esYo ? 'var(--accent-gold)' : 'var(--text-primary)' }}>
+                    style={{ color: 'var(--ink)' }}>
                     {mostrarNombre(entry.jugador)}
-                    {esYo && <span className="text-[9px] bg-orange-600 text-black px-1.5 py-0.5 rounded-full font-black">TÚ</span>}
+                    {esYo && <span className="text-[11px] px-1.5 py-0.5 rounded-[6px] font-bold" style={{ background: 'var(--br)', color: 'var(--brI)' }}>TÚ</span>}
                     {pendienteIds?.includes(entry.user_id) && <span className="text-[10px] text-orange-500">⏳</span>}
                     {!esJornadaAlta && entry.jugador?.badge_ultimo && (
                       <span className="text-[10px] px-1.5 py-0.5 rounded-full"
-                        style={{ background: 'rgba(202,138,4,0.15)', border: '1px solid rgba(202,138,4,0.3)', color: '#facc15' }}>
+                        style={{ background: 'color-mix(in srgb, var(--rs) 15%, transparent)', border: '1px solid color-mix(in srgb, var(--rs) 30%, transparent)', color: 'var(--rs)' }}>
                         🤡 Último J{entry.jugador.badge_ultimo.replace('J', '')}
                       </span>
                     )}
                     {entry.jugador?.badge_campeon && (
                       <span className="text-[10px] px-1.5 py-0.5 rounded-full"
-                        style={{ background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.4)', color: '#fbbf24' }}>
+                        style={{ background: 'color-mix(in srgb, var(--rs) 15%, transparent)', border: '1px solid color-mix(in srgb, var(--rs) 40%, transparent)', color: 'var(--rs)' }}>
                         🏆 {entry.jugador.badge_campeon}
                       </span>
                     )}
                     {!esJornadaAlta && entry.jugador?.campeon_pick && (
                       <span className="text-[10px] px-1.5 py-0.5 rounded-full"
-                        style={{ background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', color: '#4ade80' }}>
+                        style={{ background: 'color-mix(in srgb, var(--ex) 15%, transparent)', border: '1px solid color-mix(in srgb, var(--ex) 30%, transparent)', color: 'var(--ex)' }}>
                         ⚽ {entry.jugador.campeon_pick}
                       </span>
                     )}
                   </p>
                   {entry.jugador?.quiniela_nombre && (
-                    <span className="text-xs block" style={{ color: '#ea580c' }}>
+                    <span className="text-xs block" style={{ color: 'var(--br)' }}>
                       🎫 {entry.jugador.quiniela_nombre}
                     </span>
                   )}
                   <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                    {!esJornadaAlta && `${entry.exactos} exactos ✅`}
-                    {pendienteIds?.includes(entry.user_id) && <span className="ml-1 text-orange-500">· Pago pendiente</span>}
+                    {!esJornadaAlta && `${entry.exactos} exactos`}
+                    {pendienteIds?.includes(entry.user_id) && <span className="ml-1 font-semibold" style={{ color: 'var(--fl)' }}>· Pago pendiente</span>}
                   </p>
                   {entry.jugador?.email && (
-                    <p className="text-[10px] truncate" style={{ color: '#334155' }}>
+                    <p className="text-[10px] truncate" style={{ color: 'var(--mut)' }}>
                       {emailCorto(entry.jugador.email)}
                     </p>
                   )}
                 </div>
                 <div className="text-right">
-                  <p style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.5rem', color: 'var(--text-primary)', lineHeight: 1 }}>
+                  <p style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', color: 'var(--ink)', lineHeight: 1 }}>
                     {entry.puntos_total}
                   </p>
                   <p className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>pts</p>

@@ -114,24 +114,21 @@ export default function CalendarioPage() {
   }
 
   return (
-    <main className="min-h-screen pb-24 px-4 sm:px-6 relative text-slate-900 dark:text-white" style={{ background: 'var(--bg-primary)' }}>
-      {/* Decoración de fondo */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-orange-600/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
-
-      <div className="relative z-10 max-w-4xl mx-auto pt-10">
-        <h1 className="text-4xl md:text-5xl mb-2 text-center" style={{ fontFamily: 'var(--font-bebas)', color: 'var(--accent-gold)' }}>
-          CALENDARIO OFICIAL
+    <main className="min-h-screen pb-24 px-4 sm:px-6 relative" style={{ background: 'var(--bg)', color: 'var(--ink)' }}>
+      <div className="relative z-10 max-w-4xl mx-auto" style={{ paddingTop: 'max(20px, calc(env(safe-area-inset-top) + 12px))' }}>
+        <h1 className="font-display" style={{ fontSize: 32, lineHeight: 1, color: 'var(--ink)' }}>
+          Calendario
         </h1>
-        <p className="text-center text-gray-400 mb-10 font-semibold" style={{ fontFamily: 'var(--font-rajdhani)' }}>
-          En Vivo y en Tiempo Real 📡
+        <p className="text-[14px] font-medium mt-1 mb-6" style={{ color: 'var(--mut)' }}>
+          Horarios en hora de CDMX
         </p>
 
-        <div className="space-y-12">
+        <div className="space-y-6">
           {Object.entries(partidosPorFecha).map(([key, lista]) => (
             <div key={key} className="space-y-4" style={{ animation: 'fadeInUp 0.6s ease-out' }}>
-              <div className="sticky top-0 z-20 backdrop-blur-md bg-[#1a1c23]/80 py-3 px-4 rounded-xl border border-white/5 shadow-lg">
-                <h2 className="text-xl font-bold text-orange-400 capitalize" style={{ fontFamily: 'var(--font-rajdhani)' }}>
+              <div className="sticky top-0 z-20 py-2" style={{ background: 'var(--bg)' }}>
+                <h2 className="inline-flex items-center gap-2 rounded-[8px] px-2.5 py-1.5 senal" style={{ background: 'var(--ink)', color: 'var(--bg)' }}>
+                  <span className="rounded-full" style={{ width: 12, height: 12, border: '3px solid var(--bg)' }} />
                   {formatearDiaCDMX(lista[0].fecha_hora)}
                 </h2>
               </div>
@@ -189,7 +186,7 @@ export default function CalendarioPage() {
                     </div>
 
                     {partido.estado === 'finalizado' && partido.clasificado && partido.como_termino && partido.como_termino !== 'reglamentario' && (
-                      <div className="mt-2 text-center text-xs font-semibold" style={{ color: '#94a3b8', fontFamily: 'var(--font-rajdhani)' }}>
+                      <div className="mt-2 text-center text-xs font-semibold" style={{ color: 'var(--mut)', fontFamily: 'var(--font-sans)' }}>
                         {partido.como_termino === 'penales' ? '🥅' : partido.como_termino === 'tiempo_extra' ? '⏩' : '⏱️'} {partido.clasificado} avanza{partido.como_termino === 'penales' ? ' en penales' : ' en prórroga'}{partido.como_termino === 'penales' && partido.marcador_penales ? ` (${partido.marcador_penales})` : partido.como_termino === 'tiempo_extra' && partido.marcador_tiempo_extra ? ` (${partido.marcador_tiempo_extra})` : ''}
                       </div>
                     )}

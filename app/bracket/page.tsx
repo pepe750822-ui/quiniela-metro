@@ -27,21 +27,21 @@ function TeamRow({ nombre, bandera, goles, winner }: {
   const isDef = !nombre || nombre === 'A definir';
   return (
     <div className="flex items-center justify-between px-2 py-1.5 gap-1"
-      style={{ background: winner ? 'rgba(234,88,12,0.14)' : 'transparent' }}>
+      style={{ background: winner ? 'color-mix(in srgb, var(--br) 14%, transparent)' : 'transparent' }}>
       <div className="flex items-center gap-1.5 min-w-0">
         {bandera && !isDef && <Bandera emoji={bandera} nombre={nombre} size="sm" />}
         <span className="text-[11px] truncate leading-tight" style={{
-          fontFamily: 'var(--font-rajdhani)',
+          fontFamily: 'var(--font-sans)',
           fontWeight: winner ? 700 : 400,
-          color: isDef ? '#334155' : winner ? '#fb923c' : '#e2e8f0',
+          color: isDef ? 'var(--mut)' : winner ? 'var(--br)' : 'var(--ink)',
         }}>
           {isDef ? 'Por definir' : nombre}
         </span>
       </div>
       {goles !== null && (
         <span className="text-sm shrink-0" style={{
-          fontFamily: 'var(--font-bebas)',
-          color: winner ? '#fb923c' : '#cbd5e1',
+          fontFamily: 'var(--font-display)',
+          color: winner ? 'var(--br)' : 'var(--ink2)',
         }}>{goles}</span>
       )}
     </div>
@@ -56,11 +56,11 @@ function MatchCard({ partido, isFinal }: { partido: Partido | null; isFinal?: bo
         width: isFinal ? CARD_W + 20 : CARD_W,
         height: CARD_H,
         background: '#0d1526',
-        border: '1px dashed rgba(255,255,255,0.07)',
+        border: '1px dashed color-mix(in srgb, var(--ink) 7%, transparent)',
         borderRadius: 8,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
-        <span style={{ fontSize: 10, color: '#1e3a5f', fontFamily: 'var(--font-rajdhani)' }}>—</span>
+        <span style={{ fontSize: 10, color: 'var(--ln)', fontFamily: 'var(--font-sans)' }}>—</span>
       </div>
     );
   }
@@ -88,31 +88,31 @@ function MatchCard({ partido, isFinal }: { partido: Partido | null; isFinal?: bo
   return (
     <div style={{
       width: isFinal ? CARD_W + 20 : CARD_W,
-      background: '#1e293b',
-      border: `1px solid ${vivo ? 'rgba(234,88,12,0.6)' : isFinal ? 'rgba(234,88,12,0.35)' : 'rgba(255,255,255,0.09)'}`,
+      background: 'var(--sf)',
+      border: `1px solid ${vivo ? 'color-mix(in srgb, var(--br) 60%, transparent)' : isFinal ? 'color-mix(in srgb, var(--br) 35%, transparent)' : 'color-mix(in srgb, var(--ink) 9%, transparent)'}`,
       borderRadius: 8,
       overflow: 'hidden',
       boxShadow: isFinal
-        ? '0 0 24px rgba(234,88,12,0.18), 0 0 2px rgba(234,88,12,0.4)'
-        : vivo ? '0 0 12px rgba(234,88,12,0.25)' : undefined,
+        ? '0 0 24px color-mix(in srgb, var(--br) 18%, transparent), 0 0 2px color-mix(in srgb, var(--br) 40%, transparent)'
+        : vivo ? '0 0 12px color-mix(in srgb, var(--br) 25%, transparent)' : undefined,
     }}>
       {vivo && (
-        <div style={{ padding: '2px 8px', background: 'rgba(234,88,12,0.2)', fontSize: 9, color: '#fb923c', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+        <div style={{ padding: '2px 8px', background: 'color-mix(in srgb, var(--br) 20%, transparent)', fontSize: 9, color: 'var(--br)', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
           🔴 En vivo
         </div>
       )}
       <TeamRow nombre={local} bandera={bL} goles={fin || vivo ? gl : null} winner={wL} />
-      <div style={{ height: 1, background: 'rgba(255,255,255,0.06)' }} />
+      <div style={{ height: 1, background: 'color-mix(in srgb, var(--ink) 6%, transparent)' }} />
       <TeamRow nombre={visit} bandera={bV} goles={fin || vivo ? gv : null} winner={wV} />
       {extraTime && (
         <div style={{
           padding: '2px 6px',
-          borderTop: '1px solid rgba(255,255,255,0.06)',
+          borderTop: '1px solid color-mix(in srgb, var(--ink) 6%, transparent)',
           background: 'rgba(0,0,0,0.25)',
           fontSize: 9,
-          color: '#94a3b8',
+          color: 'var(--mut)',
           textAlign: 'center',
-          fontFamily: 'var(--font-rajdhani)',
+          fontFamily: 'var(--font-sans)',
           letterSpacing: '0.04em',
         }}>
           {comoTermino === 'penales' ? '🥅' : comoTermino === 'tiempo_extra' ? '⏩' : '⏱️'}{comoTermino === 'penales' && partido.marcador_penales ? ` ${partido.marcador_penales}` : comoTermino === 'tiempo_extra' && partido.marcador_tiempo_extra ? ` ${partido.marcador_tiempo_extra}` : ''} · {clasificado}
@@ -148,7 +148,7 @@ function ConnectorL({ fromRound, pairs }: { fromRound: number; pairs: number }) 
   return (
     <svg width={CONN_W} height={BH} style={{ display: 'block', flexShrink: 0 }}>
       {paths.map((d, i) => (
-        <path key={i} d={d} fill="none" stroke="#1e3a5f" strokeWidth={1.5} strokeLinecap="round" />
+        <path key={i} d={d} fill="none" stroke="var(--ln)" strokeWidth={1.5} strokeLinecap="round" />
       ))}
     </svg>
   );
@@ -167,7 +167,7 @@ function ConnectorR({ fromRound, pairs }: { fromRound: number; pairs: number }) 
   return (
     <svg width={CONN_W} height={BH} style={{ display: 'block', flexShrink: 0 }}>
       {paths.map((d, i) => (
-        <path key={i} d={d} fill="none" stroke="#1e3a5f" strokeWidth={1.5} strokeLinecap="round" />
+        <path key={i} d={d} fill="none" stroke="var(--ln)" strokeWidth={1.5} strokeLinecap="round" />
       ))}
     </svg>
   );
@@ -179,9 +179,9 @@ function RoundLabel({ label, w }: { label: string; w: number }) {
     <div style={{
       width: w, flexShrink: 0, textAlign: 'center',
       fontSize: 10, fontWeight: 700,
-      fontFamily: 'var(--font-rajdhani)',
+      fontFamily: 'var(--font-sans)',
       letterSpacing: '0.1em', textTransform: 'uppercase',
-      color: '#ea580c', paddingBottom: 10,
+      color: 'var(--br)', paddingBottom: 10,
     }}>
       {label}
     </div>
@@ -281,7 +281,7 @@ export default function BracketPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-6 text-center pb-24">
         <p style={{ fontSize: '3rem' }}>🏗️</p>
-        <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: '2rem', color: '#ea580c' }}>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', color: 'var(--br)' }}>
           Bracket no disponible en esta temporada
         </h1>
         <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
@@ -293,25 +293,25 @@ export default function BracketPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0f172a' }}>
-        <p style={{ color: '#475569', fontFamily: 'var(--font-rajdhani)' }}>Cargando bracket...</p>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg)' }}>
+        <p style={{ color: 'var(--mut)', fontFamily: 'var(--font-sans)' }}>Cargando bracket...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen pb-28" style={{ background: '#0f172a' }}>
+    <div className="min-h-screen pb-28" style={{ background: 'var(--bg)' }}>
       {/* Header */}
       <div className="px-4 pt-6 pb-3">
         <h1 style={{
-          fontFamily: 'var(--font-bebas)',
+          fontFamily: 'var(--font-display)',
           fontSize: '2rem',
-          color: '#ea580c',
+          color: 'var(--br)',
           letterSpacing: '0.05em',
         }}>
           🏆 DIECISEISAVOS DE FINAL
         </h1>
-        <p className="text-xs mt-0.5" style={{ color: '#475569', fontFamily: 'var(--font-rajdhani)' }}>
+        <p className="text-xs mt-0.5" style={{ color: 'var(--mut)', fontFamily: 'var(--font-sans)' }}>
           Mundial 2026 · Cuadro eliminatorio · desliza para ver completo →
         </p>
       </div>
@@ -355,19 +355,19 @@ export default function BracketPage() {
               <svg width={FINAL_W / 2} height={BH}
                 style={{ position: 'absolute', left: 0, top: 0, pointerEvents: 'none' }}>
                 <line x1={0} y1={BH / 2} x2={FINAL_W / 2} y2={BH / 2}
-                  stroke="#1e3a5f" strokeWidth={1.5} />
+                  stroke="var(--ln)" strokeWidth={1.5} />
               </svg>
               {/* Connector from right semi */}
               <svg width={FINAL_W / 2} height={BH}
                 style={{ position: 'absolute', right: 0, top: 0, pointerEvents: 'none' }}>
                 <line x1={FINAL_W / 2} y1={BH / 2} x2={0} y2={BH / 2}
-                  stroke="#1e3a5f" strokeWidth={1.5} />
+                  stroke="var(--ln)" strokeWidth={1.5} />
               </svg>
               <div style={{ position: 'relative', zIndex: 1 }}>
                 <div style={{
                   textAlign: 'center', fontSize: 9, fontWeight: 700,
                   letterSpacing: '0.12em', textTransform: 'uppercase',
-                  color: '#ea580c', fontFamily: 'var(--font-rajdhani)',
+                  color: 'var(--br)', fontFamily: 'var(--font-sans)',
                   marginBottom: 6,
                 }}>
                   🏆 GRAN FINAL
@@ -393,8 +393,8 @@ export default function BracketPage() {
         <div className="px-4 mt-2">
           <p style={{
             fontSize: 10, fontWeight: 700, letterSpacing: '0.1em',
-            textTransform: 'uppercase', color: '#64748b',
-            fontFamily: 'var(--font-rajdhani)', marginBottom: 8,
+            textTransform: 'uppercase', color: 'var(--mut)',
+            fontFamily: 'var(--font-sans)', marginBottom: 8,
           }}>
             🥉 Tercer lugar
           </p>
@@ -405,9 +405,9 @@ export default function BracketPage() {
       {/* Empty state */}
       {partidos.length === 0 && (
         <div className="mx-4 rounded-2xl p-10 text-center"
-          style={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.07)' }}>
+          style={{ background: 'var(--sf)', border: '1px solid color-mix(in srgb, var(--ink) 7%, transparent)' }}>
           <p className="text-4xl mb-3">⏳</p>
-          <p style={{ color: '#475569', fontFamily: 'var(--font-rajdhani)', fontSize: '0.95rem' }}>
+          <p style={{ color: 'var(--mut)', fontFamily: 'var(--font-sans)', fontSize: '0.95rem' }}>
             El cuadro eliminatorio se publicará al finalizar la fase de grupos
           </p>
         </div>

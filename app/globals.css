@@ -3,59 +3,173 @@
 /* Mapear dark: al selector .dark (next-themes usa attribute="class") */
 @variant dark (&:where(.dark, .dark *));
 
-/* ── Tema claro (defecto) ──────────────────────────── */
+/* ══ Quiniela Metro · tokens de diseño (señalética Metro + boleto) ══
+   Tema claro principal; .dark redefine los mismos tokens. */
 :root {
-  --bg-base:       #ffffff;
-  --bg-surface:    #f8fafc;
-  --bg-card:       #f1f5f9;
-  --bg-card-hover: #e2e8f0;
-  --text-primary:  #0f172a;
-  --text-secondary:#475569;
-  --text-muted:    #94a3b8;
-  --border-color:  #e2e8f0;
-  --nav-bg:        rgba(255,255,255,0.95);
-  /* Backward-compat aliases */
-  --bg-primary:    var(--bg-base);
-  --bg-secondary:  var(--bg-surface);
-  --border:        var(--border-color);
-  --accent-gold:   #ea580c;
-  --accent-green:  #10b981;
-  --accent-red:    #ef4444;
+  --bg:   #F4EFE6;  /* fondo hueso */
+  --sf:   #FFFDF9;  /* tarjetas */
+  --sf2:  #EAE3D6;  /* pistas, skeleton */
+  --ink:  #15120F;  /* texto, boleto */
+  --ink2: #3F3A33;  /* texto secundario */
+  --mut:  #625B51;  /* metadatos */
+  --ln:   #D6CCBB;  /* bordes, perforado */
+  --br:   #C8006A;  /* rosa mexicano */
+  --brS:  #FADCEB;  /* fondo de marca */
+  --brI:  #FFFFFF;  /* texto sobre marca */
+  --ex:   #0C7A41;  /* 3 pts exacto */
+  --exI:  #FFFFFF;  /* texto sobre exacto */
+  --rs:   #F0B02A;  /* 1 pt resultado */
+  --fl:   #A82A24;  /* 0 pts texto */
+  --flS:  #F7D9D5;  /* 0 pts fondo */
+  --pnS:  #E4DDD1;  /* pendiente */
+  --lv:   #12A150;  /* en vivo */
+  --wa:   #167A44;  /* WhatsApp */
+
+  /* Alias heredados (las pantallas existentes usan estos nombres) */
+  --bg-base:        var(--bg);
+  --bg-surface:     var(--sf);
+  --bg-card:        var(--sf);
+  --bg-card-hover:  var(--sf2);
+  --text-primary:   var(--ink);
+  --text-secondary: var(--ink2);
+  --text-muted:     var(--mut);
+  --border-color:   var(--ln);
+  --nav-bg:         color-mix(in srgb, var(--sf) 96%, transparent);
+  --bg-primary:     var(--bg);
+  --bg-secondary:   var(--sf);
+  --border:         var(--ln);
+  --accent-gold:    var(--br);
+  --accent-green:   var(--ex);
+  --accent-red:     var(--fl);
 }
 
-/* ── Tema oscuro ───────────────────────────────────── */
 .dark {
-  --bg-base:       #0a0a0a;
-  --bg-surface:    #12121a;
-  --bg-card:       #1e1e2e;
-  --bg-card-hover: #252535;
-  --text-primary:  #ffffff;
-  --text-secondary:#94a3b8;
-  --text-muted:    #475569;
-  --border-color:  #1e1e2e;
-  --nav-bg:        rgba(10,10,15,0.95);
+  --bg:   #0E0D0C;
+  --sf:   #1A1816;
+  --sf2:  #26231F;
+  --ink:  #F5F0E7;
+  --ink2: #D6CEC1;
+  --mut:  #A69E91;
+  --ln:   #3A352F;
+  --br:   #FF4DA0;
+  --brS:  #3B1529;
+  --brI:  #15120F;
+  --ex:   #3ED68B;
+  --exI:  #0E0D0C;
+  --rs:   #F6C24C;
+  --fl:   #FF8A80;
+  --flS:  #43201C;
+  --pnS:  #2A2723;
+  --lv:   #3ED68B;
+  --wa:   #2FBF71;
+}
+
+/* Paleta Tailwind remapeada a los tokens: las clases existentes
+   (orange-*, slate-*, green-*, red-*, yellow-*) toman el nuevo estilo. */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--sf);
+  --color-surface-2: var(--sf2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink2);
+  --color-muted: var(--mut);
+  --color-line: var(--ln);
+  --color-brand: var(--br);
+  --color-brand-soft: var(--brS);
+  --color-brand-on: var(--brI);
+  --color-live: var(--lv);
+  --color-whatsapp: var(--wa);
+
+  --color-orange-200: var(--brS);
+  --color-orange-400: var(--br);
+  --color-orange-500: var(--br);
+  --color-orange-600: var(--br);
+  --color-orange-700: var(--br);
+  --color-slate-200: var(--ink2);
+  --color-slate-400: var(--mut);
+  --color-slate-500: var(--mut);
+  --color-slate-600: var(--mut);
+  --color-slate-700: var(--ink2);
+  --color-slate-800: var(--ink);
+  --color-slate-900: var(--ink);
+  --color-gray-400: var(--mut);
+  --color-gray-500: var(--mut);
+  --color-gray-600: var(--mut);
+  --color-green-400: var(--ex);
+  --color-green-500: var(--wa);
+  --color-green-600: var(--wa);
+  --color-green-700: var(--ex);
+  --color-emerald-400: var(--ex);
+  --color-emerald-700: var(--ex);
+  --color-red-400: var(--fl);
+  --color-red-500: var(--fl);
+  --color-red-600: var(--fl);
+  --color-red-700: var(--fl);
+  --color-yellow-400: var(--rs);
+  --color-yellow-600: var(--rs);
+
+  --font-display: var(--font-barlow), "Barlow Condensed", sans-serif;
+  --font-sans: var(--font-inter), Inter, system-ui, sans-serif;
+
+  --radius-chip: 8px;
+  --radius-btn: 12px;
+  --radius-card: 16px;
+  --radius-ticket: 20px;
+  --radius-sheet: 26px;
 }
 
 /* ── Utilidades de tema ────────────────────────────── */
 @layer utilities {
-  .bg-base    { background-color: var(--bg-base); }
-  .bg-surface { background-color: var(--bg-surface); }
-  .bg-themedcard { background-color: var(--bg-card); }
-  .border-theme { border-color: var(--border-color); }
-  .text-primary-theme  { color: var(--text-primary); }
-  .text-secondary-theme { color: var(--text-secondary); }
-  .text-muted-theme    { color: var(--text-muted); }
+  .bg-base    { background-color: var(--bg); }
+  .bg-surface { background-color: var(--sf); }
+  .bg-themedcard { background-color: var(--sf); }
+  .border-theme { border-color: var(--ln); }
+  .text-primary-theme  { color: var(--ink); }
+  .text-secondary-theme { color: var(--ink2); }
+  .text-muted-theme    { color: var(--mut); }
+}
+
+/* Tipografía display (Barlow Condensed 800, mayúsculas, estilo señalética) */
+[style*="--font-display"], .font-display {
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+.senal { font-weight: 700; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; }
+
+/* Boleto: muescas laterales + línea perforada */
+.boleto { position: relative; background: var(--sf); border: 1px solid var(--ln); border-radius: 20px; }
+.boleto-perf { position: relative; border-top: 2px dashed var(--ln); }
+.boleto-perf::before, .boleto-perf::after {
+  content: ""; position: absolute; top: -11px; width: 20px; height: 20px; border-radius: 9999px;
+  background: var(--bg); border: 1px solid var(--ln);
+}
+.boleto-perf::before { left: -11px; clip-path: inset(0 0 0 50%); }
+.boleto-perf::after  { right: -11px; clip-path: inset(0 50% 0 0); }
+
+/* Pulso «en vivo» */
+@keyframes pulsoVivo { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+.pulso-vivo { animation: pulsoVivo 1.6s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
 
 body {
-  background: var(--bg-base);
-  color: var(--text-primary);
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
 }
+input, select, textarea { color: var(--ink); }
+input::placeholder, textarea::placeholder { color: var(--mut); }
 
 
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--bg-primary); }
-::-webkit-scrollbar-thumb { background: var(--accent-gold); border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: var(--ln); border-radius: 2px; }
 
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(20px); }
