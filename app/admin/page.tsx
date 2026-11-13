@@ -146,7 +146,8 @@ export default function AdminPage() {
   };
 
   // POZOS — jornada abierta
-  const [jornadaAbierta, setJornadaAbierta] = useState<number>(9);
+  // null = automático: abre solo el pozo más reciente
+  const [jornadaAbierta, setJornadaAbierta] = useState<number | null>(null);
 
   // Grupos Mundial
   const [grupos, setGrupos] = useState<any[]>([]);
@@ -1090,6 +1091,8 @@ export default function AdminPage() {
   // ── Guards ───────────────────────────────────────────
 
   const jornadasConPozo = new Set(pozos.map(p => p.jornada));
+  const ultimaJornadaPozo = pozos.length ? Math.max(...pozos.map(p => p.jornada)) : 0;
+  const jornadaPozoAbierta = jornadaAbierta ?? ultimaJornadaPozo;
   const pozosCompletos = [...pozos];
   for (let j = 1; j <= 5; j++) {
     if (!jornadasConPozo.has(j)) {
@@ -1475,12 +1478,12 @@ export default function AdminPage() {
         </button>
         {seccionesAbiertas.pozos && (
         <div className="space-y-2">
-          {pozosCompletos.map(pozo => {
+          {[...pozosCompletos].sort((a, b) => a.jornada - b.jornada).map(pozo => {
             // J4 es la base de la quiniela Liga MX; J5 comparte participaciones de J4
             const pozoBaseJornada = TEMPORADA_ACTIVA === 'ligamx2026' && pozo.jornada === 5 ? 4 : pozo.jornada;
             const pendientes = participaciones.filter(p => p.jornada === pozoBaseJornada && !p.pagado);
             const confirmadas = participaciones.filter(p => p.jornada === pozoBaseJornada && p.pagado);
-            const isOpen = jornadaAbierta === pozo.jornada;
+            const isOpen = jornadaPozoAbierta === pozo.jornada;
             return (
               <div key={pozo.id} className="rounded-xl overflow-hidden"
                 style={{ border: '1px solid var(--border)' }}>
