@@ -94,14 +94,14 @@ function PosicionesOficiales({ tabla }: { tabla: TablaOficial }) {
         <table className="w-full text-sm border-collapse">
           <thead>
             <tr style={{ background: 'var(--bg-card)', borderBottom: '1px solid var(--border-color)' }}>
-              <th className="text-left px-3 py-2 w-5 text-xs" style={{ color: '#475569' }}>#</th>
+              <th className="text-left px-3 py-2 w-5 text-xs" style={{ color: 'var(--mut)' }}>#</th>
               <th className="text-left px-2 py-2 text-xs font-bold"
-                style={{ color: '#94a3b8', fontFamily: 'var(--font-rajdhani)', fontWeight: 700 }}>
+                style={{ color: 'var(--mut)', fontFamily: 'var(--font-sans)', fontWeight: 700 }}>
                 Equipo
               </th>
               {['PJ', 'G', 'E', 'P', 'GF', 'GC', 'DG', 'PTS'].map(h => (
                 <th key={h} className="text-center px-1.5 py-2 text-xs font-bold"
-                  style={{ color: h === 'PTS' ? '#ea580c' : '#64748b', minWidth: 22 }}>
+                  style={{ color: h === 'PTS' ? 'var(--br)' : 'var(--mut)', minWidth: 22 }}>
                   {h}
                 </th>
               ))}
@@ -110,12 +110,12 @@ function PosicionesOficiales({ tabla }: { tabla: TablaOficial }) {
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={10} className="text-center py-10 text-sm" style={{ color: '#475569' }}>Cargando…</td>
+                <td colSpan={10} className="text-center py-10 text-sm" style={{ color: 'var(--mut)' }}>Cargando…</td>
               </tr>
             )}
             {!loading && rows.length === 0 && (
               <tr>
-                <td colSpan={10} className="text-center py-10 text-sm" style={{ color: '#475569' }}>Sin datos disponibles</td>
+                <td colSpan={10} className="text-center py-10 text-sm" style={{ color: 'var(--mut)' }}>Sin datos disponibles</td>
               </tr>
             )}
             {!loading && rows.map((r, i) => {
@@ -128,7 +128,7 @@ function PosicionesOficiales({ tabla }: { tabla: TablaOficial }) {
                     background: zona.color ? `rgba(${zona.color},${zona.bg})` : 'transparent',
                     borderLeft: zona.color ? `3px solid rgba(${zona.color},0.55)` : '3px solid transparent',
                   }}>
-                  <td className="px-3 py-2 text-xs tabular-nums" style={{ color: '#475569' }}>{r.pos ?? i + 1}</td>
+                  <td className="px-3 py-2 text-xs tabular-nums" style={{ color: 'var(--mut)' }}>{r.pos ?? i + 1}</td>
                   <td className="px-2 py-1.5">
                     <div className="flex items-center gap-1.5">
                       {logo && (
@@ -136,19 +136,19 @@ function PosicionesOficiales({ tabla }: { tabla: TablaOficial }) {
                           style={{ objectFit: 'contain', flexShrink: 0 }} />
                       )}
                       <span className="text-xs font-semibold whitespace-nowrap"
-                        style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--text-primary)' }}>
+                        style={{ fontFamily: 'var(--font-sans)', color: 'var(--text-primary)' }}>
                         {r.equipo}
                       </span>
                     </div>
                   </td>
                   {[r.pj, r.g, r.e, r.p, r.gf, r.gc, r.dg].map((v, j) => (
                     <td key={j} className="text-center px-1.5 py-2 text-xs tabular-nums"
-                      style={{ color: j === 6 && v > 0 ? '#22c55e' : j === 6 && v < 0 ? '#ef4444' : '#94a3b8' }}>
+                      style={{ color: j === 6 && v > 0 ? 'var(--ex)' : j === 6 && v < 0 ? 'var(--fl)' : 'var(--mut)' }}>
                       {j === 6 && v > 0 ? `+${v}` : v}
                     </td>
                   ))}
                   <td className="text-center px-1.5 py-2 font-bold tabular-nums"
-                    style={{ fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
+                    style={{ fontFamily: 'var(--font-display)', fontSize: '1rem', color: 'var(--br)' }}>
                     {r.pts}
                   </td>
                 </tr>
@@ -157,21 +157,21 @@ function PosicionesOficiales({ tabla }: { tabla: TablaOficial }) {
           </tbody>
         </table>
       </div>
-      <div className="flex flex-wrap gap-4 mt-3 text-xs" style={{ color: '#64748b' }}>
+      <div className="flex flex-wrap gap-4 mt-3 text-xs" style={{ color: 'var(--mut)' }}>
         {esUcl ? (
           <>
-            <span><span style={{ color: '#22c55e' }}>■</span> 1–8 Octavos directo</span>
-            <span><span style={{ color: '#fbbf24' }}>■</span> 9–24 Playoff</span>
-            <span><span style={{ color: '#ef4444' }}>■</span> 25–36 Eliminados</span>
+            <span><span style={{ color: 'var(--ex)' }}>■</span> 1–8 Octavos directo</span>
+            <span><span style={{ color: 'var(--rs)' }}>■</span> 9–24 Playoff</span>
+            <span><span style={{ color: 'var(--fl)' }}>■</span> 25–36 Eliminados</span>
           </>
         ) : (
           <>
-            <span><span style={{ color: '#22c55e' }}>■</span> Top 8 — Liguilla</span>
-            <span><span style={{ color: '#ef4444' }}>■</span> Bottom 3 — Descenso</span>
+            <span><span style={{ color: 'var(--ex)' }}>■</span> Top 8 — Liguilla</span>
+            <span><span style={{ color: 'var(--fl)' }}>■</span> Bottom 3 — Descenso</span>
           </>
         )}
         {updatedAt && (
-          <span style={{ marginLeft: 'auto', color: '#475569' }}>
+          <span style={{ marginLeft: 'auto', color: 'var(--mut)' }}>
             Act. {new Date(updatedAt).toLocaleDateString('es-MX', { day: '2-digit', month: 'short' })}
           </span>
         )}
@@ -183,18 +183,18 @@ function PosicionesOficiales({ tabla }: { tabla: TablaOficial }) {
 function TablaLC({ rows, titulo, cutoff }: { rows: Row[]; titulo: string; cutoff: number }) {
   return (
     <div className="mb-8">
-      <h2 style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.4rem', color: '#ea580c', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>
+      <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', color: 'var(--br)', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>
         {titulo}
       </h2>
       <div className="overflow-x-auto rounded-xl" style={{ border: '1px solid var(--border-color)' }}>
         <table className="w-full text-sm border-collapse">
           <thead>
             <tr style={{ background: 'var(--bg-card)', borderBottom: '1px solid var(--border-color)' }}>
-              <th className="text-left px-3 py-2 w-6 text-xs" style={{ color: '#475569' }}>#</th>
-              <th className="text-left px-2 py-2" style={{ color: '#94a3b8', fontFamily: 'var(--font-rajdhani)', fontWeight: 700 }}>Equipo</th>
+              <th className="text-left px-3 py-2 w-6 text-xs" style={{ color: 'var(--mut)' }}>#</th>
+              <th className="text-left px-2 py-2" style={{ color: 'var(--mut)', fontFamily: 'var(--font-sans)', fontWeight: 700 }}>Equipo</th>
               {['PJ','G','GPE','LPE','P','GF','GC','DG','PTS'].map(h => (
                 <th key={h} className="text-center px-2 py-2 text-xs font-bold"
-                  style={{ color: h === 'PTS' ? '#ea580c' : '#64748b', minWidth: 24 }}
+                  style={{ color: h === 'PTS' ? 'var(--br)' : 'var(--mut)', minWidth: 24 }}
                   title={
                     h === 'G' ? 'Victorias reglamentario (3pts)' :
                     h === 'GPE' ? 'Victorias penales/TE (2pts)' :
@@ -213,25 +213,25 @@ function TablaLC({ rows, titulo, cutoff }: { rows: Row[]; titulo: string; cutoff
                 <tr key={r.equipo}
                   style={{
                     borderBottom: '1px solid var(--border-color)',
-                    background: clasifica ? 'rgba(34,197,94,0.05)' : 'transparent',
-                    borderLeft: clasifica ? '3px solid rgba(34,197,94,0.6)' : '3px solid transparent',
+                    background: clasifica ? 'color-mix(in srgb, var(--ex) 5%, transparent)' : 'transparent',
+                    borderLeft: clasifica ? '3px solid color-mix(in srgb, var(--ex) 60%, transparent)' : '3px solid transparent',
                   }}>
-                  <td className="px-3 py-2 text-xs tabular-nums" style={{ color: '#475569' }}>{i + 1}</td>
+                  <td className="px-3 py-2 text-xs tabular-nums" style={{ color: 'var(--mut)' }}>{i + 1}</td>
                   <td className="px-2 py-2">
                     <div className="flex items-center gap-1.5">
                       <Bandera emoji="" nombre={r.equipo} size="sm" />
                       <span className="text-xs font-semibold whitespace-nowrap"
-                        style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--text-primary)' }}>
+                        style={{ fontFamily: 'var(--font-sans)', color: 'var(--text-primary)' }}>
                         {r.equipo}
                       </span>
-                      {clasifica && <span style={{ fontSize: '0.5rem', color: '#22c55e', fontWeight: 700 }}>✓Q</span>}
+                      {clasifica && <span style={{ fontSize: '0.5rem', color: 'var(--ex)', fontWeight: 700 }}>✓Q</span>}
                     </div>
                   </td>
                   {[r.pj, r.g, r.gpe, r.lpe, r.p, r.gf, r.gc, r.gf - r.gc].map((v, j) => (
-                    <td key={j} className="text-center px-2 py-2 text-xs tabular-nums" style={{ color: '#94a3b8' }}>{v}</td>
+                    <td key={j} className="text-center px-2 py-2 text-xs tabular-nums" style={{ color: 'var(--mut)' }}>{v}</td>
                   ))}
                   <td className="text-center px-2 py-2 font-bold tabular-nums"
-                    style={{ fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
+                    style={{ fontFamily: 'var(--font-display)', fontSize: '1rem', color: 'var(--br)' }}>
                     {r.pts}
                   </td>
                 </tr>
@@ -239,7 +239,7 @@ function TablaLC({ rows, titulo, cutoff }: { rows: Row[]; titulo: string; cutoff
             })}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={11} className="text-center py-8 text-sm" style={{ color: '#475569' }}>
+                <td colSpan={11} className="text-center py-8 text-sm" style={{ color: 'var(--mut)' }}>
                   Sin resultados finalizados aún
                 </td>
               </tr>
@@ -247,8 +247,8 @@ function TablaLC({ rows, titulo, cutoff }: { rows: Row[]; titulo: string; cutoff
           </tbody>
         </table>
       </div>
-      <div className="flex flex-wrap gap-3 mt-2 text-xs" style={{ color: '#475569' }}>
-        <span><span style={{ color: '#22c55e' }}>■</span> Top {cutoff} clasifican a Cuartos</span>
+      <div className="flex flex-wrap gap-3 mt-2 text-xs" style={{ color: 'var(--mut)' }}>
+        <span><span style={{ color: 'var(--ex)' }}>■</span> Top {cutoff} clasifican a Cuartos</span>
         <span>G=+3pts · GPE=+2pts · LPE=+1pt · P=0pts</span>
       </div>
     </div>
@@ -369,35 +369,32 @@ export default function PosicionesPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-base pb-24 px-4 pt-6">
-      <h1 style={{
-        fontFamily: 'var(--font-bebas)', fontSize: '2rem',
-        color: '#ea580c', letterSpacing: '0.05em', marginBottom: '0.25rem',
-      }}>
+    <div className="min-h-screen bg-base pb-24 px-4" style={{ paddingTop: 'max(20px, calc(env(safe-area-inset-top) + 12px))' }}>
+      <h1 className="font-display" style={{ fontSize: 32, lineHeight: 1, color: 'var(--ink)' }}>
         {esLigaMX
-          ? (tab === 'ucl' ? 'Champions League — Posiciones' : 'Liga MX Apertura 2026 — Posiciones')
-          : 'Leagues Cup — Posiciones'}
+          ? (tab === 'ucl' ? 'Champions' : 'Liga MX')
+          : 'Leagues Cup'}
       </h1>
-      <p className="text-xs mb-4" style={{ color: '#475569' }}>
+      <p className="text-[14px] font-medium mt-1 mb-4" style={{ color: 'var(--mut)' }}>
         {esLigaMX
-          ? (tab === 'ucl' ? 'Fase de liga · 36 equipos' : 'Tabla oficial')
+          ? (tab === 'ucl' ? 'Fase de liga · 36 equipos' : 'Apertura 2026 · tabla oficial')
           : `Solo partidos finalizados · ${TEMPORADA_ACTIVA}`}
       </p>
 
       {esLigaMX && (
         <div className="flex gap-2 mb-4" role="tablist">
-          {([['lmx', '⚽ LMX'], ['ucl', '⭐ UCL']] as const).map(([key, label]) => (
+          {([['lmx', 'Liga MX'], ['ucl', 'Champions']] as const).map(([key, label]) => (
             <button
               key={key}
               role="tab"
               aria-selected={tab === key}
               onClick={() => setTab(key)}
-              className="px-4 py-1.5 rounded-lg text-sm font-bold transition-all active:scale-95 min-h-[36px]"
+              className="px-4 rounded-full text-[14px] font-semibold transition-all active:scale-95 min-h-[44px]"
               style={{
-                background: tab === key ? '#ea580c' : 'var(--bg-card)',
-                color: tab === key ? '#fff' : 'var(--text-secondary)',
-                border: `1px solid ${tab === key ? '#ea580c' : 'var(--border)'}`,
-                fontFamily: 'var(--font-rajdhani)',
+                background: tab === key ? 'var(--ink)' : 'var(--sf)',
+                color: tab === key ? 'var(--bg)' : 'var(--ink2)',
+                border: `1px solid ${tab === key ? 'var(--ink)' : 'var(--ln)'}`,
+                fontFamily: 'var(--font-sans)',
               }}
             >
               {label}
@@ -409,7 +406,7 @@ export default function PosicionesPage() {
       {esLigaMX ? (
         <PosicionesOficiales tabla={tab === 'ucl' ? 'ucl_posiciones' : 'ligamx_posiciones'} />
       ) : loading ? (
-        <div className="text-center py-16 text-sm" style={{ color: '#475569' }}>Cargando…</div>
+        <div className="text-center py-16 text-sm" style={{ color: 'var(--mut)' }}>Cargando…</div>
       ) : (
         <>
           <TablaLC rows={rowsLigamx} titulo="🇲🇽 Liga MX" cutoff={4} />

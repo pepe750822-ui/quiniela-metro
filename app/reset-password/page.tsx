@@ -81,23 +81,23 @@ export default function ResetPasswordPage() {
       <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.04 }} xmlns="http://www.w3.org/2000/svg">
         <defs>
           <pattern id="hex" x="0" y="0" width="56" height="100" patternUnits="userSpaceOnUse">
-            <polygon points="28,2 54,16 54,44 28,58 2,44 2,16" fill="none" stroke="#ea580c" strokeWidth="1"/>
-            <polygon points="28,52 54,66 54,94 28,108 2,94 2,66" fill="none" stroke="#ea580c" strokeWidth="1"/>
+            <polygon points="28,2 54,16 54,44 28,58 2,44 2,16" fill="none" stroke="var(--br)" strokeWidth="1"/>
+            <polygon points="28,52 54,66 54,94 28,108 2,94 2,66" fill="none" stroke="var(--br)" strokeWidth="1"/>
           </pattern>
         </defs>
         <rect width="100%" height="100%" fill="url(#hex)"/>
       </svg>
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-80 h-80 rounded-full pointer-events-none"
-        style={{ background: 'radial-gradient(circle, rgba(234,88,12,0.08) 0%, transparent 70%)' }} />
+        style={{ background: 'radial-gradient(circle, color-mix(in srgb, var(--br) 8%, transparent) 0%, transparent 70%)' }} />
 
       <div className="relative z-10 w-full max-w-sm space-y-6">
         {/* Header */}
         <div className="text-center">
           <img src="/icons/icon-192.png" alt="Quiniela Metro" className="w-20 h-20 rounded-2xl mx-auto mb-3 shadow-lg shadow-orange-500/30" />
-          <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: '2.5rem', color: 'var(--accent-gold)', lineHeight: 1, letterSpacing: '0.05em' }}>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.5rem', color: 'var(--ink)', lineHeight: 1, letterSpacing: '0.05em' }}>
             NUEVA CONTRASEÑA
           </h1>
-          <p className="mt-1 text-sm font-semibold" style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--text-secondary)' }}>
+          <p className="mt-1 text-sm font-semibold" style={{ fontFamily: 'var(--font-sans)', color: 'var(--text-secondary)' }}>
             Elige una contraseña segura 🔑
           </p>
         </div>
@@ -106,7 +106,7 @@ export default function ResetPasswordPage() {
           {success ? (
             <div className="text-center space-y-3 py-4">
               <p className="text-4xl">✅</p>
-              <p className="font-bold text-base" style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--text-primary)' }}>
+              <p className="font-bold text-base" style={{ fontFamily: 'var(--font-sans)', color: 'var(--text-primary)' }}>
                 ¡Contraseña actualizada!
               </p>
               <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
@@ -116,7 +116,7 @@ export default function ResetPasswordPage() {
           ) : verificando ? (
             <div className="text-center space-y-3 py-6">
               <Spinner />
-              <p className="text-sm" style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-rajdhani)' }}>
+              <p className="text-sm" style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-sans)' }}>
                 Verificando link…
               </p>
               <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
@@ -184,7 +184,7 @@ export default function ResetPasswordPage() {
                 type="submit"
                 disabled={loading}
                 className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm text-white transition-all active:scale-95 disabled:opacity-60"
-                style={{ background: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}
+                style={{ background: 'var(--accent-gold)', fontFamily: 'var(--font-sans)' }}
               >
                 {loading ? <Spinner /> : null}
                 {loading ? 'Guardando…' : 'Guardar nueva contraseña'}

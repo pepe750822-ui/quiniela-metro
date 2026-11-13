@@ -80,14 +80,14 @@ export default function GruposPage() {
   return (
     <div className="min-h-screen px-4 pt-6 pb-28" style={{ background: 'var(--bg-base)' }}>
       <h1 style={{
-        fontFamily: 'var(--font-bebas)',
+        fontFamily: 'var(--font-display)',
         fontSize: '2rem',
         color: 'var(--accent-gold)',
         letterSpacing: '0.05em',
       }}>
         🌎 GRUPOS — MUNDIAL 2026
       </h1>
-      <p className="text-xs mb-4 mt-0.5" style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-rajdhani)' }}>
+      <p className="text-xs mb-4 mt-0.5" style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-sans)' }}>
         Tabla de posiciones por grupo · criterios de desempate FIFA 2026
       </p>
 
@@ -99,9 +99,9 @@ export default function GruposPage() {
             onClick={() => setGrupoActivo(g)}
             className="px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest shrink-0 transition-all active:scale-95"
             style={{
-              fontFamily: 'var(--font-rajdhani)',
-              background: grupoActivo === g ? 'rgba(234,88,12,0.2)' : 'var(--bg-card)',
-              border: grupoActivo === g ? '1px solid rgba(234,88,12,0.6)' : '1px solid var(--border)',
+              fontFamily: 'var(--font-sans)',
+              background: grupoActivo === g ? 'color-mix(in srgb, var(--br) 20%, transparent)' : 'var(--bg-card)',
+              border: grupoActivo === g ? '1px solid color-mix(in srgb, var(--br) 60%, transparent)' : '1px solid var(--border)',
               color: grupoActivo === g ? 'var(--accent-gold)' : 'var(--text-secondary)',
             }}
           >
@@ -115,7 +115,7 @@ export default function GruposPage() {
       ) : equiposOrdenados.length === 0 ? (
         <div className="rounded-2xl p-10 text-center" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
           <p className="text-4xl mb-3">⏳</p>
-          <p style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-rajdhani)', fontSize: '0.95rem' }}>
+          <p style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-sans)', fontSize: '0.95rem' }}>
             Los datos del Grupo {grupoActivo} se actualizarán durante el torneo
           </p>
         </div>
@@ -125,14 +125,14 @@ export default function GruposPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-xs" style={{ minWidth: 340 }}>
                 <thead>
-                  <tr style={{ background: 'rgba(234,88,12,0.1)', borderBottom: '1px solid var(--border)' }}>
-                    <th className="text-left px-3 py-2.5" style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-rajdhani)', fontWeight: 700, letterSpacing: '0.08em' }}>
+                  <tr style={{ background: 'color-mix(in srgb, var(--br) 10%, transparent)', borderBottom: '1px solid var(--border)' }}>
+                    <th className="text-left px-3 py-2.5" style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-sans)', fontWeight: 700, letterSpacing: '0.08em' }}>
                       Equipo
                     </th>
                     {['PJ','G','E','P','GF','GC','DG','PTS'].map(h => (
                       <th key={h} className="text-center px-2 py-2.5 w-8" style={{
                         color: h === 'PTS' ? 'var(--accent-gold)' : 'var(--text-secondary)',
-                        fontFamily: 'var(--font-rajdhani)',
+                        fontFamily: 'var(--font-sans)',
                         fontWeight: 700,
                         letterSpacing: '0.08em',
                       }}>
@@ -149,10 +149,10 @@ export default function GruposPage() {
                         key={eq.id}
                         style={{
                           background: i === 0
-                            ? 'rgba(234,88,12,0.07)'
+                            ? 'color-mix(in srgb, var(--br) 7%, transparent)'
                             : i % 2 === 0 ? 'var(--bg-card)' : 'var(--bg-card-hover)',
                           borderBottom: '1px solid var(--border)',
-                          borderLeft: i < 2 ? '3px solid var(--accent-gold)' : i === 2 ? '3px solid #ca8a04' : '3px solid transparent',
+                          borderLeft: i < 2 ? '3px solid var(--accent-gold)' : i === 2 ? '3px solid var(--rs)' : '3px solid transparent',
                         }}
                       >
                         <td className="px-3 py-2.5">
@@ -162,7 +162,7 @@ export default function GruposPage() {
                             )}
                             <span style={{
                               color: i === 0 ? 'var(--accent-gold)' : 'var(--text-primary)',
-                              fontFamily: 'var(--font-rajdhani)',
+                              fontFamily: 'var(--font-sans)',
                               fontWeight: i < 2 ? 700 : 400,
                               whiteSpace: 'nowrap',
                             }}>
@@ -178,7 +178,7 @@ export default function GruposPage() {
                         {[eq.pj, eq.g, eq.e, eq.p, eq.gf, eq.gc, eq.dg, eq.pts].map((val, vi) => (
                           <td key={vi} className="text-center px-2 py-2.5" style={{
                             color: vi === 7 ? 'var(--accent-gold)' : 'var(--text-primary)',
-                            fontFamily: 'var(--font-rajdhani)',
+                            fontFamily: 'var(--font-sans)',
                             fontWeight: vi === 7 ? 700 : 400,
                           }}>
                             {val ?? 0}
@@ -194,30 +194,30 @@ export default function GruposPage() {
 
           {/* Leyenda clasificación */}
           <div className="mt-4 rounded-xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-            <p className="text-xs font-bold mb-2" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-rajdhani)' }}>
+            <p className="text-xs font-bold mb-2" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-sans)' }}>
               ℹ️ Clasificación
             </p>
             <div className="space-y-1.5">
               <div className="flex items-center gap-2">
                 <span className="text-[10px] px-1.5 py-0.5 rounded font-bold bg-green-600/20 text-green-400 shrink-0">✓</span>
-                <span className="text-xs" style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-rajdhani)' }}>
+                <span className="text-xs" style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-sans)' }}>
                   Top 2 de cada grupo — clasifican directo (24 equipos)
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] px-1.5 py-0.5 rounded font-bold bg-yellow-600/20 text-yellow-400 shrink-0">?</span>
-                <span className="text-xs" style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-rajdhani)' }}>
+                <span className="text-xs" style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-sans)' }}>
                   3er lugar — los 8 mejores terceros también clasifican
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] px-1.5 py-0.5 rounded font-bold bg-red-600/20 text-red-400 shrink-0">✗</span>
-                <span className="text-xs" style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-rajdhani)' }}>
+                <span className="text-xs" style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-sans)' }}>
                   4to lugar — eliminado
                 </span>
               </div>
             </div>
-            <p className="text-[10px] mt-3" style={{ color: '#475569', fontFamily: 'var(--font-rajdhani)' }}>
+            <p className="text-[10px] mt-3" style={{ color: 'var(--mut)', fontFamily: 'var(--font-sans)' }}>
               Desempate: puntos directos → DG directa → goles directos → DG general → goles general → tarjetas → ranking FIFA
             </p>
           </div>

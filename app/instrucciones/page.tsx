@@ -1,3 +1,5 @@
+import Encabezado from '@/components/ui/Encabezado';
+
 export default function InstruccionesPage() {
   const pasos = [
     {
@@ -53,80 +55,67 @@ export default function InstruccionesPage() {
   return (
     <main
       className="max-w-lg mx-auto px-4 pb-24"
-      style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1.5rem)' }}
+      style={{ paddingTop: 'max(20px, calc(env(safe-area-inset-top) + 12px))' }}
     >
       {/* Header */}
-      <div className="mb-6" style={{ animation: 'fadeInUp 0.4s ease-out' }}>
-        <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: '2rem', color: '#ea580c', lineHeight: 1, letterSpacing: '0.05em' }}>
-          📖 CÓMO FUNCIONA
-        </h1>
-        <p className="text-sm mt-1" style={{ color: '#94a3b8' }}>
-          Guía rápida para participar en Quiniela Metro Mundial 2026
-        </p>
-      </div>
+      <Encabezado titulo="Cómo jugar" volver="/perfil" subtitulo="Guía rápida para participar en Quiniela Metro" />
 
-      {/* Pasos */}
-      <div className="space-y-4">
-        {pasos.map((paso, i) => (
-          <div
-            key={paso.numero}
-            className="rounded-2xl p-5"
-            style={{
-              background: '#12121a',
-              border: '1px solid #1e1e2e',
-              animation: `fadeInUp 0.4s ease-out ${i * 60}ms both`,
-            }}
-          >
-            <div className="flex items-start gap-4">
-              {/* Número */}
-              <div
-                className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-sm"
-                style={{ background: '#ea580c', fontFamily: 'var(--font-bebas)', fontSize: '1.1rem' }}
-              >
-                {paso.numero}
-              </div>
-
-              {/* Contenido */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-2xl">{paso.emoji}</span>
-                  <h3 style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: '#fb923c', letterSpacing: '0.04em' }}>
-                    {paso.titulo}
-                  </h3>
-                </div>
-                <p
-                  className="text-sm leading-relaxed whitespace-pre-line"
-                  style={{ color: '#cbd5e1' }}
-                >
-                  {paso.descripcion}
-                </p>
-              </div>
+      {/* Así se suman puntos */}
+      <section className="rounded-[16px] p-4 mb-5" style={{ background: 'var(--ink)', color: 'var(--bg)' }}>
+        <p className="senal mb-3" style={{ fontSize: 12 }}>Así se suman puntos</p>
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            { n: '3', t: 'Marcador exacto', st: { background: 'var(--ex)', color: 'var(--exI)' } },
+            { n: '1', t: 'Ganador o empate', st: { background: 'var(--rs)', color: '#2B1D00' } },
+            { n: '0', t: 'Fallo', st: { background: 'var(--flS)', color: 'var(--fl)' } },
+          ].map(x => (
+            <div key={x.n} className="rounded-[12px] py-3 px-2 text-center" style={x.st}>
+              <div className="font-display" style={{ fontSize: 40, lineHeight: 1 }}>{x.n}</div>
+              <div className="text-[13px] font-semibold leading-tight mt-1">{x.t}</div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+        <p className="text-[14px] mt-3 opacity-80">¿Empate en puntos? Se desempata con los puntos de la jornada siguiente.</p>
+      </section>
 
-      {/* Footer CTA */}
-      <div
-        className="mt-6 rounded-2xl p-4 text-center"
-        style={{ background: 'rgba(234,88,12,0.08)', border: '1px solid rgba(234,88,12,0.3)', animation: 'fadeInUp 0.4s ease-out 0.5s both' }}
-      >
-        <p className="text-sm font-semibold" style={{ color: '#fb923c', fontFamily: 'var(--font-rajdhani)' }}>
+      {/* Pasos como estaciones de una línea */}
+      <ol className="relative">
+        <span aria-hidden="true" className="absolute" style={{ left: 21, top: 22, bottom: 22, width: 6, borderRadius: 3, background: 'var(--br)' }} />
+        {pasos.map((paso) => (
+          <li key={paso.numero} className="relative flex items-start gap-3 mb-3">
+            <span className="relative z-10 flex items-center justify-center rounded-full shrink-0 font-display"
+              style={{ width: 48, height: 48, background: 'var(--sf)', border: '5px solid var(--br)', color: 'var(--ink)', fontSize: 20 }}>
+              {paso.numero}
+            </span>
+            <div className="flex-1 min-w-0 rounded-[16px] px-4 py-3" style={{ background: 'var(--sf)', border: '1px solid var(--ln)' }}>
+              <h3 className="font-bold text-[16px]" style={{ color: 'var(--ink)' }}>
+                {paso.titulo.charAt(0) + paso.titulo.slice(1).toLowerCase()}
+              </h3>
+              <p className="text-[14px] leading-snug whitespace-pre-line mt-0.5" style={{ color: 'var(--ink2)' }}>
+                {paso.descripcion}
+              </p>
+            </div>
+          </li>
+        ))}
+      </ol>
+
+      {/* Contacto */}
+      <div className="mt-4 rounded-[16px] p-4 text-center" style={{ background: 'var(--brS)' }}>
+        <p className="text-[14px] font-semibold" style={{ color: 'var(--ink2)' }}>
           ¿Dudas? Escríbenos al WhatsApp
         </p>
-        <p className="text-lg font-bold mt-1" style={{ color: '#fff', fontFamily: 'var(--font-bebas)', letterSpacing: '0.05em' }}>
+        <p className="font-display mt-1" style={{ fontSize: 28, color: 'var(--ink)' }}>
           55 2326 9241
         </p>
       </div>
 
-      {/* Grupo WhatsApp */}
       <a
         href="https://chat.whatsapp.com/LeFSQrZwf9nARVoU7YARhD"
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center justify-center gap-3 w-full py-4 rounded-xl font-bold hover:opacity-80 transition-all mt-6"
-        style={{ background: 'rgba(22,163,74,0.15)', border: '1px solid rgba(34,197,94,0.3)', color: '#4ade80', fontFamily: 'var(--font-rajdhani)' }}>
-        💬 Únete al grupo de WhatsApp
+        className="flex items-center justify-center gap-2 w-full rounded-[12px] font-bold text-[16px] mt-4 active:scale-[0.98] transition-transform"
+        style={{ minHeight: 56, background: 'var(--wa)', color: '#fff' }}>
+        Únete al grupo de WhatsApp
       </a>
     </main>
   );

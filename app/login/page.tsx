@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -32,7 +33,7 @@ function Spinner() {
 }
 
 const INPUT_CLASS =
-  'w-full px-4 py-3 rounded-xl text-sm font-medium outline-none transition-all border focus:ring-2 focus:ring-orange-500/40';
+  'w-full px-4 min-h-[48px] rounded-[12px] text-[16px] font-medium outline-none transition-all border focus:ring-2 focus:ring-orange-500/40';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -192,36 +193,30 @@ export default function LoginPage() {
 
   return (
     <main
-      className="min-h-screen flex flex-col items-center justify-center px-4 py-10 relative overflow-hidden"
-      style={{ background: 'var(--bg-primary)' }}
+      className="min-h-screen flex flex-col items-center px-4 pb-10 relative overflow-hidden"
+      style={{ background: 'var(--bg)', paddingTop: 'max(24px, calc(env(safe-area-inset-top) + 16px))' }}
     >
       {/* Patrón hexagonal */}
-      <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.04 }} xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <pattern id="hex" x="0" y="0" width="56" height="100" patternUnits="userSpaceOnUse">
-            <polygon points="28,2 54,16 54,44 28,58 2,44 2,16" fill="none" stroke="#ea580c" strokeWidth="1"/>
-            <polygon points="28,52 54,66 54,94 28,108 2,94 2,66" fill="none" stroke="#ea580c" strokeWidth="1"/>
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#hex)"/>
-      </svg>
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-80 h-80 rounded-full pointer-events-none"
-        style={{ background: 'radial-gradient(circle, rgba(234,88,12,0.08) 0%, transparent 70%)' }} />
-
       <motion.div
-        className="relative z-10 w-full max-w-sm space-y-6"
+        className="relative z-10 w-full max-w-md space-y-5"
         initial="hidden"
         animate="visible"
         variants={loginStagger}
       >
         {/* Header */}
-        <motion.div className="text-center" variants={loginItem}>
-          <img src="/icons/icon-192.png" alt="Quiniela Metro" className="w-20 h-20 rounded-2xl mx-auto mb-3 shadow-lg shadow-orange-500/30" />
-          <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: '3rem', color: 'var(--accent-gold)', lineHeight: 1, letterSpacing: '0.05em' }}>
-            QUINIELA METRO
+        <motion.div variants={loginItem}>
+          <Link href="/" aria-label="Volver" className="inline-flex items-center justify-center w-11 h-11 -ml-2 mb-2" style={{ color: 'var(--ink)' }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M11 18l-6-6 6-6" /></svg>
+          </Link>
+          <span className="inline-flex items-center gap-2 rounded-full px-2.5 py-1 mb-3" style={{ background: 'var(--ink)', color: 'var(--bg)' }}>
+            <span className="rounded-full" style={{ width: 10, height: 10, border: '3px solid var(--br)', background: 'var(--bg)' }} />
+            <span className="senal" style={{ fontSize: 11 }}>Andén de acceso</span>
+          </span>
+          <h1 className="font-display" style={{ fontSize: 40, lineHeight: 0.95, color: 'var(--ink)' }}>
+            Entra a la quiniela
           </h1>
-          <p className="mt-1 text-sm font-semibold" style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--text-secondary)' }}>
-            Mundial 2026 🏆
+          <p className="mt-2 text-[15px]" style={{ color: 'var(--ink2)' }}>
+            Usa tu cuenta de Google y listo. Es lo más rápido.
           </p>
         </motion.div>
 
@@ -230,8 +225,8 @@ export default function LoginPage() {
           variants={loginItem}
           onClick={handleGoogle}
           disabled={googleLoading}
-          className="w-full flex items-center justify-center gap-3 py-3.5 px-6 rounded-2xl font-semibold text-sm disabled:opacity-60"
-          style={{ background: '#fff', color: '#111', fontFamily: 'var(--font-rajdhani)' }}
+          className="w-full flex items-center justify-center gap-3 px-6 rounded-[12px] font-bold text-[16px] disabled:opacity-60"
+          style={{ minHeight: 56, background: 'var(--ink)', color: 'var(--bg)', fontFamily: 'var(--font-sans)' }}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.97 }}
         >
@@ -242,23 +237,24 @@ export default function LoginPage() {
         {/* Divider */}
         <motion.div className="flex items-center gap-3" variants={loginItem}>
           <div className="flex-1 h-px" style={{ background: 'var(--border-color)' }} />
-          <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>o</span>
+          <span className="text-[13px] font-medium" style={{ color: 'var(--text-muted)' }}>o con tu correo</span>
           <div className="flex-1 h-px" style={{ background: 'var(--border-color)' }} />
         </motion.div>
 
         {/* Email + Password card */}
-        <motion.div className="rounded-2xl p-5 space-y-4" style={cardStyle} variants={loginItem}>
+        <motion.div className="rounded-[16px] p-4 space-y-4" style={cardStyle} variants={loginItem}>
           {/* Tab toggle */}
-          <div className="flex rounded-xl overflow-hidden border" style={{ borderColor: 'var(--border-color)' }}>
+          <div className="flex rounded-[12px] p-1 gap-1" style={{ background: 'var(--sf2)' }}>
             {(['login', 'register'] as Mode[]).map((m) => (
               <button
                 key={m}
                 onClick={() => switchMode(m)}
-                className="flex-1 py-2 text-sm font-bold transition-all"
+                className="flex-1 min-h-[40px] rounded-[9px] text-[14px] font-bold transition-all"
                 style={{
-                  fontFamily: 'var(--font-rajdhani)',
-                  background: mode === m ? 'var(--accent-gold)' : 'transparent',
-                  color: mode === m ? '#fff' : 'var(--text-secondary)',
+                  fontFamily: 'var(--font-sans)',
+                  background: mode === m ? 'var(--sf)' : 'transparent',
+                  color: mode === m ? 'var(--ink)' : 'var(--mut)',
+                  boxShadow: mode === m ? '0 1px 2px rgba(0,0,0,.12)' : 'none',
                 }}
               >
                 {m === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}
@@ -324,7 +320,7 @@ export default function LoginPage() {
 
             {/* Error / success */}
             {pwdError && (
-              <p className="text-xs font-semibold px-1" style={{ color: 'var(--accent-red)' }}>{pwdError}</p>
+              <p role="alert" className="text-[14px] font-semibold rounded-[12px] px-3 py-2.5" style={{ color: 'var(--fl)', background: 'var(--flS)' }}>{pwdError}</p>
             )}
             {pwdSuccess && (
               <p className="text-xs font-semibold px-1" style={{ color: 'var(--accent-green)' }}>{pwdSuccess}</p>
@@ -333,8 +329,8 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={pwdLoading}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm text-white transition-all active:scale-95 disabled:opacity-60"
-              style={{ background: 'var(--accent-gold)', fontFamily: 'var(--font-rajdhani)' }}
+              className="w-full flex items-center justify-center gap-2 min-h-[56px] rounded-[12px] font-bold text-[17px] transition-all active:scale-[0.98] disabled:opacity-60"
+              style={{ background: 'var(--br)', color: 'var(--brI)', fontFamily: 'var(--font-sans)' }}
             >
               {pwdLoading ? <Spinner /> : null}
               {pwdLoading ? 'Un momento…' : mode === 'login' ? 'Entrar con contraseña' : 'Crear cuenta'}
@@ -345,8 +341,8 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => { setShowReset(v => !v); setResetSent(false); setResetError(''); setResetEmail(''); }}
-                  className="text-xs font-semibold transition-colors hover:underline"
-                  style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
+                  className="text-[14px] font-semibold underline underline-offset-2 min-h-[44px]"
+                  style={{ fontFamily: 'var(--font-sans)', color: 'var(--br)', background: 'none', border: 'none', cursor: 'pointer' }}
                 >
                   ¿Olvidaste tu contraseña?
                 </button>
@@ -362,7 +358,7 @@ export default function LoginPage() {
                 </p>
               ) : (
                 <form onSubmit={handleReset} className="space-y-3">
-                  <p className="text-xs font-semibold" style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-rajdhani)' }}>
+                  <p className="text-xs font-semibold" style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-sans)' }}>
                     Ingresa tu correo y te enviaremos un link para restablecer tu contraseña.
                   </p>
                   <input
@@ -380,8 +376,8 @@ export default function LoginPage() {
                   <button
                     type="submit"
                     disabled={resetLoading}
-                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm text-white transition-all active:scale-95 disabled:opacity-60"
-                    style={{ background: '#475569', fontFamily: 'var(--font-rajdhani)' }}
+                    className="w-full flex items-center justify-center gap-2 min-h-[48px] rounded-[12px] font-bold text-[15px] transition-all active:scale-[0.98] disabled:opacity-60"
+                    style={{ background: 'transparent', border: '1.5px solid var(--ink)', color: 'var(--ink)', fontFamily: 'var(--font-sans)' }}
                   >
                     {resetLoading ? <Spinner /> : '🔑'}
                     {resetLoading ? 'Enviando…' : 'Enviar correo de recuperación'}
@@ -393,13 +389,13 @@ export default function LoginPage() {
         </motion.div>
 
         {/* Magic Link — colapsable */}
-        <motion.div className="rounded-2xl overflow-hidden" style={cardStyle} variants={loginItem}>
+        <motion.div className="rounded-[16px] overflow-hidden" style={cardStyle} variants={loginItem}>
           <button
             onClick={() => setShowMagic(v => !v)}
-            className="w-full flex items-center justify-between px-5 py-3.5 text-sm font-semibold transition-colors"
-            style={{ fontFamily: 'var(--font-rajdhani)', color: 'var(--text-secondary)' }}
+            className="w-full flex items-center justify-between px-4 min-h-[52px] text-[15px] font-semibold transition-colors"
+            style={{ fontFamily: 'var(--font-sans)', color: 'var(--text-secondary)' }}
           >
-            <span>📧 O entra con link por correo</span>
+            <span>Enviar link de acceso por correo</span>
             <span style={{ fontSize: '0.65rem' }}>{showMagic ? '▲' : '▼'}</span>
           </button>
 
@@ -426,8 +422,8 @@ export default function LoginPage() {
                   <button
                     type="submit"
                     disabled={magicLoading}
-                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm text-white transition-all active:scale-95 disabled:opacity-60"
-                    style={{ background: '#1e40af', fontFamily: 'var(--font-rajdhani)' }}
+                    className="w-full flex items-center justify-center gap-2 min-h-[48px] rounded-[12px] font-bold text-[15px] transition-all active:scale-[0.98] disabled:opacity-60"
+                    style={{ background: 'var(--sf2)', color: 'var(--ink)', fontFamily: 'var(--font-sans)' }}
                   >
                     {magicLoading ? <Spinner /> : '✉️'}
                     {magicLoading ? 'Enviando…' : 'Enviar link de acceso'}

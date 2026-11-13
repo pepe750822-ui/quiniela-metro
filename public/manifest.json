@@ -1,11 +1,12 @@
 {
   "name": "Quiniela Metro",
-  "short_name": "Q.Metro",
+  "short_name": "Quiniela",
   "description": "Quiniela del Mundial 2026 - STC Metro CDMX",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0a0a",
-  "theme_color": "#ea580c",
+  "orientation": "portrait",
+  "background_color": "#F4EFE6",
+  "theme_color": "#C8006A",
   "icons": [
     {
       "src": "/icons/icon-192.png",

@@ -1,4 +1,5 @@
 'use client';
+import { CeldaPred } from '@/components/ui/Puntos';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
@@ -417,12 +418,6 @@ export default function TablaPage() {
     return (j?.apodo || j?.nombre || 'J').substring(0, 2).toUpperCase();
   };
 
-  const ptsClass = (pts: number) => {
-    if (pts === 3) return 'font-bold text-sm text-emerald-700 dark:text-emerald-400';
-    if (pts === 1) return 'font-bold text-sm text-orange-700 dark:text-orange-400';
-    return 'text-sm text-red-700 dark:text-red-400';
-  };
-
   const emojiComoTermino = (como: string | null | undefined) => {
     if (como === 'reglamentario') return '⏱️';
     if (como === 'tiempo_extra')  return '⏱️';
@@ -637,23 +632,23 @@ export default function TablaPage() {
   // Para ligamx2026 J7+J8: orden cronológico global con headers cuando cambia el grupo
   const esJ8Multi = TEMPORADA_ACTIVA === 'ligamx2026' && jornada >= 7;
   const J8_GRUPO_META: Record<string, { label: string; color: string; bg: string; border: string }> = {
-    LC:   { label: jornada === 7 ? '🏆 Leagues Cup' : '🏆 LC Semis', color: '#fb923c', bg: 'rgba(234,88,12,0.06)',  border: 'rgba(234,88,12,0.3)'  },
+    LC:   { label: jornada === 7 ? '🏆 Leagues Cup' : '🏆 LC Semis', color: 'var(--br)', bg: 'color-mix(in srgb, var(--br) 6%, transparent)',  border: 'color-mix(in srgb, var(--br) 30%, transparent)'  },
     LMX:  { label: jornada === 7 ? '⚽ Liga MX J7'  : '⚽ Liga MX',  color: '#818cf8', bg: 'rgba(99,102,241,0.06)', border: 'rgba(99,102,241,0.3)' },
     ENG:  { label: '🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier', color: '#60a5fa', bg: 'rgba(96,165,250,0.06)', border: 'rgba(96,165,250,0.3)' },
-    UCL:  { label: '⭐ Champions', color: '#fbbf24', bg: 'rgba(251,191,36,0.06)', border: 'rgba(251,191,36,0.3)' },
+    UCL:  { label: '⭐ Champions', color: 'var(--rs)', bg: 'color-mix(in srgb, var(--rs) 6%, transparent)', border: 'color-mix(in srgb, var(--rs) 30%, transparent)' },
     UEFA: { label: '🏆 UEFA Nations League', color: '#3b82f6', bg: 'rgba(59,130,246,0.06)', border: 'rgba(59,130,246,0.3)' },
-    MEX:  { label: '🇲🇽 Selección México',  color: '#22c55e', bg: 'rgba(34,197,94,0.06)',  border: 'rgba(34,197,94,0.3)'  },
+    MEX:  { label: '🇲🇽 Selección México',  color: 'var(--ex)', bg: 'color-mix(in srgb, var(--ex) 6%, transparent)',  border: 'color-mix(in srgb, var(--ex) 30%, transparent)'  },
     LMX9: { label: '⚽ J9 Liga MX',         color: '#818cf8', bg: 'rgba(99,102,241,0.06)', border: 'rgba(99,102,241,0.3)' },
     LMX10:{ label: '⚽ J10 Liga MX',        color: '#a78bfa', bg: 'rgba(139,92,246,0.06)', border: 'rgba(139,92,246,0.3)' },
     LMX11:{ label: '⚽ J11 Liga MX',        color: '#818cf8', bg: 'rgba(99,102,241,0.06)', border: 'rgba(99,102,241,0.3)' },
-    UCL2: { label: '⭐ Champions J2',       color: '#fbbf24', bg: 'rgba(251,191,36,0.06)', border: 'rgba(251,191,36,0.3)' },
+    UCL2: { label: '⭐ Champions J2',       color: 'var(--rs)', bg: 'color-mix(in srgb, var(--rs) 6%, transparent)', border: 'color-mix(in srgb, var(--rs) 30%, transparent)' },
     LMX12:{ label: '⚽ J12 Liga MX',        color: '#4f46e5', bg: 'rgba(79,70,229,0.06)',  border: 'rgba(79,70,229,0.3)'  },
-    UCL3: { label: '⭐ Champions J3',       color: '#f59e0b', bg: 'rgba(245,158,11,0.06)', border: 'rgba(245,158,11,0.3)' },
+    UCL3: { label: '⭐ Champions J3',       color: 'var(--rs)', bg: 'color-mix(in srgb, var(--rs) 6%, transparent)', border: 'color-mix(in srgb, var(--rs) 30%, transparent)' },
     LMX14:   { label: 'Liga MX J14',       color: '#818cf8', bg: 'rgba(99,102,241,0.06)',  border: 'rgba(99,102,241,0.3)'  },
     LMX15:   { label: 'Liga MX J15',       color: '#a78bfa', bg: 'rgba(139,92,246,0.06)',  border: 'rgba(139,92,246,0.3)'  },
     EPL8:    { label: 'Premier League F8', color: '#60a5fa', bg: 'rgba(96,165,250,0.06)',  border: 'rgba(96,165,250,0.3)'  },
     EPL9:    { label: 'Premier League F9', color: '#60a5fa', bg: 'rgba(96,165,250,0.06)',  border: 'rgba(96,165,250,0.3)'  },
-    LALIGA10:{ label: 'LaLiga F10',        color: '#f87171', bg: 'rgba(248,113,113,0.06)', border: 'rgba(248,113,113,0.3)' },
+    LALIGA10:{ label: 'LaLiga F10',        color: 'var(--fl)', bg: 'color-mix(in srgb, var(--fl) 6%, transparent)', border: 'color-mix(in srgb, var(--fl) 30%, transparent)' },
     BUND8:   { label: 'Bundesliga F8',     color: '#f43f5e', bg: 'rgba(244,63,94,0.06)',   border: 'rgba(244,63,94,0.3)'   },
     SERIEA10:{ label: 'Serie A F10',       color: '#2dd4bf', bg: 'rgba(45,212,191,0.06)',  border: 'rgba(45,212,191,0.3)'  },
   };
@@ -666,7 +661,7 @@ export default function TablaPage() {
   if (esJ8Multi) {
     for (const p of j8Sorted) {
       const last = j8Runs[j8Runs.length - 1];
-      const meta = J8_GRUPO_META[p.grupo] ?? { label: p.grupo, color: '#94a3b8', bg: 'rgba(148,163,184,0.06)', border: 'rgba(148,163,184,0.3)' };
+      const meta = J8_GRUPO_META[p.grupo] ?? { label: p.grupo, color: 'var(--mut)', bg: 'color-mix(in srgb, var(--mut) 6%, transparent)', border: 'color-mix(in srgb, var(--mut) 30%, transparent)' };
       if (last && last.key === p.grupo) { last.count++; }
       else j8Runs.push({ key: p.grupo, count: 1, meta });
     }
@@ -683,7 +678,7 @@ export default function TablaPage() {
     const runs: { key: string; count: number; meta: typeof J8_GRUPO_META[string] }[] = [];
     for (const p of arr) {
       const last = runs[runs.length - 1];
-      const meta = J8_GRUPO_META[p.grupo] ?? { label: p.grupo, color: '#94a3b8', bg: 'rgba(148,163,184,0.06)', border: 'rgba(148,163,184,0.3)' };
+      const meta = J8_GRUPO_META[p.grupo] ?? { label: p.grupo, color: 'var(--mut)', bg: 'color-mix(in srgb, var(--mut) 6%, transparent)', border: 'color-mix(in srgb, var(--mut) 30%, transparent)' };
       if (last && last.key === p.grupo) { last.count++; }
       else runs.push({ key: p.grupo, count: 1, meta });
     }
@@ -708,12 +703,12 @@ export default function TablaPage() {
         <tr key={part.id} style={{ borderBottom: '0.5px solid #ddd' }}>
           <td style={{ background: '#f5f5f5', padding: '3px 4px', fontWeight: 'bold', fontSize: '8px' }}>
             {nombre}
-            {quinielaNombre && <div style={{ color: '#c2410c', fontSize: '7px' }}>{quinielaNombre}</div>}
+            {quinielaNombre && <div style={{ color: 'var(--br)', fontSize: '7px' }}>{quinielaNombre}</div>}
           </td>
           {mitad.map((partido: any) => {
             const pred = getPred(part.user_id, partido.id, part.quiniela_extra_id);
             const pts = pred?.puntos_ganados;
-            const color = pts === 3 ? '#16a34a' : pts === 1 ? '#ea580c' : pts === 0 ? '#dc2626' : '#666';
+            const color = pts === 3 ? 'var(--ex)' : pts === 1 ? 'var(--rs)' : pts === 0 ? 'var(--fl)' : '#666';
             return (
               <td key={partido.id} style={{ border: '0.5px solid #ddd', padding: '2px', textAlign: 'center' }}>
                 {pred ? (
@@ -731,7 +726,7 @@ export default function TablaPage() {
               </td>
             );
           })}
-          <td style={{ background: '#fff3e0', color: '#c2410c', fontWeight: 'bold', textAlign: 'center', fontSize: '10px' }}>
+          <td style={{ background: '#fff3e0', color: 'var(--br)', fontWeight: 'bold', textAlign: 'center', fontSize: '10px' }}>
             {totalPuntos}
           </td>
         </tr>
@@ -747,29 +742,38 @@ export default function TablaPage() {
           <div style={{ color: '#aaa', fontSize: '6px' }}>vs</div>
           <div>{p.equipo_visitante.substring(0, 3).toUpperCase()}</div>
           {p.estado === 'finalizado' && (
-            <div style={{ color: '#fb923c', fontWeight: 'bold' }}>{p.goles_local}-{p.goles_visitante}</div>
+            <div style={{ color: 'var(--br)', fontWeight: 'bold' }}>{p.goles_local}-{p.goles_visitante}</div>
           )}
         </th>
       ))}
-      <th style={{ background: '#c2410c', color: 'white', padding: '4px', textAlign: 'center', width: '28px' }}>PTS</th>
+      <th style={{ background: 'var(--br)', color: 'white', padding: '4px', textAlign: 'center', width: '28px' }}>PTS</th>
     </tr>
   );
 
   return (
     <div className="min-h-screen bg-base pb-24">
-      <div className="px-4 pt-6 pb-4">
+      <div className="px-4 pb-4" style={{ paddingTop: 'max(20px, calc(env(safe-area-inset-top) + 12px))' }}>
         <div className="flex items-center gap-3">
-          <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: '2rem', color: '#ea580c', letterSpacing: '0.05em' }}>
-            {TEMPORADA_ACTIVA === 'ligamx2026'
-              ? (jornada <= 3 ? 'Leagues Cup — Fase 1' : 'Liga MX Apertura 2026')
-              : '📊 TABLA DE PUNTOS'}
-          </h1>
+          <span className="flex items-center justify-center shrink-0 rounded-[10px] font-display"
+            style={{ width: 44, height: 44, background: 'var(--br)', color: 'var(--brI)', fontSize: 26, lineHeight: 1 }}>
+            {jornada}
+          </span>
+          <div className="min-w-0">
+            <h1 className="font-display" style={{ fontSize: 32, lineHeight: 1, color: 'var(--ink)' }}>
+              Tabla J{jornada}
+            </h1>
+            <p className="text-[14px] font-medium mt-0.5 truncate" style={{ color: 'var(--mut)' }}>
+              {TEMPORADA_ACTIVA === 'ligamx2026'
+                ? (jornada <= 3 ? 'Leagues Cup — Fase 1' : 'Liga MX Apertura 2026')
+                : 'Tabla de puntos'}
+            </p>
+          </div>
           <div className="ml-auto flex gap-2">
             {esAdmin && (
               <button
                 onClick={refreshData}
                 disabled={loading}
-                className="text-xs bg-[#12121a] border border-[#1e1e2e] text-slate-400 px-3 py-1.5 rounded-lg hover:border-orange-500/40 hover:text-orange-400 transition-all disabled:opacity-50"
+                className="text-xs bg-[var(--sf)] border border-[var(--ln)] text-slate-400 px-3 py-1.5 rounded-lg hover:border-orange-500/40 hover:text-orange-400 transition-all disabled:opacity-50"
               >
                 {loading ? '⏳' : '🔄'} Actualizar
               </button>
@@ -777,7 +781,7 @@ export default function TablaPage() {
             <button
               onClick={descargarCSV}
               className="flex items-center gap-2 px-4 py-1.5 bg-surface border border-theme rounded-lg text-slate-400 text-sm hover:border-orange-500/40 hover:text-orange-400 transition-all"
-              style={{ fontFamily: 'var(--font-rajdhani)', fontWeight: 'bold' }}
+              style={{ fontFamily: 'var(--font-sans)', fontWeight: 'bold' }}
             >
               ⬇️ CSV
             </button>
@@ -785,7 +789,7 @@ export default function TablaPage() {
               onClick={() => window.print()}
               className="flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-bold transition-all"
               style={{
-                fontFamily: 'var(--font-rajdhani)',
+                fontFamily: 'var(--font-sans)',
                 background: 'var(--bg-card)',
                 border: '1px solid var(--border-color)',
                 color: 'var(--text-secondary)',
@@ -803,12 +807,12 @@ export default function TablaPage() {
               key={j}
               data-active={String(jornada === j)}
               onClick={() => setJornada(j)}
-              className="flex-shrink-0 px-4 py-1.5 rounded-lg text-sm font-bold transition-all active:scale-95"
+              className="flex-shrink-0 px-4 min-h-[44px] rounded-full text-[14px] font-semibold transition-all active:scale-95"
               style={{
-                fontFamily: 'var(--font-rajdhani)',
-                background: jornada === j ? '#ea580c' : 'var(--bg-card)',
-                color: jornada === j ? '#fff' : 'var(--text-secondary)',
-                border: `1px solid ${jornada === j ? '#ea580c' : 'var(--border-color)'}`,
+                fontFamily: 'var(--font-sans)',
+                background: jornada === j ? 'var(--ink)' : 'var(--sf)',
+                color: jornada === j ? 'var(--bg)' : 'var(--ink2)',
+                border: `1px solid ${jornada === j ? 'var(--ink)' : 'var(--ln)'}`,
               }}
             >
               {TEMPORADA_ACTIVA === 'ligamx2026' ? (j <= 3 ? `J${j}` : getNombreJornadaLigaMX(j)) : getNombreJornada(j)}
@@ -827,18 +831,18 @@ export default function TablaPage() {
       {/* Indicador comparativo Pozo vs Tabla */}
       <div className="px-4 mb-2 print:hidden">
         <div className="inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg"
-          style={{ background: 'rgba(234,88,12,0.06)', border: '1px solid rgba(234,88,12,0.2)' }}>
-          <span style={{ color: '#94a3b8' }}>
+          style={{ background: 'color-mix(in srgb, var(--br) 6%, transparent)', border: '1px solid color-mix(in srgb, var(--br) 20%, transparent)' }}>
+          <span style={{ color: 'var(--mut)' }}>
             {'👥 Pozo: '}
-            <strong style={{ color: '#e2e8f0' }}>{pozoParticipantes ?? '…'}</strong>
+            <strong style={{ color: 'var(--ink)' }}>{pozoParticipantes ?? '…'}</strong>
             {' · Tabla: '}
-            <strong style={{ color: '#e2e8f0' }}>{participaciones.length}</strong>
+            <strong style={{ color: 'var(--ink)' }}>{participaciones.length}</strong>
             {' '}
           </span>
           {pozoParticipantes !== null && (
             pozoParticipantes === participaciones.length
-              ? <span style={{ color: '#22c55e' }}>✅</span>
-              : <span style={{ color: '#f59e0b' }}>⚠️</span>
+              ? <span style={{ color: 'var(--ex)' }}>✅</span>
+              : <span style={{ color: 'var(--rs)' }}>⚠️</span>
           )}
         </div>
       </div>
@@ -848,7 +852,7 @@ export default function TablaPage() {
         <table className="min-w-max print:min-w-0 print:w-full text-sm border-collapse">
           <thead className="sticky top-0 z-20">
             {esJ8Multi && j8Runs.length > 0 && (
-              <tr style={{ borderBottom: '1px solid rgba(234,88,12,0.15)' }}>
+              <tr style={{ borderBottom: '1px solid color-mix(in srgb, var(--br) 15%, transparent)' }}>
                 {jornada === 7 ? (
                   <>
                     <th colSpan={2} style={{ background: 'var(--bg-base)' }} />
@@ -856,20 +860,20 @@ export default function TablaPage() {
                       <th key={`fin-${run.key}-${i}`}
                         colSpan={run.count}
                         className="px-2 py-1 text-center text-[10px] uppercase tracking-widest"
-                        style={{ background: run.meta.bg, color: run.meta.color, fontFamily: 'var(--font-rajdhani)', borderLeft: `2px solid ${run.meta.border}`, borderBottom: '1px solid rgba(234,88,12,0.15)' }}>
+                        style={{ background: run.meta.bg, color: run.meta.color, fontFamily: 'var(--font-sans)', borderLeft: `2px solid ${run.meta.border}`, borderBottom: '1px solid color-mix(in srgb, var(--br) 15%, transparent)' }}>
                         {run.meta.label}
                       </th>
                     ))}
-                    <th style={{ background: 'var(--bg-base)', borderBottom: '1px solid rgba(234,88,12,0.15)' }} />
+                    <th style={{ background: 'var(--bg-base)', borderBottom: '1px solid color-mix(in srgb, var(--br) 15%, transparent)' }} />
                     {j8RunsPend.map((run, i) => (
                       <th key={`pend-${run.key}-${i}`}
                         colSpan={run.count}
                         className="px-2 py-1 text-center text-[10px] uppercase tracking-widest"
-                        style={{ background: run.meta.bg, color: run.meta.color, fontFamily: 'var(--font-rajdhani)', borderLeft: `2px solid ${run.meta.border}`, borderBottom: '1px solid rgba(234,88,12,0.15)' }}>
+                        style={{ background: run.meta.bg, color: run.meta.color, fontFamily: 'var(--font-sans)', borderLeft: `2px solid ${run.meta.border}`, borderBottom: '1px solid color-mix(in srgb, var(--br) 15%, transparent)' }}>
                         {run.meta.label}
                       </th>
                     ))}
-                    <th colSpan={2} style={{ background: 'var(--bg-base)', borderBottom: '1px solid rgba(234,88,12,0.15)' }} />
+                    <th colSpan={2} style={{ background: 'var(--bg-base)', borderBottom: '1px solid color-mix(in srgb, var(--br) 15%, transparent)' }} />
                   </>
                 ) : (
                   <>
@@ -878,42 +882,42 @@ export default function TablaPage() {
                       <th key={`fin-${run.key}-${i}`}
                         colSpan={run.count}
                         className="px-2 py-1 text-center text-[10px] uppercase tracking-widest"
-                        style={{ background: run.meta.bg, color: run.meta.color, fontFamily: 'var(--font-rajdhani)', borderLeft: `2px solid ${run.meta.border}`, borderBottom: '1px solid rgba(234,88,12,0.15)' }}>
+                        style={{ background: run.meta.bg, color: run.meta.color, fontFamily: 'var(--font-sans)', borderLeft: `2px solid ${run.meta.border}`, borderBottom: '1px solid color-mix(in srgb, var(--br) 15%, transparent)' }}>
                         {run.meta.label}
                       </th>
                     ))}
-                    <th style={{ background: 'var(--bg-base)', borderBottom: '1px solid rgba(234,88,12,0.15)' }} />
+                    <th style={{ background: 'var(--bg-base)', borderBottom: '1px solid color-mix(in srgb, var(--br) 15%, transparent)' }} />
                     {j8RunsPendForJ8.map((run, i) => (
                       <th key={`pend-${run.key}-${i}`}
                         colSpan={run.count}
                         className="px-2 py-1 text-center text-[10px] uppercase tracking-widest"
-                        style={{ background: run.meta.bg, color: run.meta.color, fontFamily: 'var(--font-rajdhani)', borderLeft: `2px solid ${run.meta.border}`, borderBottom: '1px solid rgba(234,88,12,0.15)' }}>
+                        style={{ background: run.meta.bg, color: run.meta.color, fontFamily: 'var(--font-sans)', borderLeft: `2px solid ${run.meta.border}`, borderBottom: '1px solid color-mix(in srgb, var(--br) 15%, transparent)' }}>
                         {run.meta.label}
                       </th>
                     ))}
-                    <th colSpan={1} style={{ background: 'var(--bg-base)', borderBottom: '1px solid rgba(234,88,12,0.15)' }} />
+                    <th colSpan={1} style={{ background: 'var(--bg-base)', borderBottom: '1px solid color-mix(in srgb, var(--br) 15%, transparent)' }} />
                   </>
                 )}
               </tr>
             )}
             {esJ6LC && (
-              <tr style={{ borderBottom: '1px solid rgba(234,88,12,0.15)' }}>
+              <tr style={{ borderBottom: '1px solid color-mix(in srgb, var(--br) 15%, transparent)' }}>
                 <th colSpan={2} style={{ background: 'var(--bg-base)' }} />
                 <th
                   colSpan={finalizadosLC.length + pendientesLC.length}
                   className="px-2 py-1 text-center text-[10px] uppercase tracking-widest"
-                  style={{ background: 'rgba(234,88,12,0.06)', color: '#fb923c', fontFamily: 'var(--font-rajdhani)', borderLeft: '2px solid rgba(234,88,12,0.3)', borderBottom: '1px solid rgba(234,88,12,0.15)' }}>
+                  style={{ background: 'color-mix(in srgb, var(--br) 6%, transparent)', color: 'var(--br)', fontFamily: 'var(--font-sans)', borderLeft: '2px solid color-mix(in srgb, var(--br) 30%, transparent)', borderBottom: '1px solid color-mix(in srgb, var(--br) 15%, transparent)' }}>
                   LC Cuartos
                 </th>
                 <th
                   className="px-2 py-1 text-center text-[10px] uppercase tracking-widest"
-                  style={{ background: 'rgba(251,191,36,0.06)', color: '#fbbf24', fontFamily: 'var(--font-rajdhani)', borderLeft: '2px solid rgba(251,191,36,0.3)', borderBottom: '1px solid rgba(234,88,12,0.15)' }}>
+                  style={{ background: 'color-mix(in srgb, var(--rs) 6%, transparent)', color: 'var(--rs)', fontFamily: 'var(--font-sans)', borderLeft: '2px solid color-mix(in srgb, var(--rs) 30%, transparent)', borderBottom: '1px solid color-mix(in srgb, var(--br) 15%, transparent)' }}>
                   🏆 Campeón
                 </th>
                 <th
                   colSpan={finalizadosLMX.length + pendientesLMX.length + 1}
                   className="px-2 py-1 text-center text-[10px] uppercase tracking-widest"
-                  style={{ background: 'rgba(99,102,241,0.06)', color: '#818cf8', fontFamily: 'var(--font-rajdhani)', borderLeft: '2px solid rgba(99,102,241,0.3)', borderBottom: '1px solid rgba(234,88,12,0.15)' }}>
+                  style={{ background: 'rgba(99,102,241,0.06)', color: '#818cf8', fontFamily: 'var(--font-sans)', borderLeft: '2px solid rgba(99,102,241,0.3)', borderBottom: '1px solid color-mix(in srgb, var(--br) 15%, transparent)' }}>
                   Liga MX J6
                 </th>
               </tr>
@@ -921,15 +925,15 @@ export default function TablaPage() {
             <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
               <th className="sticky left-0 z-30 text-left px-3 py-3 min-w-[130px]"
                 style={{ background: 'var(--bg-base)', borderBottom: '1px solid var(--border-color)' }}>
-                <span style={{ fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>Jugador</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: '1rem', color: 'var(--br)' }}>Jugador</span>
               </th>
               <th className="sticky left-[130px] z-20 px-3 py-2 text-center min-w-[55px]"
-                style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 7 ? '0.75rem' : '1rem', color: '#ea580c' }}>
+                style={{ background: 'var(--bg-base)', borderLeft: '1px solid color-mix(in srgb, var(--br) 30%, transparent)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-display)', fontSize: TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 7 ? '0.75rem' : '1rem', color: 'var(--br)' }}>
                 {TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 7 ? 'PTS J6' : 'PTS'}
               </th>
               {TEMPORADA_ACTIVA === 'ligamx2026' && ((jornada >= 2 && jornada <= 3) || jornada === 5) && (
                 <th className="px-2 py-2 text-center min-w-[64px]"
-                  style={{ background: 'var(--bg-base)', borderLeft: '2px solid rgba(99,102,241,0.5)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '0.75rem', color: '#818cf8' }}>
+                  style={{ background: 'var(--bg-base)', borderLeft: '2px solid rgba(99,102,241,0.5)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-display)', fontSize: '0.75rem', color: '#818cf8' }}>
                   {labelPtsAnteriores().header}
                 </th>
               )}
@@ -937,19 +941,19 @@ export default function TablaPage() {
                 <>
                   {finalizadosLC.map(partido => (
                     <th key={partido.id} className="px-2 py-2 text-center min-w-[70px]"
-                      style={{ background: 'var(--bg-base)', borderLeft: '2px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)' }}>
+                      style={{ background: 'var(--bg-base)', borderLeft: '2px solid color-mix(in srgb, var(--br) 30%, transparent)', borderBottom: '1px solid var(--border-color)' }}>
                       <div className="flex items-center justify-center gap-1 mb-1">
                         <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
-                        <span style={{ fontSize: '0.625rem', color: '#475569' }}>vs</span>
+                        <span style={{ fontSize: '0.625rem', color: 'var(--mut)' }}>vs</span>
                         <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
                       </div>
-                      <div className="rounded px-1 py-0.5 font-bold text-xs" style={{ background: 'rgba(234,88,12,0.2)', border: '1px solid rgba(234,88,12,0.3)', color: '#fb923c' }}>
+                      <div className="rounded px-1 py-0.5 font-bold text-xs" style={{ background: 'color-mix(in srgb, var(--br) 20%, transparent)', border: '1px solid color-mix(in srgb, var(--br) 30%, transparent)', color: 'var(--br)' }}>
                         {partido.goles_local}-{partido.goles_visitante}
                       </div>
                       {necesitaTerminacionPartido(partido) && partido.clasificado && (
                         <div className="flex items-center justify-center gap-0.5 mt-0.5">
                           <Bandera emoji={BANDERAS_EQUIPOS[partido.clasificado] ?? ''} nombre={partido.clasificado} size="sm" />
-                          <span style={{ fontSize: '0.6rem', color: '#94a3b8' }}>{emojiComoTermino(partido.como_termino)}</span>
+                          <span style={{ fontSize: '0.6rem', color: 'var(--mut)' }}>{emojiComoTermino(partido.como_termino)}</span>
                         </div>
                       )}
                     </th>
@@ -959,16 +963,16 @@ export default function TablaPage() {
                       style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
                       <div className="flex items-center justify-center gap-1 mb-1">
                         <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
-                        <span style={{ fontSize: '0.625rem', color: '#475569' }}>vs</span>
+                        <span style={{ fontSize: '0.625rem', color: 'var(--mut)' }}>vs</span>
                         <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
                       </div>
                       {partido.estado === 'en_curso' ? (
-                        <div className="rounded px-1 py-0.5 text-[10px] font-bold animate-pulse" style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>🔴 EN VIVO</div>
-                      ) : <div style={{ fontSize: '0.625rem', color: '#334155' }}>pendiente</div>}
+                        <div className="rounded px-1 py-0.5 text-[10px] font-bold animate-pulse" style={{ background: 'color-mix(in srgb, var(--fl) 20%, transparent)', border: '1px solid color-mix(in srgb, var(--fl) 30%, transparent)', color: 'var(--fl)' }}>🔴 EN VIVO</div>
+                      ) : <div style={{ fontSize: '0.625rem', color: 'var(--mut)' }}>pendiente</div>}
                     </th>
                   ))}
                   <th className="px-3 py-2 text-center min-w-[72px]"
-                    style={{ background: 'var(--bg-base)', borderLeft: '2px solid rgba(251,191,36,0.4)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '0.75rem', color: '#fbbf24' }}>
+                    style={{ background: 'var(--bg-base)', borderLeft: '2px solid color-mix(in srgb, var(--rs) 40%, transparent)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-display)', fontSize: '0.75rem', color: 'var(--rs)' }}>
                     🏆 +5
                   </th>
                   {finalizadosLMX.map(partido => (
@@ -976,10 +980,10 @@ export default function TablaPage() {
                       style={{ background: 'var(--bg-base)', borderLeft: '2px solid rgba(99,102,241,0.3)', borderBottom: '1px solid var(--border-color)' }}>
                       <div className="flex items-center justify-center gap-1 mb-1">
                         <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
-                        <span style={{ fontSize: '0.625rem', color: '#475569' }}>vs</span>
+                        <span style={{ fontSize: '0.625rem', color: 'var(--mut)' }}>vs</span>
                         <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
                       </div>
-                      <div className="rounded px-1 py-0.5 font-bold text-xs" style={{ background: 'rgba(234,88,12,0.2)', border: '1px solid rgba(234,88,12,0.3)', color: '#fb923c' }}>
+                      <div className="rounded px-1 py-0.5 font-bold text-xs" style={{ background: 'color-mix(in srgb, var(--br) 20%, transparent)', border: '1px solid color-mix(in srgb, var(--br) 30%, transparent)', color: 'var(--br)' }}>
                         {partido.goles_local}-{partido.goles_visitante}
                       </div>
                     </th>
@@ -989,16 +993,16 @@ export default function TablaPage() {
                       style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
                       <div className="flex items-center justify-center gap-1 mb-1">
                         <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
-                        <span style={{ fontSize: '0.625rem', color: '#475569' }}>vs</span>
+                        <span style={{ fontSize: '0.625rem', color: 'var(--mut)' }}>vs</span>
                         <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
                       </div>
                       {partido.estado === 'en_curso' ? (
-                        <div className="rounded px-1 py-0.5 text-[10px] font-bold animate-pulse" style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>🔴 EN VIVO</div>
-                      ) : <div style={{ fontSize: '0.625rem', color: '#334155' }}>pendiente</div>}
+                        <div className="rounded px-1 py-0.5 text-[10px] font-bold animate-pulse" style={{ background: 'color-mix(in srgb, var(--fl) 20%, transparent)', border: '1px solid color-mix(in srgb, var(--fl) 30%, transparent)', color: 'var(--fl)' }}>🔴 EN VIVO</div>
+                      ) : <div style={{ fontSize: '0.625rem', color: 'var(--mut)' }}>pendiente</div>}
                     </th>
                   ))}
                   <th id="col-pts" className="px-3 py-2 text-center min-w-[55px]"
-                    style={{ background: 'var(--bg-base)', borderLeft: '2px solid rgba(99,102,241,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
+                    style={{ background: 'var(--bg-base)', borderLeft: '2px solid rgba(99,102,241,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-display)', fontSize: '1rem', color: 'var(--br)' }}>
                     PTS
                   </th>
                 </>
@@ -1014,17 +1018,17 @@ export default function TablaPage() {
                               style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
                               <div className="flex items-center justify-center gap-1 mb-1">
                                 <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
-                                <span style={{ fontSize: '0.625rem', color: '#475569' }}>vs</span>
+                                <span style={{ fontSize: '0.625rem', color: 'var(--mut)' }}>vs</span>
                                 <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
                               </div>
                               <div className="rounded px-1 py-0.5 font-bold text-xs"
-                                style={{ background: 'rgba(234,88,12,0.2)', border: '1px solid rgba(234,88,12,0.3)', color: '#fb923c' }}>
+                                style={{ background: 'color-mix(in srgb, var(--br) 20%, transparent)', border: '1px solid color-mix(in srgb, var(--br) 30%, transparent)', color: 'var(--br)' }}>
                                 {partido.goles_local}-{partido.goles_visitante}
                               </div>
                             </th>
                           ))}
                           <th className="px-2 py-2 text-center min-w-[70px]"
-                            style={{ background: 'var(--bg-base)', borderLeft: '2px solid rgba(16,185,129,0.5)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '0.75rem', color: '#10b981' }}>
+                            style={{ background: 'var(--bg-base)', borderLeft: '2px solid color-mix(in srgb, var(--ex) 50%, transparent)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-display)', fontSize: '0.75rem', color: 'var(--ex)' }}>
                             PTS J6+J7
                           </th>
                           {j8PendForJ7.map((partido: any) => (
@@ -1033,20 +1037,20 @@ export default function TablaPage() {
                               style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
                               <div className="flex items-center justify-center gap-1 mb-1">
                                 <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
-                                <span style={{ fontSize: '0.625rem', color: '#475569' }}>vs</span>
+                                <span style={{ fontSize: '0.625rem', color: 'var(--mut)' }}>vs</span>
                                 <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
                               </div>
                               {partido.estado === 'en_curso'
-                                ? <div className="rounded px-1 py-0.5 text-[10px] font-bold animate-pulse" style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>🔴 EN VIVO</div>
-                                : <div style={{ fontSize: '0.625rem', color: '#334155' }}>pendiente</div>}
+                                ? <div className="rounded px-1 py-0.5 text-[10px] font-bold animate-pulse" style={{ background: 'color-mix(in srgb, var(--fl) 20%, transparent)', border: '1px solid color-mix(in srgb, var(--fl) 30%, transparent)', color: 'var(--fl)' }}>🔴 EN VIVO</div>
+                                : <div style={{ fontSize: '0.625rem', color: 'var(--mut)' }}>pendiente</div>}
                             </th>
                           ))}
                           <th className="px-3 py-2 text-center min-w-[72px]"
-                            style={{ background: 'var(--bg-base)', borderLeft: '2px solid rgba(251,191,36,0.4)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '0.75rem', color: '#fbbf24' }}>
+                            style={{ background: 'var(--bg-base)', borderLeft: '2px solid color-mix(in srgb, var(--rs) 40%, transparent)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-display)', fontSize: '0.75rem', color: 'var(--rs)' }}>
                             🏆
                           </th>
                           <th id="col-pts" className="px-3 py-2 text-center min-w-[55px]"
-                            style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '0.75rem', color: '#ea580c' }}>
+                            style={{ background: 'var(--bg-base)', borderLeft: '1px solid color-mix(in srgb, var(--br) 30%, transparent)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-display)', fontSize: '0.75rem', color: 'var(--br)' }}>
                             PTS TOTAL
                           </th>
                         </>
@@ -1058,17 +1062,17 @@ export default function TablaPage() {
                               style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
                               <div className="flex items-center justify-center gap-1 mb-1">
                                 <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
-                                <span style={{ fontSize: '0.625rem', color: '#475569' }}>vs</span>
+                                <span style={{ fontSize: '0.625rem', color: 'var(--mut)' }}>vs</span>
                                 <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
                               </div>
                               <div className="rounded px-1 py-0.5 font-bold text-xs"
-                                style={{ background: 'rgba(234,88,12,0.2)', border: '1px solid rgba(234,88,12,0.3)', color: '#fb923c' }}>
+                                style={{ background: 'color-mix(in srgb, var(--br) 20%, transparent)', border: '1px solid color-mix(in srgb, var(--br) 30%, transparent)', color: 'var(--br)' }}>
                                 {partido.goles_local}-{partido.goles_visitante}
                               </div>
                             </th>
                           ))}
                           <th className="px-2 py-2 text-center min-w-[70px]"
-                            style={{ background: 'var(--bg-base)', borderLeft: '2px solid rgba(16,185,129,0.5)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '0.75rem', color: '#10b981' }}>
+                            style={{ background: 'var(--bg-base)', borderLeft: '2px solid color-mix(in srgb, var(--ex) 50%, transparent)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-display)', fontSize: '0.75rem', color: 'var(--ex)' }}>
                             PTS J{jornada}
                           </th>
                           {j8PendForJ8.map((partido: any) => (
@@ -1077,16 +1081,16 @@ export default function TablaPage() {
                               style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
                               <div className="flex items-center justify-center gap-1 mb-1">
                                 <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
-                                <span style={{ fontSize: '0.625rem', color: '#475569' }}>vs</span>
+                                <span style={{ fontSize: '0.625rem', color: 'var(--mut)' }}>vs</span>
                                 <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
                               </div>
                               {partido.estado === 'en_curso'
-                                ? <div className="rounded px-1 py-0.5 text-[10px] font-bold animate-pulse" style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>🔴 EN VIVO</div>
-                                : <div style={{ fontSize: '0.625rem', color: '#334155' }}>pendiente</div>}
+                                ? <div className="rounded px-1 py-0.5 text-[10px] font-bold animate-pulse" style={{ background: 'color-mix(in srgb, var(--fl) 20%, transparent)', border: '1px solid color-mix(in srgb, var(--fl) 30%, transparent)', color: 'var(--fl)' }}>🔴 EN VIVO</div>
+                                : <div style={{ fontSize: '0.625rem', color: 'var(--mut)' }}>pendiente</div>}
                             </th>
                           ))}
                           <th id="col-pts" className="px-3 py-2 text-center min-w-[55px]"
-                            style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '0.75rem', color: '#ea580c' }}>
+                            style={{ background: 'var(--bg-base)', borderLeft: '1px solid color-mix(in srgb, var(--br) 30%, transparent)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-display)', fontSize: '0.75rem', color: 'var(--br)' }}>
                             PTS TOTAL
                           </th>
                         </>
@@ -1100,17 +1104,17 @@ export default function TablaPage() {
                       style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
                       <div className="flex items-center justify-center gap-1 mb-1">
                         <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
-                        <span style={{ fontSize: '0.625rem', color: '#475569' }}>vs</span>
+                        <span style={{ fontSize: '0.625rem', color: 'var(--mut)' }}>vs</span>
                         <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
                       </div>
                       <div className="rounded px-1 py-0.5 font-bold text-xs"
-                        style={{ background: 'rgba(234,88,12,0.2)', border: '1px solid rgba(234,88,12,0.3)', color: '#fb923c' }}>
+                        style={{ background: 'color-mix(in srgb, var(--br) 20%, transparent)', border: '1px solid color-mix(in srgb, var(--br) 30%, transparent)', color: 'var(--br)' }}>
                         {partido.goles_local}-{partido.goles_visitante}
                       </div>
                       {necesitaTerminacionPartido(partido) && partido.clasificado && (
                         <div className="flex items-center justify-center gap-0.5 mt-0.5">
                           <Bandera emoji={BANDERAS_EQUIPOS[partido.clasificado] ?? ''} nombre={partido.clasificado} size="sm" />
-                          <span style={{ fontSize: '0.6rem', color: '#94a3b8' }}>
+                          <span style={{ fontSize: '0.6rem', color: 'var(--mut)' }}>
                             {emojiComoTermino(partido.como_termino)}
                           </span>
                         </div>
@@ -1118,7 +1122,7 @@ export default function TablaPage() {
                     </th>
                   ))}
                   <th id="col-pts" className="px-3 py-2 text-center min-w-[55px]"
-                    style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
+                    style={{ background: 'var(--bg-base)', borderLeft: '1px solid color-mix(in srgb, var(--br) 30%, transparent)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-display)', fontSize: '1rem', color: 'var(--br)' }}>
                     PTS
                   </th>
                   {pendientes.map(partido => (
@@ -1127,34 +1131,34 @@ export default function TablaPage() {
                       style={{ background: 'var(--bg-base)', borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
                       <div className="flex items-center justify-center gap-1 mb-1">
                         <Bandera emoji={partido.bandera_local ?? ''} nombre={partido.equipo_local} size="sm" />
-                        <span style={{ fontSize: '0.625rem', color: '#475569' }}>vs</span>
+                        <span style={{ fontSize: '0.625rem', color: 'var(--mut)' }}>vs</span>
                         <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
                       </div>
                       {partido.estado === 'en_curso' ? (
                         <div className="rounded px-1 py-0.5 text-[10px] font-bold animate-pulse"
-                          style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>
+                          style={{ background: 'color-mix(in srgb, var(--fl) 20%, transparent)', border: '1px solid color-mix(in srgb, var(--fl) 30%, transparent)', color: 'var(--fl)' }}>
                           🔴 EN VIVO
                         </div>
                       ) : (
-                        <div style={{ fontSize: '0.625rem', color: '#334155' }}>pendiente</div>
+                        <div style={{ fontSize: '0.625rem', color: 'var(--mut)' }}>pendiente</div>
                       )}
                     </th>
                   ))}
                   {jornada !== 6 && jornada !== 7 && (
                     <th className="px-3 py-2 text-center min-w-[55px]"
-                      style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
+                      style={{ background: 'var(--bg-base)', borderLeft: '1px solid color-mix(in srgb, var(--br) 30%, transparent)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-display)', fontSize: '1rem', color: 'var(--br)' }}>
                       PTS
                     </th>
                   )}
                   {(jornada === 6 || jornada === 7) && (
                     <th className="px-3 py-2 text-center min-w-[72px]"
-                      style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(251,191,36,0.4)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '0.75rem', color: '#fbbf24' }}>
+                      style={{ background: 'var(--bg-base)', borderLeft: '1px solid color-mix(in srgb, var(--rs) 40%, transparent)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-display)', fontSize: '0.75rem', color: 'var(--rs)' }}>
                       🏆 +5
                     </th>
                   )}
                   {(jornada === 6 || jornada === 7) && (
                     <th className="px-3 py-2 text-center min-w-[55px]"
-                      style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
+                      style={{ background: 'var(--bg-base)', borderLeft: '1px solid color-mix(in srgb, var(--br) 30%, transparent)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-display)', fontSize: '1rem', color: 'var(--br)' }}>
                       PTS
                     </th>
                   )}
@@ -1163,18 +1167,18 @@ export default function TablaPage() {
                 </>
               )}
               {TEMPORADA_ACTIVA === 'ligamx2026' && jornada <= 3 && (
-                <th className="px-2 py-2 text-center text-xs" style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.2)', color: '#94a3b8', whiteSpace: 'nowrap', fontFamily: 'var(--font-rajdhani)' }}>
+                <th className="px-2 py-2 text-center text-xs" style={{ background: 'var(--bg-base)', borderLeft: '1px solid color-mix(in srgb, var(--br) 20%, transparent)', color: 'var(--mut)', whiteSpace: 'nowrap', fontFamily: 'var(--font-sans)' }}>
                   🏆 Clasif.
                 </th>
               )}
               {TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 3 && (
                 <>
                   <th className="px-3 py-2 text-center min-w-[52px]"
-                    style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(34,197,94,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#22c55e' }}>
+                    style={{ background: 'var(--bg-base)', borderLeft: '1px solid color-mix(in srgb, var(--ex) 30%, transparent)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-display)', fontSize: '1rem', color: 'var(--ex)' }}>
                     Bono
                   </th>
                   <th className="px-3 py-2 text-center min-w-[55px]"
-                    style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#ea580c' }}>
+                    style={{ background: 'var(--bg-base)', borderLeft: '1px solid color-mix(in srgb, var(--br) 30%, transparent)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-display)', fontSize: '1rem', color: 'var(--br)' }}>
                     Total
                   </th>
                 </>
@@ -1206,24 +1210,24 @@ export default function TablaPage() {
                     const ptsBase   = Math.max(0, pts - ptsClasif - ptsComo);
                     const emojiPartidoComo = partido.como_termino === 'penales' ? '🥅' : partido.como_termino === 'tiempo_extra' ? '⏩' : '⏱️';
                     const banderaClasif = pred.clasificado_pred ? getBanderaClasificado(pred.clasificado_pred, partido) : null;
-                    const totalColor = pts >= 4 ? '#eab308' : pts === 3 ? '#10b981' : pts === 2 ? '#60a5fa' : pts === 1 ? '#f97316' : '#ef4444';
+                    const totalColor = pts >= 4 ? 'var(--rs)' : pts === 3 ? 'var(--ex)' : pts === 2 ? '#60a5fa' : pts === 1 ? 'var(--rs)' : 'var(--fl)';
                     return (
                       <td key={partido.id} className="px-1 py-1 text-center" style={{ borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)', minWidth: 64 }}>
-                        <div style={{ fontSize: 9, lineHeight: '1.55', color: '#94a3b8' }}>
+                        <div style={{ fontSize: 9, lineHeight: '1.55', color: 'var(--mut)' }}>
                           <div>{pred.goles_local_pred}-{pred.goles_visitante_pred}</div>
                           {(pred.clasificado_pred || pred.como_termina_pred) && (
-                            <div style={{ color: '#64748b' }}>
+                            <div style={{ color: 'var(--mut)' }}>
                               {pred.clasificado_pred ? getBanderaClasificado(pred.clasificado_pred, partido) : ''}
                               {pred.clasificado_pred && pred.como_termina_pred ? ' ' : ''}
                               {pred.como_termina_pred === 'reglamentario' ? '⏱️' : pred.como_termina_pred === 'tiempo_extra' ? '⏩' : pred.como_termina_pred === 'penales' ? '🥅' : ''}
                             </div>
                           )}
-                          <div style={{ color: ptsBase >= 3 ? '#10b981' : ptsBase >= 1 ? '#f97316' : '#ef4444' }}>
+                          <div style={{ color: ptsBase >= 3 ? 'var(--ex)' : ptsBase >= 1 ? 'var(--rs)' : 'var(--fl)' }}>
                             {ptsBase >= 3 ? '⚽⚽⚽' : ptsBase >= 1 ? '⚽' : '✗'} {ptsBase}pt{ptsBase !== 1 ? 's' : ''}
                           </div>
-                          {partido.clasificado && (<div style={{ color: ptsClasif ? '#10b981' : '#ef4444' }}>{banderaClasif ?? '?'} {ptsClasif ? '+1pt' : '+0'}</div>)}
-                          {partido.como_termino && (<div style={{ color: ptsComo ? '#10b981' : '#ef4444' }}>{emojiPartidoComo} {ptsComo ? '+1pt' : '+0'}</div>)}
-                          <div style={{ borderTop: '1px solid rgba(148,163,184,0.2)', marginTop: 2, paddingTop: 2, fontWeight: 700, fontSize: 11, color: totalColor }}>{pts}pts</div>
+                          {partido.clasificado && (<div style={{ color: ptsClasif ? 'var(--ex)' : 'var(--fl)' }}>{banderaClasif ?? '?'} {ptsClasif ? '+1pt' : '+0'}</div>)}
+                          {partido.como_termino && (<div style={{ color: ptsComo ? 'var(--ex)' : 'var(--fl)' }}>{emojiPartidoComo} {ptsComo ? '+1pt' : '+0'}</div>)}
+                          <div style={{ borderTop: '1px solid color-mix(in srgb, var(--mut) 20%, transparent)', marginTop: 2, paddingTop: 2, fontWeight: 700, fontSize: 11, color: totalColor }}>{pts}pts</div>
                         </div>
                       </td>
                     );
@@ -1232,14 +1236,15 @@ export default function TablaPage() {
                   const emojiTermina = pred?.como_termina_pred === 'reglamentario' ? '⏱️' : pred?.como_termina_pred === 'tiempo_extra' ? '⏩' : pred?.como_termina_pred === 'penales' ? '🥅' : '';
                   return (
                     <td key={partido.id} className="px-1 py-2 text-center" style={{ borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
-                      {pred ? (<><div className="text-xs text-slate-600 dark:text-slate-400">{pred.goles_local_pred}-{pred.goles_visitante_pred}</div>{(bandera || emojiTermina) && <div className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>{[bandera, emojiTermina].filter(Boolean).join(' ')}</div>}</>) : (<div className="text-sm text-slate-400 dark:text-slate-600">–</div>)}
+                      {pred ? (<><div className="text-xs text-slate-600 dark:text-slate-400">{pred.goles_local_pred}-{pred.goles_visitante_pred}</div>{(bandera || emojiTermina) && <div className="text-xs mt-0.5" style={{ color: 'var(--mut)' }}>{[bandera, emojiTermina].filter(Boolean).join(' ')}</div>}</>) : (<div className="text-sm text-slate-400 dark:text-slate-600">–</div>)}
                     </td>
                   );
                 }
                 return (
                   <td key={partido.id} className="px-1 py-2 text-center" style={{ borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
-                    {pts !== null ? <div className={ptsClass(pts)}>{pts}pts</div> : <div className="text-sm text-slate-400 dark:text-slate-600">–</div>}
-                    {pred && <div className="text-xs text-slate-600 dark:text-slate-400">{pred.goles_local_pred}-{pred.goles_visitante_pred}</div>}
+                    {pred
+                      ? <CeldaPred marcador={`${pred.goles_local_pred}-${pred.goles_visitante_pred}`} pts={pts} />
+                      : <div className="text-sm" style={{ color: 'var(--mut)' }}>–</div>}
                   </td>
                 );
               };
@@ -1257,7 +1262,7 @@ export default function TablaPage() {
                         <>
                           <div className="text-sm font-medium text-slate-800 dark:text-slate-200">{pred.goles_local_pred}-{pred.goles_visitante_pred}</div>
                           {necesitaTerminacionPartido(partido) && (pred.clasificado_pred || pred.como_termina_pred) && (
-                            <div className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>
+                            <div className="text-xs mt-0.5" style={{ color: 'var(--mut)' }}>
                               {[pred.clasificado_pred ? getBanderaClasificado(pred.clasificado_pred, partido) : null, pred.como_termina_pred === 'reglamentario' ? '⏱️' : pred.como_termina_pred === 'tiempo_extra' ? '⏩' : pred.como_termina_pred === 'penales' ? '🥅' : null].filter(Boolean).join(' ')}
                             </div>
                           )}
@@ -1275,7 +1280,7 @@ export default function TablaPage() {
                       <>
                         <div className="text-sm font-medium text-slate-800 dark:text-slate-200">{pred.goles_local_pred}-{pred.goles_visitante_pred}</div>
                         {necesitaTerminacionPartido(partido) && (pred.clasificado_pred || pred.como_termina_pred) && (
-                          <div className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>
+                          <div className="text-xs mt-0.5" style={{ color: 'var(--mut)' }}>
                             {[pred.clasificado_pred ? getBanderaClasificado(pred.clasificado_pred, partido) : null, pred.como_termina_pred === 'reglamentario' ? '⏱️' : pred.como_termina_pred === 'tiempo_extra' ? '⏩' : pred.como_termina_pred === 'penales' ? '🥅' : null].filter(Boolean).join(' ')}
                           </div>
                         )}
@@ -1290,24 +1295,24 @@ export default function TablaPage() {
               };
 
               const campCell = (
-                <td className="px-2 py-2 text-center" style={{ borderLeft: '1px solid rgba(251,191,36,0.3)', borderBottom: '1px solid var(--border-color)', minWidth: 72 }}>
+                <td className="px-2 py-2 text-center" style={{ borderLeft: '1px solid color-mix(in srgb, var(--rs) 30%, transparent)', borderBottom: '1px solid var(--border-color)', minWidth: 72 }}>
                   {campAcerto ? (
                     <div className="flex flex-col items-center gap-0.5">
                       <div style={{ fontSize: 14, lineHeight: 1 }}>✅</div>
-                      <div style={{ fontSize: 9, color: '#22c55e', fontWeight: 700 }}>+5pts</div>
-                      {campPick && (<div className="flex items-center justify-center gap-0.5"><Bandera emoji={BANDERAS_EQUIPOS[campPick] ?? ''} nombre={campPick} size="sm" /><span style={{ fontSize: '0.6rem', color: '#22c55e' }}>{campPick}</span></div>)}
+                      <div style={{ fontSize: 9, color: 'var(--ex)', fontWeight: 700 }}>+5pts</div>
+                      {campPick && (<div className="flex items-center justify-center gap-0.5"><Bandera emoji={BANDERAS_EQUIPOS[campPick] ?? ''} nombre={campPick} size="sm" /><span style={{ fontSize: '0.6rem', color: 'var(--ex)' }}>{campPick}</span></div>)}
                     </div>
                   ) : campFallo ? (
                     <div>
-                      <div style={{ fontSize: 13, color: '#ef4444', fontWeight: 700 }}>✗</div>
-                      {campPick && (<div className="flex items-center justify-center gap-0.5 mt-0.5"><Bandera emoji={BANDERAS_EQUIPOS[campPick] ?? ''} nombre={campPick} size="sm" /><span style={{ fontSize: '0.6rem', color: '#64748b' }}>{campPick}</span></div>)}
+                      <div style={{ fontSize: 13, color: 'var(--fl)', fontWeight: 700 }}>✗</div>
+                      {campPick && (<div className="flex items-center justify-center gap-0.5 mt-0.5"><Bandera emoji={BANDERAS_EQUIPOS[campPick] ?? ''} nombre={campPick} size="sm" /><span style={{ fontSize: '0.6rem', color: 'var(--mut)' }}>{campPick}</span></div>)}
                     </div>
                   ) : campPick ? (
                     <div className="flex flex-col items-center gap-0.5">
                       <Bandera emoji={BANDERAS_EQUIPOS[campPick] ?? ''} nombre={campPick} size="sm" />
                       <span style={{ fontSize: '0.6rem', color: 'var(--text-primary)' }}>{campPick}</span>
                     </div>
-                  ) : <span style={{ fontSize: '0.65rem', color: '#475569' }}>—</span>}
+                  ) : <span style={{ fontSize: '0.65rem', color: 'var(--mut)' }}>—</span>}
                 </td>
               );
               const userPicksClas = TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 3 ? picksClasificacion[part.user_id] : undefined;
@@ -1324,15 +1329,15 @@ export default function TablaPage() {
                         {idx + 1}
                       </span>
                       <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-                        style={{ background: 'rgba(234,88,12,0.2)', border: '1px solid rgba(234,88,12,0.3)', color: '#fb923c' }}>
+                        style={{ background: 'color-mix(in srgb, var(--br) 20%, transparent)', border: '1px solid color-mix(in srgb, var(--br) 30%, transparent)', color: 'var(--br)' }}>
                         {iniciales(part.user_id)}
                       </div>
                       <div>
-                        <p className="font-bold text-sm whitespace-nowrap text-slate-900 dark:text-white" style={{ fontFamily: 'var(--font-rajdhani)' }}>
+                        <p className="font-bold text-sm whitespace-nowrap text-slate-900 dark:text-white" style={{ fontFamily: 'var(--font-sans)' }}>
                           {mostrarNombre(part.user_id)}
                         </p>
                         {part.quiniela?.nombre && (
-                          <p className="text-[10px]" style={{ color: '#fb923c' }}>🎫 {part.quiniela.nombre}</p>
+                          <p className="text-[10px]" style={{ color: 'var(--br)' }}>🎫 {part.quiniela.nombre}</p>
                         )}
                         {esAdmin && jugador?.referencia_admin && (
                           <p className="text-xs text-blue-400">📋 {jugador.referencia_admin}</p>
@@ -1346,16 +1351,16 @@ export default function TablaPage() {
                     </div>
                   </td>
                   <td className="sticky left-[130px] z-20 px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
-                    style={{ background: 'var(--bg-base)', borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
+                    style={{ background: 'var(--bg-base)', borderLeft: '1px solid color-mix(in srgb, var(--br) 30%, transparent)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-display)' }}>
                     {TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 7 ? getPtsAnteriores(part) : totalPuntos}
                   </td>
                   {TEMPORADA_ACTIVA === 'ligamx2026' && ((jornada >= 2 && jornada <= 3) || jornada === 5) && (
                     <td className="px-2 py-2 text-center"
                       style={{ borderLeft: '2px solid rgba(99,102,241,0.5)', borderBottom: '1px solid var(--border-color)', minWidth: 64 }}>
-                      <div style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.1rem', color: '#818cf8' }}>
+                      <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', color: '#818cf8' }}>
                         {getPtsAnteriores(part)}
                       </div>
-                      <div style={{ fontSize: '0.55rem', color: '#475569', lineHeight: 1 }}>{labelPtsAnteriores().sub}</div>
+                      <div style={{ fontSize: '0.55rem', color: 'var(--mut)', lineHeight: 1 }}>{labelPtsAnteriores().sub}</div>
                     </td>
                   )}
                   {esJ6LC ? (
@@ -1366,7 +1371,7 @@ export default function TablaPage() {
                       {finalizadosLMX.map(renderFinalizadoCell)}
                       {pendientesLMX.map(renderPendienteCell)}
                       <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
-                        style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
+                        style={{ borderLeft: '1px solid color-mix(in srgb, var(--br) 30%, transparent)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-display)' }}>
                         {totalPuntos}
                       </td>
                     </>
@@ -1378,16 +1383,16 @@ export default function TablaPage() {
                             <>
                               {j8FinForJ7.map((p: any) => renderFinalizadoCell(p))}
                               <td className="px-3 py-2 text-center"
-                                style={{ borderLeft: '2px solid rgba(16,185,129,0.5)', borderBottom: '1px solid var(--border-color)', minWidth: 70 }}>
-                                <div style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.25rem', color: '#10b981' }}>
+                                style={{ borderLeft: '2px solid color-mix(in srgb, var(--ex) 50%, transparent)', borderBottom: '1px solid var(--border-color)', minWidth: 70 }}>
+                                <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', color: 'var(--ex)' }}>
                                   {totalPuntos}
                                 </div>
-                                <div style={{ fontSize: '0.5rem', color: '#475569', lineHeight: 1 }}>J6+J7</div>
+                                <div style={{ fontSize: '0.5rem', color: 'var(--mut)', lineHeight: 1 }}>J6+J7</div>
                               </td>
                               {j8PendForJ7.map((p: any) => renderPendienteCell(p))}
                               {campCell}
                               <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
-                                style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
+                                style={{ borderLeft: '1px solid color-mix(in srgb, var(--br) 30%, transparent)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-display)' }}>
                                 {totalPuntos}
                               </td>
                             </>
@@ -1395,15 +1400,15 @@ export default function TablaPage() {
                             <>
                               {j8FinForJ8.map((p: any) => renderFinalizadoCell(p))}
                               <td className="px-3 py-2 text-center"
-                                style={{ borderLeft: '2px solid rgba(16,185,129,0.5)', borderBottom: '1px solid var(--border-color)', minWidth: 70 }}>
-                                <div style={{ fontFamily: 'var(--font-bebas)', fontSize: '1.25rem', color: '#10b981' }}>
+                                style={{ borderLeft: '2px solid color-mix(in srgb, var(--ex) 50%, transparent)', borderBottom: '1px solid var(--border-color)', minWidth: 70 }}>
+                                <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', color: 'var(--ex)' }}>
                                   {totalPuntos}
                                 </div>
-                                <div style={{ fontSize: '0.5rem', color: '#475569', lineHeight: 1 }}>J{jornada}</div>
+                                <div style={{ fontSize: '0.5rem', color: 'var(--mut)', lineHeight: 1 }}>J{jornada}</div>
                               </td>
                               {j8PendForJ8.map((p: any) => renderPendienteCell(p))}
                               <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
-                                style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
+                                style={{ borderLeft: '1px solid color-mix(in srgb, var(--br) 30%, transparent)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-display)' }}>
                                 {totalPuntos}
                               </td>
                             </>
@@ -1413,20 +1418,20 @@ export default function TablaPage() {
                         <>
                       {finalizados.map(renderFinalizadoCell)}
                       <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
-                        style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
+                        style={{ borderLeft: '1px solid color-mix(in srgb, var(--br) 30%, transparent)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-display)' }}>
                         {totalPuntos}
                       </td>
                       {pendientes.map(renderPendienteCell)}
                       {jornada !== 6 && jornada !== 7 && (
                         <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
-                          style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
+                          style={{ borderLeft: '1px solid color-mix(in srgb, var(--br) 30%, transparent)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-display)' }}>
                           {totalPuntos}
                         </td>
                       )}
                       {(jornada === 6 || jornada === 7) && campCell}
                       {(jornada === 6 || jornada === 7) && (
                         <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
-                          style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
+                          style={{ borderLeft: '1px solid color-mix(in srgb, var(--br) 30%, transparent)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-display)' }}>
                           {totalPuntos}
                         </td>
                       )}
@@ -1442,7 +1447,7 @@ export default function TablaPage() {
                       (clasificadosLc.mls.length > 0 ? userPicks.mls.filter(e => clasificadosLc.mls.includes(e)).length : 0);
                     return (
                       <td className="px-2 py-1 text-center align-middle"
-                        style={{ borderLeft: '1px solid rgba(234,88,12,0.2)', borderBottom: '1px solid var(--border-color)', minWidth: 80 }}>
+                        style={{ borderLeft: '1px solid color-mix(in srgb, var(--br) 20%, transparent)', borderBottom: '1px solid var(--border-color)', minWidth: 80 }}>
                         {userPicks ? (
                           <div className="flex flex-col gap-0.5">
                             <div className="flex flex-wrap justify-center gap-0.5">
@@ -1450,7 +1455,7 @@ export default function TablaPage() {
                                 const acierto = clasificadosLc.ligamx.includes(eq);
                                 const fallo = lcDeclared && !acierto;
                                 return (
-                                  <div key={eq} title={eq} style={{ opacity: fallo ? 0.45 : 1, filter: acierto ? 'drop-shadow(0 0 3px #22c55e)' : 'none' }}>
+                                  <div key={eq} title={eq} style={{ opacity: fallo ? 0.45 : 1, filter: acierto ? 'drop-shadow(0 0 3px var(--ex))' : 'none' }}>
                                     <Bandera emoji="" nombre={eq} size="sm" />
                                   </div>
                                 );
@@ -1461,18 +1466,18 @@ export default function TablaPage() {
                                 const acierto = clasificadosLc.mls.includes(eq);
                                 const fallo = clasificadosLc.mls.length > 0 && !acierto;
                                 return (
-                                  <div key={eq} title={eq} style={{ opacity: fallo ? 0.45 : 1, filter: acierto ? 'drop-shadow(0 0 3px #22c55e)' : 'none' }}>
+                                  <div key={eq} title={eq} style={{ opacity: fallo ? 0.45 : 1, filter: acierto ? 'drop-shadow(0 0 3px var(--ex))' : 'none' }}>
                                     <Bandera emoji="" nombre={eq} size="sm" />
                                   </div>
                                 );
                               })}
                             </div>
                             {(lcDeclared || clasificadosLc.mls.length > 0) && (
-                              <div style={{ fontSize: 9, color: '#22c55e', fontWeight: 700, textAlign: 'center' }}>+{ptsClas}pts</div>
+                              <div style={{ fontSize: 9, color: 'var(--ex)', fontWeight: 700, textAlign: 'center' }}>+{ptsClas}pts</div>
                             )}
                           </div>
                         ) : (
-                          <span style={{ fontSize: '0.65rem', color: '#475569' }}>—</span>
+                          <span style={{ fontSize: '0.65rem', color: 'var(--mut)' }}>—</span>
                         )}
                       </td>
                     );
@@ -1480,11 +1485,11 @@ export default function TablaPage() {
                   {TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 3 && (
                     <>
                       <td className="px-3 py-2 text-center"
-                        style={{ borderLeft: '1px solid rgba(34,197,94,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: '#22c55e' }}>
+                        style={{ borderLeft: '1px solid color-mix(in srgb, var(--ex) 30%, transparent)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-display)', fontSize: '1rem', color: 'var(--ex)' }}>
                         {ptsClas > 0 ? `+${ptsClas}` : '—'}
                       </td>
                       <td className="px-3 py-2 text-center text-xl text-orange-600 dark:text-orange-400"
-                        style={{ borderLeft: '1px solid rgba(234,88,12,0.3)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-bebas)' }}>
+                        style={{ borderLeft: '1px solid color-mix(in srgb, var(--br) 30%, transparent)', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-display)' }}>
                         {totalPuntos + ptsClas}
                       </td>
                     </>
@@ -1496,7 +1501,7 @@ export default function TablaPage() {
         </table>
 
         {participaciones.length === 0 && (
-          <p className="text-center py-12 text-sm" style={{ color: '#475569' }}>
+          <p className="text-center py-12 text-sm" style={{ color: 'var(--mut)' }}>
             {TEMPORADA_ACTIVA === 'ligamx2026'
               ? 'Aún no hay participantes registrados para esta temporada'
               : 'Aún no hay participantes en esta jornada.'}
@@ -1505,24 +1510,24 @@ export default function TablaPage() {
       </div>
 
       {/* Leyenda */}
-      <div className="px-4 mt-4 flex flex-wrap gap-4 text-xs leyenda" style={{ color: '#475569' }}>
+      <div className="px-4 mt-4 flex flex-wrap gap-4 text-xs leyenda" style={{ color: 'var(--mut)' }}>
         {(jornada < 5 || (TEMPORADA_ACTIVA === 'ligamx2026' && jornada <= 5)) ? (
           <>
-            <span style={{ color: '#34d399' }}>■ 3pts exacto</span>
-            <span style={{ color: '#fb923c' }}>■ 1pt resultado</span>
-            <span style={{ color: '#f87171' }}>■ 0pts fallo</span>
-            <span style={{ color: '#64748b' }}>■ predicción pendiente</span>
+            <span style={{ color: 'var(--ex)' }}>■ 3pts exacto</span>
+            <span style={{ color: 'var(--br)' }}>■ 1pt resultado</span>
+            <span style={{ color: 'var(--fl)' }}>■ 0pts fallo</span>
+            <span style={{ color: 'var(--mut)' }}>■ predicción pendiente</span>
           </>
         ) : (
           <>
-            <span style={{ color: '#eab308' }}>■ 5pts</span>
+            <span style={{ color: 'var(--rs)' }}>■ 5pts</span>
             <span style={{ color: '#9333ea' }}>■ 4pts</span>
             <span style={{ color: '#059669' }}>■ 3pts</span>
             <span style={{ color: '#2563eb' }}>■ 2pts</span>
-            <span style={{ color: '#f97316' }}>■ 1pt</span>
+            <span style={{ color: 'var(--br)' }}>■ 1pt</span>
             <span style={{ color: '#b91c1c' }}>■ 0pts</span>
-            <span style={{ color: '#64748b' }}>■ pendiente</span>
-            <span style={{ color: '#94a3b8' }}>
+            <span style={{ color: 'var(--mut)' }}>■ pendiente</span>
+            <span style={{ color: 'var(--mut)' }}>
               {TEMPORADA_ACTIVA === 'ligamx2026' && jornada === 6
                 ? '⏱️ T. Reglamentario · 🥅 Penales'
                 : '⏱️ T. Reglamentario · ⏩ Prórroga · 🥅 Penales'}
@@ -1556,7 +1561,7 @@ export default function TablaPage() {
 
         {/* Primera hoja: partidos 1-12 */}
         <div>
-          <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: '18px', color: '#e65100', marginBottom: '4px' }}>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '18px', color: '#e65100', marginBottom: '4px' }}>
             📊 TABLA DE PUNTOS — J{jornada} (Partidos 1–{Math.min(12, partidos.length)})
           </h1>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8px' }}>
@@ -1568,7 +1573,7 @@ export default function TablaPage() {
         {/* Segunda hoja: partidos 13-24 */}
         {partidosMitad2.length > 0 && (
           <div style={{ pageBreakBefore: 'always' }}>
-            <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: '18px', color: '#e65100', marginBottom: '4px' }}>
+            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '18px', color: '#e65100', marginBottom: '4px' }}>
               📊 TABLA DE PUNTOS — J{jornada} (Partidos 13–{partidos.length})
             </h1>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8px' }}>

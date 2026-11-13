@@ -1,4 +1,5 @@
 'use client';
+import Encabezado from '@/components/ui/Encabezado';
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -27,7 +28,7 @@ function Inicial({ p }: { p: ParticipanteVista }) {
   return (
     <div
       className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-      style={{ background: 'rgba(234,88,12,0.2)', color: 'var(--accent-gold)' }}
+      style={{ background: 'color-mix(in srgb, var(--br) 20%, transparent)', color: 'var(--accent-gold)' }}
     >
       {iniciales(p.jugador)}
     </div>
@@ -141,17 +142,12 @@ export default function JornadaPage() {
   return (
     <main
       className="max-w-lg mx-auto px-4 pb-24 space-y-4"
-      style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1.5rem)' }}
+      style={{ paddingTop: 'max(20px, calc(env(safe-area-inset-top) + 12px))' }}
     >
       <div style={{ animation: 'fadeInUp 0.4s ease-out' }}>
-        <h1 style={{ fontFamily: 'var(--font-bebas)', fontSize: '2rem', color: 'var(--accent-gold)', lineHeight: 1, letterSpacing: '0.05em' }}>
-          JORNADA {jornada}
-        </h1>
-        <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
-          Predicciones de los participantes
-        </p>
+        <Encabezado titulo={`Jornada ${jornada}`} estacion={jornada} volver="/dashboard" subtitulo="Predicciones de los participantes" />
         <p className="text-[10px] mt-2 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-          ✅ <strong style={{ color: '#10b981' }}>Válido</strong> = publicado y pago confirmado · ⏳ <strong style={{ color: '#f59e0b' }}>Pago pendiente</strong> = publicado, esperando confirmación
+          ✅ <strong style={{ color: 'var(--ex)' }}>Válido</strong> = publicado y pago confirmado · ⏳ <strong style={{ color: 'var(--rs)' }}>Pago pendiente</strong> = publicado, esperando confirmación
         </p>
       </div>
 
@@ -176,7 +172,7 @@ export default function JornadaPage() {
                 className="rounded-2xl overflow-hidden"
                 style={{
                   background: 'var(--bg-card)',
-                  border: `1px solid ${esYo ? 'rgba(234,88,12,0.4)' : 'var(--border)'}`,
+                  border: `1px solid ${esYo ? 'color-mix(in srgb, var(--br) 40%, transparent)' : 'var(--border)'}`,
                   animation: `fadeInUp 0.4s ease-out ${i * 60}ms both`,
                 }}
               >
@@ -197,19 +193,19 @@ export default function JornadaPage() {
                         )}
                         {p.jugador?.badge_ultimo && (
                           <span className="text-[10px] px-2 py-0.5 rounded-full"
-                            style={{ background: 'rgba(202,138,4,0.15)', border: '1px solid rgba(202,138,4,0.3)', color: '#facc15' }}>
+                            style={{ background: 'color-mix(in srgb, var(--rs) 15%, transparent)', border: '1px solid color-mix(in srgb, var(--rs) 30%, transparent)', color: 'var(--rs)' }}>
                             🤡 Último J{p.jugador.badge_ultimo.replace('J', '')}
                           </span>
                         )}
                         {p.jugador?.badge_campeon && (
                           <span className="text-[10px] px-2 py-0.5 rounded-full"
-                            style={{ background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.4)', color: '#fbbf24' }}>
+                            style={{ background: 'color-mix(in srgb, var(--rs) 15%, transparent)', border: '1px solid color-mix(in srgb, var(--rs) 40%, transparent)', color: 'var(--rs)' }}>
                             🏆 {p.jugador.badge_campeon}
                           </span>
                         )}
                       </p>
                       {p.quiniela?.nombre && (
-                        <span className="text-xs block" style={{ color: '#ea580c' }}>
+                        <span className="text-xs block" style={{ color: 'var(--br)' }}>
                           🎫 {p.quiniela.nombre}
                         </span>
                       )}
@@ -218,17 +214,17 @@ export default function JornadaPage() {
                   <div className="flex items-center gap-2">
                     {!p.publicado ? (
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                        style={{ background: 'rgba(100,116,139,0.15)', color: '#64748b' }}>
+                        style={{ background: 'color-mix(in srgb, var(--mut) 15%, transparent)', color: 'var(--mut)' }}>
                         🔒 Sin publicar
                       </span>
                     ) : p.pagado ? (
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                        style={{ background: 'rgba(16,185,129,0.15)', color: '#10b981' }}>
+                        style={{ background: 'color-mix(in srgb, var(--ex) 15%, transparent)', color: 'var(--ex)' }}>
                         ✅ Válido
                       </span>
                     ) : (
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                        style={{ background: 'rgba(234,170,12,0.15)', color: '#f59e0b' }}>
+                        style={{ background: 'rgba(234,170,12,0.15)', color: 'var(--rs)' }}>
                         ⏳ Pago pendiente
                       </span>
                     )}
@@ -241,7 +237,7 @@ export default function JornadaPage() {
                 {/* Contenido — solo visible si expandido */}
                 {abierto && (
                   !p.publicado ? (
-                    <div className="px-4 py-3 text-sm" style={{ color: '#64748b' }}>
+                    <div className="px-4 py-3 text-sm" style={{ color: 'var(--mut)' }}>
                       🔒 Aún no ha publicado sus predicciones
                     </div>
                   ) : (
@@ -259,7 +255,7 @@ export default function JornadaPage() {
                             </span>
                             {pred ? (
                               <span className="shrink-0 font-bold"
-                                style={{ fontFamily: 'var(--font-bebas)', fontSize: '1rem', color: 'var(--text-primary)' }}>
+                                style={{ fontFamily: 'var(--font-display)', fontSize: '1rem', color: 'var(--text-primary)' }}>
                                 {pred.goles_local_pred} – {pred.goles_visitante_pred}
                               </span>
                             ) : (
