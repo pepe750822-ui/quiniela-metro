@@ -11,6 +11,7 @@ import { getNombreJornada, getMontoJornada, TEMPORADA_ACTIVA, getNombreJornadaLi
 import { cargarJornadaActual } from '@/lib/jornadaActual';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { BoletoFrente, BoletoReverso } from '@/components/ui/BoletoMetro';
 
 const cardVariants = {
   hidden: { opacity: 0, scale: 0.95, y: 16 },
@@ -75,46 +76,40 @@ const estadoLabel: Record<string, string> = {
 function PozoCard({ pozo, id }: { pozo: Pozo; id?: string }) {
   const ganoAlguien = (pozo.estado === 'cerrado' || pozo.estado === 'pagado') && pozo.ganador_nombre;
   const abierto = pozo.estado === 'abierto';
+  const quinielas = `${pozo.participantes} quiniela${pozo.participantes !== 1 ? 's' : ''} pagada${pozo.participantes !== 1 ? 's' : ''}`;
+  const chip = (
+    <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-1 rounded-[6px]"
+      style={abierto
+        ? { background: '#5B2A12', color: '#F7EFE2' }
+        : pozo.estado === 'pagado' ? { background: 'var(--ex)', color: 'var(--exI)' } : { background: '#E4D8C4', color: '#3A2A1E' }}>
+      {estadoLabel[pozo.estado]}
+    </span>
+  );
   return (
-    <motion.div
-      id={id}
-      className="boleto overflow-hidden"
-      style={{ background: abierto ? 'var(--ink)' : 'var(--sf)', color: abierto ? 'var(--bg)' : 'var(--ink)', borderColor: abierto ? 'var(--ink)' : 'var(--ln)' }}
-      variants={cardVariants}
-      whileTap={{ scale: 0.99 }}
-    >
-      <div className="px-5 pt-4 pb-4">
-        <div className="flex items-center justify-between">
-          <p className="senal" style={{ fontSize: 12, opacity: 0.85 }}>Pozo · Jornada {pozo.jornada}</p>
-          <span className="text-[12px] font-bold uppercase tracking-wider px-2 py-1 rounded-[8px]"
-            style={abierto
-              ? { background: 'var(--br)', color: 'var(--brI)' }
-              : pozo.estado === 'pagado' ? { background: 'var(--ex)', color: 'var(--exI)' } : { background: 'var(--pnS)', color: 'var(--ink2)' }}>
-            {estadoLabel[pozo.estado]}
-          </span>
-        </div>
-        <p className="font-display mt-2" style={{ fontSize: 64, lineHeight: 0.9 }}>
-          ${pozo.total_mxn}
-        </p>
-        <p className="text-[14px] mt-1" style={{ opacity: 0.8 }}>
-          {pozo.participantes} quiniela{pozo.participantes !== 1 ? 's' : ''} pagada{pozo.participantes !== 1 ? 's' : ''}
-        </p>
-        {ganoAlguien && (
-          <p className="mt-2 text-[15px] font-bold" style={{ color: abierto ? 'var(--bg)' : 'var(--ex)' }}>
-            Ganador: {pozo.ganador_nombre} · ${pozo.total_mxn}
-          </p>
-        )}
-      </div>
-      <div className="boleto-perf" style={{ borderColor: abierto ? 'color-mix(in srgb, var(--bg) 35%, transparent)' : 'var(--ln)' }}>
-        <Link
+    <motion.div id={id} variants={cardVariants} whileTap={{ scale: 0.99 }}>
+      {abierto ? (
+        <BoletoFrente
+          folio={String(pozo.total_mxn).padStart(6, "0")}
+          clave={`RC-J${pozo.jornada}`}
+          titulo={`QM-${pozo.jornada}`}
+          sup="POZO"
+          inf="2026"
+          valor={`$${pozo.total_mxn}`}
+          pie={quinielas}
+          chip={chip}
           href={`/jornada/${pozo.jornada}`}
-          className="flex items-center justify-between px-5 text-[15px] font-semibold"
-          style={{ minHeight: 52 }}
-        >
-          Ver predicciones de todos
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="m9 6 6 6-6 6" /></svg>
-        </Link>
-      </div>
+          accion="Ver predicciones de todos"
+        />
+      ) : (
+        <BoletoReverso
+          encabezado={`Pozo · Jornada ${pozo.jornada}`}
+          chip={chip}
+          linea1={ganoAlguien ? `Ganador: ${pozo.ganador_nombre} · $${pozo.total_mxn}` : `$${pozo.total_mxn}`}
+          linea2={quinielas}
+          href={`/jornada/${pozo.jornada}`}
+          accion="Ver predicciones de todos"
+        />
+      )}
     </motion.div>
   );
 }

@@ -6,15 +6,15 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { TEMPORADA_ACTIVA } from '@/lib/utils';
 
-/* Íconos de línea (24×24, trazo 1.8) — estilo señalética */
-const iconos: Record<string, React.ReactNode> = {
-  ranking: (<><path d="M4 20V10" /><path d="M10 20V4" /><path d="M16 20v-7" /><path d="M2 20h20" /></>),
-  quiniela: (<><path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4Z" /><path d="M13 5v2M13 11v2M13 17v2" /></>),
-  tabla: (<><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 10h18M3 15h18M9 4v16" /></>),
-  calendario: (<><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></>),
-  ligamx: (<><path d="M12 3 4 6v6c0 4.5 3.4 8 8 9 4.6-1 8-4.5 8-9V6Z" /><path d="M9 12l2 2 4-4" /></>),
-  grupos: (<><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" /></>),
-  perfil: (<><circle cx="12" cy="8" r="4" /><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" /></>),
+/* Pictogramas de estación: mosaico de color (como las líneas del Metro) con dibujo blanco relleno. Dibujos originales. */
+const pictos: Record<string, { color: string; borde?: string; d: React.ReactNode }> = {
+  ranking: { color: '#C8006A', d: (<><rect x="9" y="6" width="6" height="14" rx="1" /><rect x="2.5" y="10" width="6" height="10" rx="1" /><rect x="15.5" y="13" width="6" height="7" rx="1" /></>) },
+  quiniela: { color: 'linear-gradient(#F7F1E6 0 41%, #5B3A1C 41% 63%, #F7F1E6 63%)', borde: '#CDBB9E', d: (<g fill="#3A2A1E"><rect x="5" y="3.6" width="14" height="1.6" rx=".8" /><rect x="7" y="6.4" width="10" height="1.3" rx=".65" opacity=".7" /><rect x="5.5" y="17.2" width="3.2" height="3" rx=".7" opacity=".75" /><rect x="10.4" y="17.2" width="3.2" height="3" rx=".7" opacity=".75" /><rect x="15.3" y="17.2" width="3.2" height="3" rx=".7" opacity=".75" /></g>) },
+  tabla: { color: '#A08C00', d: (<path fillRule="evenodd" d="M3 5.5A1.5 1.5 0 0 1 4.5 4h15A1.5 1.5 0 0 1 21 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5ZM5 9.5h3.5V6H5Zm5.5 0H19V6h-8.5ZM5 14.2h3.5v-3H5Zm5.5 0H19v-3h-8.5ZM5 18h3.5v-2.2H5Zm5.5 0H19v-2.2h-8.5Z" />) },
+  calendario: { color: '#0098B8', d: (<path fillRule="evenodd" d="M7 2.5h2V5h6V2.5h2V5h2.5A1.5 1.5 0 0 1 21 6.5v12a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5v-12A1.5 1.5 0 0 1 4.5 5H7ZM5 10v8h14v-8Zm2 2h3v3H7Z" />) },
+  ligamx: { color: '#00904A', d: (<path fillRule="evenodd" d="M12 2.5a9.5 9.5 0 1 1 0 19 9.5 9.5 0 0 1 0-19Zm0 5.2-3.6 2.6 1.4 4.2h4.4l1.4-4.2Zm-6.7.6A7.5 7.5 0 0 0 4.6 12l2-1.4-.4-2.4Zm13.4 0-.9-.1-.4 2.4 2 1.4a7.5 7.5 0 0 0-.7-3.7ZM8.7 18.6a7.5 7.5 0 0 0 6.6 0l.6-2.3-1.6-1.4H9.7l-1.6 1.4Z" />) },
+  grupos: { color: '#00904A', d: (<path fillRule="evenodd" d="M12 2.5a9.5 9.5 0 1 1 0 19 9.5 9.5 0 0 1 0-19ZM4.6 11h3.9c.1-2.4.6-4.6 1.4-6.1A7.5 7.5 0 0 0 4.6 11Zm5.9 0h3c-.2-3.3-1.1-5.5-1.5-6.3-.4.8-1.3 3-1.5 6.3Zm5 0h3.9a7.5 7.5 0 0 0-5.3-6.1c.8 1.5 1.3 3.7 1.4 6.1ZM4.6 13a7.5 7.5 0 0 0 5.3 6.1c-.8-1.5-1.3-3.7-1.4-6.1Zm5.9 0c.2 3.3 1.1 5.5 1.5 6.3.4-.8 1.3-3 1.5-6.3Zm5 0c-.1 2.4-.6 4.6-1.4 6.1a7.5 7.5 0 0 0 5.3-6.1Z" />) },
+  perfil: { color: '#7A4A26', d: (<><circle cx="12" cy="7.5" r="4" /><path d="M4 20.5c.6-4.6 3.8-7 8-7s7.4 2.4 8 7Z" /></>) },
 };
 
 export default function Navbar() {
@@ -50,15 +50,20 @@ export default function Navbar() {
               className="flex-1 flex flex-col items-center justify-center gap-1 pt-2 pb-2 min-h-[60px]"
             >
               <span
-                className="flex items-center justify-center rounded-full transition-colors duration-200"
-                style={{ width: 52, height: 30, background: active ? 'var(--brS)' : 'transparent', color: active ? 'var(--br)' : 'var(--mut)' }}
+                className="flex items-center justify-center rounded-[9px] transition-transform duration-200"
+                style={{
+                  width: 32, height: 32, background: pictos[icon].color, color: '#fff',
+                  boxShadow: active ? '0 0 0 2px var(--sf), 0 0 0 4px var(--ink)' : pictos[icon].borde ? `inset 0 0 0 1px ${pictos[icon].borde}` : 'none',
+                  transform: active ? 'scale(1.06)' : 'none',
+                  opacity: active || pictos[icon].borde ? 1 : 0.82,
+                }}
               >
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  {iconos[icon]}
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  {pictos[icon].d}
                 </svg>
               </span>
-              <span className="text-[12px] leading-none font-semibold"
-                style={{ color: active ? 'var(--ink)' : 'var(--mut)' }}>
+              <span className="text-[12px] leading-none"
+                style={{ color: active ? 'var(--ink)' : 'var(--mut)', fontWeight: active ? 700 : 600 }}>
                 {label}
               </span>
             </Link>

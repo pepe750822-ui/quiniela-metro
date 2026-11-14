@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import TrenMetro from '@/components/ui/TrenMetro';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -212,9 +213,12 @@ export default function LoginPage() {
             <span className="rounded-full" style={{ width: 10, height: 10, border: '3px solid var(--br)', background: 'var(--bg)' }} />
             <span className="senal" style={{ fontSize: 11 }}>Andén de acceso</span>
           </span>
-          <h1 className="font-display" style={{ fontSize: 40, lineHeight: 0.95, color: 'var(--ink)' }}>
-            Entra a la quiniela
-          </h1>
+          <div className="flex items-end justify-between gap-3">
+            <h1 className="font-display" style={{ fontSize: 40, lineHeight: 0.95, color: 'var(--ink)' }}>
+              Entra a la quiniela
+            </h1>
+            <TrenMetro size={64} className="shrink-0" />
+          </div>
           <p className="mt-2 text-[15px]" style={{ color: 'var(--ink2)' }}>
             Usa tu cuenta de Google y listo. Es lo más rápido.
           </p>
