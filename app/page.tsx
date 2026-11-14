@@ -61,7 +61,7 @@ export default function LandingPage() {
       >
         <div className="px-5 pt-5 pb-4">
           <div className="flex items-center gap-3 mb-6">
-            <span className="flex items-center justify-center rounded-[10px]" style={{ width: 40, height: 40, background: '#F5F0E7', color: '#C8006A' }}>
+            <span className="flex items-center justify-center rounded-[10px]" style={{ width: 40, height: 40, background: '#F5F0E7', color: '#8A1538' }}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="9" /><path d="M12 7l4 3-1.5 5h-5L8 10Z" /></svg>
             </span>
             <span className="senal flex-1" style={{ fontSize: 12 }}>
@@ -80,13 +80,13 @@ export default function LandingPage() {
         {/* Línea con estaciones */}
         {estaciones.length > 0 && (
           <div className="relative px-5 pt-3 pb-4" style={{ background: '#F4EFE6' }}>
-            <div className="absolute left-5 right-5" style={{ top: 21, height: 6, borderRadius: 3, background: '#C8006A' }} />
+            <div className="absolute left-5 right-5" style={{ top: 21, height: 6, borderRadius: 3, background: '#8A1538' }} />
             <div className="relative flex justify-between">
               {[...estaciones.map(j => `J${j}`), 'Hoy'].map((et, i, arr) => (
                 <div key={et} className="flex flex-col items-center gap-1">
                   <span className="rounded-full" style={{
                     width: i === arr.length - 1 ? 22 : 18, height: i === arr.length - 1 ? 22 : 18, marginTop: i === arr.length - 1 ? -2 : 0,
-                    background: i === arr.length - 1 ? '#C8006A' : '#F4EFE6', border: '4px solid #C8006A',
+                    background: i === arr.length - 1 ? '#8A1538' : '#F4EFE6', border: '4px solid #8A1538',
                   }} />
                   <span className="text-[12px] font-bold" style={{ color: '#15120F' }}>{et}</span>
                 </div>
