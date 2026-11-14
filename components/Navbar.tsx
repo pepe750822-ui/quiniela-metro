@@ -7,9 +7,9 @@ import { supabase } from '@/lib/supabase';
 import { TEMPORADA_ACTIVA } from '@/lib/utils';
 
 /* Pictogramas de estación: mosaico de color (como las líneas del Metro) con dibujo blanco relleno. Dibujos originales. */
-const pictos: Record<string, { color: string; d: React.ReactNode }> = {
+const pictos: Record<string, { color: string; borde?: string; d: React.ReactNode }> = {
   ranking: { color: '#C8006A', d: (<><rect x="9" y="6" width="6" height="14" rx="1" /><rect x="2.5" y="10" width="6" height="10" rx="1" /><rect x="15.5" y="13" width="6" height="7" rx="1" /></>) },
-  quiniela: { color: '#EE7A32', d: (<><rect x="2.5" y="3.5" width="2.4" height="17" rx=".6" fill="#F7EFE2" /><g fill="none" stroke="#5B2A12" strokeWidth="2"><rect x="7.5" y="5.5" width="13" height="13" rx="3.2" /><circle cx="13.6" cy="11.4" r="2.9" /><path d="m15.6 13.5 2.4 2.4" strokeLinecap="round" /></g></>) },
+  quiniela: { color: 'linear-gradient(#F7F1E6 0 41%, #5B3A1C 41% 63%, #F7F1E6 63%)', borde: '#CDBB9E', d: (<g fill="#3A2A1E"><rect x="5" y="3.6" width="14" height="1.6" rx=".8" /><rect x="7" y="6.4" width="10" height="1.3" rx=".65" opacity=".7" /><rect x="5.5" y="17.2" width="3.2" height="3" rx=".7" opacity=".75" /><rect x="10.4" y="17.2" width="3.2" height="3" rx=".7" opacity=".75" /><rect x="15.3" y="17.2" width="3.2" height="3" rx=".7" opacity=".75" /></g>) },
   tabla: { color: '#A08C00', d: (<path fillRule="evenodd" d="M3 5.5A1.5 1.5 0 0 1 4.5 4h15A1.5 1.5 0 0 1 21 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5ZM5 9.5h3.5V6H5Zm5.5 0H19V6h-8.5ZM5 14.2h3.5v-3H5Zm5.5 0H19v-3h-8.5ZM5 18h3.5v-2.2H5Zm5.5 0H19v-2.2h-8.5Z" />) },
   calendario: { color: '#0098B8', d: (<path fillRule="evenodd" d="M7 2.5h2V5h6V2.5h2V5h2.5A1.5 1.5 0 0 1 21 6.5v12a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5v-12A1.5 1.5 0 0 1 4.5 5H7ZM5 10v8h14v-8Zm2 2h3v3H7Z" />) },
   ligamx: { color: '#00904A', d: (<path fillRule="evenodd" d="M12 2.5a9.5 9.5 0 1 1 0 19 9.5 9.5 0 0 1 0-19Zm0 5.2-3.6 2.6 1.4 4.2h4.4l1.4-4.2Zm-6.7.6A7.5 7.5 0 0 0 4.6 12l2-1.4-.4-2.4Zm13.4 0-.9-.1-.4 2.4 2 1.4a7.5 7.5 0 0 0-.7-3.7ZM8.7 18.6a7.5 7.5 0 0 0 6.6 0l.6-2.3-1.6-1.4H9.7l-1.6 1.4Z" />) },
@@ -53,9 +53,9 @@ export default function Navbar() {
                 className="flex items-center justify-center rounded-[9px] transition-transform duration-200"
                 style={{
                   width: 32, height: 32, background: pictos[icon].color, color: '#fff',
-                  boxShadow: active ? '0 0 0 2px var(--sf), 0 0 0 4px var(--ink)' : 'none',
+                  boxShadow: active ? '0 0 0 2px var(--sf), 0 0 0 4px var(--ink)' : pictos[icon].borde ? `inset 0 0 0 1px ${pictos[icon].borde}` : 'none',
                   transform: active ? 'scale(1.06)' : 'none',
-                  opacity: active ? 1 : 0.82,
+                  opacity: active || pictos[icon].borde ? 1 : 0.82,
                 }}
               >
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
