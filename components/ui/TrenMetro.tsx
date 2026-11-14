@@ -6,8 +6,8 @@ export default function TrenMetro({ size = 64, className = '' }: { size?: number
       <path d="M14 61h36" stroke="#15120F" strokeWidth="3" strokeLinecap="round" />
       {/* cuerpo */}
       <rect x="10" y="6" width="44" height="48" rx="14" fill="#F07A1A" stroke="#15120F" strokeWidth="3" />
-      {/* franja rosa */}
-      <rect x="11.5" y="40" width="41" height="6" fill="#C8006A" />
+      {/* franja vino */}
+      <rect x="11.5" y="40" width="41" height="6" fill="#8A1538" />
       {/* parabrisas */}
       <rect x="16" y="12" width="32" height="20" rx="7" fill="#FFFDF9" stroke="#15120F" strokeWidth="2.5" />
       {/* ojos */}

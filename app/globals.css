@@ -13,8 +13,8 @@
   --ink2: #3F3A33;  /* texto secundario */
   --mut:  #625B51;  /* metadatos */
   --ln:   #D6CCBB;  /* bordes, perforado */
-  --br:   #C8006A;  /* rosa mexicano */
-  --brS:  #FADCEB;  /* fondo de marca */
+  --br:   #8A1538;  /* vino (no es color de ninguna línea) */
+  --brS:  #F4DEE3;  /* fondo de marca */
   --brI:  #FFFFFF;  /* texto sobre marca */
   --ex:   #0C7A41;  /* 3 pts exacto */
   --exI:  #FFFFFF;  /* texto sobre exacto */
@@ -51,8 +51,8 @@
   --ink2: #D6CEC1;
   --mut:  #A69E91;
   --ln:   #3A352F;
-  --br:   #FF4DA0;
-  --brS:  #3B1529;
+  --br:   #E3738C;
+  --brS:  #3A1720;
   --brI:  #15120F;
   --ex:   #3ED68B;
   --exI:  #0E0D0C;

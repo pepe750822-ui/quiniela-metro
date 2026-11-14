@@ -8,7 +8,7 @@ import { TEMPORADA_ACTIVA } from '@/lib/utils';
 
 /* Pictogramas de estación: mosaico de color (como las líneas del Metro) con dibujo blanco relleno. Dibujos originales. */
 const pictos: Record<string, { color: string; borde?: string; d: React.ReactNode }> = {
-  ranking: { color: '#C8006A', d: (<><rect x="9" y="6" width="6" height="14" rx="1" /><rect x="2.5" y="10" width="6" height="10" rx="1" /><rect x="15.5" y="13" width="6" height="7" rx="1" /></>) },
+  ranking: { color: '#8A1538', d: (<><rect x="9" y="6" width="6" height="14" rx="1" /><rect x="2.5" y="10" width="6" height="10" rx="1" /><rect x="15.5" y="13" width="6" height="7" rx="1" /></>) },
   quiniela: { color: 'linear-gradient(#F7F1E6 0 41%, #5B3A1C 41% 63%, #F7F1E6 63%)', borde: '#CDBB9E', d: (<g fill="#3A2A1E"><rect x="5" y="3.6" width="14" height="1.6" rx=".8" /><rect x="7" y="6.4" width="10" height="1.3" rx=".65" opacity=".7" /><rect x="5.5" y="17.2" width="3.2" height="3" rx=".7" opacity=".75" /><rect x="10.4" y="17.2" width="3.2" height="3" rx=".7" opacity=".75" /><rect x="15.3" y="17.2" width="3.2" height="3" rx=".7" opacity=".75" /></g>) },
   tabla: { color: '#A08C00', d: (<path fillRule="evenodd" d="M3 5.5A1.5 1.5 0 0 1 4.5 4h15A1.5 1.5 0 0 1 21 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5ZM5 9.5h3.5V6H5Zm5.5 0H19V6h-8.5ZM5 14.2h3.5v-3H5Zm5.5 0H19v-3h-8.5ZM5 18h3.5v-2.2H5Zm5.5 0H19v-2.2h-8.5Z" />) },
   calendario: { color: '#0098B8', d: (<path fillRule="evenodd" d="M7 2.5h2V5h6V2.5h2V5h2.5A1.5 1.5 0 0 1 21 6.5v12a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5v-12A1.5 1.5 0 0 1 4.5 5H7ZM5 10v8h14v-8Zm2 2h3v3H7Z" />) },
