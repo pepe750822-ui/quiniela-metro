@@ -153,6 +153,86 @@ export default function DashboardPage() {
     const miCarga = ++cargaId.current;
     setLoading(true);
 
+    // ── General Liga MX: acumulado de la temporada (quiniela principal, solo jornadas pagadas) ──
+    if (jornadaSeleccionada === 'general' && TEMPORADA_ACTIVA === 'ligamx2026') {
+      // J4+J5 y J6+J7 se pagan como una sola quiniela
+      const grupoJ = (jr: number) => (jr === 5 ? 4 : jr === 7 ? 6 : jr);
+
+      const { data: partsG } = await supabase
+        .from('quiniela_participaciones')
+        .select('user_id, jornada')
+        .eq('temporada', TEMPORADA_ACTIVA)
+        .eq('pagado', true)
+        .is('quiniela_extra_id', null);
+      const pagadoG = new Set((partsG ?? []).map((p: { user_id: string; jornada: number }) => `${p.user_id}:${grupoJ(p.jornada)}`));
+      const userIdsG = [...new Set((partsG ?? []).map((p: { user_id: string }) => p.user_id))];
+
+      const { data: partidosG } = await supabase
+        .from('quiniela_partidos')
+        .select('id, jornada')
+        .eq('temporada', TEMPORADA_ACTIVA)
+        .eq('estado', 'finalizado');
+      const jornadaDePartido: Record<string, number> = {};
+      (partidosG ?? []).forEach((pt: { id: string; jornada: number }) => { jornadaDePartido[pt.id] = pt.jornada; });
+      const partidoIdsG = Object.keys(jornadaDePartido);
+
+      // Predicciones en bloques (el API devuelve máximo 1000 filas por consulta)
+      const predsG: { user_id: string; partido_id: string; puntos_ganados: number | null }[] = [];
+      for (let i = 0; i < partidoIdsG.length && userIdsG.length; i += 100) {
+        const bloque = partidoIdsG.slice(i, i + 100);
+        for (let desde = 0; ; desde += 1000) {
+          const { data } = await supabase
+            .from('quiniela_predicciones')
+            .select('user_id, partido_id, puntos_ganados')
+            .in('partido_id', bloque)
+            .in('user_id', userIdsG)
+            .is('quiniela_extra_id', null)
+            .range(desde, desde + 999);
+          predsG.push(...((data ?? []) as typeof predsG));
+          if (!data || data.length < 1000) break;
+        }
+      }
+
+      const totG: Record<string, { puntos: number; exactos: number; jornadas: Set<number> }> = {};
+      userIdsG.forEach(uid => { totG[uid] = { puntos: 0, exactos: 0, jornadas: new Set() }; });
+      predsG.forEach(pr => {
+        const jr = grupoJ(jornadaDePartido[pr.partido_id]);
+        if (!pagadoG.has(`${pr.user_id}:${jr}`)) return;
+        const t = totG[pr.user_id];
+        t.puntos += pr.puntos_ganados || 0;
+        if (pr.puntos_ganados === 3) t.exactos++;
+        t.jornadas.add(jr);
+      });
+
+      const { data: jugadoresG } = userIdsG.length
+        ? await supabase.from('quiniela_jugadores').select('id, nombre, email, apodo, avatar_url, badge_campeon').in('id', userIdsG)
+        : { data: [] };
+
+      if (miCarga !== cargaId.current) return;
+      setParticipantesJornada([]);
+      setPagadosIds(userIdsG);
+      setRanking(
+        userIdsG
+          .map(uid => ({ uid, ...totG[uid] }))
+          .sort((a, b) => b.puntos - a.puntos || b.exactos - a.exactos)
+          .map(r => {
+            const jug = (jugadoresG ?? []).find((jg: { id: string }) => jg.id === r.uid);
+            return {
+              id: r.uid, user_id: r.uid, jornada: null,
+              puntos_total: r.puntos, exactos: r.exactos, updated_at: '',
+              jugador: {
+                id: r.uid, nombre: jug?.nombre ?? '', apodo: jug?.apodo ?? null,
+                email: jug?.email ?? '', rol: 'jugador' as const,
+                avatar_url: jug?.avatar_url ?? null, creditos: 0, created_at: '',
+                badge_ultimo: null, badge_campeon: jug?.badge_campeon ?? null, campeon_pick: null,
+              },
+            };
+          })
+      );
+      setLoading(false);
+      return;
+    }
+
     if (jornadaSeleccionada === 'general') {
       const { data: generalData } = await supabase.rpc('get_ranking_general');
       const rankItems = (generalData ?? []) as { user_id: string; puntos_totales: number; exactos_totales: number; jornadas_jugadas: number }[];
@@ -900,7 +980,7 @@ export default function DashboardPage() {
 
         <div className="flex gap-2 mb-4 overflow-x-auto -mx-4 px-4 pb-1" style={{ scrollbarWidth: 'none' }}>
           {((TEMPORADA_ACTIVA === 'ligamx2026'
-            ? (['lc_total', ...jornadasDisponibles] as (number | 'lc_total')[])
+            ? (['general', 'lc_total', ...jornadasDisponibles] as (number | 'general' | 'lc_total')[])
             : (['general', ...jornadasDisponibles] as (number | 'general')[])
           ) as (number | 'general' | 'lc_total')[]).map(j => (
             <button
