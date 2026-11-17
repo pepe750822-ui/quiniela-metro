@@ -59,6 +59,7 @@ export default function AdminPage() {
   const [adminId, setAdminId]     = useState<string | null>(null);
   const [resultados, setResultados] = useState<Record<string, { local: number; visitante: number }>>({});
   const [guardando, setGuardando]   = useState<string | null>(null);
+  const [editandoId, setEditandoId] = useState<string | null>(null);
 
   // Apodos
   const [jugadores, setJugadores] = useState<Jugador[]>([]);
@@ -440,6 +441,12 @@ export default function AdminPage() {
       && fechaPartidoH >= new Date('2026-08-04T00:00:00Z')
       && fechaPartidoH < new Date('2026-08-14T00:00:00Z');
     const esElim = (partidoObj?.jornada ?? 0) >= 5 || esLeaguesCupH;
+    const yaFinalizado = partidoObj?.estado === 'finalizado';
+
+    if (yaFinalizado
+      && !confirm('¿Corregir el marcador de este partido? Se recalcularán los puntos de todos los participantes.')) {
+      return;
+    }
 
     setGuardando(partidoId);
     const updatePayload: Record<string, unknown> = {
@@ -447,7 +454,8 @@ export default function AdminPage() {
       goles_visitante: resultado.visitante,
       estado: 'finalizado',
     };
-    if (esElim) {
+    // Al corregir un resultado ya guardado se conserva el como_termino existente
+    if (esElim && !yaFinalizado) {
       updatePayload.como_termino = 'reglamentario';
     }
     console.log('Guardando resultado:', partidoId, updatePayload);
@@ -460,8 +468,9 @@ export default function AdminPage() {
     if (error) {
       toast.error('Error: ' + error.message);
     } else {
-      toast.success('✅ Resultado guardado');
+      toast.success(yaFinalizado ? '✅ Marcador corregido' : '✅ Resultado guardado');
       setResultados(prev => { const n = { ...prev }; delete n[partidoId]; return n; });
+      setEditandoId(null);
       await cargarPartidos();
 
       if (partidoObj?.grupo === 'FIN') {
@@ -489,6 +498,79 @@ export default function AdminPage() {
       toast.success('🔄 Resultado limpiado');
       await cargarPartidos();
     }
+  };
+
+  // Corrección de un marcador ya guardado
+  const iniciarEdicion = (partido: Partido) => {
+    setResultados(prev => ({
+      ...prev,
+      [partido.id]: {
+        local:     partido.goles_local     ?? 0,
+        visitante: partido.goles_visitante ?? 0,
+      },
+    }));
+    setEditandoId(partido.id);
+  };
+
+  const cancelarEdicion = (partidoId: string) => {
+    setResultados(prev => { const n = { ...prev }; delete n[partidoId]; return n; });
+    setEditandoId(null);
+  };
+
+  const renderMarcadorInputs = (partido: Partido) => {
+    const res = resultados[partido.id];
+    const esEdicion = partido.estado === 'finalizado';
+    return (
+      <div className="space-y-3 mt-1">
+        <div className="flex items-center justify-center gap-3">
+          <input id={`local-${partido.id}`} name={`local-${partido.id}`}
+            type="number" min="0" max="20" placeholder="0"
+            value={res?.local ?? ''}
+            onChange={e => setResultados(prev => ({
+              ...prev,
+              [partido.id]: { local: parseInt(e.target.value) || 0, visitante: prev[partido.id]?.visitante ?? 0 },
+            }))}
+            className="w-14 h-12 text-center text-xl font-bold rounded-xl outline-none"
+            style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontFamily: 'var(--font-bebas)' }} />
+          <span className="text-xl font-bold" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-bebas)' }}>–</span>
+          <input id={`visitante-${partido.id}`} name={`visitante-${partido.id}`}
+            type="number" min="0" max="20" placeholder="0"
+            value={res?.visitante ?? ''}
+            onChange={e => setResultados(prev => ({
+              ...prev,
+              [partido.id]: { local: prev[partido.id]?.local ?? 0, visitante: parseInt(e.target.value) || 0 },
+            }))}
+            className="w-14 h-12 text-center text-xl font-bold rounded-xl outline-none"
+            style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontFamily: 'var(--font-bebas)' }} />
+          <button onClick={() => handleGuardar(partido.id)}
+            disabled={guardando === partido.id}
+            className="h-12 px-4 rounded-xl font-bold text-sm disabled:opacity-40 transition-all active:scale-95"
+            style={{ background: 'var(--ex)', color: '#000' }}>
+            {guardando === partido.id ? '…' : esEdicion ? 'Corregir ✓' : 'Guardar ✓'}
+          </button>
+          {esEdicion ? (
+            <button onClick={() => cancelarEdicion(partido.id)}
+              className="h-12 px-3 rounded-xl text-sm transition-all active:scale-95"
+              style={{ background: 'var(--text-muted)', color: 'var(--text-secondary)' }}
+              title="Cancelar corrección">
+              ✕
+            </button>
+          ) : (
+            <button onClick={() => handleLimpiar(partido.id)}
+              className="h-12 px-3 rounded-xl text-sm transition-all active:scale-95"
+              style={{ background: 'var(--text-muted)', color: 'var(--text-secondary)' }}
+              title="Limpiar resultado">
+              🔄
+            </button>
+          )}
+        </div>
+        {esEdicion && (
+          <p className="text-[11px] text-center" style={{ color: 'var(--text-secondary)' }}>
+            Al corregir se recalculan los puntos de todos los participantes en este partido.
+          </p>
+        )}
+      </div>
+    );
   };
 
   // ── Handlers pozos ───────────────────────────────────
@@ -1924,7 +2006,6 @@ export default function AdminPage() {
         {seccionesAbiertas.resultados && (
         <div className="space-y-3">
           {partidos.map(partido => {
-            const res = resultados[partido.id];
             return (
               <div key={partido.id} id={`partido-${partido.id}`} className="rounded-2xl p-4 space-y-3"
                 style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
@@ -1943,44 +2024,9 @@ export default function AdminPage() {
                   {partido.equipo_local} vs {partido.equipo_visitante}
                   <Bandera emoji={partido.bandera_visitante ?? ''} nombre={partido.equipo_visitante} size="sm" />
                 </p>
-                {partido.estado !== 'finalizado' && (
-                  <div className="space-y-3 mt-1">
-                    <div className="flex items-center justify-center gap-3">
-                      <input id={`local-${partido.id}`} name={`local-${partido.id}`}
-                        type="number" min="0" max="20" placeholder="0"
-                        value={res?.local ?? ''}
-                        onChange={e => setResultados(prev => ({
-                          ...prev,
-                          [partido.id]: { local: parseInt(e.target.value) || 0, visitante: prev[partido.id]?.visitante ?? 0 },
-                        }))}
-                        className="w-14 h-12 text-center text-xl font-bold rounded-xl outline-none"
-                        style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontFamily: 'var(--font-bebas)' }} />
-                      <span className="text-xl font-bold" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-bebas)' }}>–</span>
-                      <input id={`visitante-${partido.id}`} name={`visitante-${partido.id}`}
-                        type="number" min="0" max="20" placeholder="0"
-                        value={res?.visitante ?? ''}
-                        onChange={e => setResultados(prev => ({
-                          ...prev,
-                          [partido.id]: { local: prev[partido.id]?.local ?? 0, visitante: parseInt(e.target.value) || 0 },
-                        }))}
-                        className="w-14 h-12 text-center text-xl font-bold rounded-xl outline-none"
-                        style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontFamily: 'var(--font-bebas)' }} />
-                      <button onClick={() => handleGuardar(partido.id)}
-                        disabled={guardando === partido.id}
-                        className="h-12 px-4 rounded-xl font-bold text-sm disabled:opacity-40 transition-all active:scale-95"
-                        style={{ background: 'var(--ex)', color: '#000' }}>
-                        {guardando === partido.id ? '…' : 'Guardar ✓'}
-                      </button>
-                      <button onClick={() => handleLimpiar(partido.id)}
-                        className="h-12 px-3 rounded-xl text-sm transition-all active:scale-95"
-                        style={{ background: 'var(--text-muted)', color: 'var(--text-secondary)' }}
-                        title="Limpiar resultado">
-                        🔄
-                      </button>
-                    </div>
-                  </div>
-                )}
-                {partido.estado === 'finalizado' && (
+                {partido.estado !== 'finalizado' && renderMarcadorInputs(partido)}
+                {partido.estado === 'finalizado' && editandoId === partido.id && renderMarcadorInputs(partido)}
+                {partido.estado === 'finalizado' && editandoId !== partido.id && (
                   <div className="text-center space-y-1">
                     <p className="font-bold text-lg" style={{ fontFamily: 'var(--font-bebas)', color: 'var(--accent-gold)' }}>
                       {partido.goles_local} – {partido.goles_visitante}
@@ -1996,6 +2042,11 @@ export default function AdminPage() {
                         )}
                       </p>
                     )}
+                    <button onClick={() => iniciarEdicion(partido)}
+                      className="mt-1 h-9 px-3 rounded-lg text-xs font-bold transition-all active:scale-95"
+                      style={{ background: 'rgba(234,88,12,0.15)', color: 'var(--accent-gold)', border: '1px solid rgba(234,88,12,0.35)', fontFamily: 'var(--font-rajdhani)' }}>
+                      ✏️ Editar marcador
+                    </button>
                   </div>
                 )}
               </div>
