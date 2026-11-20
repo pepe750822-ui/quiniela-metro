@@ -720,9 +720,16 @@ export default function DashboardPage() {
     return () => { activo = false; };
   }, [jornadaSeleccionada]);
 
+  // Al abrir Ranking, llevar al último pozo abierto (o al último pozo si no hay abiertos)
+  const pozoDestino = (() => {
+    const abiertos = pozos.filter(p => p.estado === 'abierto');
+    const lista = abiertos.length ? abiertos : pozos;
+    return lista.length ? Math.max(...lista.map(p => p.jornada)) : null;
+  })();
   useEffect(() => {
-    setTimeout(() => {
-      const el = document.getElementById('pozo-j6');
+    if (pozoDestino === null) return;
+    const t = setTimeout(() => {
+      const el = document.getElementById('pozo-destino');
       if (el) {
         el.scrollIntoView({
           behavior: 'smooth',
@@ -730,7 +737,8 @@ export default function DashboardPage() {
         });
       }
     }, 800);
-  }, [pozos]);
+    return () => clearTimeout(t);
+  }, [pozoDestino]);
 
   const jornadaAutoElegida = useRef(false);
   useEffect(() => {
@@ -904,7 +912,7 @@ export default function DashboardPage() {
             Pozos acumulados
           </p>
           {pozosVisibles.map(pozo => (
-            <PozoCard key={pozo.id} pozo={pozo} id={pozo.jornada === 6 ? 'pozo-j6' : undefined} />
+            <PozoCard key={pozo.id} pozo={pozo} id={pozo.jornada === pozoDestino ? 'pozo-destino' : undefined} />
           ))}
         </motion.div>
       )}
