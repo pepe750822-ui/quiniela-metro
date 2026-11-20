@@ -76,18 +76,16 @@ export function BoletoReverso({
   encabezado, linea1, linea2, href, accion, chip,
 }: { encabezado: string; linea1: ReactNode; linea2?: ReactNode; href?: string; accion?: string; chip?: ReactNode }) {
   return (
-    <div className="overflow-hidden" style={{ background: '#F7F1E6', color: '#3A2A1E', borderRadius: 10, border: '1px solid #E4D8C4' }}>
-      {/* arriba de la banda: pozo · jornada y estado */}
-      <div className="flex items-center justify-between px-4 pt-3">
-        <span className="senal" style={{ fontSize: 12 }}>{encabezado}</span>
+    <div className="overflow-hidden" style={{ background: '#FBF8F2', color: '#3A2A1E', borderRadius: 10, border: '1px solid #E4D8C4' }}>
+      {/* reverso del boleto: texto centrado arriba, banda magnética al centro, texto centrado abajo */}
+      <div className="flex flex-col items-center gap-1.5 px-4 pt-5 pb-4 text-center">
+        <span className="senal" style={{ fontSize: 13 }}>{encabezado}</span>
         {chip}
       </div>
-      {/* banda magnética al centro, como el reverso del boleto */}
-      <div className="my-3" style={{ height: 22, background: 'linear-gradient(#6A4422, #533316)' }} />
-      {/* abajo de la banda: ganador y quinielas */}
-      <div className="px-4 pb-3 text-center">
-        <p className="text-[15px] font-bold" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>{linea1}</p>
-        {linea2 && <p className="text-[13px]" style={{ opacity: 0.8 }}>{linea2}</p>}
+      <div style={{ height: 40, background: '#6B4A2E', borderTop: '2px solid #5A3C24', borderBottom: '2px solid #5A3C24' }} />
+      <div className="px-4 pt-4 pb-5 text-center">
+        <p className="text-[16px] font-bold" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>{linea1}</p>
+        {linea2 && <p className="mt-0.5 text-[13px]" style={{ opacity: 0.8 }}>{linea2}</p>}
       </div>
       {href && (
         <Link href={href} className="flex items-center justify-between px-4 text-[15px] font-semibold"
