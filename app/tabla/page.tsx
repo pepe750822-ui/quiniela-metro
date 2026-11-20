@@ -11,6 +11,7 @@ import ReglasFaseFinal from '@/components/ReglasFaseFinal';
 import DesempateTabla from '@/components/DesempateTabla';
 import { calcularJornadaActual } from '@/lib/jornadaActual';
 import { JORNADA_DESEMPATE, cargarDesempateJ11, DESEMPATE_POZO_J11, cargarDesempatePozoJ11, DesempateRow } from '@/lib/desempate';
+import Metrin from '@/components/ui/Metrin';
 
 const tableBodyVariants = {
   hidden: {},
@@ -799,6 +800,11 @@ export default function TablaPage() {
             </button>
           </div>
         </div>
+
+        <Metrin accion="lupa" className="mt-3 print:hidden" consejos={[
+          'Aquí ves los pronósticos de todos. ¿Quién le atinó al exacto?',
+          'Si hay empate en el pozo, desempata la jornada siguiente.',
+        ]} />
 
         {/* Selector jornada */}
         <div ref={selectorRef} className="flex gap-2 mt-3 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>

@@ -12,6 +12,7 @@ import { cargarJornadaActual } from '@/lib/jornadaActual';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { BoletoFrente, BoletoReverso } from '@/components/ui/BoletoMetro';
+import Metrin from '@/components/ui/Metrin';
 
 const cardVariants = {
   hidden: { opacity: 0, scale: 0.95, y: 16 },
@@ -833,6 +834,12 @@ export default function DashboardPage() {
           </p>
         </div>
       </header>
+
+      <Metrin accion="trofeo" consejos={[
+        '¡Hola, soy Metrín! Aquí ves quién va ganando el pozo de la jornada.',
+        'Exacto vale 3 puntos y atinarle al ganador o empate vale 1.',
+        'Solo cuentan los boletos pagados. ¡No te quedes en el andén!',
+      ]} />
 
       {/* Countdown */}
       {TEMPORADA_ACTIVA !== 'ligamx2026' && (
