@@ -80,7 +80,7 @@ export default function PerfilPage() {
       style={{ paddingTop: 'max(20px, calc(env(safe-area-inset-top) + 12px))' }}
     >
       <Encabezado titulo="Perfil" />
-      <Metrin consejos={[
+      <Metrin accion="saluda" consejos={[
         'Ponte un apodo para que te reconozcan en el ranking.',
         '¿Dudas con el pago o las reglas? Abajo está «Cómo jugar».',
       ]} />

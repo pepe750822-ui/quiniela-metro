@@ -123,7 +123,7 @@ export default function CalendarioPage() {
         <p className="text-[14px] font-medium mt-1 mb-6" style={{ color: 'var(--mut)' }}>
           Horarios en hora de CDMX
         </p>
-        <Metrin className="-mt-2 mb-6" consejos={[
+        <Metrin accion="reloj" className="-mt-2 mb-6" consejos={[
           'Todos los horarios ya están en hora de CDMX. ¡Que no se te vaya el tren!',
           'Checa el calendario y llena tu quiniela con tiempo.',
         ]} />

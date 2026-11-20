@@ -801,7 +801,7 @@ export default function TablaPage() {
           </div>
         </div>
 
-        <Metrin className="mt-3 print:hidden" consejos={[
+        <Metrin accion="lupa" className="mt-3 print:hidden" consejos={[
           'Aquí ves los pronósticos de todos. ¿Quién le atinó al exacto?',
           'Si hay empate en el pozo, desempata la jornada siguiente.',
         ]} />

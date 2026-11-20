@@ -835,7 +835,7 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <Metrin consejos={[
+      <Metrin accion="trofeo" consejos={[
         '¡Hola, soy Metrín! Aquí ves quién va ganando el pozo de la jornada.',
         'Exacto vale 3 puntos y atinarle al ganador o empate vale 1.',
         'Solo cuentan los boletos pagados. ¡No te quedes en el andén!',

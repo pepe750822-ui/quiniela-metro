@@ -382,7 +382,7 @@ export default function PosicionesPage() {
           : `Solo partidos finalizados · ${TEMPORADA_ACTIVA}`}
       </p>
 
-      <Metrin className="mb-4" consejos={[
+      <Metrin accion="balon" className="mb-4" consejos={[
         'Esta tabla se actualiza sola cuando termina cada partido.',
         '¿Quién llega a la Liguilla? Échale ojo antes de llenar tu quiniela.',
       ]} />

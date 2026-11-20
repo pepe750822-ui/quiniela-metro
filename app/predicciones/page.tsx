@@ -983,7 +983,7 @@ export default function PrediccionesPage() {
         </p>
         </div>
         </div>
-        <Metrin className="mt-3" consejos={[
+        <Metrin accion="lapiz" className="mt-3" consejos={[
           'Llena tus marcadores antes de que se cierren. ¡Que no se te vaya el tren!',
           'Marcador exacto: 3 puntos. Ganador o empate: 1 punto.',
           '¿Tienes varios boletos? Llena los marcadores de cada uno.',

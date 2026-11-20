@@ -151,11 +151,40 @@
 @keyframes pulsoVivo { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
 .pulso-vivo { animation: pulsoVivo 1.6s ease-in-out infinite; }
 
-/* Metrín: saluda al aparecer y avanza mientras carga */
-@keyframes metrinSaluda { 0% { transform: translateY(6px) rotate(-6deg); opacity: 0; } 60% { transform: translateY(-3px) rotate(4deg); opacity: 1; } 100% { transform: none; } }
-.metrin-saluda { animation: metrinSaluda .6s ease-out both; transform-origin: 50% 90%; }
+/* Metrín: en cada ventana hace algo distinto (ciclo con pausa) */
+.metrin-obj { position: absolute; pointer-events: none; }
 @keyframes metrinAvanza { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
 .metrin-avanza { animation: metrinAvanza .5s ease-in-out infinite; }
+/* Ranking: brinca de gusto con el trofeo */
+@keyframes metrinFesteja { 0%,40%,100% { transform: none; } 10% { transform: translateY(-8px) rotate(-6deg); } 20% { transform: none; } 30% { transform: translateY(-5px) rotate(5deg); } }
+.metrin-festeja { animation: metrinFesteja 3s ease-in-out infinite; transform-origin: 50% 100%; }
+@keyframes metrinBrilla { 0%,40%,100% { transform: none; filter: none; } 15% { transform: translateY(-6px) scale(1.15); filter: drop-shadow(0 0 4px #F2B632); } }
+.metrin-brilla { animation: metrinBrilla 3s ease-in-out infinite; }
+/* Quiniela: escribe su pronóstico */
+@keyframes metrinConcentra { 0%,100% { transform: rotate(0); } 50% { transform: rotate(-4deg); } }
+.metrin-concentra { animation: metrinConcentra 2.4s ease-in-out infinite; transform-origin: 50% 100%; }
+@keyframes metrinEscribe { 0%,50%,100% { transform: none; } 10% { transform: translate(-3px,2px) rotate(-10deg); } 20% { transform: translate(2px,-1px); } 30% { transform: translate(-3px,2px) rotate(-10deg); } 40% { transform: translate(2px,-1px); } }
+.metrin-escribe { animation: metrinEscribe 2s ease-in-out infinite; }
+/* Tabla: revisa con la lupa */
+@keyframes metrinAsoma { 0%,100% { transform: rotate(0); } 25% { transform: rotate(-5deg); } 75% { transform: rotate(5deg); } }
+.metrin-asoma { animation: metrinAsoma 3s ease-in-out infinite; transform-origin: 50% 100%; }
+@keyframes metrinBusca { 0%,100% { transform: translate(0,0); } 25% { transform: translate(-30px,6px); } 50% { transform: translate(-14px,-6px); } 75% { transform: translate(-36px,0); } }
+.metrin-busca { animation: metrinBusca 4s ease-in-out infinite; }
+/* Calendario: el reloj corre */
+@keyframes metrinTictac { 0%,100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+.metrin-tictac { animation: metrinTictac 1s steps(2) infinite; transform-origin: 50% 100%; }
+@keyframes metrinManecilla { to { transform: rotate(360deg); } }
+.metrin-manecilla { animation: metrinManecilla 4s linear infinite; transform-origin: 12px 13px; }
+/* Liga MX: dribla el balón */
+@keyframes metrinDribla { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+.metrin-dribla { animation: metrinDribla .8s ease-in-out infinite; }
+@keyframes metrinRebota { 0%,100% { transform: translateY(0) rotate(0); animation-timing-function: ease-out; } 50% { transform: translateY(-16px) rotate(180deg); animation-timing-function: ease-in; } }
+.metrin-rebota { animation: metrinRebota .8s infinite; }
+/* Perfil: saluda */
+@keyframes metrinSaluda { 0%,100% { transform: none; } 50% { transform: translateY(-2px); } }
+.metrin-saluda { animation: metrinSaluda 1.6s ease-in-out infinite; }
+@keyframes metrinMano { 0%,50%,100% { transform: rotate(0); } 10%,30% { transform: rotate(20deg); } 20%,40% { transform: rotate(-12deg); } }
+.metrin-mano { animation: metrinMano 2.2s ease-in-out infinite; transform-origin: 30% 90%; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
