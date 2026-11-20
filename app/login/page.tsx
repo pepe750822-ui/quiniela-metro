@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import TrenMetro from '@/components/ui/TrenMetro';
+import { MetrinFigura } from '@/components/ui/Metrin';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -217,7 +217,7 @@ export default function LoginPage() {
             <h1 className="font-display" style={{ fontSize: 40, lineHeight: 0.95, color: 'var(--ink)' }}>
               Entra a la quiniela
             </h1>
-            <TrenMetro size={64} className="shrink-0" />
+            <MetrinFigura accion="llega" size={64} />
           </div>
           <p className="mt-2 text-[15px]" style={{ color: 'var(--ink2)' }}>
             Usa tu cuenta de Google y listo. Es lo más rápido.

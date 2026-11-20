@@ -185,6 +185,14 @@
 .metrin-saluda { animation: metrinSaluda 1.6s ease-in-out infinite; }
 @keyframes metrinMano { 0%,50%,100% { transform: rotate(0); } 10%,30% { transform: rotate(20deg); } 20%,40% { transform: rotate(-12deg); } }
 .metrin-mano { animation: metrinMano 2.2s ease-in-out infinite; transform-origin: 30% 90%; }
+/* Entrada: ofrece su boleto */
+@keyframes metrinOfrece { 0%,55%,100% { transform: none; } 15% { transform: translateX(-5px) rotate(8deg); } 30% { transform: translateX(-2px) rotate(-4deg); } 45% { transform: translateX(-5px) rotate(8deg); } }
+.metrin-ofrece { animation: metrinOfrece 2.4s ease-in-out infinite; }
+/* Acceso: llega al andén y se frena */
+@keyframes metrinLlega { 0% { transform: translateX(60px); opacity: 0; } 55% { transform: translateX(-4px) rotate(-4deg); opacity: 1; } 75% { transform: translateX(2px) rotate(2deg); } 100% { transform: none; } }
+.metrin-llega { animation: metrinLlega 1.1s ease-out both; transform-origin: 50% 100%; }
+@keyframes metrinHumo { 0% { transform: translate(0,4px) scale(.6); opacity: 0; } 30% { opacity: .9; } 100% { transform: translate(4px,-8px) scale(1.15); opacity: 0; } }
+.metrin-humo { animation: metrinHumo 1.8s ease-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import TrenMetro from './TrenMetro';
 
-export type AccionMetrin = 'trofeo' | 'lapiz' | 'lupa' | 'reloj' | 'balon' | 'saluda';
+export type AccionMetrin = 'trofeo' | 'lapiz' | 'lupa' | 'reloj' | 'balon' | 'saluda' | 'boleto' | 'llega';
 
 const T = '#15120F';
 
@@ -54,6 +54,23 @@ function Utileria({ accion }: { accion: AccionMetrin }) {
           <path d="M12 7.5V2.5M16.3 10.6l4.6-1.5M14.7 15.6l2.9 4M9.3 15.6l-2.9 4M7.7 10.6 3.1 9.1" stroke={T} strokeWidth="1.4" />
         </svg>
       );
+    case 'boleto':
+      return (
+        <svg width="30" height="22" viewBox="0 0 30 22" className="metrin-obj metrin-ofrece" style={{ position: 'absolute', left: -22, bottom: 2 }} aria-hidden="true">
+          <path d="M3 3h24v5a3 3 0 0 0 0 6v5H3v-5a3 3 0 0 0 0-6Z" fill="#F07A1A" stroke={T} strokeWidth="1.6" strokeLinejoin="round" />
+          <path d="M3 8.5h24" stroke="#8A1538" strokeWidth="2.4" />
+          <path d="M20 4v14" stroke={T} strokeWidth="1" strokeDasharray="1.6 1.6" />
+          <path d="M7 14h9" stroke="#FFFDF9" strokeWidth="1.6" strokeLinecap="round" />
+        </svg>
+      );
+    case 'llega':
+      return (
+        <svg width="22" height="18" viewBox="0 0 22 18" className="metrin-obj metrin-humo" style={{ position: 'absolute', right: -14, top: -6 }} aria-hidden="true">
+          <circle cx="6" cy="12" r="4" fill="#D6CEC1" />
+          <circle cx="13" cy="8" r="5" fill="#E5DFD4" />
+          <circle cx="18" cy="4" r="3.2" fill="#EFEAE1" />
+        </svg>
+      );
     case 'saluda':
       return (
         <svg width="22" height="22" viewBox="0 0 24 24" className="metrin-obj metrin-mano" style={{ position: 'absolute', right: -8, top: -4 }} aria-hidden="true">
@@ -72,6 +89,8 @@ const movimiento: Record<AccionMetrin, string> = {
   reloj: 'metrin-tictac',
   balon: 'metrin-dribla',
   saluda: 'metrin-saluda',
+  boleto: 'metrin-concentra',
+  llega: 'metrin-llega',
 };
 
 /** Metrín con su objeto de la ventana. */
@@ -81,7 +100,9 @@ export function MetrinFigura({ accion, size = 48 }: { accion: AccionMetrin; size
       <span className={`block ${movimiento[accion]}`} style={{ width: size, height: size }}>
         <TrenMetro size={size} />
       </span>
-      <Utileria accion={accion} />
+      <span className="absolute left-0 top-0" style={{ width: 48, height: 48, transform: `scale(${size / 48})`, transformOrigin: '0 0' }}>
+        <Utileria accion={accion} />
+      </span>
     </span>
   );
 }
