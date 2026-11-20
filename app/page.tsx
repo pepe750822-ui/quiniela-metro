@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 
 import { cargarJornadaActual } from '@/lib/jornadaActual';
-import TrenMetro from '@/components/ui/TrenMetro';
+import { MetrinFigura } from '@/components/ui/Metrin';
 
 const featureContainer = {
   hidden: {},
@@ -67,7 +67,7 @@ export default function LandingPage() {
             <span className="senal flex-1" style={{ fontSize: 12 }}>
               Línea Quiniela{jornada ? ` · Estación J${jornada}` : ''}
             </span>
-            <TrenMetro size={76} className="shrink-0 -my-3" />
+            <span className="shrink-0 -my-3"><MetrinFigura accion="boleto" size={76} /></span>
           </div>
           <h1 className="font-display" style={{ fontSize: 'clamp(64px, 22vw, 92px)', lineHeight: 0.9 }}>
             Quiniela<br />Metro
