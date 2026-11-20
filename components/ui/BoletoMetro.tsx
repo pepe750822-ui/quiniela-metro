@@ -77,16 +77,18 @@ export function BoletoReverso({
 }: { encabezado: string; linea1: ReactNode; linea2?: ReactNode; href?: string; accion?: string; chip?: ReactNode }) {
   return (
     <div className="overflow-hidden" style={{ background: '#F7F1E6', color: '#3A2A1E', borderRadius: 10, border: '1px solid #E4D8C4' }}>
-      <div className="px-4 pt-3 text-center">
-        <div className="flex items-center justify-between">
-          <span className="senal" style={{ fontSize: 12 }}>{encabezado}</span>
-          {chip}
-        </div>
-        <p className="mt-1.5 text-[15px] font-bold" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>{linea1}</p>
+      {/* arriba de la banda: pozo · jornada y estado */}
+      <div className="flex items-center justify-between px-4 pt-3">
+        <span className="senal" style={{ fontSize: 12 }}>{encabezado}</span>
+        {chip}
+      </div>
+      {/* banda magnética al centro, como el reverso del boleto */}
+      <div className="my-3" style={{ height: 22, background: 'linear-gradient(#6A4422, #533316)' }} />
+      {/* abajo de la banda: ganador y quinielas */}
+      <div className="px-4 pb-3 text-center">
+        <p className="text-[15px] font-bold" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>{linea1}</p>
         {linea2 && <p className="text-[13px]" style={{ opacity: 0.8 }}>{linea2}</p>}
       </div>
-      {/* banda magnética */}
-      <div className="my-3" style={{ height: 22, background: 'linear-gradient(#6A4422, #533316)' }} />
       {href && (
         <Link href={href} className="flex items-center justify-between px-4 text-[15px] font-semibold"
           style={{ minHeight: 48, borderTop: '2px dashed #D9CBB3' }}>
