@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { getMontoJornada } from '@/lib/utils';
 import Encabezado from '@/components/ui/Encabezado';
 import ThemeToggle from '@/components/ThemeToggle';
+import Metrin from '@/components/ui/Metrin';
 
 export default function PerfilPage() {
   const router = useRouter();
@@ -79,6 +80,10 @@ export default function PerfilPage() {
       style={{ paddingTop: 'max(20px, calc(env(safe-area-inset-top) + 12px))' }}
     >
       <Encabezado titulo="Perfil" />
+      <Metrin consejos={[
+        'Ponte un apodo para que te reconozcan en el ranking.',
+        '¿Dudas con el pago o las reglas? Abajo está «Cómo jugar».',
+      ]} />
 
       {/* Identidad + apodo */}
       <section className="rounded-[16px] p-4" style={{ background: 'var(--sf)', border: '1px solid var(--ln)' }}>

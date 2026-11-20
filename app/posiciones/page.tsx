@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Bandera } from '@/components/Bandera';
 import { LOGOS_LIGAMX, TEMPORADA_ACTIVA } from '@/lib/utils';
+import Metrin, { MetrinCargando } from '@/components/ui/Metrin';
 
 const EQUIPOS_LIGAMX = new Set([
   'América', 'Atlante', 'Atlas', 'Cruz Azul', 'Guadalajara', 'Juárez',
@@ -381,6 +382,11 @@ export default function PosicionesPage() {
           : `Solo partidos finalizados · ${TEMPORADA_ACTIVA}`}
       </p>
 
+      <Metrin className="mb-4" consejos={[
+        'Esta tabla se actualiza sola cuando termina cada partido.',
+        '¿Quién llega a la Liguilla? Échale ojo antes de llenar tu quiniela.',
+      ]} />
+
       {esLigaMX && (
         <div className="flex gap-2 mb-4" role="tablist">
           {([['lmx', 'Liga MX'], ['ucl', 'Champions']] as const).map(([key, label]) => (
@@ -406,7 +412,7 @@ export default function PosicionesPage() {
       {esLigaMX ? (
         <PosicionesOficiales tabla={tab === 'ucl' ? 'ucl_posiciones' : 'ligamx_posiciones'} />
       ) : loading ? (
-        <div className="text-center py-16 text-sm" style={{ color: 'var(--mut)' }}>Cargando…</div>
+        <MetrinCargando />
       ) : (
         <>
           <TablaLC rows={rowsLigamx} titulo="🇲🇽 Liga MX" cutoff={4} />

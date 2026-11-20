@@ -151,6 +151,12 @@
 @keyframes pulsoVivo { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
 .pulso-vivo { animation: pulsoVivo 1.6s ease-in-out infinite; }
 
+/* Metrín: saluda al aparecer y avanza mientras carga */
+@keyframes metrinSaluda { 0% { transform: translateY(6px) rotate(-6deg); opacity: 0; } 60% { transform: translateY(-3px) rotate(4deg); opacity: 1; } 100% { transform: none; } }
+.metrin-saluda { animation: metrinSaluda .6s ease-out both; transform-origin: 50% 90%; }
+@keyframes metrinAvanza { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+.metrin-avanza { animation: metrinAvanza .5s ease-in-out infinite; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }

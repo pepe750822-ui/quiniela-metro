@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Bandera } from '@/components/Bandera';
 import { formatearFechaCDMX, formatearDiaCDMX, formatearHoraCDMX, getFechaCDMX, TEMPORADA_ACTIVA } from '@/lib/utils';
+import Metrin, { MetrinCargando } from '@/components/ui/Metrin';
 
 interface Partido {
   id: string;
@@ -107,8 +108,8 @@ export default function CalendarioPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
-        <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg)' }}>
+        <MetrinCargando texto="Metrín trae el calendario…" />
       </div>
     );
   }
@@ -122,6 +123,10 @@ export default function CalendarioPage() {
         <p className="text-[14px] font-medium mt-1 mb-6" style={{ color: 'var(--mut)' }}>
           Horarios en hora de CDMX
         </p>
+        <Metrin className="-mt-2 mb-6" consejos={[
+          'Todos los horarios ya están en hora de CDMX. ¡Que no se te vaya el tren!',
+          'Checa el calendario y llena tu quiniela con tiempo.',
+        ]} />
 
         <div className="space-y-6">
           {Object.entries(partidosPorFecha).map(([key, lista]) => (
