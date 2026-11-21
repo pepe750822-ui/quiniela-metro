@@ -64,8 +64,6 @@ end $$;
 
 create or replace function public.trg_posiciones_ligamx() returns trigger
 language plpgsql security definer set search_path = public as $$
-declare
-  grupos text[] := array['LMX','LMX9','LMX10','LMX11','LMX12'];
 begin
   if (OLD.estado, OLD.grupo, OLD.temporada, OLD.equipo_local, OLD.equipo_visitante, OLD.goles_local, OLD.goles_visitante)
      is not distinct from
@@ -74,13 +72,13 @@ begin
     return null;
   end if;
 
-  if OLD.estado = 'finalizado' and OLD.grupo = any(grupos)
+  if OLD.estado = 'finalizado' and OLD.grupo like 'LMX%'
      and OLD.goles_local is not null and OLD.goles_visitante is not null then
     perform public._lmx_aplicar(OLD.temporada, OLD.equipo_local,     OLD.goles_local,     OLD.goles_visitante, -1);
     perform public._lmx_aplicar(OLD.temporada, OLD.equipo_visitante, OLD.goles_visitante, OLD.goles_local,     -1);
   end if;
 
-  if NEW.estado = 'finalizado' and NEW.grupo = any(grupos)
+  if NEW.estado = 'finalizado' and NEW.grupo like 'LMX%'
      and NEW.goles_local is not null and NEW.goles_visitante is not null then
     perform public._lmx_aplicar(NEW.temporada, NEW.equipo_local,     NEW.goles_local,     NEW.goles_visitante, 1);
     perform public._lmx_aplicar(NEW.temporada, NEW.equipo_visitante, NEW.goles_visitante, NEW.goles_local,     1);
@@ -95,7 +93,7 @@ create trigger trg_posiciones_ligamx
   on public.quiniela_partidos
   for each row
   when ((OLD.estado = 'finalizado' or NEW.estado = 'finalizado')
-        and (OLD.grupo in ('LMX','LMX9','LMX10','LMX11','LMX12') or NEW.grupo in ('LMX','LMX9','LMX10','LMX11','LMX12')))
+        and (OLD.grupo like 'LMX%' or NEW.grupo like 'LMX%'))
   execute function public.trg_posiciones_ligamx();
 
 -- ── Champions ────────────────────────────────────────────────────────────
@@ -160,8 +158,6 @@ end $$;
 
 create or replace function public.trg_posiciones_ucl() returns trigger
 language plpgsql security definer set search_path = public as $$
-declare
-  grupos text[] := array['UCL','UCL2','UCL3'];
 begin
   if (OLD.estado, OLD.grupo, OLD.temporada, OLD.equipo_local, OLD.equipo_visitante, OLD.goles_local, OLD.goles_visitante)
      is not distinct from
@@ -170,14 +166,14 @@ begin
     return null;
   end if;
 
-  if OLD.estado = 'finalizado' and OLD.grupo = any(grupos)
+  if OLD.estado = 'finalizado' and OLD.grupo like 'UCL%'
      and OLD.goles_local is not null and OLD.goles_visitante is not null then
     perform public._ucl_aplicar(OLD.temporada, OLD.equipo_local,     OLD.goles_local,     OLD.goles_visitante, -1);
     perform public._ucl_aplicar(OLD.temporada, OLD.equipo_visitante, OLD.goles_visitante, OLD.goles_local,     -1);
     perform public._ucl_reranking(OLD.temporada);
   end if;
 
-  if NEW.estado = 'finalizado' and NEW.grupo = any(grupos)
+  if NEW.estado = 'finalizado' and NEW.grupo like 'UCL%'
      and NEW.goles_local is not null and NEW.goles_visitante is not null then
     perform public._ucl_aplicar(NEW.temporada, NEW.equipo_local,     NEW.goles_local,     NEW.goles_visitante, 1);
     perform public._ucl_aplicar(NEW.temporada, NEW.equipo_visitante, NEW.goles_visitante, NEW.goles_local,     1);
@@ -193,5 +189,5 @@ create trigger trg_posiciones_ucl
   on public.quiniela_partidos
   for each row
   when ((OLD.estado = 'finalizado' or NEW.estado = 'finalizado')
-        and (OLD.grupo in ('UCL','UCL2','UCL3') or NEW.grupo in ('UCL','UCL2','UCL3')))
+        and (OLD.grupo like 'UCL%' or NEW.grupo like 'UCL%'))
   execute function public.trg_posiciones_ucl();
