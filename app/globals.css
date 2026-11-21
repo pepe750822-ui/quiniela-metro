@@ -193,6 +193,22 @@
 .metrin-llega { animation: metrinLlega 1.1s ease-out both; transform-origin: 50% 100%; }
 @keyframes metrinHumo { 0% { transform: translate(0,4px) scale(.6); opacity: 0; } 30% { opacity: .9; } 100% { transform: translate(4px,-8px) scale(1.15); opacity: 0; } }
 .metrin-humo { animation: metrinHumo 1.8s ease-out infinite; }
+/* Inicio: domina el balón con la cabeza (dos toques por ciclo, uno a cada lado) */
+@keyframes metrinCabecea {
+  0%,50%,100% { transform: translateY(2px) scale(1.05,.93); }
+  9% { transform: translateY(-5px) rotate(-5deg); }
+  59% { transform: translateY(-5px) rotate(5deg); }
+  22%,40%,72%,90% { transform: none; }
+}
+.metrin-cabecea { animation: metrinCabecea 1.8s ease-in-out infinite; transform-origin: 50% 100%; }
+@keyframes metrinToque {
+  0% { transform: translate(0,0) rotate(0); animation-timing-function: cubic-bezier(.2,.7,.4,1); }
+  25% { transform: translate(-5px,-34px) rotate(-200deg); animation-timing-function: cubic-bezier(.6,0,.8,.3); }
+  50% { transform: translate(0,0) rotate(-360deg); animation-timing-function: cubic-bezier(.2,.7,.4,1); }
+  75% { transform: translate(5px,-34px) rotate(-560deg); animation-timing-function: cubic-bezier(.6,0,.8,.3); }
+  100% { transform: translate(0,0) rotate(-720deg); }
+}
+.metrin-toque { animation: metrinToque 1.8s infinite; transform-origin: 50% 50%; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }

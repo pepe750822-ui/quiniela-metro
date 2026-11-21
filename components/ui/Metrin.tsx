@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import TrenMetro from './TrenMetro';
 
-export type AccionMetrin = 'trofeo' | 'lapiz' | 'lupa' | 'reloj' | 'balon' | 'saluda' | 'boleto' | 'llega';
+export type AccionMetrin = 'trofeo' | 'lapiz' | 'lupa' | 'reloj' | 'balon' | 'saluda' | 'boleto' | 'llega' | 'domina';
 
 const T = '#15120F';
 
@@ -63,6 +63,15 @@ function Utileria({ accion }: { accion: AccionMetrin }) {
           <path d="M7 14h9" stroke="#FFFDF9" strokeWidth="1.6" strokeLinecap="round" />
         </svg>
       );
+    case 'domina':
+      // Balón que Metrín domina con la cabeza: sube, gira y vuelve a caer.
+      return (
+        <svg width="18" height="18" viewBox="0 0 24 24" className="metrin-obj metrin-toque" style={{ position: 'absolute', left: 15, top: -13 }} aria-hidden="true">
+          <circle cx="12" cy="12" r="10" fill="#FFFDF9" stroke={T} strokeWidth="1.8" />
+          <path d="M12 7.5l4.3 3.1-1.6 5h-5.4l-1.6-5Z" fill={T} />
+          <path d="M12 7.5V2.5M16.3 10.6l4.6-1.5M14.7 15.6l2.9 4M9.3 15.6l-2.9 4M7.7 10.6 3.1 9.1" stroke={T} strokeWidth="1.4" />
+        </svg>
+      );
     case 'llega':
       return (
         <svg width="22" height="18" viewBox="0 0 22 18" className="metrin-obj metrin-humo" style={{ position: 'absolute', right: -14, top: -6 }} aria-hidden="true">
@@ -91,6 +100,7 @@ const movimiento: Record<AccionMetrin, string> = {
   saluda: 'metrin-saluda',
   boleto: 'metrin-concentra',
   llega: 'metrin-llega',
+  domina: 'metrin-cabecea',
 };
 
 /** Metrín con su objeto de la ventana. */
