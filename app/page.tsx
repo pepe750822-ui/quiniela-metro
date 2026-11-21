@@ -67,14 +67,17 @@ export default function LandingPage() {
             <span className="senal flex-1" style={{ fontSize: 12 }}>
               Línea Quiniela{jornada ? ` · Estación J${jornada}` : ''}
             </span>
-            <span className="shrink-0 -my-3"><MetrinFigura accion="boleto" size={76} /></span>
           </div>
-          <h1 className="font-display" style={{ fontSize: 'clamp(64px, 22vw, 92px)', lineHeight: 0.9 }}>
-            Quiniela<br />Metro
-          </h1>
-          <p className="mt-3 text-[15px]" style={{ color: '#D6CEC1' }}>
-            Predice los partidos de Liga MX, compite y gana el pozo entre compañeros del Metro.
-          </p>
+          <div className="relative">
+            <h1 className="font-display" style={{ fontSize: 'clamp(64px, 22vw, 92px)', lineHeight: 0.9 }}>
+              Quiniela<br />Metro
+            </h1>
+            <p className="mt-3 text-[15px]" style={{ color: '#D6CEC1', paddingRight: 84 }}>
+              Predice los partidos de Liga MX, compite y gana el pozo entre compañeros del Metro.
+            </p>
+            {/* Metrín dominando el balón: el balón sube al hueco junto a "Metro" */}
+            <span className="absolute right-0 bottom-0"><MetrinFigura accion="domina" size={76} /></span>
+          </div>
         </div>
 
         {/* Línea con estaciones */}
