@@ -2188,7 +2188,7 @@ export default function AdminPage() {
                     </button>
                   </div>
                   <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-                    Horario provisional. La Liga MX definió los días 25/26 y 28/29 de noviembre; los horarios exactos se anuncian el lunes 23.
+                    Horarios oficiales (hora CDMX). Si la Liga MX hace algún cambio, actualízalo aquí.
                   </p>
                 </div>
               ))}

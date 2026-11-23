@@ -111,9 +111,8 @@ CREATE TRIGGER trigger_calcular_puntos
   FOR EACH ROW EXECUTE FUNCTION calcular_puntos_quiniela();
 
 -- 4. Los 8 partidos de Cuartos de Final (ida y vuelta), dentro de J15.
---    Días oficiales: ida 25/26 nov, vuelta 28/29 nov 2026.
---    Los horarios son provisionales: la Liga MX dará a conocer
---    los horarios el lunes 23 de noviembre. Se pueden editar desde /admin.
+--    Días y horarios oficiales de la Liga MX (hora del Centro de México).
+--    Si se vuelve a correr desde cero, quedan con estos horarios.
 --    Orden de localía: el equipo mejor sembrado cierra de local.
 
 -- Si la versión anterior los creó como J16, moverlos a J15 conservando
@@ -132,17 +131,17 @@ SELECT v.jornada, v.grupo, v.equipo_local, v.equipo_visitante,
        v.temporada, v.es_vuelta
 FROM (VALUES
   -- Ida — miércoles 25 de noviembre
-  (15, 'LIGUILLA', 'Pachuca',   'Guadalajara', NULL::text, NULL::text, '2026-11-25 19:00:00-06'::timestamptz, 'pendiente', 'ligamx2026', false),
-  (15, 'LIGUILLA', 'León',      'Cruz Azul',   NULL::text, NULL::text, '2026-11-25 21:15:00-06'::timestamptz, 'pendiente', 'ligamx2026', false),
+  (15, 'LIGUILLA', 'Toluca',    'Atlas',       NULL::text, NULL::text, '2026-11-25 19:00:00-06'::timestamptz, 'pendiente', 'ligamx2026', false),
+  (15, 'LIGUILLA', 'Monterrey', 'América',     NULL::text, NULL::text, '2026-11-25 21:10:00-06'::timestamptz, 'pendiente', 'ligamx2026', false),
   -- Ida — jueves 26 de noviembre
-  (15, 'LIGUILLA', 'Monterrey', 'América',     NULL::text, NULL::text, '2026-11-26 19:00:00-06'::timestamptz, 'pendiente', 'ligamx2026', false),
-  (15, 'LIGUILLA', 'Toluca',    'Atlas',       NULL::text, NULL::text, '2026-11-26 21:15:00-06'::timestamptz, 'pendiente', 'ligamx2026', false),
+  (15, 'LIGUILLA', 'Pachuca',   'Guadalajara', NULL::text, NULL::text, '2026-11-26 19:00:00-06'::timestamptz, 'pendiente', 'ligamx2026', false),
+  (15, 'LIGUILLA', 'León',      'Cruz Azul',   NULL::text, NULL::text, '2026-11-26 21:10:00-06'::timestamptz, 'pendiente', 'ligamx2026', false),
   -- Vuelta — sábado 28 de noviembre
-  (15, 'LIGUILLA', 'Guadalajara', 'Pachuca',   NULL::text, NULL::text, '2026-11-28 19:00:00-06'::timestamptz, 'pendiente', 'ligamx2026', true),
-  (15, 'LIGUILLA', 'Cruz Azul',   'León',      NULL::text, NULL::text, '2026-11-28 21:15:00-06'::timestamptz, 'pendiente', 'ligamx2026', true),
+  (15, 'LIGUILLA', 'Atlas',       'Toluca',    NULL::text, NULL::text, '2026-11-28 19:00:00-06'::timestamptz, 'pendiente', 'ligamx2026', true),
+  (15, 'LIGUILLA', 'América',     'Monterrey', NULL::text, NULL::text, '2026-11-28 21:10:00-06'::timestamptz, 'pendiente', 'ligamx2026', true),
   -- Vuelta — domingo 29 de noviembre
-  (15, 'LIGUILLA', 'América',     'Monterrey', NULL::text, NULL::text, '2026-11-29 19:00:00-06'::timestamptz, 'pendiente', 'ligamx2026', true),
-  (15, 'LIGUILLA', 'Atlas',       'Toluca',    NULL::text, NULL::text, '2026-11-29 21:15:00-06'::timestamptz, 'pendiente', 'ligamx2026', true)
+  (15, 'LIGUILLA', 'Guadalajara', 'Pachuca',   NULL::text, NULL::text, '2026-11-29 19:07:00-06'::timestamptz, 'pendiente', 'ligamx2026', true),
+  (15, 'LIGUILLA', 'Cruz Azul',   'León',      NULL::text, NULL::text, '2026-11-29 21:00:00-06'::timestamptz, 'pendiente', 'ligamx2026', true)
 ) AS v(jornada, grupo, equipo_local, equipo_visitante, bandera_local,
        bandera_visitante, fecha_hora, estado, temporada, es_vuelta)
 WHERE NOT EXISTS (
