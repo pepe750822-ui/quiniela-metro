@@ -176,17 +176,6 @@ export default function PrediccionForm({
       ? basePartQuery.is('quiniela_extra_id', null).maybeSingle()
       : basePartQuery.eq('quiniela_extra_id', quinielaExtraId).maybeSingle());
 
-    if (!participacion) {
-      await supabase.from('quiniela_participaciones').insert({
-        user_id:           userId,
-        jornada:           baseJornada,
-        pagado:            false,
-        monto:             getMontoJornada(baseJornada),
-        quiniela_extra_id: quinielaExtraId,
-        temporada:         TEMPORADA_ACTIVA,
-      }, { count: 'none' });
-    }
-
     const predPayload = {
       goles_local_pred:     local,
       goles_visitante_pred: visita,
@@ -218,6 +207,24 @@ export default function PrediccionForm({
       setLoading(false);
       toast.error('Error al guardar predicción');
       return;
+    }
+
+    // La participación se crea SOLO al guardar el primer pronóstico de la jornada.
+    if (!participacion) {
+      const { error: errorParticipacion } = await supabase.from('quiniela_participaciones').insert({
+        user_id:           userId,
+        jornada:           baseJornada,
+        pagado:            false,
+        monto:             getMontoJornada(baseJornada),
+        quiniela_extra_id: quinielaExtraId,
+        temporada:         TEMPORADA_ACTIVA,
+      }, { count: 'none' });
+      if (errorParticipacion) {
+        setLoading(false);
+        toast.error('Predicción guardada, pero no se pudo crear la participación. Vuelve a guardar para reintentar.');
+        onGuardado();
+        return;
+      }
     }
 
     const { data: partidosJornada } = await supabase

@@ -15,6 +15,7 @@ interface ParticipacionConNombre extends Participacion {
   jugadorApodo: string | null;
   jugadorReferencia: string | null;
   quinielaNombre: string | null;
+  tienePrediccion: boolean;
 }
 
 const nombreBaseParticipante = (p: ParticipacionConNombre) =>
@@ -341,6 +342,39 @@ export default function AdminPage() {
     const lista = (pt ?? []) as Participacion[];
     if (!lista.length) { setParticipaciones([]); return; }
 
+    // Query 1b: pronósticos por jornada (vía API con service_role para saltar RLS).
+    // Solo las participaciones con al menos 1 pronóstico cuentan para pozos.
+    const { data: partidosTemporada } = await supabase
+      .from('quiniela_partidos')
+      .select('id, jornada')
+      .eq('temporada', TEMPORADA_ACTIVA);
+    const jornadaDePartido: Record<string, number> = {};
+    (partidosTemporada ?? []).forEach((p: { id: string; jornada: number }) => {
+      jornadaDePartido[p.id] = p.jornada;
+    });
+    const partidoIdsPozo = Object.keys(jornadaDePartido);
+    const keysConPrediccion = new Set<string>();
+    for (let i = 0; i < partidoIdsPozo.length; i += 50) {
+      try {
+        const res = await fetch('/api/predicciones-tabla', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ partidoIds: partidoIdsPozo.slice(i, i + 50) }),
+        });
+        const { predicciones = [] } = await res.json();
+        (predicciones as { user_id: string; partido_id: string; quiniela_extra_id: string | null }[]).forEach(pred => {
+          const j = jornadaDePartido[pred.partido_id];
+          if (j !== undefined) {
+            // J5 comparte participación de J4 y J7 de J6.
+            const jBase = j === 5 ? 4 : j === 7 ? 6 : j;
+            keysConPrediccion.add(`${pred.user_id}:${jBase}:${pred.quiniela_extra_id ?? 'null'}`);
+          }
+        });
+      } catch (e) {
+        console.error('Error cargando pronósticos para pozos:', e);
+      }
+    }
+
     // Query 2: nombres por user_id (query separada, más robusta que join)
     const userIds = [...new Set(lista.map(p => p.user_id))];
     const { data: jugs, error: jugsError } = await supabase
@@ -375,6 +409,7 @@ export default function AdminPage() {
       jugadorApodo:      jugMap[p.user_id]?.apodo           ?? null,
       jugadorReferencia: jugMap[p.user_id]?.referencia_admin ?? null,
       quinielaNombre:    p.quiniela_extra_id ? (quinielaMap[p.quiniela_extra_id] ?? null) : null,
+      tienePrediccion:   keysConPrediccion.has(`${p.user_id}:${p.jornada}:${p.quiniela_extra_id ?? 'null'}`),
     }));
     setParticipaciones(enriquecidas);
   };
@@ -778,8 +813,13 @@ export default function AdminPage() {
       puntajes[key] = (puntajes[key] || 0) + (p.puntos_ganados || 0);
     });
 
+    // Solo participaciones con al menos 1 pronóstico cuentan para el pozo.
+    const partsConPrediccion = parts.filter(p =>
+      puntajes[`${p.user_id}:${p.quiniela_extra_id ?? 'null'}`] !== undefined
+    );
+
     // Build ranking: each participation entry is separate
-    const ranking = parts.map(p => {
+    const ranking = partsConPrediccion.map(p => {
       const key = `${p.user_id}:${p.quiniela_extra_id ?? 'null'}`;
       return { user_id: p.user_id, quiniela_extra_id: p.quiniela_extra_id, puntos: puntajes[key] || 0 };
     }).sort((a, b) => b.puntos - a.puntos);
@@ -864,8 +904,13 @@ export default function AdminPage() {
       puntajes[key] = (puntajes[key] || 0) + (p.puntos_ganados || 0);
     });
 
+    // Solo participaciones con al menos 1 pronóstico cuentan para el pozo.
+    const partsConPrediccion = parts.filter(p =>
+      puntajes[`${p.user_id}:${p.quiniela_extra_id ?? 'null'}`] !== undefined
+    );
+
     // Build ranking: each participation entry is separate
-    const ranking = parts.map(p => {
+    const ranking = partsConPrediccion.map(p => {
       const key = `${p.user_id}:${p.quiniela_extra_id ?? 'null'}`;
       return { user_id: p.user_id, quiniela_extra_id: p.quiniela_extra_id, puntos: puntajes[key] || 0 };
     }).sort((a, b) => a.puntos - b.puntos);
@@ -1380,7 +1425,7 @@ export default function AdminPage() {
 
             {/* Participantes J6 */}
             {(() => {
-              const partsJ6 = participaciones.filter(p => p.jornada === 6);
+              const partsJ6 = participaciones.filter(p => p.jornada === 6 && p.tienePrediccion);
               const pagados = partsJ6.filter(p => p.pagado);
               const pendientes = partsJ6.filter(p => !p.pagado);
               if (partsJ6.length === 0) return null;
@@ -1644,8 +1689,12 @@ export default function AdminPage() {
           {[...pozosCompletos].sort((a, b) => a.jornada - b.jornada).map(pozo => {
             // J15 es la base de Champions + Liguilla; J5 comparte participaciones de J4.
             const pozoBaseJornada = TEMPORADA_ACTIVA === 'ligamx2026' && pozo.jornada === 5 ? 4 : pozo.jornada;
-            const pendientes = participaciones.filter(p => p.jornada === pozoBaseJornada && !p.pagado);
-            const confirmadas = participaciones.filter(p => p.jornada === pozoBaseJornada && p.pagado);
+            const pendientes = participaciones.filter(p => p.jornada === pozoBaseJornada && !p.pagado && p.tienePrediccion);
+            const confirmadas = participaciones.filter(p => p.jornada === pozoBaseJornada && p.pagado && p.tienePrediccion);
+            const totalParticipantesPozo = pendientes.length + confirmadas.length;
+            const totalMxnPozo = TEMPORADA_ACTIVA === 'ligamx2026' && pozo.jornada === JORNADA_CHAMPIONS_LIGUILLA
+              ? confirmadas.length * 50
+              : pozo.total_mxn;
             const isOpen = jornadaPozoAbierta === pozo.jornada;
             return (
               <div key={pozo.id} className="rounded-xl overflow-hidden"
@@ -1666,7 +1715,7 @@ export default function AdminPage() {
                         : getNombreJornada(pozo.jornada)}
                     </span>
                     <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                      👥 {pozo.participantes} · ${pozo.total_mxn} MXN
+                      👥 {totalParticipantesPozo} · ${totalMxnPozo} MXN
                     </span>
                     <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full"
                       style={{
@@ -1713,7 +1762,7 @@ export default function AdminPage() {
                       <div className="px-4 py-2 text-sm"
                         style={{ background: 'color-mix(in srgb, var(--ex) 8%, transparent)', borderBottom: '1px solid color-mix(in srgb, var(--ex) 20%, transparent)' }}>
                         <span className="font-bold" style={{ color: 'var(--ex)' }}>🥇 Ganador: {pozo.ganador_nombre}</span>
-                        <span className="ml-2 text-xs" style={{ color: 'var(--text-secondary)' }}>· ${pozo.total_mxn} MXN</span>
+                        <span className="ml-2 text-xs" style={{ color: 'var(--text-secondary)' }}>· ${totalMxnPozo} MXN</span>
                       </div>
                     )}
 
@@ -2043,7 +2092,7 @@ export default function AdminPage() {
                       <p className="text-xs" style={{ color: '#60a5fa' }}>📋 {jugador.referencia_admin}</p>
                     )}
                     {(() => {
-                      const userPartics = participaciones.filter(p => p.user_id === jugador.id);
+                      const userPartics = participaciones.filter(p => p.user_id === jugador.id && p.tienePrediccion);
                       return userPartics.length > 0 ? (
                         <div className="flex flex-wrap gap-1 mt-1">
                           {userPartics.map((p, i) => (

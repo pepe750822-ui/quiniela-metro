@@ -240,6 +240,16 @@ export default function TablaPage() {
     const { predicciones: allPreds = [] } = await predsRes.json();
     if (!vigente()) return;
 
+    // Solo cuentan participantes con al menos 1 pronóstico en esta jornada.
+    const keysConPrediccionTabla = new Set(
+      (allPreds as { user_id: string; quiniela_extra_id: string | null }[]).map(
+        p => `${p.user_id}:${p.quiniela_extra_id ?? 'null'}`
+      )
+    );
+    const participacionesConPrediccion = participacionesNuevas.filter(
+      (p: any) => keysConPrediccionTabla.has(`${p.user_id}:${p.quiniela_extra_id ?? 'null'}`)
+    );
+
     const { data: pozoDat } = await supabase
       .from('quiniela_pozo')
       .select('participantes, campeon_j6')
@@ -364,7 +374,7 @@ export default function TablaPage() {
     // Sin más awaits desde aquí: se confirma todo junto (React lo agrupa en un solo render)
     if (!vigente()) return;
     setPartidos(parts || []);
-    setParticipaciones(participacionesNuevas);
+    setParticipaciones(participacionesConPrediccion);
     setJugadores(jugs || []);
     setPredicciones(allPreds);
     setPozoParticipantes(pozoDat?.participantes ?? null);

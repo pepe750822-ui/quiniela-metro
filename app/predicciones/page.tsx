@@ -409,8 +409,8 @@ export default function PrediccionesPage() {
     const idsConParticipacion = new Set((partics || []).map((p: any) => p.quiniela_extra_id));
     let filtradas = (extras || []).filter((q: any) => idsConParticipacion.has(q.id));
 
-    if (TEMPORADA_ACTIVA === 'ligamx2026' && filtradas.length > 0) {
-      const qeIds = filtradas.map((q: any) => q.id);
+    if (TEMPORADA_ACTIVA === 'ligamx2026' && (extras || []).length > 0) {
+      const qeIds = (extras || []).map((q: any) => q.id);
       const { data: allPreds } = await supabase
         .from('quiniela_predicciones')
         .select('quiniela_extra_id, partido:quiniela_partidos!inner(temporada)')
@@ -424,8 +424,10 @@ export default function PrediccionesPage() {
           if (p.partido?.temporada === TEMPORADA_ACTIVA) hasLigamxPreds.add(p.quiniela_extra_id);
         }
       });
-      filtradas = filtradas.filter((q: any) =>
-        hasLigamxPreds.has(q.id) || !hasAnyPreds.has(q.id)
+      // Mostrar también las quinielas nuevas que aún no tienen participación
+      // (la participación se crea al guardar su primer pronóstico).
+      filtradas = (extras || []).filter((q: any) =>
+        idsConParticipacion.has(q.id) || hasLigamxPreds.has(q.id) || !hasAnyPreds.has(q.id)
       );
     }
 
@@ -470,21 +472,8 @@ export default function PrediccionesPage() {
       setParticipando(part?.pagado ?? null);
     }
 
-    // J8 no auto-crea participación: solo cuando admin confirma pago
-    if (!part && !(TEMPORADA_ACTIVA === 'ligamx2026' && j === 8)) {
-      await supabase
-        .from('quiniela_participaciones')
-        .insert({
-          user_id:           uid,
-          jornada:           baseJornada,
-          pagado:            false,
-          publicado:         false,
-          monto:             getMontoJornada(baseJornada),
-          quiniela_extra_id: quinielaSeleccionada ?? null,
-          temporada:         TEMPORADA_ACTIVA,
-        });
-      setParticipando(false);
-    }
+    // No se crea participación al abrir la página.
+    // PrediccionForm la crea al guardar el primer pronóstico de la jornada.
   }, [quinielaSeleccionada]);
 
   const cargarPartidos = useCallback(async () => {
@@ -710,9 +699,7 @@ export default function PrediccionesPage() {
       .select()
       .single();
     if (!error && data) {
-      await supabase
-        .from('quiniela_participaciones')
-        .insert({ user_id: userId, jornada, pagado: false, publicado: false, monto: getMontoJornada(jornada), quiniela_extra_id: data.id, temporada: TEMPORADA_ACTIVA });
+      // La participación se crea al guardar el primer pronóstico de esta quiniela.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setQuinielasExtra((prev: any[]) => [...prev, data]);
       setQuinielaSeleccionada(data.id);
