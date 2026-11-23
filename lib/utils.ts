@@ -1,5 +1,9 @@
 export const TEMPORADA_ACTIVA = 'ligamx2026';
 
+// Champions (J15) + Liguilla son UNA sola jornada/competencia.
+// La Liguilla se distingue por grupo = 'LIGUILLA', no por una jornada aparte.
+export const JORNADA_CHAMPIONS_LIGUILLA = 15;
+
 export const LOGOS_LIGAMX: Record<string, string> = {
   // Liga MX — archivos locales
   'América':      '/logos/america.svg',
@@ -164,6 +168,7 @@ export const getNombreJornadaLigaMX = (j: number) => {
   if (j === 10) return 'J11 + Champions J2';
   if (j === 11) return 'J12 + Champions J3';
   if (j === 12) return 'Liga MX J14 + J15 + Europa';
+  if (j === JORNADA_CHAMPIONS_LIGUILLA) return 'Champions + Liguilla';
   return `J${j}`;
 };
 
@@ -171,6 +176,7 @@ export const labelJornada = (j: number) =>
   TEMPORADA_ACTIVA === 'ligamx2026' ? getNombreJornadaLigaMX(j) : getNombreJornada(j);
 
 export const getMontoJornada = (j: number): number => {
+  // J15 incluye Champions + Liguilla: $50 por jugador.
   if (TEMPORADA_ACTIVA === 'ligamx2026' && j >= 6) return 50;
   if (j >= 5) return 100;
   return 50;

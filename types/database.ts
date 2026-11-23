@@ -46,6 +46,7 @@ export interface Tables {
       fecha_hora: string;
       clasificado: string | null;
       como_termino: 'reglamentario' | 'tiempo_extra' | 'penales' | null;
+      es_vuelta: boolean;
     };
     Insert: Omit<Tables['quiniela_partidos']['Row'], 'id'>;
     Update: Partial<Tables['quiniela_partidos']['Insert']>;

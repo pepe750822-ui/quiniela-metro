@@ -135,7 +135,9 @@ export default function PrediccionForm({
   const esLeaguesCup = TEMPORADA_ACTIVA === 'ligamx2026'
     ? partido.grupo === 'LC'
     : fechaPartido >= new Date('2026-08-04T00:00:00Z') && fechaPartido < new Date('2026-08-14T06:00:00Z');
-  const necesitaTerminacion = TEMPORADA_ACTIVA === 'ligamx2026' ? esLeaguesCup : partido.jornada >= 5;
+  const esLiguilla       = partido.grupo === 'LIGUILLA';
+  const esLiguillaVuelta = esLiguilla && partido.es_vuelta === true;
+  const necesitaTerminacion = !esLiguilla && (TEMPORADA_ACTIVA === 'ligamx2026' ? esLeaguesCup : partido.jornada >= 5);
 
   const handleGuardar = async () => {
     if (necesitaTerminacion && (!clasificadoPred || !comoTerminaPred)) {
@@ -158,7 +160,7 @@ export default function PrediccionForm({
       return;
     }
 
-    // J4 cubre J4+J5, J6 cubre J6+J7 (Leagues Cup Cuartos+Semis)
+    // J4 cubre J4+J5, J6 cubre J6+J7 (LC Cuartos+Semis).
     const baseJornada = TEMPORADA_ACTIVA === 'ligamx2026' && partido.jornada === 5 ? 4
       : TEMPORADA_ACTIVA === 'ligamx2026' && partido.jornada === 7 ? 6
       : partido.jornada;
@@ -188,7 +190,7 @@ export default function PrediccionForm({
     const predPayload = {
       goles_local_pred:     local,
       goles_visitante_pred: visita,
-      clasificado_pred:     necesitaTerminacion ? clasificadoPred : null,
+      clasificado_pred:     (necesitaTerminacion || esLiguillaVuelta) ? clasificadoPred : null,
       como_termina_pred:    necesitaTerminacion ? comoTerminaPred : null,
       updated_at:           new Date().toISOString(),
     };
@@ -242,7 +244,7 @@ export default function PrediccionForm({
         .from('quiniela_participaciones')
         .update({ predicciones_completas: true })
         .eq('user_id', userId)
-        .eq('jornada', partido.jornada);
+        .eq('jornada', baseJornada);
 
       await (quinielaExtraId === null
         ? baseCompleteQuery.is('quiniela_extra_id', null)
@@ -329,6 +331,13 @@ export default function PrediccionForm({
                   ⏱️ Marcador a 90 minutos (tiempo reglamentario)
                 </p>
               )}
+              {esLiguilla && (
+                <p className="text-[11px]" style={{ color: 'var(--mut)' }}>
+                  {esLiguillaVuelta
+                    ? 'Marcador a 90 minutos. Abajo eliges quién pasa (+2 pts).'
+                    : 'Solo marcador a 90 minutos. El pase a semifinales se elige en la vuelta.'}
+                </p>
+              )}
             </div>
 
             {/* Score counters */}
@@ -355,6 +364,43 @@ export default function PrediccionForm({
               <p className="text-[10px] text-center leading-relaxed" style={{ color: 'var(--mut)' }}>
                 Empate a 90 min y predijiste empate = 1pt, aunque continúe a penales.
               </p>
+            )}
+
+            {/* Liguilla: ¿quién pasa a semifinales? (solo vuelta) */}
+            {esLiguillaVuelta && (
+              <div className="space-y-2">
+                <p
+                  className="text-[10px] text-center uppercase tracking-widest font-bold"
+                  style={{ color: 'var(--text-secondary)' }}
+                >
+                  ¿Quién pasa a semifinales?
+                </p>
+                <p className="text-[10px] text-center" style={{ color: 'var(--mut)' }}>
+                  Opcional · +2 pts si aciertas al que avanza en el global
+                </p>
+                <div className="flex gap-2">
+                  {equiposParaClasificar.map((equipo) => (
+                    <motion.button
+                      key={equipo}
+                      whileTap={{ scale: 0.95 }}
+                      type="button"
+                      onClick={() => setClasificadoPred(prev => prev === equipo ? null : equipo)}
+                      className="flex-1 py-2.5 rounded-xl text-xs font-bold cursor-pointer flex flex-col items-center gap-1"
+                      style={{
+                        background: clasificadoPred === equipo
+                          ? 'var(--br)'
+                          : 'color-mix(in srgb, var(--ink) 4%, transparent)',
+                        color: clasificadoPred === equipo ? 'var(--brI)' : 'var(--text-secondary)',
+                        border: `1px solid ${clasificadoPred === equipo ? 'transparent' : 'color-mix(in srgb, var(--ink) 7%, transparent)'}`,
+                        fontFamily: 'var(--font-sans)',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <LogoONombre equipo={equipo} />
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
             )}
 
             {/* Clasificado + Cómo termina */}

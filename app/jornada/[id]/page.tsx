@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Partido, Prediccion } from '@/types';
-import { TEMPORADA_ACTIVA } from '@/lib/utils';
+import { TEMPORADA_ACTIVA, JORNADA_CHAMPIONS_LIGUILLA } from '@/lib/utils';
 
 interface ParticipanteVista {
   key: string;
@@ -145,7 +145,7 @@ export default function JornadaPage() {
       style={{ paddingTop: 'max(20px, calc(env(safe-area-inset-top) + 12px))' }}
     >
       <div style={{ animation: 'fadeInUp 0.4s ease-out' }}>
-        <Encabezado titulo={`Jornada ${jornada}`} estacion={jornada} volver="/dashboard" subtitulo="Predicciones de los participantes" />
+        <Encabezado titulo={jornada === JORNADA_CHAMPIONS_LIGUILLA ? 'Champions + Liguilla' : `Jornada ${jornada}`} estacion={jornada} volver="/dashboard" subtitulo="Predicciones de los participantes" />
         <p className="text-[10px] mt-2 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
           ✅ <strong style={{ color: 'var(--ex)' }}>Válido</strong> = publicado y pago confirmado · ⏳ <strong style={{ color: 'var(--rs)' }}>Pago pendiente</strong> = publicado, esperando confirmación
         </p>
@@ -254,10 +254,19 @@ export default function JornadaPage() {
                               {partido.equipo_local} vs {partido.equipo_visitante}
                             </span>
                             {pred ? (
-                              <span className="shrink-0 font-bold"
-                                style={{ fontFamily: 'var(--font-display)', fontSize: '1rem', color: 'var(--text-primary)' }}>
-                                {pred.goles_local_pred} – {pred.goles_visitante_pred}
-                              </span>
+                              <div className="shrink-0 flex items-center gap-2">
+                                <span className="font-bold"
+                                  style={{ fontFamily: 'var(--font-display)', fontSize: '1rem', color: 'var(--text-primary)' }}>
+                                  {pred.goles_local_pred} – {pred.goles_visitante_pred}
+                                </span>
+                                {partido.grupo === 'LIGUILLA' && partido.es_vuelta && (
+                                  <span className="text-[9px] px-1.5 py-0.5 rounded-full max-w-[110px] truncate"
+                                    title={pred.clasificado_pred ?? undefined}
+                                    style={{ background: 'color-mix(in srgb, var(--br) 12%, transparent)', color: 'var(--br)' }}>
+                                    Pasa: {pred.clasificado_pred ?? '—'}
+                                  </span>
+                                )}
+                              </div>
                             ) : (
                               <span className="text-xs shrink-0" style={{ color: 'var(--text-secondary)' }}>–</span>
                             )}

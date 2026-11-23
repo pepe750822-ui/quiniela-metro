@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { Partido, Prediccion, DraftPrediccion, Pozo } from '@/types';
-import { getNombreJornada, getFechaKey, equiposE32, BANDERAS_EQUIPOS, getMontoJornada, TEMPORADA_ACTIVA, getNombreJornadaLigaMX, LOGOS_LIGAMX } from '@/lib/utils';
+import { getNombreJornada, getFechaKey, equiposE32, BANDERAS_EQUIPOS, getMontoJornada, TEMPORADA_ACTIVA, getNombreJornadaLigaMX, LOGOS_LIGAMX, JORNADA_CHAMPIONS_LIGUILLA } from '@/lib/utils';
 import { Bandera } from '@/components/Bandera';
 import PartidoCard from '@/components/PartidoCard';
 import PrediccionForm from '@/components/PrediccionForm';
@@ -434,7 +434,7 @@ export default function PrediccionesPage() {
   }, []);
 
   const cargarPozoYParticipacion = useCallback(async (uid: string, j: number) => {
-    // J4 cubre J4+J5; J6 cubre J6+J7 (LC Cuartos+Semis)
+    // J4 cubre J4+J5; J6 cubre J6+J7 (LC Cuartos+Semis).
     const baseJornada = TEMPORADA_ACTIVA === 'ligamx2026' ? (j === 5 ? 4 : j === 7 ? 6 : j) : j;
 
     const basePartQuery = supabase
@@ -479,6 +479,7 @@ export default function PrediccionesPage() {
           jornada:           baseJornada,
           pagado:            false,
           publicado:         false,
+          monto:             getMontoJornada(baseJornada),
           quiniela_extra_id: quinielaSeleccionada ?? null,
           temporada:         TEMPORADA_ACTIVA,
         });
@@ -711,7 +712,7 @@ export default function PrediccionesPage() {
     if (!error && data) {
       await supabase
         .from('quiniela_participaciones')
-        .insert({ user_id: userId, jornada, pagado: false, publicado: false, quiniela_extra_id: data.id, temporada: TEMPORADA_ACTIVA });
+        .insert({ user_id: userId, jornada, pagado: false, publicado: false, monto: getMontoJornada(jornada), quiniela_extra_id: data.id, temporada: TEMPORADA_ACTIVA });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setQuinielasExtra((prev: any[]) => [...prev, data]);
       setQuinielaSeleccionada(data.id);
@@ -977,7 +978,7 @@ export default function PrediccionesPage() {
         </h1>
         <p className="text-[14px] font-medium mt-0.5" style={{ color: 'var(--mut)' }}>
           {TEMPORADA_ACTIVA === 'ligamx2026'
-            ? (jornada === 12 ? 'Liga MX J14 + J15 + Europa' : jornada === 11 ? 'J12 + Champions J3' : jornada === 10 ? 'J11 + Champions J2' : jornada === 9 ? 'J9 + J10 + Selección + UEFA' : jornada >= 4 && jornada <= 5 ? 'Liga MX Apertura 2026' : jornada === 8 ? 'J8 + Champions League' : jornada >= 6 ? 'Leagues Cup 2026' : 'Leagues Cup — Fase 1')
+            ? (jornada === 12 ? 'Liga MX J14 + J15 + Europa' : jornada === JORNADA_CHAMPIONS_LIGUILLA ? 'Champions + Liguilla' : jornada === 11 ? 'J12 + Champions J3' : jornada === 10 ? 'J11 + Champions J2' : jornada === 9 ? 'J9 + J10 + Selección + UEFA' : jornada >= 4 && jornada <= 5 ? 'Liga MX Apertura 2026' : jornada === 8 ? 'J8 + Champions League' : jornada >= 6 ? 'Leagues Cup 2026' : 'Leagues Cup — Fase 1')
             : 'Predicciones'}
           {' · '}{labelJornada(jornada)}
         </p>
@@ -987,12 +988,15 @@ export default function PrediccionesPage() {
           'Llena tus marcadores antes de que se cierren. ¡Que no se te vaya el tren!',
           'Marcador exacto: 3 puntos. Ganador o empate: 1 punto.',
           '¿Tienes varios boletos? Llena los marcadores de cada uno.',
+          ...(jornada === JORNADA_CHAMPIONS_LIGUILLA
+            ? ['Liguilla: en la vuelta elige quién pasa a semifinales. Si aciertas, +2 puntos extra.']
+            : []),
         ]} />
       </motion.div>
 
       {/* ── BANNER: PAGO PENDIENTE ── */}
       <AnimatePresence>
-        {participando === false && (
+        {participando === false && getMontoJornada(jornada) > 0 && (
           <motion.div
             key="payment-banner"
             initial={{ opacity: 0, y: 10 }}
@@ -1012,7 +1016,13 @@ export default function PrediccionesPage() {
               💳 CLABE: <strong style={{ color: 'var(--text-primary)' }}>014180565546539842</strong>
               <br />
               <span style={{ color: 'var(--text-secondary)' }}>Monto: </span>
-              <strong style={{ color: 'var(--ink)' }}>${TEMPORADA_ACTIVA === 'ligamx2026' && jornada >= 6 ? 50 : getMontoJornada(jornada)} MXN</strong>
+              <strong style={{ color: 'var(--ink)' }}>${getMontoJornada(jornada)} MXN</strong>
+              {(jornada === JORNADA_CHAMPIONS_LIGUILLA) && (
+                <>
+                  <br />
+                  <span style={{ color: 'var(--text-secondary)' }}>Este pago cubre Champions + Liguilla.</span>
+                </>
+              )}
             </p>
             <div className="rounded-[12px] p-3 space-y-2" style={{ background: 'var(--sf)', border: '1px solid var(--ln)' }}>
               <p className="font-bold text-sm" style={{ fontFamily: 'var(--font-sans)', color: 'var(--ink)' }}>
@@ -1532,6 +1542,8 @@ export default function PrediccionesPage() {
                   UCL2: { label: '⭐ Champions J2',       color: 'var(--rs)', bg: 'color-mix(in srgb, var(--rs) 8%, transparent)', border: 'color-mix(in srgb, var(--rs) 25%, transparent)' },
                   LMX12:{ label: '⚽ J12 Liga MX',        color: '#4f46e5', bg: 'rgba(79,70,229,0.08)',  border: 'rgba(79,70,229,0.25)'  },
                   UCL3: { label: '⭐ Champions J3',       color: 'var(--rs)', bg: 'color-mix(in srgb, var(--rs) 8%, transparent)', border: 'color-mix(in srgb, var(--rs) 25%, transparent)' },
+                  UCL5: { label: '⭐ Champions League',   color: 'var(--rs)', bg: 'color-mix(in srgb, var(--rs) 8%, transparent)', border: 'color-mix(in srgb, var(--rs) 25%, transparent)' },
+                  LIGUILLA: { label: '🏆 Liguilla Cuartos', color: 'var(--br)', bg: 'color-mix(in srgb, var(--br) 8%, transparent)', border: 'color-mix(in srgb, var(--br) 25%, transparent)' },
                   LMX14:   { label: 'Liga MX J14',       color: '#818cf8', bg: 'rgba(99,102,241,0.08)',  border: 'rgba(99,102,241,0.25)'  },
                   LMX15:   { label: 'Liga MX J15',       color: '#a78bfa', bg: 'rgba(139,92,246,0.08)',  border: 'rgba(139,92,246,0.25)'  },
                   EPL8:    { label: 'Premier League F8', color: '#60a5fa', bg: 'rgba(96,165,250,0.08)',  border: 'rgba(96,165,250,0.25)'  },

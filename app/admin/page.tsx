@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Partido, Jugador, Pozo, Participacion } from '@/types';
-import { emailCorto, mostrarNombre, getNombreJornada, getNombreJornadaLigaMX, getMontoJornada, BANDERAS_EQUIPOS, TEMPORADA_ACTIVA } from '@/lib/utils';
+import { emailCorto, mostrarNombre, getNombreJornada, getNombreJornadaLigaMX, getMontoJornada, BANDERAS_EQUIPOS, TEMPORADA_ACTIVA, JORNADA_CHAMPIONS_LIGUILLA } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Bandera } from '@/components/Bandera';
 
@@ -52,15 +52,24 @@ const timeAgo = (date: string) => {
 const inicialesJugador = (j: { nombre: string; apodo?: string | null }) =>
   (j.apodo || j.nombre || 'J').substring(0, 2).toUpperCase();
 
+// Convierte un ISO (UTC) al formato que espera <input type="datetime-local">.
+const toDatetimeLocal = (iso: string) => {
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
 export default function AdminPage() {
   const router = useRouter();
   const [partidos, setPartidos]   = useState<Partido[]>([]);
   const [loading, setLoading]     = useState(true);
   const [isAdmin, setIsAdmin]     = useState(false);
   const [adminId, setAdminId]     = useState<string | null>(null);
-  const [resultados, setResultados] = useState<Record<string, { local: number; visitante: number }>>({});
+  const [resultados, setResultados] = useState<Record<string, { local: number; visitante: number; clasificado?: string | null }>>({});
   const [guardando, setGuardando]   = useState<string | null>(null);
   const [editandoId, setEditandoId] = useState<string | null>(null);
+  const [fechasLiguilla, setFechasLiguilla] = useState<Record<string, string>>({});
+  const [guardandoFecha, setGuardandoFecha] = useState<string | null>(null);
 
   // Apodos
   const [jugadores, setJugadores] = useState<Jugador[]>([]);
@@ -141,6 +150,7 @@ export default function AdminPage() {
     grupos: false,
     clasificadosLc: false,
     campeonLc: false,
+    fechasLiguilla: false,
   });
   const toggleSeccion = (seccion: keyof typeof seccionesAbiertas) => {
     setSeccionesAbiertas(prev => ({ ...prev, [seccion]: !prev[seccion] }));
@@ -301,7 +311,13 @@ export default function AdminPage() {
       .eq('temporada', TEMPORADA_ACTIVA)
       .not('equipo_local', 'eq', 'A definir')
       .order('fecha_hora');
-    setPartidos((ps as Partido[]) ?? []);
+    const lista = (ps as Partido[]) ?? [];
+    setPartidos(lista);
+    const fechas: Record<string, string> = {};
+    lista
+      .filter(p => p.grupo === 'LIGUILLA')
+      .forEach(p => { fechas[p.id] = toDatetimeLocal(p.fecha_hora); });
+    setFechasLiguilla(fechas);
   };
 
   const cargarJugadores = async () => {
@@ -443,6 +459,8 @@ export default function AdminPage() {
       && fechaPartidoH >= new Date('2026-08-04T00:00:00Z')
       && fechaPartidoH < new Date('2026-08-14T00:00:00Z');
     const esElim = (partidoObj?.jornada ?? 0) >= 5 || esLeaguesCupH;
+    const esLiguilla = partidoObj?.grupo === 'LIGUILLA';
+    const esLiguillaVuelta = esLiguilla && partidoObj?.es_vuelta === true;
     const yaFinalizado = partidoObj?.estado === 'finalizado';
 
     if (yaFinalizado
@@ -457,8 +475,12 @@ export default function AdminPage() {
       estado: 'finalizado',
     };
     // Al corregir un resultado ya guardado se conserva el como_termino existente
-    if (esElim && !yaFinalizado) {
+    if (esElim && !esLiguilla && !yaFinalizado) {
       updatePayload.como_termino = 'reglamentario';
+    }
+    // Liguilla: el admin registra quién avanzó para calcular el bono de +2.
+    if (esLiguillaVuelta) {
+      updatePayload.clasificado = resultado.clasificado ?? null;
     }
     console.log('Guardando resultado:', partidoId, updatePayload);
     const { error } = await supabase
@@ -509,6 +531,7 @@ export default function AdminPage() {
       [partido.id]: {
         local:     partido.goles_local     ?? 0,
         visitante: partido.goles_visitante ?? 0,
+        clasificado: partido.clasificado ?? null,
       },
     }));
     setEditandoId(partido.id);
@@ -517,6 +540,26 @@ export default function AdminPage() {
   const cancelarEdicion = (partidoId: string) => {
     setResultados(prev => { const n = { ...prev }; delete n[partidoId]; return n; });
     setEditandoId(null);
+  };
+
+  // Fecha/hora de un partido de Liguilla (los horarios se confirman sobre la marcha).
+  const handleGuardarFecha = async (partidoId: string) => {
+    const valor = fechasLiguilla[partidoId];
+    if (!valor) { toast.error('Elige fecha y hora'); return; }
+    const fecha = new Date(valor);
+    if (isNaN(fecha.getTime())) { toast.error('Fecha inválida'); return; }
+    setGuardandoFecha(partidoId);
+    const { error } = await supabase
+      .from('quiniela_partidos')
+      .update({ fecha_hora: fecha.toISOString() })
+      .eq('id', partidoId);
+    setGuardandoFecha(null);
+    if (error) {
+      toast.error('Error: ' + error.message);
+    } else {
+      toast.success('📅 Fecha actualizada');
+      await cargarPartidos();
+    }
   };
 
   const renderMarcadorInputs = (partido: Partido) => {
@@ -530,7 +573,11 @@ export default function AdminPage() {
             value={res?.local ?? ''}
             onChange={e => setResultados(prev => ({
               ...prev,
-              [partido.id]: { local: parseInt(e.target.value) || 0, visitante: prev[partido.id]?.visitante ?? 0 },
+              [partido.id]: {
+                local: parseInt(e.target.value) || 0,
+                visitante: prev[partido.id]?.visitante ?? 0,
+                clasificado: prev[partido.id]?.clasificado ?? null,
+              },
             }))}
             className="w-14 h-12 text-center text-xl font-bold rounded-xl outline-none"
             style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }} />
@@ -540,7 +587,11 @@ export default function AdminPage() {
             value={res?.visitante ?? ''}
             onChange={e => setResultados(prev => ({
               ...prev,
-              [partido.id]: { local: prev[partido.id]?.local ?? 0, visitante: parseInt(e.target.value) || 0 },
+              [partido.id]: {
+                local: prev[partido.id]?.local ?? 0,
+                visitante: parseInt(e.target.value) || 0,
+                clasificado: prev[partido.id]?.clasificado ?? null,
+              },
             }))}
             className="w-14 h-12 text-center text-xl font-bold rounded-xl outline-none"
             style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }} />
@@ -566,6 +617,33 @@ export default function AdminPage() {
             </button>
           )}
         </div>
+        {partido.grupo === 'LIGUILLA' && partido.es_vuelta && (
+          <div className="rounded-xl px-3 py-2 space-y-2"
+            style={{ background: 'color-mix(in srgb, var(--br) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--br) 25%, transparent)' }}>
+            <p className="text-[10px] uppercase tracking-widest font-bold" style={{ color: 'var(--accent-gold)' }}>
+              ¿Quién pasa a semifinales?
+            </p>
+            <select
+              value={res?.clasificado ?? ''}
+              onChange={e => setResultados(prev => ({
+                ...prev,
+                [partido.id]: {
+                  local: prev[partido.id]?.local ?? partido.goles_local ?? 0,
+                  visitante: prev[partido.id]?.visitante ?? partido.goles_visitante ?? 0,
+                  clasificado: e.target.value || null,
+                },
+              }))}
+              className="w-full h-11 rounded-xl px-3 text-sm font-semibold outline-none"
+              style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}>
+              <option value="">— Sin definir —</option>
+              <option value={partido.equipo_local}>{partido.equipo_local}</option>
+              <option value={partido.equipo_visitante}>{partido.equipo_visitante}</option>
+            </select>
+            <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+              Si no eliges, nadie recibe el bono de +2. Puedes corregirlo después.
+            </p>
+          </div>
+        )}
         {esEdicion && (
           <p className="text-[11px] text-center" style={{ color: 'var(--text-secondary)' }}>
             Al corregir se recalculan los puntos de todos los participantes en este partido.
@@ -671,7 +749,7 @@ export default function AdminPage() {
 
     const userIds = [...new Set(parts.map(p => p.user_id))];
 
-    // Get finalizado partido IDs for this jornada
+    // Get finalizado partido IDs for this jornada (incluye Liguilla, que vive en J15).
     const { data: partidosFin } = await supabase
       .from('quiniela_partidos')
       .select('id')
@@ -732,7 +810,8 @@ export default function AdminPage() {
     if (e2) {
       toast.error('Error al declarar ganador');
     } else {
-      toast.success(`🏆 Ganador ${getNombreJornada(jornada)}: ${ganadorNombre}`);
+      const nombrePozo = TEMPORADA_ACTIVA === 'ligamx2026' ? getNombreJornadaLigaMX(jornada) : getNombreJornada(jornada);
+      toast.success(`🏆 Ganador ${nombrePozo}: ${ganadorNombre}`);
       cargarPozos();
     }
   };
@@ -756,7 +835,7 @@ export default function AdminPage() {
 
     const userIds = [...new Set(parts.map(p => p.user_id))];
 
-    // Get finalizado partido IDs for this jornada
+    // Get finalizado partido IDs for this jornada (incluye Liguilla, que vive en J15).
     const { data: partidosFin } = await supabase
       .from('quiniela_partidos')
       .select('id')
@@ -1208,6 +1287,8 @@ export default function AdminPage() {
     }
   }
 
+  const liguillaPartidos = partidos.filter(p => p.grupo === 'LIGUILLA');
+
   if (loading) return (
     <div className="flex justify-center py-20">
       <div className="h-8 w-8 border-2 border-t-transparent rounded-full animate-spin"
@@ -1561,7 +1642,7 @@ export default function AdminPage() {
         {seccionesAbiertas.pozos && (
         <div className="space-y-2">
           {[...pozosCompletos].sort((a, b) => a.jornada - b.jornada).map(pozo => {
-            // J4 es la base de la quiniela Liga MX; J5 comparte participaciones de J4
+            // J15 es la base de Champions + Liguilla; J5 comparte participaciones de J4.
             const pozoBaseJornada = TEMPORADA_ACTIVA === 'ligamx2026' && pozo.jornada === 5 ? 4 : pozo.jornada;
             const pendientes = participaciones.filter(p => p.jornada === pozoBaseJornada && !p.pagado);
             const confirmadas = participaciones.filter(p => p.jornada === pozoBaseJornada && p.pagado);
@@ -1578,7 +1659,9 @@ export default function AdminPage() {
                 >
                   <div className="flex items-center gap-3 flex-wrap text-left">
                     <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', color: 'var(--accent-gold)' }}>
-                      {TEMPORADA_ACTIVA === 'ligamx2026' && pozo.jornada >= 4
+                      {TEMPORADA_ACTIVA === 'ligamx2026' && pozo.jornada === JORNADA_CHAMPIONS_LIGUILLA
+                        ? 'Champions + Liguilla'
+                        : TEMPORADA_ACTIVA === 'ligamx2026' && pozo.jornada >= 4
                         ? `Jornada ${pozo.jornada} Liga MX`
                         : getNombreJornada(pozo.jornada)}
                     </span>
@@ -2016,7 +2099,11 @@ export default function AdminPage() {
               <div key={partido.id} id={`partido-${partido.id}`} className="rounded-2xl p-4 space-y-3"
                 style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
                 <div className="flex items-center justify-between text-xs" style={{ color: 'var(--text-secondary)' }}>
-                  <span>Grupo {partido.grupo} · J{partido.jornada}</span>
+                  <span>
+                    {partido.grupo === 'LIGUILLA'
+                      ? `Liguilla · ${partido.es_vuelta ? 'Vuelta' : 'Ida'} · J${partido.jornada}`
+                      : `Grupo ${partido.grupo} · J${partido.jornada}`}
+                  </span>
                   <span className="px-2 py-0.5 rounded-full font-bold uppercase text-[10px]"
                     style={{
                       background: partido.estado === 'finalizado' ? 'color-mix(in srgb, var(--mut) 15%, transparent)' : 'color-mix(in srgb, var(--br) 15%, transparent)',
@@ -2061,6 +2148,54 @@ export default function AdminPage() {
         </div>
         )}
       </section>
+
+      {/* ── FECHAS LIGUILLA ── */}
+      {liguillaPartidos.length > 0 && (
+        <section className="space-y-1">
+          <button
+            onClick={() => toggleSeccion('fechasLiguilla')}
+            className="w-full flex items-center justify-between px-4 py-4 rounded-xl hover:border-orange-500/30 transition-all"
+            style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', color: 'var(--accent-gold)' }}>
+              📅 FECHAS LIGUILLA — {liguillaPartidos.length} partidos
+            </span>
+            <span style={{ color: 'var(--mut)' }}>{seccionesAbiertas.fechasLiguilla ? '▲' : '▼'}</span>
+          </button>
+          {seccionesAbiertas.fechasLiguilla && (
+            <div className="space-y-3">
+              {liguillaPartidos.map(partido => (
+                <div key={partido.id} className="rounded-2xl p-4 space-y-2"
+                  style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                  <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
+                    {partido.equipo_local} vs {partido.equipo_visitante}
+                    <span className="ml-2 text-[10px] uppercase tracking-widest" style={{ color: 'var(--br)' }}>
+                      {partido.es_vuelta ? 'Vuelta' : 'Ida'}
+                    </span>
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="datetime-local"
+                      value={fechasLiguilla[partido.id] ?? toDatetimeLocal(partido.fecha_hora)}
+                      onChange={e => setFechasLiguilla(prev => ({ ...prev, [partido.id]: e.target.value }))}
+                      className="flex-1 h-11 rounded-xl px-3 text-sm outline-none"
+                      style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)' }} />
+                    <button
+                      onClick={() => handleGuardarFecha(partido.id)}
+                      disabled={guardandoFecha === partido.id}
+                      className="h-11 px-4 rounded-xl font-bold text-sm disabled:opacity-40 transition-all active:scale-95"
+                      style={{ background: 'var(--ex)', color: '#000' }}>
+                      {guardandoFecha === partido.id ? '…' : 'Guardar fecha'}
+                    </button>
+                  </div>
+                  <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                    Horario provisional. La Liga MX definió los días 25/26 y 28/29 de noviembre; los horarios exactos se anuncian el lunes 23.
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
 
       {/* ── CLASIFICADOS LEAGUES CUP ── */}
       {TEMPORADA_ACTIVA === 'ligamx2026' && (

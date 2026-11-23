@@ -7,7 +7,7 @@ import { RankingConJugador, Pozo } from '@/types';
 import RankingTable from '@/components/RankingTable';
 import DesempateTabla from '@/components/DesempateTabla';
 import { JORNADA_DESEMPATE, cargarDesempateJ11, DESEMPATE_POZO_J11, cargarDesempatePozoJ11, DesempateRow } from '@/lib/desempate';
-import { getNombreJornada, getMontoJornada, TEMPORADA_ACTIVA, getNombreJornadaLigaMX } from '@/lib/utils';
+import { getNombreJornada, getMontoJornada, TEMPORADA_ACTIVA, getNombreJornadaLigaMX, JORNADA_CHAMPIONS_LIGUILLA } from '@/lib/utils';
 import { cargarJornadaActual } from '@/lib/jornadaActual';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -156,7 +156,7 @@ export default function DashboardPage() {
 
     // ── General Liga MX: acumulado de la temporada (quiniela principal, solo jornadas pagadas) ──
     if (jornadaSeleccionada === 'general' && TEMPORADA_ACTIVA === 'ligamx2026') {
-      // J4+J5 y J6+J7 se pagan como una sola quiniela
+      // J4+J5 y J6+J7 se pagan como una sola quiniela.
       const grupoJ = (jr: number) => (jr === 5 ? 4 : jr === 7 ? 6 : jr);
 
       const { data: partsG } = await supabase
@@ -400,7 +400,7 @@ export default function DashboardPage() {
 
     const j = Number(jornadaSeleccionada);
 
-    // J4+J5 son la misma quiniela; J6+J7 también (LC Cuartos+Semis)
+    // J4+J5 son la misma quiniela; J6+J7 también (LC Cuartos+Semis).
     const jornadasJ = TEMPORADA_ACTIVA === 'ligamx2026' && j === 5 ? [4, 5]
       : TEMPORADA_ACTIVA === 'ligamx2026' && j === 7 ? [6, 7]
       : [j];
@@ -925,7 +925,7 @@ export default function DashboardPage() {
       )}
 
       {/* Solo visible para el usuario actual si tiene pago pendiente */}
-      {participacionPendiente && (
+      {participacionPendiente && getMontoJornada(participacionPendiente.jornada) > 0 && (
         <div className="rounded-[20px] overflow-hidden" style={{ background: 'color-mix(in srgb, var(--rs) 16%, var(--sf))', border: '2px solid var(--rs)', animation: 'fadeInUp 0.5s ease-out 0.28s both' }}>
           <div className="flex items-start gap-3 p-4">
             <span className="flex items-center justify-center rounded-[10px] shrink-0" style={{ width: 40, height: 40, background: 'var(--rs)', color: '#2B1D00' }}>
@@ -934,6 +934,9 @@ export default function DashboardPage() {
             <div className="flex-1 min-w-0">
               <h3 className="font-bold text-[17px] leading-tight" style={{ color: 'var(--ink)' }}>
                 Te falta pagar la J{participacionPendiente.jornada}
+                {participacionPendiente.jornada === JORNADA_CHAMPIONS_LIGUILLA && (
+                  <span className="font-semibold" style={{ color: 'var(--br)' }}> · Champions + Liguilla</span>
+                )}
                 {participacionPendiente?.quiniela?.nombre && <span className="font-semibold" style={{ color: 'var(--br)' }}> · {participacionPendiente.quiniela.nombre}</span>}
               </h3>
               <p className="text-[14px] leading-snug mt-0.5" style={{ color: 'var(--ink2)' }}>

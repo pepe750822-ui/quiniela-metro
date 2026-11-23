@@ -27,6 +27,7 @@ interface Partido {
   streaming?: string | null;
   clasificado?: string | null;
   como_termino?: string | null;
+  es_vuelta?: boolean | null;
   marcador_penales?: string | null;
   marcador_tiempo_extra?: string | null;
 }
@@ -161,7 +162,9 @@ export default function CalendarioPage() {
                     )}
 
                     <div className="text-right text-xs text-gray-400 mb-2 font-semibold tracking-wider">
-                      {partido.grupo ? `GRUPO ${partido.grupo}` : `JORNADA ${partido.jornada}`}
+                      {partido.grupo === 'LIGUILLA'
+                        ? `LIGUILLA · ${partido.es_vuelta ? 'VUELTA' : 'IDA'}`
+                        : partido.grupo ? `GRUPO ${partido.grupo}` : `JORNADA ${partido.jornada}`}
                     </div>
 
                     <div className="flex items-center justify-between mt-2">

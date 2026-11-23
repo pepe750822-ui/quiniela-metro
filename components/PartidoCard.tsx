@@ -54,6 +54,8 @@ export default function PartidoCard({ partido, prediccion, participacionPagada, 
     && fechaPartido >= new Date('2026-08-04T00:00:00Z')
     && fechaPartido < new Date('2026-08-14T06:00:00Z');
   const mostrarTerminacion = partido.jornada >= 5 || esLeaguesCup;
+  const esLiguilla        = partido.grupo === 'LIGUILLA';
+  const esLiguillaVuelta  = esLiguilla && partido.es_vuelta === true;
 
   const esLC = partido.grupo === 'LC';
 
@@ -99,7 +101,7 @@ export default function PartidoCard({ partido, prediccion, participacionPagada, 
             {fechaStr}{fechaStr ? ' · ' : ''}{horaStr}
           </span>
           <span className="text-[12px] font-semibold px-1.5 py-0.5 rounded-[6px] shrink-0" style={{ border: '1px solid var(--ln)', color: 'var(--ink2)' }}>
-            {partido.grupo ? `${partido.grupo} · ` : ''}J{partido.jornada}
+            {partido.grupo ? `${partido.grupo === 'LIGUILLA' ? 'Liguilla' : partido.grupo} · ` : ''}J{partido.jornada}
           </span>
         </span>
 
@@ -269,6 +271,11 @@ export default function PartidoCard({ partido, prediccion, participacionPagada, 
               {mostrarTerminacion && prediccion.clasificado_pred && (
                 <div className="flex items-center gap-1">
                   <Bandera emoji={BANDERAS_EQUIPOS[prediccion.clasificado_pred] ?? ''} nombre={prediccion.clasificado_pred} size="sm" />
+                  {esLiguillaVuelta && (
+                    <span className="text-[10px]" style={{ color: 'var(--mut)' }}>
+                      Pasa
+                    </span>
+                  )}
                 </div>
               )}
             </div>
@@ -276,6 +283,25 @@ export default function PartidoCard({ partido, prediccion, participacionPagada, 
               <ChipPuntos pts={lmxBadge.pts} className="shrink-0" />
             )}
           </div>
+
+          {/* Desglose Liguilla: pase a semifinales */}
+          {fin && esLiguillaVuelta && prediccion && (
+            <div
+              className="rounded-xl px-3 py-2 flex items-center justify-between"
+              style={{ background: 'color-mix(in srgb, var(--ink) 3%, transparent)', border: '1px solid color-mix(in srgb, var(--ink) 6%, transparent)', fontSize: 11 }}
+            >
+              <span style={{ color: 'var(--mut)' }}>🎯 Pase a semifinales</span>
+              {!partido.clasificado ? (
+                <span style={{ color: 'var(--mut)' }}>por definir</span>
+              ) : prediccion.clasificado_pred === partido.clasificado ? (
+                <span style={{ color: 'var(--ex)', fontWeight: 700 }}>+2 pts ✅</span>
+              ) : (
+                <span style={{ color: 'var(--fl)', fontWeight: 700 }}>
+                  +0 {prediccion.clasificado_pred ? '✗' : '(sin pick)'}
+                </span>
+              )}
+            </div>
+          )}
 
           {/* Desglose LC */}
           {fin && esLC && lcDesglose && (

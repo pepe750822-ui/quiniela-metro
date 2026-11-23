@@ -166,7 +166,7 @@ export default function TablaPage() {
 
     const partidosQuery = supabase
       .from('quiniela_partidos')
-      .select('id, jornada, equipo_local, equipo_visitante, bandera_local, bandera_visitante, goles_local, goles_visitante, estado, grupo, fecha_hora, clasificado, como_termino')
+      .select('*')
       .eq('temporada', TEMPORADA_ACTIVA)
       .order('fecha_hora');
     const { data: parts } = jornada === 6 && TEMPORADA_ACTIVA !== 'ligamx2026'
@@ -427,15 +427,23 @@ export default function TablaPage() {
   };
 
   const getBanderaClasificado = (clasificadoPred: string, partido: any): string => {
-    if (partido.equipo_local === clasificadoPred) return partido.bandera_local || BANDERAS_EQUIPOS[clasificadoPred] || clasificadoPred;
-    if (partido.equipo_visitante === clasificadoPred) return partido.bandera_visitante || BANDERAS_EQUIPOS[clasificadoPred] || clasificadoPred;
-    return BANDERAS_EQUIPOS[clasificadoPred] || clasificadoPred;
+    const corto = LOGOS_LIGAMX[clasificadoPred]
+      ? clasificadoPred.slice(0, 3).toUpperCase()
+      : (BANDERAS_EQUIPOS[clasificadoPred] || clasificadoPred);
+    if (partido.equipo_local === clasificadoPred) return partido.bandera_local || corto;
+    if (partido.equipo_visitante === clasificadoPred) return partido.bandera_visitante || corto;
+    return corto;
   };
 
   const necesitaTerminacionPartido = (partido: any): boolean => {
-    if (TEMPORADA_ACTIVA === 'ligamx2026') return partido.grupo === 'LC';
+    if (TEMPORADA_ACTIVA === 'ligamx2026') {
+      return partido.grupo === 'LC' || (partido.grupo === 'LIGUILLA' && partido.es_vuelta === true);
+    }
     return partido.jornada >= 5;
   };
+
+  const esLiguillaVueltaPartido = (partido: { grupo?: string | null; es_vuelta?: boolean | null }): boolean =>
+    partido.grupo === 'LIGUILLA' && partido.es_vuelta === true;
 
   const descargarCSV = () => {
     const ahora = new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' });
@@ -1209,6 +1217,31 @@ export default function TablaPage() {
               const renderFinalizadoCell = (partido: any) => {
                 const pred = getPred(part.user_id, partido.id, part.quiniela_extra_id);
                 const pts = pred?.puntos_ganados ?? null;
+                if (esLiguillaVueltaPartido(partido) && pts !== null && pred) {
+                  const ptsPase = (partido.clasificado && pred.clasificado_pred === partido.clasificado) ? 2 : 0;
+                  const ptsBase = Math.max(0, pts - ptsPase);
+                  return (
+                    <td key={partido.id} className="px-1 py-1 text-center" style={{ borderLeft: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)', minWidth: 64 }}>
+                      <div style={{ fontSize: 9, lineHeight: '1.55', color: 'var(--mut)' }}>
+                        <div>{pred.goles_local_pred}-{pred.goles_visitante_pred}</div>
+                        {pred.clasificado_pred && (
+                          <div className="flex items-center justify-center">
+                            <Bandera emoji={BANDERAS_EQUIPOS[pred.clasificado_pred] ?? ''} nombre={pred.clasificado_pred} size="sm" />
+                          </div>
+                        )}
+                        <div style={{ color: ptsBase >= 3 ? 'var(--ex)' : ptsBase >= 1 ? 'var(--rs)' : 'var(--fl)' }}>
+                          {ptsBase >= 3 ? '⚽⚽⚽' : ptsBase >= 1 ? '⚽' : '✗'} {ptsBase}pt{ptsBase !== 1 ? 's' : ''}
+                        </div>
+                        <div style={{ color: ptsPase ? 'var(--ex)' : 'var(--fl)' }}>
+                          {partido.clasificado
+                            ? <>🎯 Pase {ptsPase ? '+2' : '+0'}</>
+                            : <>🎯 Pase ?</>}
+                        </div>
+                        <div style={{ borderTop: '1px solid color-mix(in srgb, var(--mut) 20%, transparent)', marginTop: 2, paddingTop: 2, fontWeight: 700, fontSize: 11, color: pts >= 4 ? 'var(--rs)' : pts === 3 ? 'var(--ex)' : pts === 2 ? '#60a5fa' : pts === 1 ? 'var(--rs)' : 'var(--fl)' }}>{pts}pts</div>
+                      </div>
+                    </td>
+                  );
+                }
                 if (necesitaTerminacionPartido(partido)) {
                   if (pts !== null && pred) {
                     const ptsClasif = (partido.clasificado && pred.clasificado_pred === partido.clasificado) ? 1 : 0;

@@ -15,6 +15,7 @@ export interface Partido {
   estado: EstadoPartido;
   clasificado?: string | null;
   como_termino?: string | null;
+  es_vuelta?: boolean | null;
   marcador_penales?: string | null;
   marcador_tiempo_extra?: string | null;
   estadio?: string | null;
