@@ -672,6 +672,16 @@ export default function PrediccionesPage() {
 
   const handlePublicar = async () => {
     if (!userId) return;
+    const faltanPasesPublicar = partidos.filter(
+      p => p.grupo === 'LIGUILLA' && p.es_vuelta === true && !predicciones[p.id]?.clasificado_pred
+    );
+    if (faltanPasesPublicar.length > 0) {
+      toast.error(
+        'Te falta elegir quién pasa en: ' +
+        faltanPasesPublicar.map(p => `${p.equipo_local} vs ${p.equipo_visitante}`).join(', ')
+      );
+      return;
+    }
     setPublicando(true);
     const baseJornadaPublicar = TEMPORADA_ACTIVA === 'ligamx2026' ? (jornada === 5 ? 4 : jornada === 7 ? 6 : jornada) : jornada;
     const baseUpdate = supabase
@@ -894,6 +904,15 @@ export default function PrediccionesPage() {
   const porcentaje = totalEnJornada > 0 ? Math.round((predichasEnJornada / totalEnJornada) * 100) : 0;
   const jornadaCompleta = predichasEnJornada >= totalEnJornada && totalEnJornada > 0;
 
+  // Liguilla: además de los 26 pronósticos, deben estar las 4 elecciones de pase.
+  const vueltasLiguilla = partidos.filter(p => p.grupo === 'LIGUILLA' && p.es_vuelta === true);
+  const faltanPases = vueltasLiguilla.filter(p => !predicciones[p.id]?.clasificado_pred);
+  const pasesCompletos = faltanPases.length === 0;
+  const detalleFaltanPases = faltanPases
+    .map(p => `${p.equipo_local} vs ${p.equipo_visitante}`)
+    .join(', ');
+  const puedePublicar = jornadaCompleta && pasesCompletos;
+
   const estaBloquado = (partido: Partido) => {
     if (partido.estado === 'finalizado') return true;
     if (TEMPORADA_ACTIVA === 'ligamx2026' && jornada >= 2) {
@@ -1113,23 +1132,23 @@ export default function PrediccionesPage() {
           {...fadeUp(0.14)}
           className="rounded-2xl px-4 py-3 space-y-2"
           style={{
-            background: jornadaCompleta ? 'color-mix(in srgb, var(--ex) 6%, transparent)' : 'color-mix(in srgb, var(--ink) 3%, transparent)',
-            border: `1px solid ${jornadaCompleta ? 'color-mix(in srgb, var(--ex) 22%, transparent)' : 'color-mix(in srgb, var(--ink) 6%, transparent)'}`,
+            background: puedePublicar ? 'color-mix(in srgb, var(--ex) 6%, transparent)' : 'color-mix(in srgb, var(--ink) 3%, transparent)',
+            border: `1px solid ${puedePublicar ? 'color-mix(in srgb, var(--ex) 22%, transparent)' : 'color-mix(in srgb, var(--ink) 6%, transparent)'}`,
           }}
         >
           <div className="flex items-center justify-between">
             <p className="text-sm font-semibold" style={{
               fontFamily: 'var(--font-sans)',
-              color: jornadaCompleta ? 'var(--ex)' : 'var(--text-primary)',
+              color: puedePublicar ? 'var(--ex)' : 'var(--text-primary)',
             }}>
-              {jornadaCompleta
+              {puedePublicar
                 ? (publicado ? `✅ ¡${labelJornada(jornada)} publicada!` : `✅ ¡${labelJornada(jornada)} completa!`)
                 : `${predichasEnJornada}/${totalEnJornada} partidos predichos`}
             </p>
             <span style={{
               fontFamily: 'var(--font-display)',
               fontSize: '1.2rem',
-              color: jornadaCompleta ? 'var(--ex)' : 'var(--accent-gold)',
+              color: puedePublicar ? 'var(--ex)' : 'var(--accent-gold)',
               lineHeight: 1,
             }}>
               {porcentaje}%
@@ -1143,14 +1162,27 @@ export default function PrediccionesPage() {
               animate={{ width: `${porcentaje}%` }}
               transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
               style={{
-                background: jornadaCompleta
+                background: puedePublicar
                   ? 'var(--ex)'
                   : 'var(--br)',
               }}
             />
           </div>
 
-          {(jornada !== 6 || TEMPORADA_ACTIVA === 'ligamx2026') && jornadaCompleta && !publicado && (
+          {(jornada !== 6 || TEMPORADA_ACTIVA === 'ligamx2026') && jornadaCompleta && !pasesCompletos && (
+            <div className="pt-1">
+              <p className="text-[11px] text-center font-semibold" style={{ color: 'var(--fl)' }}>
+                Te falta elegir quién pasa en: {detalleFaltanPases}
+              </p>
+              {publicado && (
+                <p className="text-[10px] text-center mt-1" style={{ color: 'var(--text-secondary)' }}>
+                  Tu quiniela ya está publicada; completa el pase en esos partidos.
+                </p>
+              )}
+            </div>
+          )}
+
+          {(jornada !== 6 || TEMPORADA_ACTIVA === 'ligamx2026') && puedePublicar && !publicado && (
             <div className="pt-1 space-y-2">
               <motion.button
                 whileTap={{ scale: 0.97 }}
@@ -1167,7 +1199,7 @@ export default function PrediccionesPage() {
             </div>
           )}
 
-          {(jornada !== 6 || TEMPORADA_ACTIVA === 'ligamx2026') && jornadaCompleta && publicado && (
+          {(jornada !== 6 || TEMPORADA_ACTIVA === 'ligamx2026') && jornadaCompleta && publicado && pasesCompletos && (
             <div>
               <p className="text-xs" style={{ color: 'var(--ex)' }}>
                 Tus predicciones ya son visibles para todos ✓
@@ -1612,7 +1644,13 @@ export default function PrediccionesPage() {
           )}
 
           {/* ── Botón publicar bottom ── */}
-          {(jornada !== 6 || TEMPORADA_ACTIVA === 'ligamx2026') && jornadaCompleta && !publicado && (
+          {(jornada !== 6 || TEMPORADA_ACTIVA === 'ligamx2026') && jornadaCompleta && !pasesCompletos && (
+            <p className="text-[11px] text-center font-semibold mt-2" style={{ color: 'var(--fl)' }}>
+              Te falta elegir quién pasa en: {detalleFaltanPases}
+            </p>
+          )}
+
+          {(jornada !== 6 || TEMPORADA_ACTIVA === 'ligamx2026') && puedePublicar && !publicado && (
             <motion.button
               whileTap={{ scale: 0.97 }}
               onClick={handlePublicar}
@@ -1628,7 +1666,7 @@ export default function PrediccionesPage() {
             </motion.button>
           )}
 
-          {(jornada !== 6 || TEMPORADA_ACTIVA === 'ligamx2026') && jornadaCompleta && publicado && (
+          {(jornada !== 6 || TEMPORADA_ACTIVA === 'ligamx2026') && puedePublicar && publicado && (
             <div
               className="w-full py-4 rounded-xl text-center font-bold text-base mt-2"
               style={{ background: 'color-mix(in srgb, var(--ex) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--ex) 22%, transparent)', color: 'var(--ex)', fontFamily: 'var(--font-sans)' }}

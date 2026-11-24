@@ -144,6 +144,10 @@ export default function PrediccionForm({
       toast.error('Debes seleccionar quién gana y cómo termina el partido');
       return;
     }
+    if (esLiguillaVuelta && !clasificadoPred) {
+      toast.error('Elige quién pasa a semifinales para guardar este pronóstico');
+      return;
+    }
     setLoading(true);
 
     if (onGuardadoBorrador) {
@@ -176,6 +180,25 @@ export default function PrediccionForm({
       ? basePartQuery.is('quiniela_extra_id', null).maybeSingle()
       : basePartQuery.eq('quiniela_extra_id', quinielaExtraId).maybeSingle());
 
+    // La participación se asegura ANTES del pronóstico: si no existe, se crea.
+    // Así el insert del pronóstico nunca queda sin su participación.
+    if (!participacion) {
+      const { error: errorParticipacion } = await supabase.from('quiniela_participaciones').insert({
+        user_id:           userId,
+        jornada:           baseJornada,
+        pagado:            false,
+        publicado:         false,
+        monto:             getMontoJornada(baseJornada),
+        quiniela_extra_id: quinielaExtraId,
+        temporada:         TEMPORADA_ACTIVA,
+      }, { count: 'none' });
+      if (errorParticipacion) {
+        setLoading(false);
+        toast.error('Error al crear participación: ' + errorParticipacion.message);
+        return;
+      }
+    }
+
     const predPayload = {
       goles_local_pred:     local,
       goles_visitante_pred: visita,
@@ -205,26 +228,8 @@ export default function PrediccionForm({
 
     if (error) {
       setLoading(false);
-      toast.error('Error al guardar predicción');
+      toast.error('Error al guardar predicción: ' + error.message);
       return;
-    }
-
-    // La participación se crea SOLO al guardar el primer pronóstico de la jornada.
-    if (!participacion) {
-      const { error: errorParticipacion } = await supabase.from('quiniela_participaciones').insert({
-        user_id:           userId,
-        jornada:           baseJornada,
-        pagado:            false,
-        monto:             getMontoJornada(baseJornada),
-        quiniela_extra_id: quinielaExtraId,
-        temporada:         TEMPORADA_ACTIVA,
-      }, { count: 'none' });
-      if (errorParticipacion) {
-        setLoading(false);
-        toast.error('Predicción guardada, pero no se pudo crear la participación. Vuelve a guardar para reintentar.');
-        onGuardado();
-        return;
-      }
     }
 
     const { data: partidosJornada } = await supabase
@@ -383,7 +388,7 @@ export default function PrediccionForm({
                   ¿Quién pasa a semifinales?
                 </p>
                 <p className="text-[10px] text-center" style={{ color: 'var(--mut)' }}>
-                  Opcional · +2 pts si aciertas al que avanza en el global
+                  Obligatorio · +2 pts si aciertas al que avanza en el global
                 </p>
                 <div className="flex gap-2">
                   {equiposParaClasificar.map((equipo) => (
