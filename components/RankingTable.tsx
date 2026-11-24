@@ -53,7 +53,15 @@ export default function RankingTable({ ranking, userId, pendienteIds, jornada }:
           {[top3[1], top3[0], top3[2]].filter(Boolean).map((entry, visualIdx) => {
             const realIdx = entry === top3[0] ? 0 : entry === top3[1] ? 1 : 2;
             const lider = realIdx === 0;
-            const alto  = [56, 88, 40][realIdx];
+            // Colores de medalla, discretos sobre el fondo crema.
+            const medalla = realIdx === 0
+              ? { fondo: '#C9A44C', texto: '#2B1D00' } // oro
+              : realIdx === 1
+              ? { fondo: '#BFC3C7', texto: '#262421' } // plata
+              : { fondo: '#B0764A', texto: '#FFF8EC' }; // bronce
+            const alto = realIdx === 0 ? 96 : realIdx === 1 ? 64 : 44;
+            const tamNumero = realIdx === 0 ? 40 : realIdx === 1 ? 28 : 24;
+            const tamPuntos = realIdx === 0 ? 36 : realIdx === 1 ? 28 : 24;
             return (
               <div key={entry.id}
                 className="flex-1 flex flex-col items-center min-w-0"
@@ -73,7 +81,7 @@ export default function RankingTable({ ranking, userId, pendienteIds, jornada }:
                     {entry.jugador.quiniela_nombre}
                   </span>
                 )}
-                <p className="font-display mt-1" style={{ fontSize: lider ? 34 : 26, color: 'var(--ink)', lineHeight: 1 }}>
+                <p className="font-display mt-1" style={{ fontSize: tamPuntos, color: 'var(--ink)', lineHeight: 1 }}>
                   {entry.puntos_total}<span className="text-[13px] ml-1 normal-case font-sans font-semibold" style={{ color: 'var(--mut)' }}>pts</span>
                 </p>
                 {!esJornadaAlta && <p className="text-[12px]" style={{ color: 'var(--mut)' }}>{entry.exactos} exacto{entry.exactos !== 1 ? 's' : ''}</p>}
@@ -95,7 +103,7 @@ export default function RankingTable({ ranking, userId, pendienteIds, jornada }:
                   )}
                 </div>
                 <div className="w-full mt-2 flex items-start justify-center rounded-t-[12px] font-display pt-1.5"
-                  style={{ height: alto, background: lider ? 'var(--br)' : 'var(--sf2)', color: lider ? 'var(--brI)' : 'var(--ink2)', fontSize: lider ? 36 : 26, lineHeight: 1 }}>
+                  style={{ height: alto, background: medalla.fondo, color: medalla.texto, fontSize: tamNumero, lineHeight: 1 }}>
                   {realIdx + 1}
                 </div>
               </div>
