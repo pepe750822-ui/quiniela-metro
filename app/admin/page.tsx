@@ -693,13 +693,22 @@ export default function AdminPage() {
   const handleConfirmarPago = async (p: ParticipacionConNombre) => {
     setConfirmando(p.id);
 
-    // Marcar como pagado
-    const { error: e1 } = await supabase
+    // Marcar como pagado SOLO si seguía pendiente. Así un doble clic no
+    // incrementa el pozo dos veces.
+    const { data: actualizadas, error: e1 } = await supabase
       .from('quiniela_participaciones')
       .update({ pagado: true, pagado_at: new Date().toISOString() })
-      .eq('id', p.id);
+      .eq('id', p.id)
+      .eq('pagado', false)
+      .select('id');
 
-    if (e1) { toast.error('Error al confirmar pago'); setConfirmando(null); return; }
+    if (e1) { toast.error('Error al confirmar pago: ' + e1.message); setConfirmando(null); return; }
+
+    if (!actualizadas || actualizadas.length === 0) {
+      setConfirmando(null);
+      toast.info('Ese pago ya estaba confirmado');
+      return;
+    }
 
     // Incrementar pozo
     const pozo = pozos.find(pz => pz.jornada === p.jornada);
@@ -1334,6 +1343,24 @@ export default function AdminPage() {
 
   const liguillaPartidos = partidos.filter(p => p.grupo === 'LIGUILLA');
 
+  // El encabezado debe sumar participaciones pagadas reales, no el contador
+  // almacenado del pozo (J15 quedó con +1 por una confirmación repetida).
+  const j15PagadasConPrediccion = participaciones.filter(
+    p => p.jornada === JORNADA_CHAMPIONS_LIGUILLA && p.pagado && p.tienePrediccion
+  ).length;
+  const totalPozosMxn = pozos.reduce(
+    (s, p) => s + (p.jornada === JORNADA_CHAMPIONS_LIGUILLA
+      ? j15PagadasConPrediccion * getMontoJornada(JORNADA_CHAMPIONS_LIGUILLA)
+      : (p.total_mxn ?? 0)),
+    0
+  );
+  const totalPozosParticipantes = pozos.reduce(
+    (s, p) => s + (p.jornada === JORNADA_CHAMPIONS_LIGUILLA
+      ? j15PagadasConPrediccion
+      : (p.participantes ?? 0)),
+    0
+  );
+
   if (loading) return (
     <div className="flex justify-center py-20">
       <div className="h-8 w-8 border-2 border-t-transparent rounded-full animate-spin"
@@ -1680,7 +1707,7 @@ export default function AdminPage() {
           className="w-full flex items-center justify-between px-4 py-4 rounded-xl hover:border-orange-500/30 transition-all"
           style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
           <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', color: 'var(--accent-gold)' }}>
-            🏆 POZOS — ${pozos.reduce((s, p) => s + (p.total_mxn ?? 0), 0)} MXN · {pozos.reduce((s, p) => s + (p.participantes ?? 0), 0)} participantes
+            🏆 POZOS — ${totalPozosMxn} MXN · {totalPozosParticipantes} participantes
           </span>
           <span style={{ color: 'var(--mut)' }}>{seccionesAbiertas.pozos ? '▲' : '▼'}</span>
         </button>

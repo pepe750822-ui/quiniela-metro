@@ -675,12 +675,28 @@ export default function DashboardPage() {
       }
     });
 
-    supabase
-      .from('quiniela_pozo')
-      .select('*')
-      .eq('temporada', TEMPORADA_ACTIVA)
-      .order('jornada')
-      .then(({ data }) => setPozos((data as Pozo[]) ?? []));
+    (async () => {
+      const { data } = await supabase
+        .from('quiniela_pozo')
+        .select('*')
+        .eq('temporada', TEMPORADA_ACTIVA)
+        .order('jornada');
+      let lista = (data as Pozo[]) ?? [];
+      // J15: mostrar participaciones pagadas reales, no el contador almacenado
+      // (que quedó con +1 por una confirmación repetida).
+      const { count } = await supabase
+        .from('quiniela_participaciones')
+        .select('*', { count: 'exact', head: true })
+        .eq('temporada', TEMPORADA_ACTIVA)
+        .eq('jornada', JORNADA_CHAMPIONS_LIGUILLA)
+        .eq('pagado', true);
+      if (count !== null) {
+        lista = lista.map(p => p.jornada === JORNADA_CHAMPIONS_LIGUILLA
+          ? { ...p, participantes: count, total_mxn: count * getMontoJornada(JORNADA_CHAMPIONS_LIGUILLA) }
+          : p);
+      }
+      setPozos(lista);
+    })();
 
     supabase
       .from('quiniela_participaciones')

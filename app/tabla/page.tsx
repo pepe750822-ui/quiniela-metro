@@ -377,7 +377,9 @@ export default function TablaPage() {
     setParticipaciones(participacionesConPrediccion);
     setJugadores(jugs || []);
     setPredicciones(allPreds);
-    setPozoParticipantes(pozoDat?.participantes ?? null);
+    // El pozo debe contar participaciones pagadas con pronóstico, no el contador
+    // almacenado (que puede haberse incrementado dos veces por una confirmación repetida).
+    setPozoParticipantes(participacionesConPrediccion.length);
     setCampeonJ6Declarado(pozoDat?.campeon_j6 ?? null);
     if (acertosNuevos) {
       setAcertosLc(acertosNuevos);
