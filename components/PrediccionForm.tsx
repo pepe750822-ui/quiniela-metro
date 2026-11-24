@@ -223,6 +223,7 @@ export default function PrediccionForm({
           user_id:           userId,
           partido_id:        partido.id,
           quiniela_extra_id: quinielaExtraId || null,
+          publicado:         false,
           ...predPayload,
         });
 
